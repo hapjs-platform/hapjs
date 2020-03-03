@@ -194,6 +194,11 @@ public class Image extends Component<FlexImageView> implements Autoplay {
      * @param nightMode current mode
      */
     public void setNightMode(ImageView imageView, boolean nightMode) {
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        if (sysOpProvider != null && sysOpProvider.handleImageForceDark(imageView, mEnableNightMode)) {
+            return;
+        }
+
         if (imageView == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             return;
         }
@@ -203,9 +208,8 @@ public class Image extends Component<FlexImageView> implements Autoplay {
             imageView.clearColorFilter();
             return;
         }
-        // close the default global color filter
-        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
-        if (sysOpProvider.isCloseGlobalDefaultNightMode()) {
+        //close the default global color filter
+        if (sysOpProvider != null && sysOpProvider.isCloseGlobalDefaultNightMode()) {
             imageView.clearColorFilter();
             return;
         }

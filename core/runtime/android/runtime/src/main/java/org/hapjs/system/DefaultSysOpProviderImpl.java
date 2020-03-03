@@ -24,6 +24,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+
 import androidx.appcompat.widget.Toolbar;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -385,6 +387,11 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
 
     @Override
     public boolean isCloseGlobalDefaultNightMode() {
+        return false;
+    }
+
+    @Override
+    public <T extends ImageView> boolean handleImageForceDark(T hostView, boolean forceDark) {
         return false;
     }
 

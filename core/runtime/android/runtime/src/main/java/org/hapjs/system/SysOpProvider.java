@@ -12,6 +12,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.view.View;
 import android.view.Window;
+import android.widget.ImageView;
+
 import androidx.appcompat.widget.Toolbar;
 import java.util.HashMap;
 import java.util.List;
@@ -114,6 +116,8 @@ public interface SysOpProvider {
     boolean isCloseGlobalDefaultNightMode();
 
     boolean allowNightModeInAndroidVersion();
+
+    <T extends ImageView> boolean handleImageForceDark(T hostView, boolean forceDark);
 
     boolean isAllowProfiler();
 
