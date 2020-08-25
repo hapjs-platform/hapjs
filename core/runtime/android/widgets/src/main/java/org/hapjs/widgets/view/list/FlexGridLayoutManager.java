@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +21,7 @@ import org.hapjs.component.utils.YogaUtil;
 import org.hapjs.component.view.YogaLayout;
 
 public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayoutManager {
+
     public static final int DEFAULT_COLUMN_COUNT = 1;
 
     private boolean mScrollPage;
@@ -30,7 +31,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     private int[] mMeasuredDimension = new int[2];
     private int mHeight;
 
-    private FlexRecyclerView mFlexRecyclerView;
+    private RecyclerViewAdapter mRecyclerViewAdapter;
     private RecyclerView.Recycler mRecycler;
     private ViewGroup mParent;
 
@@ -38,8 +39,9 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     private boolean mIsUseCacheItem = false;
     private boolean mIsSelfReset = true;
 
-    public FlexGridLayoutManager(Context context) {
+    public FlexGridLayoutManager(Context context, RecyclerViewAdapter recyclerView) {
         super(context, DEFAULT_COLUMN_COUNT);
+        mRecyclerViewAdapter = recyclerView;
     }
 
     @Override
@@ -52,11 +54,11 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
             RecyclerView.Recycler recycler, RecyclerView.State state, int widthSpec,
             int heightSpec) {
         mRecycler = recycler;
-        YogaNode node = YogaUtil.getYogaNode(mFlexRecyclerView);
+        YogaNode node = YogaUtil.getYogaNode(mRecyclerViewAdapter.getActualRecyclerView());
 
         int maxHeight = 0;
         if (mScrollPage) {
-            View moveableView = mFlexRecyclerView.getMoveableView();
+            View moveableView = mRecyclerViewAdapter.getMoveableView();
             maxHeight =
                     (moveableView == null)
                             ? 0
@@ -161,7 +163,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         setYogaHeight(height);
         if (node != null) {
             node.dirty();
-            mFlexRecyclerView.setDirty(true);
+            mRecyclerViewAdapter.setDirty(true);
         }
 
         mHeight = height;
@@ -194,20 +196,20 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     private void preMeasureHeight() {
         if (getOrientation() == HORIZONTAL
                 || mRecycler == null
-                || mFlexRecyclerView == null
+                || mRecyclerViewAdapter == null
                 || getStateItemCount() == 0) {
             return;
         }
 
         if (mParent == null) {
-            mParent = (ViewGroup) mFlexRecyclerView.getParent();
+            mParent = (ViewGroup) mRecyclerViewAdapter.getActualRecyclerView().getParent();
         }
         if (mParent == null) {
             return;
         }
 
         if (mScrollPage) {
-            final View moveableView = mFlexRecyclerView.getMoveableView();
+            final View moveableView = mRecyclerViewAdapter.getMoveableView();
             int maxHeight =
                     moveableView.getMeasuredHeight()
                             - moveableView.getPaddingTop()
@@ -251,7 +253,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         } else {
             if (mParent instanceof YogaLayout) {
                 YogaLayout yogaParent = (YogaLayout) mParent;
-                YogaNode recyclerNode = yogaParent.getYogaNodeForView(mFlexRecyclerView);
+                YogaNode recyclerNode = yogaParent.getYogaNodeForView(mRecyclerViewAdapter.getActualRecyclerView());
                 recyclerNode.setWidth(YogaConstants.UNDEFINED);
                 recyclerNode.setHeight(YogaConstants.UNDEFINED);
             }
@@ -259,11 +261,11 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     }
 
     private void setYogaHeight(int height) {
-        mParent = (ViewGroup) mFlexRecyclerView.getParent();
+        mParent = (ViewGroup) mRecyclerViewAdapter.getActualRecyclerView().getParent();
 
         if (mParent instanceof YogaLayout) {
             YogaLayout parentView = (YogaLayout) mParent;
-            YogaNode recyclerNode = parentView.getYogaNodeForView(mFlexRecyclerView);
+            YogaNode recyclerNode = parentView.getYogaNodeForView(mRecyclerViewAdapter.getActualRecyclerView());
             recyclerNode.setHeight(height);
         }
     }
@@ -291,13 +293,13 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     }
 
     @Override
-    public FlexRecyclerView getFlexRecyclerView() {
-        return mFlexRecyclerView;
+    public RecyclerViewAdapter getFlexRecyclerView() {
+        return mRecyclerViewAdapter;
     }
 
     @Override
-    public void setFlexRecyclerView(FlexRecyclerView flexRecyclerView) {
-        mFlexRecyclerView = flexRecyclerView;
+    public void setFlexRecyclerView(RecyclerViewAdapter flexRecyclerView) {
+        mRecyclerViewAdapter = flexRecyclerView;
     }
 
     @Override
@@ -318,8 +320,8 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
             preMeasureHeight();
 
             // remeasure when scrollpage attribute changed.
-            mFlexRecyclerView.resumeRequestLayout();
-            mFlexRecyclerView.requestLayout();
+            mRecyclerViewAdapter.resumeRequestLayout();
+            mRecyclerViewAdapter.requestLayout();
         }
     }
 
@@ -390,8 +392,8 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
 
     @Override
     public int getStateItemCount() {
-        if (mFlexRecyclerView != null) {
-            return mFlexRecyclerView.getState().getItemCount();
+        if (mRecyclerViewAdapter != null) {
+            return mRecyclerViewAdapter.getState().getItemCount();
         }
         return 0;
     }
@@ -452,5 +454,9 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     public void setIsUseCacheItem(boolean isUseCacheItem, boolean isSelfReset) {
         mIsUseCacheItem = isUseCacheItem;
         mIsSelfReset = isSelfReset;
+    }
+
+    public RecyclerView.LayoutManager getActualLayoutManager() {
+        return this;
     }
 }

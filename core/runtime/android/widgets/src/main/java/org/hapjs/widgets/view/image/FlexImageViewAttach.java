@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import androidx.recyclerview.widget.FlexRecyclerView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 import com.facebook.common.memory.PooledByteBuffer;
@@ -208,8 +207,8 @@ public class FlexImageViewAttach {
             if (mScrollViewListener != null) {
                 ((ScrollView) scrollableView).removeScrollViewListener(mScrollViewListener);
             }
-        } else if (scrollableView instanceof FlexRecyclerView) {
-            ((FlexRecyclerView) scrollableView).removeOnScrollListener(mRecyclerViewScrollListener);
+        } else if (scrollableView instanceof RecyclerView) {
+            ((RecyclerView) scrollableView).removeOnScrollListener(mRecyclerViewScrollListener);
         }
 
         ViewPager viewPager = getViewPager();
@@ -312,7 +311,7 @@ public class FlexImageViewAttach {
             return null;
         }
         ViewParent parent = view.getParent();
-        if (parent instanceof ScrollView || parent instanceof FlexRecyclerView) {
+        if (parent instanceof ScrollView || parent instanceof RecyclerView) {
             return (ViewGroup) parent;
         }
         for (; ; ) {
@@ -320,7 +319,7 @@ public class FlexImageViewAttach {
                 return null;
             }
             parent = parent.getParent();
-            if (parent instanceof ScrollView || parent instanceof FlexRecyclerView) {
+            if (parent instanceof ScrollView || parent instanceof RecyclerView) {
                 return (ViewGroup) parent;
             }
         }

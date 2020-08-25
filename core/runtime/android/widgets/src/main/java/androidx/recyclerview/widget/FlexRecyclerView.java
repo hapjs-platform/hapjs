@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,9 +27,10 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.widgets.view.list.FlexLayoutManager;
 import org.hapjs.widgets.view.utils.ScrollableViewUtil;
+import org.hapjs.widgets.view.list.RecyclerViewAdapter;
 
 public class FlexRecyclerView extends RecyclerView
-        implements ComponentHost, NestedScrollingView, GestureHost {
+        implements ComponentHost, NestedScrollingView, GestureHost, RecyclerViewAdapter {
 
     private final Map<Integer, Integer> mChildrenHeightMap = new HashMap<>();
     SwipeDelegate mCurrentSwipeDelegate = null;
@@ -61,6 +62,7 @@ public class FlexRecyclerView extends RecyclerView
         mComponent = component;
     }
 
+    @Override
     public View getMoveableView() {
         return mMoveableView;
     }
@@ -220,6 +222,12 @@ public class FlexRecyclerView extends RecyclerView
         super.absorbGlows(velocityX, velocityX);
     }
 
+    @Override
+    public RecyclerView getActualRecyclerView() {
+        return this;
+    }
+
+    @Override
     public void setScrollPage(boolean scrollPage) {
         if (mMoveableView == null) {
             return;
@@ -273,10 +281,12 @@ public class FlexRecyclerView extends RecyclerView
         }
     }
 
+    @Override
     public void resumeRequestLayout() {
         stopInterceptRequestLayout(false);
     }
 
+    @Override
     public void setDirty(boolean dirty) {
         mDirty = dirty;
     }
