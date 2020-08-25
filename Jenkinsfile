@@ -15,7 +15,8 @@ pipeline {
                 sh 'git clean -xdf'
                 sh 'git tag -d $(git tag)'
                 sh 'git log -6 --oneline'
-                sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon clean assembleDebug assembleRelease'
+                sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon clean assemblePhoneDebug assemblePhoneRelease'
+                sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon clean assembleTvDebug assembleTvRelease'
                 archiveArtifacts 'mockup/platform/android/app/build/outputs/apk/**'
             }
         }
@@ -27,7 +28,7 @@ pipeline {
         }
         stage('Quality Check') {
             steps {
-                sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon spotbugs lintPhoneDebug lintTvDebug'
+                sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon spotbugs clean lintPhoneDebug lintTvDebug'
             }
         }
         stage('Analysis Report') {

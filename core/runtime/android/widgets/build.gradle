@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,7 +18,10 @@ dependencies {
     api "com.google.android.exoplayer:exoplayer-dash:${rootProject.exoplayerVersion}"
     api "com.google.android.exoplayer:exoplayer-hls:${rootProject.exoplayerVersion}"
 
+    tvApi "androidx.leanback:leanback:1.0.0"
+
     androidTestImplementation project(':runtime')
+
 }
 
 android {
