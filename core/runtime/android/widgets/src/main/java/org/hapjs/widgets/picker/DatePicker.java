@@ -6,8 +6,8 @@
 package org.hapjs.widgets.picker;
 
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -39,17 +39,21 @@ import org.hapjs.widgets.view.text.TextLayoutView;
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT
         })
 public class DatePicker extends Picker {
-    protected static final String TYPE_DATE = "date";
+
+    public static final String TYPE_DATE = "date";
+
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final String MIN_DATE = "1970-01-01";
     private static final String MAX_DATE = "2100-12-31";
     private static final String TAG = "DatePicker";
     private SimpleDateFormat mDateFormat;
-
-    private DatePickerDialog.OnDateSetListener mOnDateSetListener;
-    private long mMinDate;
-    private long mMaxDate;
+    private OnDateSelectListener mOnDateSelectListener;
     private Date mSelectedDate;
+
+    protected Dialog mDialog;
+    protected Calendar mCalendar;
+    protected long mMinDate;
+    protected long mMaxDate;
 
     public DatePicker(
             HapEngine hapEngine,
@@ -59,7 +63,6 @@ public class DatePicker extends Picker {
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
-
         mDateFormat = new SimpleDateFormat(DATE_PATTERN, Locale.getDefault());
         mDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
@@ -79,27 +82,9 @@ public class DatePicker extends Picker {
 
     @Override
     public void show() {
-        Calendar c = Calendar.getInstance();
-        if (mSelectedDate != null) {
-            c.setTime(mSelectedDate);
+        if (isShowing()) {
+            mDialog.dismiss();
         }
-        DatePickerDialog dialog =
-                new DatePickerDialog(
-                        mContext,
-                        getTheme(),
-                        mOnDateSetListener,
-                        c.get(Calendar.YEAR),
-                        c.get(Calendar.MONTH),
-                        c.get(Calendar.DAY_OF_MONTH));
-        dialog.setOnCancelListener(
-                new DialogInterface.OnCancelListener() {
-
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        cancelCallBack();
-                    }
-                });
-        android.widget.DatePicker datePicker = dialog.getDatePicker();
         // check value
         if (mMinDate > mMaxDate) {
             mCallback.onJsException(
@@ -107,21 +92,44 @@ public class DatePicker extends Picker {
                             "start date must be less than or equal to end date"));
             return;
         }
+        configCalendar();
+
+        mDialog = createDialog(mOnDateSelectListener);
+        mDialog.setOnCancelListener(dialog -> cancelCallBack());
+        mDialog.show();
+    }
+
+    @Override
+    protected boolean isShowing() {
+        return mDialog != null && mDialog.isShowing();
+    }
+
+    private void configCalendar() {
+        mCalendar = Calendar.getInstance();
+        if (mSelectedDate != null) {
+            mCalendar.setTime(mSelectedDate);
+        }
+    }
+
+    protected Dialog createDialog(OnDateSelectListener onDateSelectListener) {
+        DatePickerDialog.OnDateSetListener onDateSetListener = (view, year, month, dayOfMonth) -> {
+            if (onDateSelectListener != null) {
+                onDateSelectListener.onDateSelected(year, month, dayOfMonth);
+            }
+        };
+        DatePickerDialog dialog = new DatePickerDialog(mContext, getTheme(), onDateSetListener,
+                mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH));
+        android.widget.DatePicker datePicker = dialog.getDatePicker();
         datePicker.setMinDate(mMinDate);
         datePicker.setMaxDate(mMaxDate);
-        dialog.show();
+
+        return dialog;
     }
 
     @Override
     protected TextLayoutView createViewImpl() {
         TextLayoutView textView = super.createViewImpl();
-        textView.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        show();
-                    }
-                });
+        textView.setOnClickListener(v -> show());
 
         return textView;
     }
@@ -202,22 +210,17 @@ public class DatePicker extends Picker {
             return true;
         }
         if (Attributes.Event.CHANGE.equals(event)) {
-            mOnDateSetListener =
-                    new DatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(
-                                android.widget.DatePicker view, int year, int month,
-                                int dayOfMonth) {
-                            setSelectedDate(year + "-" + (month + 1) + "-" + dayOfMonth);
-                            Map<String, Object> params = new HashMap<>();
-                            params.put("year", year);
-                            params.put("month", month);
-                            params.put("day", dayOfMonth);
-                            mCallback.onJsEventCallback(
-                                    getPageId(), mRef, Attributes.Event.CHANGE, DatePicker.this,
-                                    params, null);
-                        }
-                    };
+            mOnDateSelectListener = (year, month, dayOfMonth) -> {
+                setSelectedDate(year + "-" + (month + 1) + "-" + dayOfMonth);
+                Map<String, Object> params = new HashMap<>();
+                params.put("year", year);
+                params.put("month", month);
+                params.put("day", dayOfMonth);
+                mCallback.onJsEventCallback(
+                        getPageId(), mRef, Attributes.Event.CHANGE, DatePicker.this,
+                        params, null);
+            };
+
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
         }
@@ -232,11 +235,15 @@ public class DatePicker extends Picker {
         }
 
         if (Attributes.Event.CHANGE.equals(event)) {
-            mOnDateSetListener = null;
+            mOnDateSelectListener = null;
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
         }
 
         return super.removeEvent(event);
+    }
+
+    public interface OnDateSelectListener {
+        void onDateSelected(int year, int month, int dayOfMonth);
     }
 }

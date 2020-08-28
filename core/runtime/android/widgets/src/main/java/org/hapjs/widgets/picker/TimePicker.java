@@ -6,24 +6,24 @@
 package org.hapjs.widgets.picker;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.text.TextUtils;
-import android.view.View;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+
 import org.hapjs.bridge.annotation.TypeAnnotation;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
-import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.text.TextLayoutView;
@@ -40,13 +40,14 @@ import org.hapjs.widgets.view.text.TextLayoutView;
         })
 public class TimePicker extends Picker {
 
-    protected static final String TYPE_TIME = "time";
+    public static final String TYPE_TIME = "time";
 
-    private static final String TIME_PICKER = "HH:mm";
-
-    private TimePickerDialog.OnTimeSetListener mOnTimeSetListener;
+    private static final String TIME_PATTERN = "HH:mm";
+    protected OnTimeSelectListener mOnTimeSelectListener;
     private Date mSelectedTime;
-    private TimePickerDialog mDialog;
+
+    protected Dialog mDialog;
+    protected Calendar mCalendar;
 
     public TimePicker(
             HapEngine hapEngine,
@@ -56,8 +57,7 @@ public class TimePicker extends Picker {
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
-        mConfigurationListener = new OnConfigurationListener(this);
-        ConfigurationManager.getInstance().addListener(mConfigurationListener);
+        setConfigurationListener();
     }
 
     @Override
@@ -65,32 +65,38 @@ public class TimePicker extends Picker {
         if (isShowing()) {
             mDialog.dismiss();
         }
+        configCalendar();
 
-        Calendar c = Calendar.getInstance();
+        mDialog = createDialog(mOnTimeSelectListener);
+        mDialog.setOnCancelListener(dialog -> cancelCallBack());
+        mDialog.show();
+    }
+
+    private void configCalendar() {
+        mCalendar = Calendar.getInstance();
         if (mSelectedTime != null) {
-            c.setTime(mSelectedTime);
+            mCalendar.setTime(mSelectedTime);
         }
+    }
+
+    protected Dialog createDialog(OnTimeSelectListener onTimeSelectListener) {
+        TimePickerDialog.OnTimeSetListener onTimeSetListener = (view, hour, minute) -> {
+            if (onTimeSelectListener != null) {
+                onTimeSelectListener.onTimeSelected(hour, minute);
+            }
+        };
+
         int themeRes = getTheme();
         if (themeRes == 0 && DarkThemeUtil.isDarkMode(mContext)) {
             themeRes = AlertDialog.THEME_DEVICE_DEFAULT_DARK;
         }
-        mDialog =
-                new TimePickerDialog(
-                        mContext,
-                        themeRes,
-                        mOnTimeSetListener,
-                        c.get(Calendar.HOUR_OF_DAY),
-                        c.get(Calendar.MINUTE),
-                        true);
-        mDialog.setOnCancelListener(
-                new DialogInterface.OnCancelListener() {
-
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        cancelCallBack();
-                    }
-                });
-        mDialog.show();
+        return new TimePickerDialog(
+                mContext,
+                themeRes,
+                onTimeSetListener,
+                mCalendar.get(Calendar.HOUR_OF_DAY),
+                mCalendar.get(Calendar.MINUTE),
+                true);
     }
 
     @Override
@@ -101,26 +107,17 @@ public class TimePicker extends Picker {
     @Override
     protected TextLayoutView createViewImpl() {
         TextLayoutView textView = super.createViewImpl();
-        textView.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        show();
-                    }
-                });
+        textView.setOnClickListener(v -> show());
 
         return textView;
     }
 
     @Override
     protected boolean setAttribute(String key, Object attribute) {
-        switch (key) {
-            case Attributes.Style.SELECTED:
-                String selectedTime = Attributes.getString(attribute);
-                setSelectedTime(selectedTime);
-                return true;
-            default:
-                break;
+        if (Attributes.Style.SELECTED.equals(key)) {
+            String selectedTime = Attributes.getString(attribute);
+            setSelectedTime(selectedTime);
+            return true;
         }
 
         return super.setAttribute(key, attribute);
@@ -133,7 +130,7 @@ public class TimePicker extends Picker {
         }
 
         try {
-            mSelectedTime = (new SimpleDateFormat(TIME_PICKER)).parse(selectedTime);
+            mSelectedTime = new SimpleDateFormat(TIME_PATTERN, Locale.getDefault()).parse(selectedTime);
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -145,20 +142,15 @@ public class TimePicker extends Picker {
             return true;
         }
         if (Attributes.Event.CHANGE.equals(event)) {
-            mOnTimeSetListener =
-                    new TimePickerDialog.OnTimeSetListener() {
-                        @Override
-                        public void onTimeSet(android.widget.TimePicker view, int hour,
-                                              int minute) {
-                            setSelectedTime(hour + ":" + minute);
-                            Map<String, Object> params = new HashMap<>();
-                            params.put("hour", hour);
-                            params.put("minute", minute);
-                            mCallback.onJsEventCallback(
-                                    getPageId(), mRef, Attributes.Event.CHANGE, TimePicker.this,
-                                    params, null);
-                        }
-                    };
+            mOnTimeSelectListener = (hour, minute) -> {
+                setSelectedTime(hour + ":" + minute);
+                Map<String, Object> params = new HashMap<>();
+                params.put("hour", hour);
+                params.put("minute", minute);
+                mCallback.onJsEventCallback(
+                        getPageId(), mRef, Attributes.Event.CHANGE, TimePicker.this,
+                        params, null);
+            };
             return true;
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
@@ -174,12 +166,16 @@ public class TimePicker extends Picker {
         }
 
         if (Attributes.Event.CHANGE.equals(event)) {
-            mOnTimeSetListener = null;
+            mOnTimeSelectListener = null;
             return true;
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
         }
 
         return super.removeEvent(event);
+    }
+
+    public interface OnTimeSelectListener {
+        void onTimeSelected(int hour, int minute);
     }
 }
