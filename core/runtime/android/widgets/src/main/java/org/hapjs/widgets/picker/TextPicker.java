@@ -8,7 +8,6 @@ package org.hapjs.widgets.picker;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.NumberPicker;
@@ -37,13 +36,15 @@ import org.json.JSONException;
         })
 public class TextPicker extends Picker {
 
-    protected static final String TYPE_TEXT = "text";
+    public static final String TYPE_TEXT = "text";
 
-    private Dialog mDialog;
     private NumberPicker mTextPicker;
-    private String[] mRange;
-    private int mSelectedIndex;
-    private NumberPicker.OnValueChangeListener mOnValueChangeListener;
+
+    protected Dialog mDialog;
+    protected String[] mRange;
+    protected int mSelectedIndex;
+    protected int mCandidateIndex;
+    protected boolean mChangeCallbackEnabled = false;
 
     public TextPicker(
             HapEngine hapEngine,
@@ -57,75 +58,69 @@ public class TextPicker extends Picker {
 
     @Override
     public void show() {
-        if (mTextPicker == null || mRange == null || mRange.length == 0) {
+        if (isShowing()) {
+            mDialog.dismiss();
+        }
+
+        if (shouldShowDialog()) {
             return;
         }
-        mTextPicker.setValue(mSelectedIndex);
-        if (mDialog == null) {
-            mDialog =
-                    new AlertDialog.Builder(mContext, getTheme())
-                            .setView(mTextPicker)
-                            .setPositiveButton(
-                                    android.R.string.ok,
-                                    new DialogInterface.OnClickListener() {
 
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            if (mOnValueChangeListener != null && mRange != null
-                                                    && mRange.length > 0) {
-                                                mSelectedIndex = Math.max(0,
-                                                        Math.min(mSelectedIndex,
-                                                                mRange.length - 1));
-                                                Map<String, Object> params = new HashMap<>();
-                                                params.put("newSelected", mSelectedIndex);
-                                                params.put("newValue", mRange[mSelectedIndex]);
-                                                Map<String, Object> attributes = new HashMap<>();
-                                                attributes.put("value", mSelectedIndex);
-                                                mCallback.onJsEventCallback(
-                                                        getPageId(),
-                                                        mRef,
-                                                        Attributes.Event.CHANGE,
-                                                        TextPicker.this,
-                                                        params,
-                                                        attributes);
-                                            }
-                                        }
-                                    })
-                            .setNegativeButton(
-                                    android.R.string.cancel,
-                                    new DialogInterface.OnClickListener() {
-
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.cancel();
-                                        }
-                                    })
-                            .setOnCancelListener(
-                                    new DialogInterface.OnCancelListener() {
-
-                                        @Override
-                                        public void onCancel(DialogInterface dialog) {
-                                            cancelCallBack();
-                                        }
-                                    })
-                            .create();
-        }
+        mDialog = createDialog();
         mDialog.show();
+    }
+
+    protected boolean shouldShowDialog() {
+        return mRange == null || mRange.length == 0;
+    }
+
+    protected Dialog createDialog() {
+        View textPicker = createPickerView();
+        return new AlertDialog.Builder(mContext, getTheme())
+                .setView(textPicker)
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    if (mChangeCallbackEnabled && mRange != null && mRange.length > 0) {
+                        changeCallback();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel())
+                .setOnCancelListener(dialog -> cancelCallBack())
+                .create();
+    }
+
+    protected View createPickerView() {
+        mTextPicker = new NumberPicker(mContext);
+        mTextPicker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+        mTextPicker.setOnValueChangedListener((picker, oldVal, newVal) -> {
+            if (mChangeCallbackEnabled) {
+                mCandidateIndex = newVal;
+            }
+        });
+        setRange(mRange);
+        setSelectedIndex(mSelectedIndex);
+        return mTextPicker;
+    }
+
+    protected void changeCallback() {
+        mSelectedIndex = Math.max(0, Math.min(mCandidateIndex, mRange.length - 1));
+        Map<String, Object> params = new HashMap<>();
+        params.put("newSelected", mSelectedIndex);
+        params.put("newValue", mRange[mSelectedIndex]);
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("value", mSelectedIndex);
+        mCallback.onJsEventCallback(getPageId(), mRef, Attributes.Event.CHANGE,
+                TextPicker.this, params, attributes);
+    }
+
+    @Override
+    protected boolean isShowing() {
+        return mDialog != null && mDialog.isShowing();
     }
 
     @Override
     protected TextLayoutView createViewImpl() {
         TextLayoutView textView = super.createViewImpl();
-        mTextPicker = new NumberPicker(mContext);
-        textView.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        show();
-                    }
-                });
-        mTextPicker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-
+        textView.setOnClickListener(v -> show());
         return textView;
     }
 
@@ -133,8 +128,7 @@ public class TextPicker extends Picker {
     protected boolean setAttribute(String key, Object attribute) {
         switch (key) {
             case Attributes.Style.RANGE:
-                String[] range = getRange(attribute);
-                setRange(range);
+                setRange(getRange(attribute));
                 return true;
             case Attributes.Style.SELECTED:
                 int selectedIndex = Attributes.getInt(mHapEngine, attribute, 0);
@@ -181,6 +175,7 @@ public class TextPicker extends Picker {
 
     public void setSelectedIndex(int selectedIndex) {
         mSelectedIndex = Math.max(0, selectedIndex);
+        mCandidateIndex = mSelectedIndex;
         if (mTextPicker != null) {
             mTextPicker.setValue(mSelectedIndex);
         }
@@ -192,16 +187,7 @@ public class TextPicker extends Picker {
             return true;
         }
         if (Attributes.Event.CHANGE.equals(event)) {
-            if (mOnValueChangeListener == null) {
-                mOnValueChangeListener =
-                        new NumberPicker.OnValueChangeListener() {
-                            @Override
-                            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-                                mSelectedIndex = newVal;
-                            }
-                        };
-            }
-            mTextPicker.setOnValueChangedListener(mOnValueChangeListener);
+            mChangeCallbackEnabled = true;
             return true;
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
@@ -217,7 +203,7 @@ public class TextPicker extends Picker {
         }
 
         if (Attributes.Event.CHANGE.equals(event)) {
-            mOnValueChangeListener = null;
+            mChangeCallbackEnabled = false;
             return true;
         } else if (Attributes.Event.CLICK.equals(event)) {
             return true;
@@ -226,7 +212,7 @@ public class TextPicker extends Picker {
         return super.removeEvent(event);
     }
 
-    private String[] getRange(Object rangeObject) {
+    protected String[] getRange(Object rangeObject) {
         if (!(rangeObject instanceof JSONArray)) {
             return null;
         }
