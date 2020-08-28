@@ -16,10 +16,11 @@ import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.text.Text;
 
-abstract class Picker extends Text {
+public abstract class Picker extends Text {
 
-    protected static final String WIDGET_NAME = "picker";
-    protected static final String METHOD_SHOW = "show";
+    public static final String WIDGET_NAME = "picker";
+    public static final String METHOD_SHOW = "show";
+
     // event
     protected static final String CANCEL = "cancel";
     private static final String KEY_TEXT = "text";
@@ -34,6 +35,12 @@ abstract class Picker extends Text {
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
+    }
+
+    protected void setConfigurationListener() {
+        if (mConfigurationListener != null) return;
+        mConfigurationListener = new OnConfigurationListener(this);
+        ConfigurationManager.getInstance().addListener(mConfigurationListener);
     }
 
     @Override
