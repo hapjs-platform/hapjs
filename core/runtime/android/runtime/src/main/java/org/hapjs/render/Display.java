@@ -1054,7 +1054,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                         if (!isConsume) {
                             if (shareStr.equals(content)) {
                                 MenubarUtils
-                                        .startShare(shareIdMap, mExtraShareData, mRootView, null);
+                                        .startShare(shareIdMap, mExtraShareData, mRootView, null, null);
                             } else if (MenubarView.MENUBAR_DIALOG_SHORTCUT_IMAGE_NAME.equals(key)) {
                                 if (mIsConfigShortCutStatus && mIsShortcutInstalled) {
                                     if (null != mMenubarView && null != mContext) {
