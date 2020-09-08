@@ -143,8 +143,8 @@ public class RootView extends FrameLayout
     protected boolean mInitialized;
     JsThread mJsThread;
     Handler mHandler = new H();
-    VDomActionApplier mVdomActionApplier = new VDomActionApplier();
-    CallingComponent mCallingComponent = new CallingComponent();
+    public VDomActionApplier mVdomActionApplier = new VDomActionApplier();
+    public CallingComponent mCallingComponent = new CallingComponent();
     List<ActivityStateListener> mActivityStateListeners = new ArrayList<>();
     private boolean mExceptionCaught;
     private AndroidViewClient mAndroidViewClient;
@@ -1581,6 +1581,10 @@ public class RootView extends FrameLayout
 
     public void setAndroidViewClient(AndroidViewClient client) {
         mAndroidViewClient = client;
+    }
+
+    public AndroidViewClient getAndroidViewClient() {
+        return mAndroidViewClient;
     }
 
     public void setLoadPageJsListener(Page.LoadPageJsListener loadPageJsListener) {

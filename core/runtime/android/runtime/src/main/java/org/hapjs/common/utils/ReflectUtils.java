@@ -7,6 +7,7 @@ package org.hapjs.common.utils;
 
 import android.text.TextUtils;
 import android.util.Log;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class ReflectUtils {
@@ -30,6 +31,39 @@ public class ReflectUtils {
             }
         } catch (Throwable throwable) {
             Log.e(TAG, "Throwable", throwable);
+        }
+        return null;
+    }
+
+    public static Object callStaticMethod(String className, String methodName, Class[] parameterTypes, Object... params) {
+        try {
+            Class clazz = Class.forName(className);
+            return callStaticMethod(clazz, methodName, parameterTypes, params);
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object callStaticMethod(Class clazz, String methodName, Class[] parameterTypes, Object... params) {
+        try {
+            Method method = clazz.getDeclaredMethod(methodName, parameterTypes);
+            method.setAccessible(true);
+            method.invoke(null, params);
+        } catch (Exception e) {
+            // ignore
+        }
+        return null;
+    }
+
+    public static Object getObjectField(Object obj, String name) {
+        try {
+            Field field = obj.getClass().getField(name);
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (Exception e) {
+            // ignore
         }
         return null;
     }

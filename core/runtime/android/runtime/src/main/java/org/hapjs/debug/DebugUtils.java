@@ -9,6 +9,11 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import org.hapjs.debug.log.DebuggerLogUtil;
+import android.text.TextUtils;
+
+import org.hapjs.analyzer.AnalyzerStatisticsManager;
+import org.hapjs.analyzer.Analyzer;
+import org.hapjs.bridge.HybridRequest;
 import org.hapjs.render.RootView;
 
 public class DebugUtils {
@@ -48,6 +53,19 @@ public class DebugUtils {
                                 traceId)
                         .toString();
         return Uri.parse(url).buildUpon().appendQueryParameter(DEBUG_PARAMS, debugParams)
+                .toString();
+    }
+
+    public static String appendAnalyzerParam(String pkg, String path, boolean useAnalyzer) {
+        if (!useAnalyzer) {
+            return path;
+        }
+        if (TextUtils.isEmpty(path) || "/".equals(path)) {
+            path = new HybridRequest.HapRequest.Builder().pkg(pkg).uri(path).build().getUri();
+        }
+        return Uri.parse(path)
+                .buildUpon()
+                .appendQueryParameter(Analyzer.USE_ANALYZER, String.valueOf(true))
                 .toString();
     }
 
@@ -104,6 +122,8 @@ public class DebugUtils {
                 DebuggerLoader.attachDebugger(context, platformVersionCode, params);
             }
         }
+        Analyzer.get().init(rootView, url);
+        AnalyzerStatisticsManager.getInstance().recordAnalyzerEvent(AnalyzerStatisticsManager.EVENT_DEBUG_APP);
         return builder.build().toString();
     }
 

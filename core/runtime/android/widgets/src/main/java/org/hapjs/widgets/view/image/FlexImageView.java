@@ -59,6 +59,8 @@ import com.facebook.imagepipeline.common.ResizeOptions;
 import com.facebook.imagepipeline.common.RotationOptions;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.facebook.imagepipeline.image.ImageInfo;
+import com.facebook.imagepipeline.listener.BaseRequestListener;
+import com.facebook.imagepipeline.listener.RequestListener;
 import com.facebook.imagepipeline.postprocessors.IterativeBoxBlurPostProcessor;
 import com.facebook.imagepipeline.request.BasePostprocessor;
 import com.facebook.imagepipeline.request.ImageRequest;
@@ -72,6 +74,10 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import org.hapjs.analyzer.model.NoticeMessage;
+import org.hapjs.analyzer.tools.AnalyzerHelper;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.BitmapUtils;
 import org.hapjs.common.utils.FloatUtil;
@@ -89,6 +95,7 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.helper.StateHelper;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.render.AutoplayManager;
+import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
@@ -144,6 +151,10 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
     private boolean mIsStartAnimation = false;
     private AutoplayManager mAutoplayManager;
     private IGesture mGesture;
+
+    private static final String DECODE_PRODUCER_NAME = "DecodeProducer";
+    private static final String ENCODE_SIZE_KEY = "encodedImageSize";
+    private static final String BITMAP_SIZE_KEY = "bitmapSize";
 
     public FlexImageView(Context context) {
         super(context, buildHierarchy(context));
@@ -620,13 +631,14 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
         doResize = doResize && (width > 0 && height > 0)
                 && mScaleType != ScalingUtils.ScaleType.CENTER;
         ResizeOptions resizeOptions = doResize ? new ResizeOptions(width, height) : null;
-
+        RequestListener requestListener = new ImageSizeDetectRequestListener();
         ImageRequest imageRequest =
                 ImageRequestBuilder.newBuilderWithSource(mSource)
                         .setPostprocessor(postprocessor)
                         .setResizeOptions(resizeOptions)
                         .setRotationOptions(RotationOptions.autoRotate())
                         .setProgressiveRenderingEnabled(mProgressiveRenderingEnabled)
+                        .setRequestListener(requestListener)
                         .build();
 
         final boolean supportLargeImage = shouldSupportLargeImage();
@@ -1383,6 +1395,46 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
                     Path.Direction.CW);
 
             canvas.drawPath(pathForBorderRadius, paint);
+        }
+    }
+
+    private class ImageSizeDetectRequestListener extends BaseRequestListener {
+        @Override
+        public void onProducerFinishWithSuccess(String requestId, String producerName, @javax.annotation.Nullable Map<String, String> extraMap) {
+            // Check if the picture is too large
+            if (AnalyzerHelper.getInstance().isInAnalyzerMode() && mSourceChanged && mSource!= null && TextUtils.equals(DECODE_PRODUCER_NAME, producerName)) {
+                if (extraMap != null && !extraMap.isEmpty()) {
+                    String encodeString = extraMap.get(ENCODE_SIZE_KEY);
+                    String bitmapSizeString = extraMap.get(BITMAP_SIZE_KEY);
+                    int refs = mComponent.getRef();
+                    String src;
+                    if ("file".equals(mSource.getScheme())) {
+                        src = mSource.getLastPathSegment();
+                    } else {
+                        src = mSource.toString();
+                    }
+                    if (!TextUtils.isEmpty(encodeString) && !TextUtils.isEmpty(bitmapSizeString) && !TextUtils.isEmpty(src)){
+                        float encodeSize = AnalyzerHelper.getInstance().parsePixelsNumFromString(encodeString);
+                        float bitmapSize = AnalyzerHelper.getInstance().parsePixelsNumFromString(bitmapSizeString);
+                        Log.d(TAG, "AnalyzerPanel_LOG image_resize " + encodeString + " -> " + bitmapSizeString);
+                        // Fresco's definition of "a lot bigger": the number of pixels in the picture> the magnitude of the view x 2
+                        if (encodeSize > 0 && bitmapSize > 0 && encodeSize > bitmapSize * 2) {
+                            Page currentPage = AnalyzerHelper.getInstance().getCurrentPage();
+                            if (currentPage != null) {
+                                String warnContent = getContext().getString(R.string.analyzer_image_check_warning, currentPage.getName(), encodeString, bitmapSizeString, src);
+                                NoticeMessage warn = NoticeMessage.warn(currentPage.getName(), warnContent);
+                                warn.setAction(new NoticeMessage.UIAction.Builder().pageId(currentPage.getPageId()).addComponentId(refs).build());
+                                AnalyzerHelper.getInstance().notice(warn);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public boolean requiresExtraMap(String requestId) {
+            return true;
         }
     }
 }
