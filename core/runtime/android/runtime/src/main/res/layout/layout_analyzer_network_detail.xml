@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CC505050">
+
+    <org.hapjs.analyzer.views.SlideMonitoredScrollView
+        android:id="@+id/network_content_detail_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/analyzer_net_detail_general_row"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:background="#40000000"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/analyzer_net_detail_general_marker"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:layout_marginStart="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_marker"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="0dp"
+                    android:text="@string/analyzer_net_detail_general"
+                    android:textColor="#fff"
+                    android:textSize="13sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/analyzer_net_detail_general_marker"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <View
+                    android:id="@+id/analyzer_net_detail_general_expand"
+                    android:layout_width="11.33dp"
+                    android:layout_height="11.33dp"
+                    android:layout_marginEnd="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_triangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/analyzer_net_detail_general_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="6dp"
+                android:orientation="vertical"
+                android:paddingStart="21dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="21dp"
+                android:paddingBottom="7dp"
+                android:visibility="gone">
+
+                <org.hapjs.analyzer.views.ExpandTextView
+                    android:id="@+id/network_content_detail_req_url"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:textColor="#fff"
+                    android:textSize="12sp"
+                    app:expandLines="3"
+                    app:lessText="@string/analyzer_less_text_tip"
+                    app:lessTextColor="#345FFF"
+                    app:moreText="@string/analyzer_more_text_tip"
+                    app:moreTextColor="#345FFF" />
+
+                <TextView
+                    android:id="@+id/network_content_detail_req_method"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:textColor="#fff"
+                    android:textSize="12sp" />
+
+                <org.hapjs.analyzer.views.ExpandTextView
+                    android:id="@+id/network_content_detail_req_post_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:textColor="#fff"
+                    android:textSize="12sp"
+                    app:expandLines="4"
+                    app:lessText="@string/analyzer_less_text_tip"
+                    app:lessTextColor="#345FFF"
+                    app:moreText="@string/analyzer_more_text_tip"
+                    app:moreTextColor="#345FFF" />
+
+                <TextView
+                    android:id="@+id/network_content_detail_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:textColor="#fff"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/analyzer_net_detail_timing_row"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="6dp"
+                android:background="#40000000"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/analyzer_net_detail_timing_marker"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:layout_marginStart="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_marker"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="0dp"
+                    android:text="@string/analyzer_net_detail_timing"
+                    android:textColor="#fff"
+                    android:textSize="13sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/analyzer_net_detail_timing_marker"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <View
+                    android:id="@+id/analyzer_net_detail_timing_expand"
+                    android:layout_width="11.33dp"
+                    android:layout_height="11.33dp"
+                    android:layout_marginEnd="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_triangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/analyzer_net_detail_timing_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="21dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="21dp"
+                android:paddingBottom="7dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:text="@string/analyzer_net_detail_time_start"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:text="@string/analyzer_net_detail_time_stalled"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:text="@string/analyzer_net_time_download"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:text="@string/analyzer_net_time_total"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/network_detail_timing_start"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/network_detail_timing_stalled"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/network_detail_timing_download"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/network_detail_timing_total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:minHeight="30dp"
+                        android:textColor="#fff"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/analyzer_net_detail_response_row"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginTop="6dp"
+                android:background="#40000000"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/analyzer_net_detail_response_marker"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:layout_marginStart="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_marker"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="0dp"
+                    android:text="@string/analyzer_net_response"
+                    android:textColor="#fff"
+                    android:textSize="13sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/analyzer_net_detail_response_marker"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <View
+                    android:id="@+id/analyzer_net_detail_response_expand"
+                    android:layout_width="11.33dp"
+                    android:layout_height="11.33dp"
+                    android:layout_marginEnd="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_triangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/analyzer_net_detail_response_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="21dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="21dp"
+                android:paddingBottom="7dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/network_content_detail_res_content_warn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:lines="1"
+                    android:text="@string/analyzer_net_response_toolong_warn"
+                    android:textColor="#FA0000"
+                    android:textSize="12sp"
+                    android:visibility="visible" />
+
+                <org.hapjs.analyzer.views.ExpandTextView
+                    android:id="@+id/network_content_detail_res_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:textColor="#fff"
+                    android:textSize="12sp"
+                    app:expandLines="4"
+                    app:lessText="@string/analyzer_less_text_tip"
+                    app:lessTextColor="#345FFF"
+                    app:moreText="@string/analyzer_more_text_tip"
+                    app:moreTextColor="#345FFF" />
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/analyzer_net_detail_preview_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="#40000000"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/analyzer_net_detail_preview_marker"
+                    android:layout_width="7dp"
+                    android:layout_height="7dp"
+                    android:layout_marginStart="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_marker"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:gravity="center_vertical"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="0dp"
+                    android:text="@string/analyzer_net_preview"
+                    android:textColor="#fff"
+                    android:textSize="13sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/analyzer_net_detail_preview_marker"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <View
+                    android:id="@+id/analyzer_net_detail_preview_expand"
+                    android:layout_width="11.33dp"
+                    android:layout_height="11.33dp"
+                    android:layout_marginEnd="21dp"
+                    android:background="@drawable/selector_analyzer_net_detail_triangle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/analyzer_net_detail_preview_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="21dp"
+                android:paddingTop="7dp"
+                android:paddingEnd="21dp"
+                android:paddingBottom="7dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/network_content_detail_no_preview_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="30dp"
+                    android:text="@string/analyzer_net_preview_no"
+                    android:textColor="#fff"
+                    android:textSize="12sp" />
+
+                <com.facebook.drawee.view.SimpleDraweeView
+                    android:id="@+id/network_content_detail_preview_img"
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="3dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </org.hapjs.analyzer.views.SlideMonitoredScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

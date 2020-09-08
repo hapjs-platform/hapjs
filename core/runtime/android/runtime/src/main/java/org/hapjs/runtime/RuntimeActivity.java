@@ -17,6 +17,9 @@ import android.webkit.WebView;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.hapjs.analyzer.Analyzer;
+import org.hapjs.analyzer.AnalyzerContext;
+import org.hapjs.analyzer.panels.PanelDisplay;
 import org.hapjs.bridge.Constants;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.HybridRequest;
@@ -475,7 +478,9 @@ public class RuntimeActivity extends AppCompatActivity {
             if (mHybridView != null
                     && mHybridView.canGoBack()
                     && !mHybridView.getHybridManager().isDetached()) {
-                mHybridView.goBack();
+                if (!interceptedByAnalyzerPanel()) {
+                    mHybridView.goBack();
+                }
                 return true;
             }
         } else if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -503,6 +508,17 @@ public class RuntimeActivity extends AppCompatActivity {
             }
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    private boolean interceptedByAnalyzerPanel() {
+        AnalyzerContext analyzerContext = Analyzer.get().getAnalyzerContext();
+        if (analyzerContext != null) {
+            PanelDisplay panelDisplay = analyzerContext.getPanelDisplay();
+            if (panelDisplay != null) {
+                return panelDisplay.onBackPressed();
+            }
+        }
+        return false;
     }
 
     @Override

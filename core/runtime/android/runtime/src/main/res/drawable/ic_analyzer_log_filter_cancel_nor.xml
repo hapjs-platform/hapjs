@@ -1,0 +1,15 @@
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<vector android:height="33dp" android:viewportHeight="48"
+    android:viewportWidth="48" android:width="33dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillAlpha="0.6" android:fillColor="#00000000"
+        android:fillType="evenOdd"
+        android:pathData="M24,24m-18,0a18,18 0,1 1,36 0a18,18 0,1 1,-36 0"
+        android:strokeAlpha="0.6" android:strokeColor="#FFFFFF" android:strokeWidth="4"/>
+    <path android:fillAlpha="0.6" android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M31.4246,17.0754C32.2057,17.8564 32.2057,19.1228 31.4246,19.9038L27.182,24.1464L32.1317,29.0962C32.9128,29.8772 32.9128,31.1436 32.1317,31.9246C31.3507,32.7057 30.0843,32.7057 29.3033,31.9246L24.3528,26.9742L19.4038,31.9246C18.6228,32.7057 17.3564,32.7057 16.5754,31.9246C15.7943,31.1436 15.7943,29.8772 16.5754,29.0962L21.5251,24.145L16.5754,19.1967C15.7943,18.4157 15.7943,17.1493 16.5754,16.3683C17.3564,15.5872 18.6228,15.5872 19.4038,16.3683L24.3543,21.3173L28.5962,17.0754C29.3772,16.2943 30.6436,16.2943 31.4246,17.0754Z"
+        android:strokeAlpha="0.6" android:strokeColor="#00000000" android:strokeWidth="1"/>
+</vector>
