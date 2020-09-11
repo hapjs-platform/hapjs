@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,11 +12,13 @@ import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.ModuleExtensionAnnotation;
+import org.hapjs.common.executors.Executors;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,9 +27,8 @@ import org.json.JSONObject;
         actions = {
                 @ActionAnnotation(name = ConfigurationModule.ACTION_GET_LOCALE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = ConfigurationModule.ACTION_SET_LOCALE, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(
-                        name = ConfigurationModule.ACTION_GET_THEME_MODE,
-                        mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_THEME_MODE, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = ConfigurationModule.ACTION_SET_GRAY_MODE, mode = Extension.Mode.SYNC)
         })
 public class ConfigurationModule extends ModuleExtension {
 
@@ -35,6 +36,7 @@ public class ConfigurationModule extends ModuleExtension {
     protected static final String ACTION_GET_LOCALE = "getLocale";
     protected static final String ACTION_SET_LOCALE = "setLocale";
     protected static final String ACTION_GET_THEME_MODE = "getThemeMode";
+    protected static final String ACTION_SET_GRAY_MODE = "setGrayMode";
 
     private static final String PARAM_LANG = "language";
     private static final String PARAM_COUNTRY_REGION = "countryOrRegion";
@@ -52,6 +54,8 @@ public class ConfigurationModule extends ModuleExtension {
             return setLocale(request);
         } else if (ACTION_GET_THEME_MODE.equals(action)) {
             return getThemeMode(request);
+        } else if (ACTION_SET_GRAY_MODE.equals(action)) {
+            return setGrayMode(request);
         }
         return null;
     }
@@ -81,6 +85,18 @@ public class ConfigurationModule extends ModuleExtension {
         configuration.setLocale(locale);
         ConfigurationManager.getInstance()
                 .update(request.getNativeInterface().getActivity(), configuration);
+        return Response.SUCCESS;
+    }
+
+    private Response setGrayMode(Request request) throws JSONException {
+        JSONObject params = request.getJSONParams();
+        String pkg = request.getHapEngine().getPackage();
+        GrayModeManager grayModeManager = GrayModeManager.getInstance();
+        grayModeManager.recordGrayModeConfig(request.getApplicationContext().getContext(), params, request.getHapEngine().getVersionCode());
+        if (grayModeManager.isNeedRecreate()) {
+            Executors.ui().execute(() -> request.getNativeInterface().getActivity().recreate());
+            grayModeManager.setNeedRecreate(false);
+        }
         return Response.SUCCESS;
     }
 
