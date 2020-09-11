@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -100,6 +100,7 @@ import org.hapjs.render.vdom.VDomActionApplier;
 import org.hapjs.runtime.BuildConfig;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.LocaleResourcesParser;
@@ -830,6 +831,7 @@ public class RootView extends FrameLayout
                                         HapEngine.getInstance(request.getPackage())
                                                 .getApplicationContext();
                                 mAppInfo = appContext.getAppInfo(false);
+                                GrayModeManager.getInstance().init(appContext.getContext().getApplicationContext());
                                 if (mAppInfo == null) {
                                     return LoadResult.APP_INFO_NULL;
                                 } else if (mAppInfo.getMinPlatformVersion()
