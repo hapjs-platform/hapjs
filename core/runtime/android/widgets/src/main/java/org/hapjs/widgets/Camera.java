@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,8 +18,10 @@ import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.DecorLayout;
 import org.hapjs.render.RootView;
 import org.hapjs.render.vdom.DocComponent;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.camera.CameraBaseMode;
 import org.hapjs.widgets.view.camera.CameraData;
@@ -120,6 +122,11 @@ public class Camera extends Component<CameraView> {
         CameraView cameraView = new CameraView(mContext);
         cameraView.setComponent(this);
         cameraView.initCameraSetting();
+        if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            DocComponent docComponent = getRootComponent();
+            DecorLayout decorLayout = docComponent.getDecorLayout();
+            decorLayout.applyGrayMode(false);
+        }
         return cameraView;
     }
 
