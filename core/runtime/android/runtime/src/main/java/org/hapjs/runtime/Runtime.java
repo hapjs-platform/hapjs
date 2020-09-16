@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -30,6 +30,8 @@ import org.hapjs.component.constants.DefaultFontSizeProvider;
 import org.hapjs.component.constants.FontSizeProvider;
 import org.hapjs.pm.DefaultNativePackageProviderImpl;
 import org.hapjs.pm.NativePackageProvider;
+import org.hapjs.render.DefaultFontFamilyProvider;
+import org.hapjs.render.FontFamilyProvider;
 import org.hapjs.render.jsruntime.Profiler;
 import org.hapjs.system.DefaultSysOpProviderImpl;
 import org.hapjs.system.SysOpProvider;
@@ -163,6 +165,7 @@ public class Runtime {
         pm.addProvider(HybridDialogProvider.NAME, new DefaultHybridDialogProviderImpl());
         pm.addProvider(StatusBarSizeProvider.NAME, new DefaultStatusBarSizeProvider());
         pm.addProvider(FontSizeProvider.NAME, new DefaultFontSizeProvider());
+        pm.addProvider(FontFamilyProvider.NAME, new DefaultFontFamilyProvider());
         if (!mLazyLoad) {
             load();
         }

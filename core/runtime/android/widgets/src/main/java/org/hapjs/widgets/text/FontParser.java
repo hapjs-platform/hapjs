@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,6 +18,8 @@ import java.util.List;
 import org.hapjs.common.utils.FontFileManager;
 import org.hapjs.component.Component;
 import org.hapjs.model.AppInfo;
+import org.hapjs.render.FontFamilyProvider;
+import org.hapjs.runtime.ProviderManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -156,7 +158,17 @@ public class FontParser {
             return;
         }
         String name = fontUri.getLastPathSegment();
-        Typeface typeface = Typeface.create(name, Typeface.NORMAL);
+
+        FontFamilyProvider fontFamilyProvider = ProviderManager.getDefault().getProvider(FontFamilyProvider.NAME);
+        Typeface typeface = null;
+        if (fontFamilyProvider != null) {
+            typeface = fontFamilyProvider.getTypefaceFromLocal(fontUri, Typeface.NORMAL);
+        }
+
+        if (typeface == null) {
+            typeface = Typeface.create(name, Typeface.NORMAL);
+        }
+
         Typeface result = Typeface.DEFAULT.equals(typeface) ? null : typeface;
         callback.onParseComplete(result);
     }
