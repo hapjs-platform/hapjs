@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -478,5 +478,12 @@ public class FileUtils {
                 break;
         }
         return false;
+    }
+
+    public static boolean isFileExist(String filePath) {
+        if (TextUtils.isEmpty(filePath)) {
+            return false;
+        }
+        return new File(filePath).exists();
     }
 }
