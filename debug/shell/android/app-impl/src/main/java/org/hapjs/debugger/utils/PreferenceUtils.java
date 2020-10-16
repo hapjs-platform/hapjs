@@ -17,6 +17,7 @@ public class PreferenceUtils {
     private static final String KEY_PLATFORM_PACKAGE = "platform_package";
     private static final String KEY_RELOAD_PACKAGE = "reload_package";
     private static final String KEY_USE_ADB = "use_adb";
+    private static final String KEY_USE_ANALYZER = "use_analyzer";
     private static final String KEY_WAIT_DEVTOOLS = "wait_devtools";
     private static final String KEY_CARD_HOST_PLATFORM = "debug_card_host_platform";
     private static final String KEY_DEBUG_CARD_PATH = "debug_card_path";
@@ -66,6 +67,14 @@ public class PreferenceUtils {
 
     public static void setUseADB(Context context, boolean useAdbDebug) {
         getPreference(context).edit().putBoolean(KEY_USE_ADB, useAdbDebug).apply();
+    }
+
+    public static boolean isUseAnalyzer(Context context) {
+        return getPreference(context).getBoolean(KEY_USE_ANALYZER, true);
+    }
+
+    public static void setUseAnalyzer(Context context, boolean useAnalyzer) {
+        getPreference(context).edit().putBoolean(KEY_USE_ANALYZER, useAnalyzer).apply();
     }
 
     public static boolean isWaitDevTools(Context context) {

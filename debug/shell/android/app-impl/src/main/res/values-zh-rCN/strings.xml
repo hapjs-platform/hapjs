@@ -79,6 +79,7 @@
     <string name="text_platform_version_name">平台版本名称: %s</string>
     <string name="text_platform_version_beta">内测版</string>
     <string name="text_enable_usb_debug">开启USB调试</string>
+    <string name="text_enable_analyzer">开启性能面板</string>
     <string name="text_framework">运行框架: </string>
     <string name="text_version_not_support_card">框架版本不支持卡片: %s</string>
     <string name="text_platform_hint_app">请安装最新预览版</string>
