@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.widgets;
 
 import android.text.Spannable;
-import java.util.List;
 
 public interface InnerSpannable {
 
@@ -15,6 +14,4 @@ public interface InnerSpannable {
     void applySpannable();
 
     Spannable getSpannable();
-
-    List<Spannable> getChildrenSpannable();
 }
