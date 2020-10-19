@@ -34,6 +34,7 @@ import org.hapjs.component.constants.Attributes;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.A;
+import org.hapjs.widgets.Image;
 import org.hapjs.widgets.Span;
 import org.hapjs.widgets.view.text.LineHeightSpan;
 import org.hapjs.widgets.view.text.TextDecoration;
@@ -187,6 +188,12 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             } else if (child instanceof A) {
                 A a = (A) child;
                 stringBuilder.append(a.applySpannable());
+            } else if (child instanceof Image) {
+                Image image = (Image) child;
+                Spannable imageSpannable = image.getSpannable();
+                if (imageSpannable != null) {
+                    stringBuilder.append(imageSpannable);
+                }
             }
         }
         // To ensure the line_height attribute take effect, apply it globally
@@ -246,7 +253,7 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             throw new IllegalArgumentException("Cannot add a null child component to Container");
         }
 
-        if (!(child instanceof Span || child instanceof A)) {
+        if (!(child instanceof Span || child instanceof A || child instanceof Image)) {
             Log.w(TAG, "text not support child:" + child.getClass().getSimpleName());
             return;
         }
@@ -265,6 +272,9 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             mChildren.remove(child);
             mTextSpan.setDirty(true);
         } else if (child instanceof A) {
+            mChildren.remove(child);
+            mTextSpan.setDirty(true);
+        } else if (child instanceof Image) {
             mChildren.remove(child);
             mTextSpan.setDirty(true);
         }
