@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -64,7 +64,6 @@
     <string name="quick_app_open_native">正在打开“%s”APP，确认打开？</string>
     <string name="quick_app_open_quick_app_with_target">%1$s即将打开%2$s</string>
     <string name="quick_app_open_quick_app">即将离开%s，打开其他快应用</string>
-
     <!--analyzer-->
     <string name="analyzer_log_filter_hint">过滤查询</string>
     <string name="analyzer_log_filter_collapse">收起</string>
@@ -91,4 +90,6 @@
     <string name="analyzer_net_init_fail_info">网络面板初始化失败，尝试</string>
     <string name="analyzer_network_retry_kill_process"><u>停止当前进程</u></string>
     <string name="analyzer_network_retry_reopen">， 然后打开调试器，重新开始调试。</string>
+    <string name="menubar_tips_special">点击将 <xliff:g id="app">%1$s</xliff:g> 添加到桌面，下次使用更方便。</string>
+    <string name="menubar_added_shortcut_tips">已在桌面创建 \"<xliff:g id="app">%1$s</xliff:g>\" </string>
 </resources>

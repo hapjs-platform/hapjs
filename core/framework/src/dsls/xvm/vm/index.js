@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -611,6 +611,15 @@ export default class XVm {
         setSecure: function(isSecure) {
           if (page && page.doc) {
             context.quickapp.runtime.helper.callHostFunction(page.doc, 'setSecure', [!!isSecure])
+          }
+        },
+        setMenubarTips: function(attr) {
+          // 调用native侧提供的接口，设置menubarTips数据
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.setMenubarTips({ id: page.id, attr })
           }
         }
       },
