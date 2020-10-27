@@ -528,6 +528,10 @@ public class Attributes {
         String TELEPHONE = "tel";
     }
 
+    public interface EventType {
+        String SHORTCUT = "shortcut";
+    }
+
     public interface AutoComplete {
         String ON = "on";
         String OFF = "off";

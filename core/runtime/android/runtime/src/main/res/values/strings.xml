@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -67,7 +67,6 @@
     <string name="quick_app_open_native">Opening app "%s",confirm to open?</string>
     <string name="quick_app_open_quick_app_with_target">%1$s is about to open %2$s</string>
     <string name="quick_app_open_quick_app">You are about to leave %s and open other quick apps</string>
-
     <!--analyzer-->
     <string name="analyzer_unknown" translatable="false">-</string>
     <string name="analyzer_cpu" translatable="false">CPU</string>
@@ -127,4 +126,6 @@
     <string name="analyzer_net_init_fail_info">Couldn\'t initialize network. Try the following:\u0020</string>
     <string name="analyzer_network_retry_kill_process"><u>kill current process</u></string>
     <string name="analyzer_network_retry_reopen">, and start debugging again.</string>
+    <string name="menubar_tips_special">Click to add <xliff:g id="app">%1$s</xliff:g> to the desktop,which is more convenient to use next time.</string>
+    <string name="menubar_added_shortcut_tips">Added to desktop \"<xliff:g id="app">%1$s</xliff:g>\" </string>
 </resources>

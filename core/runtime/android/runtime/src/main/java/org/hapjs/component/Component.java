@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -4178,5 +4178,9 @@ public abstract class Component<T extends View>
 
     public void setFullScreenView(View view) {
         mFullScreenView = view;
+    }
+
+    public boolean preConsumeEvent(String eventName, Map<String, Object> data, boolean immediately) {
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,6 +38,7 @@ public class MenubarView extends FrameLayout {
     public static final int DEFAULT_MENUBAR_TOP_MARGIN = 8;
     public static final int DEFAULT_MENUBAR_TIPS_MOVE_MARGIN = 1;
     public static final int MENUBAR_TIPS_SHOW_TIME_DURATION = 5000;
+    public static final int MENUBAR_PAGE_TIPS_SHOW_TIME_DURATION = 10 * 1000;
     public static final String MENUBAR_DIALOG_RPK_ICON = "RPK_ICON";
     public static final String MENUBAR_DIALOG_SHOW_ABOUT_ICON = "SHOW_ABOUT_ICON";
     public static final String MENUBAR_DIALOG_MENU_STATUS = "MENU_STATUS";
