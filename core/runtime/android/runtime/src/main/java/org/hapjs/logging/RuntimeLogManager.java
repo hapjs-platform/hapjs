@@ -130,6 +130,10 @@ public class RuntimeLogManager {
     private LogProvider mProvider;
     public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
     public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
+    //shortcut tips
+    public static final String KEY_APP_EVENT_BUTTON_SHOW = "eventbuttonShow";
+    public static final String KEY_APP_EVENT_BUTTON_CLICK = "eventbuttonClick";
+    public static final String KEY_APP_EVENT_BUTTON_TIPS_SHOW = "eventbuttonTipsShow";
 
     private Map<Object, Object> mStates;
     private Object mStateLock;

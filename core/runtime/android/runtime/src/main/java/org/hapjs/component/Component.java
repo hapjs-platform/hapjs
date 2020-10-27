@@ -4162,4 +4162,8 @@ public abstract class Component<T extends View>
     public void setFullScreenView(View view) {
         mFullScreenView = view;
     }
+
+    public boolean preConsumeEvent(String eventName, Map<String, Object> data, boolean immediately) {
+        return false;
+    }
 }
