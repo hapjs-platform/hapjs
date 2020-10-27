@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -122,14 +122,18 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/menubar_tips_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:ellipsize="end"
             android:gravity="right"
+            android:maxWidth="208dp"
             android:paddingLeft="13dp"
             android:paddingRight="6dp"
+            android:singleLine="true"
             android:text="@string/menubar_tips"
             android:textColor="#FFFFFFFF"
-            android:textSize="14sp"></TextView>
+            android:textSize="14dp"></TextView>
     </LinearLayout>
 </FrameLayout>
