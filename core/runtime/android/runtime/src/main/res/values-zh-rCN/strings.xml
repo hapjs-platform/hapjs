@@ -65,4 +65,6 @@
     <string name="quick_app_open_native">正在打开“%s”APP，确认打开？</string>
     <string name="quick_app_open_quick_app_with_target">%1$s即将打开%2$s</string>
     <string name="quick_app_open_quick_app">即将离开%s，打开其他快应用</string>
+    <string name="menubar_tips_special">点击将 <xliff:g id="app">%1$s</xliff:g> 添加到桌面，下次使用更方便。</string>
+    <string name="menubar_added_shortcut_tips">已在桌面创建 \"<xliff:g id="app">%1$s</xliff:g>\" </string>
 </resources>

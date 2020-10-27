@@ -98,6 +98,7 @@ public class DisplayInfo {
         public static final String PARAM_SHARE_CURRENT_PAGE = "shareCurrentPage";
         public static final String PARAM_SHARE_URL = "shareUrl";
         public static final String PARAM_SHARE_PARAMS = "shareParams";
+        public static final String KEY_MENUBAR_TIPS_CONTENT = "content";
 
         public static final String KEY_WINDOW_SOFT_INPUT_MODE = "windowSoftInputMode";
         public static final String KEY_ADJUST_PAN = "adjustPan";
