@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,14 +38,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
+
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.FitWindowsViewGroup;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.ColorUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.cache.CacheStorage;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.ColorUtil;
@@ -137,6 +141,8 @@ public class Display implements ConfigurationManager.ConfigurationListener {
     private Handler mCurrentHandler = null;
     private boolean mIsShortcutInstalled = false;
     private MenubarView.MenubarLifeCycleCallback mMenubarLifeCycleCallback = null;
+    private String mTipsContent = "";
+    private int mTipsShowTime = MenubarView.MENUBAR_TIPS_SHOW_TIME_DURATION;
 
     public Display(DecorLayout decorLayout, Window window, Page page, RootView rootView) {
         mContext = decorLayout.getContext().getApplicationContext();
@@ -675,9 +681,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                     },
                     null);
         }
-        initMenubarTips(
-                mMenubarView, titlebarWidth, titlebarHeight, mTitleHeight,
-                menuViewParams.topMargin);
+        initMenubarTips(mMenubarView, titlebarWidth, titlebarHeight, mTitleHeight, menuViewParams.topMargin, false);
         mDefaultMenubarStatus = mMenubarView.getVisibility();
     }
 
@@ -978,79 +982,79 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                         }
                         boolean isConsume =
                                 provider.onMenuBarItemClick(
-                                    context,
-                                    position,
-                                    content,
-                                    menubarItemData,
-                                    mAppInfo,
-                                    mRootView,
-                                    mExtraShareData,
-                                    new SysOpProvider.OnMenubarCallback() {
-                                        @Override
-                                        public void onMenubarClickCallback(
-                                                int position,
-                                                String content,
-                                                MenubarItemData data,
-                                                HashMap<String, Object> datas) {
-                                            String key = "";
-                                            boolean isNeedUpdate = false;
-                                            if (null != data) {
-                                                key = data.getKey();
-                                                isNeedUpdate = data.isNeedUpdate();
-                                            }
-                                            if (mIsConfigShortCutStatus
-                                                    &&
-                                                    MenubarView.MENUBAR_DIALOG_SHORTCUT_IMAGE_NAME
-                                                            .equals(key)) {
-                                                if (null != datas) {
-                                                    boolean isContain =
-                                                            datas.containsKey(
+                                        context,
+                                        position,
+                                        content,
+                                        menubarItemData,
+                                        mAppInfo,
+                                        mRootView,
+                                        mExtraShareData,
+                                        new SysOpProvider.OnMenubarCallback() {
+                                            @Override
+                                            public void onMenubarClickCallback(
+                                                    int position,
+                                                    String content,
+                                                    MenubarItemData data,
+                                                    HashMap<String, Object> datas) {
+                                                String key = "";
+                                                boolean isNeedUpdate = false;
+                                                if (null != data) {
+                                                    key = data.getKey();
+                                                    isNeedUpdate = data.isNeedUpdate();
+                                                }
+                                                if (mIsConfigShortCutStatus
+                                                        &&
+                                                        MenubarView.MENUBAR_DIALOG_SHORTCUT_IMAGE_NAME
+                                                                .equals(key)) {
+                                                    if (null != datas) {
+                                                        boolean isContain =
+                                                                datas.containsKey(
+                                                                        MenubarUtils.MENUBAR_HAS_SHORTCUT_INSTALLED);
+                                                        Object tmpcontent = null;
+                                                        if (isContain) {
+                                                            tmpcontent = datas.get(
                                                                     MenubarUtils.MENUBAR_HAS_SHORTCUT_INSTALLED);
-                                                    Object tmpcontent = null;
-                                                    if (isContain) {
-                                                        tmpcontent = datas.get(
-                                                                MenubarUtils.MENUBAR_HAS_SHORTCUT_INSTALLED);
-                                                    }
-                                                    if (tmpcontent instanceof Boolean) {
-                                                        mIsShortcutInstalled =
-                                                                (Boolean) tmpcontent;
-                                                    }
-                                                    if (mIsShortcutInstalled
-                                                            && null != mMenubarView
-                                                            && null != mContext) {
-                                                        if (null == mCurrentHandler) {
-                                                            mCurrentHandler = new Handler(
-                                                                    Looper.getMainLooper());
                                                         }
-                                                        mCurrentHandler.post(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                if (null != mMenubarView) {
-                                                                    mMenubarView.updateMenuData(
-                                                                            MenubarItemData.NAME_TAG,
-                                                                            menubarItemData.getTag(),
-                                                                            position,
-                                                                            mContext.getResources().getString(R.string
-                                                                                    .menubar_dlg_already_added_shortcut));
-                                                                } else {
-                                                                    Log.e(TAG, "onMenubarClickCallback mMenubarView is null.");
-                                                                }
+                                                        if (tmpcontent instanceof Boolean) {
+                                                            mIsShortcutInstalled =
+                                                                    (Boolean) tmpcontent;
+                                                        }
+                                                        if (mIsShortcutInstalled
+                                                                && null != mMenubarView
+                                                                && null != mContext) {
+                                                            if (null == mCurrentHandler) {
+                                                                mCurrentHandler = new Handler(
+                                                                        Looper.getMainLooper());
                                                             }
-                                                        });
+                                                            mCurrentHandler.post(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    if (null != mMenubarView) {
+                                                                        mMenubarView.updateMenuData(
+                                                                                MenubarItemData.NAME_TAG,
+                                                                                menubarItemData.getTag(),
+                                                                                position,
+                                                                                mContext.getResources().getString(R.string
+                                                                                        .menubar_dlg_already_added_shortcut));
+                                                                    } else {
+                                                                        Log.e(TAG, "onMenubarClickCallback mMenubarView is null.");
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
                                                     }
-                                                }
-                                            } else {
-                                                if (isNeedUpdate) {
-                                                    if (null != mMenubarView) {
-                                                        mMenubarView.updateMenuData(data);
-                                                    } else {
-                                                        Log.e(TAG, "onMenubarClickCallback mMenubarView is null "
-                                                                + ", isNeedUpdate true");
+                                                } else {
+                                                    if (isNeedUpdate) {
+                                                        if (null != mMenubarView) {
+                                                            mMenubarView.updateMenuData(data);
+                                                        } else {
+                                                            Log.e(TAG, "onMenubarClickCallback mMenubarView is null "
+                                                                    + ", isNeedUpdate true");
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                    });
+                                        });
                         if (!isConsume) {
                             if (shareStr.equals(content)) {
                                 MenubarUtils
@@ -1198,17 +1202,53 @@ public class Display implements ConfigurationManager.ConfigurationListener {
         return isShow;
     }
 
-    private void initMenubarTips(
-            MenubarView menubarView,
-            int menubarLayoutWidth,
-            int menubarLayoutHeight,
-            int titlebarHeight,
-            int menubarTopMargin) {
-        if (!mIsAllowMenubarMove) {
-            Log.w(TAG, "initMenubarTips is not allow show");
-            return;
+    public boolean showMenubarTips(JSONObject datas) {
+        boolean isSuccess = false;
+        if (null == mMenubarView ||
+                null == mDecorLayout ||
+                null == mPage ||
+                mTitleHeight == 0 || null == datas) {
+            Log.w(TAG, "showMenubaTips mMenubarView or mDecorLayout or mPage or mTitleHeight or datas is invalid.");
+            return isSuccess;
         }
-        boolean isShowMenubar = isTipsShow(getHybridContext());
+        if (mIsAllowMenubarMove) {
+            Log.w(TAG, "showMenubaTips move menubar,  menubar tips no show.");
+            return isSuccess;
+        }
+        String content = "";
+        if (datas.has(DisplayInfo.Style.KEY_MENUBAR_TIPS_CONTENT)) {
+            try {
+                content = datas.getString(DisplayInfo.Style.KEY_MENUBAR_TIPS_CONTENT);
+            } catch (JSONException e) {
+                Log.e(TAG, "showMenubaTips KEY_MENUBAR_TIPS_CONTENT error : " + e.getMessage());
+            }
+        }
+        mTipsContent = content;
+        mTipsShowTime = MenubarView.MENUBAR_PAGE_TIPS_SHOW_TIME_DURATION;
+        hideTipsView();
+        int menubarHeight = (int) (TitleLinearLayout.DEFAULT_MENUBAR_HEIGHT_SIZE *
+                mDecorLayout.getResources().getDisplayMetrics().density);
+        int menubarWidth = (int) (TitleLinearLayout.DEFAULT_MENUBAR_WIDTH_SIZE *
+                mDecorLayout.getResources().getDisplayMetrics().density);
+        int menubarTopMargin = 0;
+        if (mPage.hasTitleBar()) {
+            menubarTopMargin = mTitleHeight / 2 - menubarHeight / 2;
+        } else {
+            menubarTopMargin = (int) (MenubarView.DEFAULT_MENUBAR_TOP_MARGIN *
+                    mDecorLayout.getResources().getDisplayMetrics().density);
+        }
+        isSuccess = initMenubarTips(mMenubarView, menubarWidth, menubarHeight, mTitleHeight, menubarTopMargin, true);
+        return isSuccess;
+    }
+
+    private boolean initMenubarTips(MenubarView menubarView, int menubarLayoutWidth, int menubarLayoutHeight, int titlebarHeight, int menubarTopMargin
+            , boolean isOutTipsShow) {
+        boolean isSuccess = false;
+        if (!((mIsAllowMenubarMove && !isOutTipsShow) || isOutTipsShow)) {
+            Log.w(TAG, "initMenubarTips is not allow show");
+            return isSuccess;
+        }
+        boolean isShowMenubar = isOutTipsShow ? true : isTipsShow(getHybridContext());
         if (null != menubarView && isShowMenubar) {
             int imageHeight =
                     (int)
@@ -1253,6 +1293,16 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                     menubarTopMargin + menubarLayoutHeight / 2 + titlebarHeight / 2
                             - tipsMoveMargin;
             mBottomTipsContainer = menubarView.findViewById(R.id.menubar_tips_bottom_container);
+            String showTipsContent = mContext.getResources().getString(R.string.menubar_tips);
+            if (isOutTipsShow) {
+                if (TextUtils.isEmpty(mTipsContent)) {
+                    showTipsContent = String.format(mContext.getResources().getString(R.string.menubar_tips_special), mRpkName);
+                } else {
+                    showTipsContent = mTipsContent;
+                }
+            }
+            TextView tipsTv = menubarView.findViewById(R.id.menubar_tips_tv);
+            tipsTv.setText(showTipsContent);
             mBottomTipsContainer.setLayoutParams(bottomLayoutparams);
             mBottomTipsContainer.setVisibility(View.VISIBLE);
             Handler handler = mBottomTipsContainer.getHandler();
@@ -1271,8 +1321,8 @@ public class Display implements ConfigurationManager.ConfigurationListener {
             if (null == mCurrentHandler) {
                 mCurrentHandler = new Handler(Looper.getMainLooper());
             }
-            mCurrentHandler
-                    .postDelayed(mHideTipsRunnable, MenubarView.MENUBAR_TIPS_SHOW_TIME_DURATION);
+            isSuccess = true;
+            mCurrentHandler.postDelayed(mHideTipsRunnable, (isOutTipsShow ? mTipsShowTime : MenubarView.MENUBAR_TIPS_SHOW_TIME_DURATION));
             if (null != mTitleInnerLayout) {
                 mTitleInnerLayout.setMenubarMoveListener(
                         new TitleLinearLayout.MenubarMoveListener() {
@@ -1283,6 +1333,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                         });
             }
         }
+        return isSuccess;
     }
 
     private void hideTipsView() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -470,7 +470,13 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
                 object.putAll(mouseEvent);
             }
         }
-        fireEvent(eventType, object, immediately);
+        boolean isConsume = false;
+        if (null != mComponent) {
+            isConsume = mComponent.preConsumeEvent(eventType, object, immediately);
+        }
+        if (!isConsume) {
+            fireEvent(eventType, object, immediately);
+        }
         return true;
     }
 
@@ -632,7 +638,7 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
         return object;
     }
 
-    private void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
+    public void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
         if (mNativePackageProvider != null) {
             mNativePackageProvider.recordFireEvent(eventName);
         }

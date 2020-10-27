@@ -612,6 +612,15 @@ export default class XVm {
           if (page && page.doc) {
             context.quickapp.runtime.helper.callHostFunction(page.doc, 'setSecure', [!!isSecure])
           }
+        },
+        setMenubarTips: function(attr) {
+          // 调用native侧提供的接口，设置menubarTips数据
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.setMenubarTips({ id: page.id, attr })
+          }
         }
       },
       page && page._meta
