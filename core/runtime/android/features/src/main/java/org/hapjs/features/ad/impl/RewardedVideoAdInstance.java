@@ -8,6 +8,7 @@ package org.hapjs.features.ad.impl;
 import android.app.Activity;
 import android.util.Log;
 import org.hapjs.bridge.Callback;
+import org.hapjs.bridge.Response;
 import org.hapjs.features.ad.instance.BaseRewardedVideoAd;
 
 public class RewardedVideoAdInstance extends BaseRewardedVideoAd {
@@ -19,11 +20,13 @@ public class RewardedVideoAdInstance extends BaseRewardedVideoAd {
     @Override
     public void load(Callback callback) {
         Log.d(TAG, "load");
+        callbackDefaultMockupErrorResponse();
     }
 
     @Override
     public void show(Callback callback) {
         Log.d(TAG, "show");
+        callbackDefaultMockupErrorResponse();
     }
 
     @Override

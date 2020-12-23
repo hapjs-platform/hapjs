@@ -25,7 +25,7 @@ public class InterstitialAdInstance extends BaseInterstitialAdInstance {
     @Override
     public void show(Callback callback) {
         Log.d(TAG, "show: ");
-        callback.callback(Response.SUCCESS);
+        callbackDefaultMockupErrorResponse();
     }
 
     @Override
