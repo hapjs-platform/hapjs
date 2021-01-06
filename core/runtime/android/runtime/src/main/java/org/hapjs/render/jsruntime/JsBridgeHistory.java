@@ -5,19 +5,21 @@
 
 package org.hapjs.render.jsruntime;
 
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_JS_PUSH;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.RouterUtils;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_JS_PUSH;
 
 public class JsBridgeHistory extends V8Object {
 
@@ -48,7 +50,7 @@ public class JsBridgeHistory extends V8Object {
                         HybridRequest request = V8ObjConverter.objToRequest(params, pkg);
                         if (NavigationUtils.navigate(
                                 mContext, pkg, request, new Bundle(),
-                                VALUE_ROUTER_APP_FROM_JS_PUSH)) {
+                                VALUE_ROUTER_APP_FROM_JS_PUSH, null)) {
                             return;
                         }
 
