@@ -597,6 +597,10 @@ public class SwiperView extends FrameLayout implements ComponentHost, GestureHos
         }
     }
 
+    public int getIndicatorCount() {
+        return mIndicator.getChildCount();
+    }
+
     /**
      * 设置指示器的方向后，无法立即获得正确的尺寸，所以实际的宽度和高度是由child的数量来计算的。
      */
