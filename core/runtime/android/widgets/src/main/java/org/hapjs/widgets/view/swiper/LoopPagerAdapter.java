@@ -139,20 +139,11 @@ public class LoopPagerAdapter extends BaseLoopPagerAdapter {
     @Override
     public int getActualItemPosition(Object object) {
         Component component = (Component) object;
-        int currentItem = mViewPager.getCurrentItem();
-        if (currentItem >= 0 && currentItem < mRecyclerDataItems.size()) {
-            RecyclerDataItem recyclerDataItem = mRecyclerDataItems.get(currentItem);
-            if (recyclerDataItem.getRef() == component.getRef()) {
-                // no need to populate
-                return POSITION_UNCHANGED;
-            }
-
-            int size = mRecyclerDataItems.size();
-            for (int i = 0; i < size; i++) {
-                if (mRecyclerDataItems.get(i).getRef() == component.getRef()) {
-                    // current position changed,need to re-populate
-                    return i;
-                }
+        int size = mRecyclerDataItems.size();
+        for (int i = 0; i < size; i++) {
+            if (mRecyclerDataItems.get(i).getRef() == component.getRef()) {
+                // current position may have changed, need to re-populate
+                return i;
             }
         }
         // item is removed
