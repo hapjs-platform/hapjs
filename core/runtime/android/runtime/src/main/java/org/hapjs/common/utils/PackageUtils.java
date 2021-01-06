@@ -50,7 +50,7 @@ public class PackageUtils {
             result = false;
             RuntimeLogManager.getDefault()
                     .logAppRouterNativeApp(rpkPkg, "", appPkg, "", VALUE_ROUTER_APP_FROM_PACKAGE,
-                            result);
+                            result, "no compatible activity found", null);
             Log.i(TAG, "Fail to open native package: " + appPkg + ", resolveInfo is null");
         } else {
             result =
@@ -61,7 +61,7 @@ public class PackageUtils {
                             intent,
                             info,
                             VALUE_ROUTER_APP_FROM_PACKAGE,
-                            "");
+                            "",null);
         }
         return result;
     }

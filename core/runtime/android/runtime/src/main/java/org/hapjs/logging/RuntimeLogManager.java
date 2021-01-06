@@ -125,6 +125,9 @@ public class RuntimeLogManager {
     private static final String STATE_LAUNCHER_ACTIVITY_CREATE = "launcherActivityCreate";
     private static final String KEY_APP_ROUTER_DIALOG_SHOW = "routerDialogShow";
     private static final String KEY_APP_ROUTER_DIALOG_CLICK = "routerDialogClick";
+    public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
+    public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
+
     private LogProvider mProvider;
     private Map<Object, Object> mStates;
     private Object mStateLock;
@@ -235,7 +238,7 @@ public class RuntimeLogManager {
             String nativeApp,
             String nativeActivity,
             String routerAppFrom,
-            boolean result) {
+            boolean result, String failureMsg, String sourceH5) {
         if (mProvider == null) {
             return;
         }
@@ -245,6 +248,12 @@ public class RuntimeLogManager {
         params.put(PARAM_NATIVE_ACTIVITY, nativeActivity);
         params.put(PARAM_ROUTER_NATIVE_FROM, routerAppFrom);
         params.put(PARAM_ROUTER_NATIVE_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
+        if (!TextUtils.isEmpty(failureMsg)) {
+            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
+        }
+        if (!TextUtils.isEmpty(sourceH5)) {
+            params.put(PARAM_OUTER_APP_SOURCE_H5, sourceH5);
+        }
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_NATIVE_APP, params);
     }
 

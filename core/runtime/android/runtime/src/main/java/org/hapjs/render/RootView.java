@@ -266,6 +266,7 @@ public class RootView extends FrameLayout
                             return;
                         }
 
+
                         pageId = currentPage.pageId;
                     }
 
@@ -321,12 +322,12 @@ public class RootView extends FrameLayout
                 }
 
                 @Override
-                public boolean shouldOverrideUrlLoading(String url, int pageId) {
+                public boolean shouldOverrideUrlLoading(String url,String sourceH5, int pageId) {
                     HybridRequest request =
                             new HybridRequest.Builder().uri(url).isDeepLink(true).pkg(mPackage)
                                     .build();
                     return RouterUtils.router(
-                            getContext(), mPageManager, pageId, request, VALUE_ROUTER_APP_FROM_WEB);
+                            getContext(), mPageManager, pageId, request, VALUE_ROUTER_APP_FROM_WEB, sourceH5);
                 }
 
                 @Override
