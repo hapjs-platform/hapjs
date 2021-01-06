@@ -77,6 +77,7 @@ import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FileUtils;
+import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
 import org.hapjs.common.utils.WebViewUtils;
@@ -101,6 +102,8 @@ import org.hapjs.system.SysOpProvider;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.Web;
 import org.hapjs.widgets.animation.WebProgressBar;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
 
 public class NestedWebView extends WebView
         implements ComponentHost, NestedScrollingView, GestureHost {
@@ -167,6 +170,7 @@ public class NestedWebView extends WebView
 
     public static final String KEY_SYSTEM = "system";
     public static final String KEY_DEFAULT = "default";
+    private String mSourceH5 = ""; //记录哪个网页调起的app
 
     public NestedWebView(Context context) {
         super(context);
@@ -381,6 +385,7 @@ public class NestedWebView extends WebView
                         if (isWeixinPay(url) || isAlipay(url) || isQQLogin(url)) {
                             try {
                                 mContext.startActivity(intent);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, null, mSourceH5);
                             } catch (ActivityNotFoundException e) {
                                 Log.d(TAG, "Fail to launch deeplink", e);
                             }
@@ -389,12 +394,17 @@ public class NestedWebView extends WebView
 
                         if (mComponent == null) {
                             Log.e(TAG, "shouldOverrideUrlLoading error: component is null");
+                            mSourceH5 = url;
                             return false;
                         }
                         RenderEventCallback callback = mComponent.getCallback();
-                        return (callback != null
-                                && callback.shouldOverrideUrlLoading(url, mComponent.getPageId()))
+                        boolean result =  (callback != null
+                                && callback.shouldOverrideUrlLoading(url, mSourceH5, mComponent.getPageId()))
                                 || !UriUtils.isWebUri(url);
+                        if (!result) {
+                            mSourceH5 = url;
+                        }
+                        return result;
                     }
 
                     @Override
