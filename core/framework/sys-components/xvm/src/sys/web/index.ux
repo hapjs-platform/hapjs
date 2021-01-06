@@ -10,6 +10,7 @@
       src="{{ url }}"
       allowthirdpartycookies="{{ allowthirdpartycookies }}"
       showloadingdialog="{{ showloadingdialog }}"
+      useragent="{{ useragent }}"
       ontitlereceive="onTitleReceived"
     ></web>
   </div>
@@ -35,6 +36,7 @@
       showloadingdialog: true,
       titleBarTextColor: '',
       titleBarBackgroundColor: '',
+      useragent: '',
     },
     onInit() {
       this.$page.setTitleBar({

@@ -29,6 +29,7 @@ public class WebViewModule extends ModuleExtension {
     protected static final String PARAM_URL = "url";
     protected static final String PARAM_ALLOW_THIRD_PARTY_COOKIES = "allowthirdpartycookies";
     protected static final String PARAM_SHOW_LOADING_DIALOG = "showloadingdialog";
+    private static final String PARAM_USER_AGENT = "useragent";
 
     private PageManager mPageManager;
 
@@ -59,13 +60,14 @@ public class WebViewModule extends ModuleExtension {
         String url = params.getString(PARAM_URL);
         boolean allowThridPartyCookies = params.optBoolean(PARAM_ALLOW_THIRD_PARTY_COOKIES);
         boolean showLoadingDialog = params.optBoolean(PARAM_SHOW_LOADING_DIALOG, false);
-        HybridRequest request =
-                new HybridRequest.Builder()
-                        .pkg(mPageManager.getAppInfo().getPackage())
-                        .uri(url)
-                        .allowThirdPartyCookies(allowThridPartyCookies)
-                        .showLoadingDialog(showLoadingDialog)
-                        .build();
+        String userAgent = params.optString(PARAM_USER_AGENT, "");
+        HybridRequest request = new HybridRequest.Builder()
+                .pkg(mPageManager.getAppInfo().getPackage())
+                .uri(url)
+                .allowThirdPartyCookies(allowThridPartyCookies)
+                .showLoadingDialog(showLoadingDialog)
+                .userAgent(userAgent)
+                .build();
         RouterUtils.push(mPageManager, request);
         return Response.SUCCESS;
     }

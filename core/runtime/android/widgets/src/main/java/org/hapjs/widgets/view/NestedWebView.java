@@ -164,6 +164,9 @@ public class NestedWebView extends WebView
     private CheckableAlertDialog mLocationDialog;
     private CheckableAlertDialog mWebRtcDialog;
 
+    public static final String KEY_SYSTEM = "system";
+    public static final String KEY_DEFAULT = "default";
+
     public NestedWebView(Context context) {
         super(context);
         mContext = context;
@@ -1479,7 +1482,7 @@ public class NestedWebView extends WebView
     @Override
     public void setComponent(Component component) {
         mComponent = component;
-        mSettings.setUserAgentString(UserAgentHelper.getFullWebkitUserAgent(getAppPkg()));
+        setUserAgent(KEY_DEFAULT);
     }
 
     @Override
@@ -1806,6 +1809,22 @@ public class NestedWebView extends WebView
 
         public int getValue() {
             return value;
+        }
+    }
+
+    public void setUserAgent(String userAgent) {
+        if (mSettings == null) {
+            mSettings = getSettings();
+        }
+        if (TextUtils.isEmpty(userAgent) || KEY_DEFAULT.equalsIgnoreCase(userAgent)) {
+            // hap userAgent
+            mSettings.setUserAgentString(UserAgentHelper.getFullWebkitUserAgent(getAppPkg()));
+        } else if (KEY_SYSTEM.equalsIgnoreCase(userAgent)) {
+            // system userAgent
+            mSettings.setUserAgentString(UserAgentHelper.getWebkitUserAgentSegment());
+        } else {
+            // custom userAgent
+            mSettings.setUserAgentString(userAgent);
         }
     }
 
