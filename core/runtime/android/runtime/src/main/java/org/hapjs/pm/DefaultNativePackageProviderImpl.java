@@ -57,4 +57,11 @@ public class DefaultNativePackageProviderImpl implements NativePackageProvider {
     @Override
     public void recordFireEvent(String eventType) {
     }
+
+    @Override
+    public boolean inAlipayForbiddenList(Context context, String url) {
+        return false;
+    }
+
+
 }
