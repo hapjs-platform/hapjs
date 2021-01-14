@@ -78,17 +78,15 @@ public class FullscreenHelper implements ConfigurationManager.ConfigurationListe
 
             mOriginScreenOrientation = ((Activity) context).getRequestedOrientation();
             ((Activity) context).setRequestedOrientation(screenOrientation);
-
-            DecorLayout.LayoutParams lp =
-                    new DecorLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            hostView.getLayoutParams());
+            View fullScreenView = mComponent.getFullScreenView();
+            DecorLayout.LayoutParams lp = new DecorLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT, fullScreenView.getLayoutParams());
             lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
             lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
             lp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
             lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            mDecorLayout.addView(hostView, lp);
+            mDecorLayout.addView(fullScreenView, lp);
 
             // restore descendant focus
             mDecorLayout.setDescendantFocusability(rootDescendantFocus);
@@ -152,7 +150,8 @@ public class FullscreenHelper implements ConfigurationManager.ConfigurationListe
         mRootDescendantFocus = mDecorLayout.getDescendantFocusability();
         mDecorLayout.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
         if (!mFullScreenContainerMode) {
-            mDecorLayout.removeView(mComponent.getHostView());
+            View fullScreenView = mComponent.getFullScreenView();
+            mDecorLayout.removeView(fullScreenView);
         } else {
             Container parent = mComponent.getParent();
             mDecorLayout.removeView(parent.getHostView());

@@ -709,39 +709,27 @@ public class NestedWebView extends WebView
                     @Override
                     public void onShowCustomView(View view, CustomViewCallback callback) {
                         view.setBackgroundColor(getResources().getColor(android.R.color.black));
-                        mComponent.getRootComponent().getInnerView().addView(view);
                         mFullScreenView = view;
-                        enterFullScreen();
+                        if (mComponent != null) {
+                            mComponent.setFullScreenView(mFullScreenView);
+                            if (mComponent.getRootComponent() != null
+                                    && mComponent.getRootComponent().getDecorLayout() != null) {
+                                mComponent.getRootComponent().getDecorLayout().enterFullscreen(mComponent, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, false, false);
+                            }
+                        }
                     }
 
                     @Override
                     public void onHideCustomView() {
                         if (mFullScreenView != null) {
-                            mComponent.getRootComponent().getInnerView()
-                                    .removeView(mFullScreenView);
+                            if (mComponent != null) {
+                                if (mComponent.getRootComponent() != null && mComponent.getRootComponent().getDecorLayout() != null) {
+                                    mComponent.getRootComponent().getDecorLayout().exitFullscreen();
+                                }
+                                mComponent.setFullScreenView(null);
+                            }
                             mFullScreenView = null;
-                            exitFullScreen();
                         }
-                    }
-
-                    private void enterFullScreen() {
-                        refreshMenubarStatus(Display.MENUBAR_ENTER_FULLSCREEN_TAG);
-                        mSavedScreenOrientation =
-                                ((Activity) getContext()).getRequestedOrientation();
-                        mSavedSystemUiVisibility = getSystemUiVisibility();
-                        ((Activity) getContext())
-                                .setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                        setSystemUiVisibility(
-                                getSystemUiVisibility()
-                                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                    }
-
-                    private void exitFullScreen() {
-                        ((Activity) getContext()).setRequestedOrientation(mSavedScreenOrientation);
-                        setSystemUiVisibility(mSavedSystemUiVisibility);
-                        refreshMenubarStatus(Display.MENUBAR_EXIT_FULLSCREEN_TAG);
                     }
 
                     @Override
@@ -941,27 +929,6 @@ public class NestedWebView extends WebView
         // Keep 'miui' package for compatible with api level 100
         addJavascriptInterface(nativeApi, "miui");
         addJavascriptInterface(nativeApi, "system");
-    }
-
-    private void refreshMenubarStatus(int tag) {
-        DocComponent docComponent = null;
-        ViewGroup innerView = null;
-        if (null != mComponent) {
-            docComponent = mComponent.getRootComponent();
-        }
-        if (null != docComponent) {
-            innerView = docComponent.getInnerView();
-        }
-        if (innerView instanceof DecorLayout) {
-            Display display = ((DecorLayout) innerView).getDecorLayoutDisPlay();
-            if (null != display) {
-                display.changeMenuBarStatus(tag);
-            } else {
-                Log.e(TAG, "refreshMenubarStatus error display null.");
-            }
-        } else {
-            Log.e(TAG, "refreshMenubarStatus error innerView class.");
-        }
     }
 
     private boolean isDomainInWhitelist(String domain) {
