@@ -162,6 +162,13 @@ public class TextureVideoView extends TextureView {
         }
     }
 
+    public void detachPlayer() {
+        if (mPlayer != null) {
+            mPlayer.setVideoTextureView(null);
+        }
+        mPlayer = null;
+    }
+
     private void clearSurface() {
         if (mSurfaceTexture == null) {
             return;
@@ -229,6 +236,15 @@ public class TextureVideoView extends TextureView {
         mSurfaceListener = null;
     }
 
+<<<<<<< HEAD
+=======
+    public interface SurfaceTextureListener {
+        void onSurfaceTextureAvailable();
+
+        void onSurfaceTextureDestroyed();
+    }
+
+>>>>>>> a4a706a8a... [ISSUE-1736]video问题修复
     public void setObjectFit(String objectFit) {
         mObjectFit = objectFit;
         requestLayout();
