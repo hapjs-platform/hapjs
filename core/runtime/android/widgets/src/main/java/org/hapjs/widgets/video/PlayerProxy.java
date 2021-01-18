@@ -20,7 +20,7 @@ public class PlayerProxy<P extends IMediaPlayer> implements IMediaPlayer {
     private boolean mMuted;
     private boolean mAutoPlay;
     private String mPlayCount = Attributes.PlayCount.ONCE;
-    private long mCachedPosition = -1;
+    public long mCachedPosition = -1;
     private boolean mSuspendBuffer = false;
 
     @Override
