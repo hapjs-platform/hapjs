@@ -37,5 +37,8 @@ dependencies {
     }
     compileOnly project(':widgets')
     implementation project(':debug-log')
-    implementation "androidx.recyclerview:recyclerview:${rootProject.androidXVersion}"
+    implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
+    implementation "androidx.collection:collection:${rootProject.collectionVersion}"
+
+    api "androidx.lifecycle:lifecycle-runtime:${rootProject.lifecycleVersion}"
 }

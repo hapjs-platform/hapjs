@@ -15,8 +15,8 @@ dependencies {
         implementation 'org.hapjs:platform:' + rootProject.appVersionName
         implementation 'org.hapjs:stats:' + rootProject.appVersionName
     }
-    implementation "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
+    implementation "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
     implementation "com.google.android.material:material:${rootProject.androidXVersion}"
-    implementation "androidx.legacy:legacy-support-v4:${rootProject.androidXVersion}"
-    implementation "androidx.recyclerview:recyclerview:${rootProject.androidXVersion}"
+    implementation "androidx.legacy:legacy-support-v4:${rootProject.legacyVersion}"
+    implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
 }

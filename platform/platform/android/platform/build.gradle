@@ -4,6 +4,7 @@
  */
 
 dependencies {
+    implementation "androidx.localbroadcastmanager:localbroadcastmanager:${rootProject.localbroadcastmanagerVersion}"
     if ('repo' != System.properties['moduleDepsType']) {
         implementation project(':runtime')
         implementation project(':card-api')
