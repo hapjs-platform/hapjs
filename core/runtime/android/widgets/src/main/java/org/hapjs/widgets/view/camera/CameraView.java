@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -309,6 +309,13 @@ public class CameraView extends FrameLayout implements ComponentHost, Configurat
     }
 
     public void takePhoto(OnPhotoTakeListener onPhotoTakeListener) {
+        if (!mIsHasPermission) {
+            if (null != mOnCameraPermissionListener) {
+                mOnCameraPermissionListener.onCameraFailure("camera permission deny.");
+            }
+            Log.w(TAG, "takePhoto mIsHasPermission false.");
+            return;
+        }
         this.mOnPhotoTakeListener = onPhotoTakeListener;
         if (mCamera != null) {
             curDisplayOri = ((Activity) mContext).getRequestedOrientation();
@@ -358,6 +365,13 @@ public class CameraView extends FrameLayout implements ComponentHost, Configurat
 
     public void startRecord(
             OnVideoRecordListener onVideoRecordListener, int maxDuration, boolean compressed) {
+        if (!mIsHasPermission) {
+            if (null != mOnCameraPermissionListener) {
+                mOnCameraPermissionListener.onCameraFailure("camera permission deny.");
+            }
+            Log.w(TAG, "startRecord mIsHasPermission false.");
+            return;
+        }
         setVideoAutoFocus(true);
         if (null != mCameraBaseMode
                 && org.hapjs.widgets.Camera.CAMERA_VIDEORECORD_MODE.equals(mCameraMode)) {
