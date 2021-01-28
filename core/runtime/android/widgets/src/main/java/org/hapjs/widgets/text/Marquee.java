@@ -107,12 +107,6 @@ public class Marquee extends Container<Marquee.MarqueeTextView> {
     }
 
     @Override
-    public void onActivityDestroy() {
-        mCallback.removeActivityStateListener(this);
-        super.onActivityDestroy();
-    }
-
-    @Override
     protected MarqueeTextView createViewImpl() {
         MarqueeTextView view = new MarqueeTextView(mContext);
         view.setComponent(this);
