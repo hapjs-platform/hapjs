@@ -159,6 +159,7 @@ public class Runtime {
         ProviderManager.getDefault()
                 .addProvider(InstallInterceptProvider.NAME,
                         new DefaultInstallInterceptProviderImpl());
+        pm.addProvider(RouterManageProvider.NAME, new DefaultRouterManageProvider());
         pm.addProvider(HybridDialogProvider.NAME, new DefaultHybridDialogProviderImpl());
         pm.addProvider(StatusBarSizeProvider.NAME, new DefaultStatusBarSizeProvider());
         pm.addProvider(FontSizeProvider.NAME, new DefaultFontSizeProvider());

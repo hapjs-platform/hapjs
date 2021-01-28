@@ -39,29 +39,4 @@ public class DefaultNativePackageProviderImpl implements NativePackageProvider {
         }
     }
 
-    @Override
-    public boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg) {
-        return false;
-    }
-
-    @Override
-    public boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg) {
-        return false;
-    }
-
-    @Override
-    public boolean triggeredByGestureEvent(Context context, String pkg) {
-        return true;
-    }
-
-    @Override
-    public void recordFireEvent(String eventType) {
-    }
-
-    @Override
-    public boolean inAlipayForbiddenList(Context context, String url) {
-        return false;
-    }
-
-
 }
