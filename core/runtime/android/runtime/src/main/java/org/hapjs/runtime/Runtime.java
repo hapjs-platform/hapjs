@@ -21,9 +21,11 @@ import org.hapjs.cache.DefaultPackageCheckProvider;
 import org.hapjs.cache.InstallInterceptProvider;
 import org.hapjs.cache.PackageCheckProvider;
 import org.hapjs.common.net.UserAgentHelper;
+import org.hapjs.common.utils.DefaultStatusBarSizeProvider;
 import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.common.utils.ProcessUtils;
 import org.hapjs.common.utils.SoLoaderHelper;
+import org.hapjs.common.utils.StatusBarSizeProvider;
 import org.hapjs.pm.DefaultNativePackageProviderImpl;
 import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.jsruntime.Profiler;
@@ -156,6 +158,7 @@ public class Runtime {
                 .addProvider(InstallInterceptProvider.NAME,
                         new DefaultInstallInterceptProviderImpl());
         pm.addProvider(HybridDialogProvider.NAME, new DefaultHybridDialogProviderImpl());
+        pm.addProvider(StatusBarSizeProvider.NAME, new DefaultStatusBarSizeProvider());
         if (!mLazyLoad) {
             load();
         }
