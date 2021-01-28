@@ -106,13 +106,9 @@ public class DisplayUtil {
     }
 
     public static int getStatusBarHeight(Context context) {
-        int resourceId =
-                context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            return context.getResources().getDimensionPixelSize(resourceId);
-        }
+        StatusBarSizeProvider provider = ProviderManager.getDefault().getProvider(StatusBarSizeProvider.NAME);
 
-        return 0;
+        return provider.getStatusBarHeight(context);
     }
 
     public static int parseCmToPx(Context context, float cm) {
