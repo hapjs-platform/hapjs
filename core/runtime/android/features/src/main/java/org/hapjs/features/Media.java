@@ -569,6 +569,8 @@ public class Media extends FeatureExtension {
         final Dialog dialog =
                 provider.createPermissionDialog(
                         activity,
+                        null,
+                        request.getApplicationContext().getName(),
                         message,
                         new DialogInterface.OnClickListener() {
                             @Override

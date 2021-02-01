@@ -120,6 +120,8 @@ public class Alarm extends FeatureExtension {
         final Dialog dialog =
                 mProvider.createPermissionDialog(
                         activity,
+                        null,
+                        name,
                         message,
                         new DialogInterface.OnClickListener() {
                             @Override
