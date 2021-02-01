@@ -70,6 +70,8 @@ public class RuntimePermissionProviderImpl implements RuntimePermissionProvider 
     @Override
     public Dialog createPermissionDialog(
             Activity activity,
+            String permission,
+            String appName,
             String desc,
             DialogInterface.OnClickListener listener,
             boolean enableCheckBox) {

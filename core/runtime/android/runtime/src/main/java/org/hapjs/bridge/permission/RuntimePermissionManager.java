@@ -201,31 +201,40 @@ public class RuntimePermissionManager implements PermissionManager {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (which == DialogInterface.BUTTON_POSITIVE) {
-                            RuntimeLogManager.getDefault()
-                                    .logPermissionPrompt(pkg, permission, true, true);
-                            if (index < permissions.length - 1) {
-                                showPermissionPrompt(hybridManager, permissions, callback,
-                                        index + 1);
-                            } else {
-                                callback.onPermissionAccept(hybridManager, permissions, true);
-                            }
-                        } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                            boolean forbidden = false;
-                            if (dialog instanceof Checkable) {
-                                forbidden = ((Checkable) dialog).isChecked();
-                            } else if (dialog instanceof Dialog) {
-                                View checkBox =
-                                        ((Dialog) dialog).findViewById(android.R.id.checkbox);
-                                if (checkBox instanceof CheckBox) {
-                                    forbidden = ((CheckBox) checkBox).isChecked();
+                        switch (which) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                RuntimeLogManager.getDefault()
+                                        .logPermissionPrompt(pkg, permission, true, true);
+                                if (index < permissions.length - 1) {
+                                    showPermissionPrompt(hybridManager, permissions, callback,
+                                            index + 1);
+                                } else {
+                                    callback.onPermissionAccept(hybridManager, permissions, true);
                                 }
-                            }
-                            RuntimeLogManager.getDefault()
-                                    .logPermissionPrompt(pkg, permission, false, forbidden);
-                            mProvider.rejectPermissions(pkg, new String[] {permission}, forbidden);
-                            String[] grantedPermissions = Arrays.copyOf(permissions, index);
-                            callback.onPermissionReject(hybridManager, grantedPermissions);
+                                break;
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                boolean forbidden = false;
+                                if (dialog instanceof Checkable) {
+                                    forbidden = ((Checkable) dialog).isChecked();
+                                } else if (dialog instanceof Dialog) {
+                                    View checkBox =
+                                            ((Dialog) dialog).findViewById(android.R.id.checkbox);
+                                    if (checkBox instanceof CheckBox) {
+                                        forbidden = ((CheckBox) checkBox).isChecked();
+                                    }
+                                }
+                                RuntimeLogManager.getDefault()
+                                        .logPermissionPrompt(pkg, permission, false, forbidden);
+                                mProvider.rejectPermissions(pkg, new String[] {permission}, forbidden);
+                                String[] grantedPermissions = Arrays.copyOf(permissions, index);
+                                callback.onPermissionReject(hybridManager, grantedPermissions);
+                                break;
+                            case DialogInterface.BUTTON_NEUTRAL:
+                                RuntimeLogManager.getDefault()
+                                        .logPermissionPrompt(pkg, permission, false, true);
+                                mProvider.rejectPermissions(pkg, new String[]{permission}, true);
+                                callback.onPermissionReject(hybridManager, Arrays.copyOf(permissions, index));
+                                break;
                         }
                     }
                 };
@@ -235,7 +244,7 @@ public class RuntimePermissionManager implements PermissionManager {
                         & RuntimePermissionProvider.FLAG_SHOW_FORBIDDEN)
                         == RuntimePermissionProvider.FLAG_SHOW_FORBIDDEN;
         Dialog dialog =
-                mProvider.createPermissionDialog(activity, message, listener, enableCheckBox);
+                mProvider.createPermissionDialog(activity, permissions[index], name, message, listener, enableCheckBox);
         if (isResumed(hybridManager.getActivity()) || hybridManager.getHapEngine().isCardMode()) {
             DarkThemeUtil.disableForceDark(dialog);
             if (!mProvider.isHidePermissionDialog(hybridManager.getActivity(), dialog)) {
