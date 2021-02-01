@@ -245,6 +245,8 @@ public class Contact extends FeatureExtension {
         Dialog dialog =
                 mProvider.createPermissionDialog(
                         activity,
+                        null,
+                        request.getApplicationContext().getName(),
                         message,
                         new DialogInterface.OnClickListener() {
                             @Override
