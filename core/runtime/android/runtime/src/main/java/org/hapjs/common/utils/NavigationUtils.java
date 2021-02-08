@@ -333,6 +333,9 @@ public class NavigationUtils {
                                             RuntimeLogManager.getDefault()
                                                     .logRouterDialogClick(rpkPkg,
                                                             info.activityInfo.packageName, tempResult);
+                                        }else {
+                                            RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, tempResult, tempResult ? "" : "dialog user denied");
+                                            RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, info.activityInfo.packageName, tempResult);
                                         }
                                     }
                                 };
@@ -351,6 +354,9 @@ public class NavigationUtils {
                                             RuntimeLogManager.getDefault()
                                                     .logRouterDialogClick(rpkPkg,
                                                             info.activityInfo.packageName, false);
+                                        }else {
+                                            RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, false, "dialog user canceled");
+                                            RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, targetRpk, false);
                                         }
                                         activity
                                                 .getApplication()
@@ -366,6 +372,8 @@ public class NavigationUtils {
                         if (!startRpk) {
                             RuntimeLogManager.getDefault()
                                     .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
+                        }else {
+                            RuntimeLogManager.getDefault().logRouterRpkDialogShow(rpkPkg, targetRpk);
                         }
                     }
                 });

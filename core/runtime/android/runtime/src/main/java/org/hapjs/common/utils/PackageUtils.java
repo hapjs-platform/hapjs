@@ -75,7 +75,8 @@ public class PackageUtils {
             String currentPackage,
             PageManager pm,
             HybridRequest request,
-            Bundle extras) {
+            Bundle extras,
+            String routerFrom) {
         Intent intent = new Intent();
         if (!TextUtils.isEmpty(currentPackage)
                 && HapEngine.getInstance(currentPackage).isCardMode()) {
@@ -116,6 +117,7 @@ public class PackageUtils {
         PackageManager packageManager = context.getPackageManager();
         ResolveInfo info = packageManager.resolveActivity(intent, 0);
         if (info == null) {
+            RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, "", routerFrom, false, "no compatible activity found");
             return false;
         }
 
@@ -129,15 +131,18 @@ public class PackageUtils {
             if (isSourcePkg(targetPkg) && provider.canGoBackToSourcePkg()) { //即将被调起的rpk是当前rpk的启动来源,允许直接调起
                 Log.d(TAG, "go back to source pkg");
                 context.startActivity(intent);
+                RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "");
             } else {
                 if (provider.inRouterRpkForbiddenList(context, currentPackage, targetPkg)) { //调起rpk限制名单
                     Log.d(TAG, "Fail to launch rpk: match router forbidden list");
+                    RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, false, "match router forbidden list");
                     return false;
                 }
                 if (!provider.inRouterRpkDialogList(context, currentPackage, targetPkg)) { //调起rpk前弹窗提示用户
                     context.startActivity(intent);
+                    RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "");
                 } else {
-                    NavigationUtils.showRouterConfirmDialog((Activity) context, intent, currentPackage, uri.toString(), "", info, packageManager, "", true, targetPkg);
+                    NavigationUtils.showRouterConfirmDialog((Activity) context, intent, currentPackage, uri.toString(), routerFrom, info, packageManager, "", true, targetPkg);
                     Log.d(TAG, "show open rpk dialog");
                 }
             }
