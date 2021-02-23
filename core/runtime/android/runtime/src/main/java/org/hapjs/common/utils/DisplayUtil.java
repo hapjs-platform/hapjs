@@ -10,7 +10,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.view.WindowInsets;
-import org.hapjs.common.compat.BuildPlatform;
+
 import org.hapjs.model.AppInfo;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
@@ -19,6 +19,8 @@ import org.hapjs.system.SysOpProvider;
 
 public class DisplayUtil {
     private static final String TAG = "DisplayUtil";
+    private static SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+
     private static WindowInsets sWindowInsets;
     private static HapEngine sHapEngine;
     private static int sViewPortWidth;
@@ -87,13 +89,7 @@ public class DisplayUtil {
             return 0;
         }
 
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        int minPlatformVersion = appInfo.getMinPlatformVersion();
-        if (minPlatformVersion < 1063 && !BuildPlatform.isTV()) {
-            return isLandscapeMode(context) ? displayMetrics.heightPixels :
-                    displayMetrics.widthPixels;
-        }
-        return displayMetrics.widthPixels;
+        return sysOpProvider.getScreenWidthPixels(context, appInfo.getMinPlatformVersion());
     }
 
     public static int getScreenHeight(Context context) {
@@ -106,13 +102,7 @@ public class DisplayUtil {
             return 0;
         }
 
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        int minPlatformVersion = appInfo.getMinPlatformVersion();
-        if (minPlatformVersion < 1063 && !BuildPlatform.isTV()) {
-            return isLandscapeMode(context) ? displayMetrics.widthPixels :
-                    displayMetrics.heightPixels;
-        }
-        return displayMetrics.heightPixels;
+        return sysOpProvider.getScreenHeightPixels(context, appInfo.getMinPlatformVersion());
     }
 
     public static int getStatusBarHeight(Context context) {

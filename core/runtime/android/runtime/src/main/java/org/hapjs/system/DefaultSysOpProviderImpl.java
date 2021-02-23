@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -34,7 +35,9 @@ import java.util.List;
 import java.util.Map;
 import org.hapjs.bridge.BaseJsSdkBridge;
 import org.hapjs.bridge.HybridManager;
+import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.IntentUtils;
 import org.hapjs.common.utils.PackageUtils;
@@ -443,5 +446,23 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public float getDensityScaledRatio(Context context) {
         return 1f;
+    }
+
+    @Override
+    public int getScreenWidthPixels(Context context, int platformVersion) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        if (platformVersion < 1063 && !BuildPlatform.isTV()) {
+            return DisplayUtil.isLandscapeMode(context) ? displayMetrics.heightPixels : displayMetrics.widthPixels;
+        }
+        return displayMetrics.widthPixels;
+    }
+
+    @Override
+    public int getScreenHeightPixels(Context context, int platformVersion) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        if (platformVersion < 1063 && !BuildPlatform.isTV()) {
+            return DisplayUtil.isLandscapeMode(context) ? displayMetrics.widthPixels : displayMetrics.heightPixels;
+        }
+        return displayMetrics.heightPixels;
     }
 }

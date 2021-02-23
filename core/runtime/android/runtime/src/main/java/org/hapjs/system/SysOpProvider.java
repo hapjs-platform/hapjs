@@ -152,4 +152,9 @@ public interface SysOpProvider {
 
         void isMenubarDataCollect(String packageName, boolean isCollected);
     }
+
+    int getScreenWidthPixels(Context context, int platformVersion);
+
+    int getScreenHeightPixels(Context context, int platformVersion);
+
 }
