@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { initPage, callActionJsonList, proxyCallNative, unproxyCallNative } from '../../../imports'
 
-describe('框架：13. sequence', () => {
+describe('框架：00. sequence', () => {
   const pageId = 1
   let page, pageVm
 
