@@ -427,25 +427,31 @@ public class SizeBackgroundDrawable extends BitmapDrawable {
                 size = new BackgroundSize(Attributes.ImageMode.NONE, backgroundSize);
                 String[] sizes = backgroundSize.split(" ");
                 int len = sizes.length;
-                String widthStr = sizes[0];
+                String widthStr = null;
+                if (len >= 1){
+                    widthStr = sizes[0];
+                }
                 String heightStr = null;
                 if (len >= 2) {
                     heightStr = sizes[1];
                 }
-                if (widthStr.endsWith("%")) {
-                    String temp = widthStr.substring(0, widthStr.indexOf("%"));
-                    size.setWidth(Float.parseFloat(temp) / 100f, BackgroundSize.SIZE_UNIT_PERCENT);
-                } else if (widthStr.endsWith("px")) {
-                    size.setWidth(Attributes.getFloat(hapEngine, widthStr),
-                            BackgroundSize.SIZE_UNIT_PX);
-                } else {
-                    // fix bug,when the width is NaN,the background-image cannot display.
-                    if (FloatUtil.isUndefined(Attributes.getFloat(hapEngine, widthStr))) {
-                        size.setWidth(0, BackgroundSize.SIZE_UNIT_AUTO);
+                if (widthStr != null) {
+                    if (widthStr.endsWith("%")) {
+                        String temp = widthStr.substring(0, widthStr.indexOf("%"));
+                        size.setWidth(Float.parseFloat(temp) / 100f, BackgroundSize.SIZE_UNIT_PERCENT);
+                    } else if (widthStr.endsWith("px")) {
+                        size.setWidth(Attributes.getFloat(hapEngine, widthStr), BackgroundSize.SIZE_UNIT_PX);
                     } else {
-                        size.setWidth(Attributes.getFloat(hapEngine, widthStr),
-                                BackgroundSize.SIZE_UNIT_PX);
+                        //fix bug,when the width is NaN,the background-image cannot display.
+                        if (FloatUtil.isUndefined(Attributes.getFloat(hapEngine, widthStr))) {
+                            size.setWidth(0, BackgroundSize.SIZE_UNIT_AUTO);
+                        } else {
+                            size.setWidth(Attributes.getFloat(hapEngine, widthStr), BackgroundSize.SIZE_UNIT_PX);
+                        }
                     }
+                } else {
+                    //auto
+                    size.setWidth(0, BackgroundSize.SIZE_UNIT_AUTO);
                 }
                 if (heightStr != null) {
                     if (heightStr.endsWith("%")) {
