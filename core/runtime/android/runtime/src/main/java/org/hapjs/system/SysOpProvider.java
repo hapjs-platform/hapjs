@@ -117,7 +117,7 @@ public interface SysOpProvider {
 
     boolean allowNightModeInAndroidVersion();
 
-    <T extends ImageView> boolean handleImageForceDark(T hostView, boolean forceDark);
+    boolean handleImageForceDark(ImageView imageView, boolean forceDark);
 
     boolean isAllowProfiler();
 
