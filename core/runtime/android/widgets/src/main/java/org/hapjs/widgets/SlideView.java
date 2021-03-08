@@ -25,6 +25,8 @@ import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.view.slideview.SecondaryConfirmInfo;
+import org.hapjs.widgets.view.slideview.SlideButtonInfo;
 import org.hapjs.widgets.view.slideview.SlideViewLayout;
 import org.json.JSONException;
 
@@ -52,21 +54,7 @@ public class SlideView extends Container<SlideViewLayout> {
     private static final String IS_OPEN = "isopen";
     private static final String BUTTONS = "buttons";
     private static final String LAYER = "layer";
-    private static final String BUTTONS_ID = "id";
-    private static final String BUTTONS_BUTTON_WIDTH = "buttonWidth";
-    private static final String BUTTONS_ICON = "icon";
-    private static final String BUTTONS_ICON_WIDTH = "iconWidth";
-    private static final String BUTTONS_ICON_HEIGHT = "iconHeight";
-    private static final String BUTTONS_ICON_BACKGROUND_COLOR = "iconBackgroundColor";
-    private static final String BUTTONS_TEXT = "text";
-    private static final String BUTTONS_TEXT_SIZE = "textSize";
-    private static final String BUTTONS_TEXT_COLOR = "textColor";
-    private static final String BUTTONS_BACKGROUND_COLOR = "backgroundColor";
-    private static final String BUTTONS_BACKGROUND_TYPE = "backgroundType";
-    private static final String BUTTONS_SECONDARY_CONFIRM = "secondaryConfirm";
-    private static final String BUTTONS_SECONDARY_CONFIRM_TEXT = "text";
-    private static final String BUTTONS_SECONDARY_CONFIRM_TEXT_SIZE = "textSize";
-    private static final String BUTTONS_SECONDARY_CONFIRM_TEXT_COLOR = "textColor";
+
     // event
     private static final String EVENT_OPEN = "open";
     private static final String EVENT_CLOSE = "close";
@@ -79,15 +67,7 @@ public class SlideView extends Container<SlideViewLayout> {
     private boolean mIsSlideListenerRegistered = false;
     private boolean mIsButtonClickListenerRegistered = false;
 
-    private Set<String> mButtonsIdSet;
-
-    public SlideView(
-            HapEngine hapEngine,
-            Context context,
-            Container parent,
-            int ref,
-            RenderEventCallback callback,
-            Map<String, Object> savedState) {
+    public SlideView(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback, Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
     }
 
@@ -288,143 +268,8 @@ public class SlideView extends Container<SlideViewLayout> {
         if (mHost == null || TextUtils.isEmpty(buttonsJSON)) {
             return;
         }
-        List<SlideViewLayout.SlideButtonInfo> buttonInfoList = parseButtonJson(buttonsJSON);
+        List<SlideButtonInfo> buttonInfoList = SlideButtonInfo.parseButtonJson(this, buttonsJSON);
         mHost.setButtons(buttonInfoList);
-    }
-
-    private List<SlideViewLayout.SlideButtonInfo> parseButtonJson(String buttonsJson) {
-        List<SlideViewLayout.SlideButtonInfo> buttonsDataList = new ArrayList<>();
-        try {
-            mButtonsIdSet = null;
-            JSONArray jsonArray = new JSONArray(buttonsJson);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonObject = jsonArray.getJSONObject(i);
-                SlideViewLayout.SlideButtonInfo holder = new SlideViewLayout.SlideButtonInfo();
-                for (Iterator<String> keys = jsonObject.keys(); keys.hasNext(); ) {
-                    String key = ((String) keys.next()).intern();
-                    switch (key) {
-                        case BUTTONS_ID:
-                            String indexStr = jsonObject.optString(key);
-                            holder.id = indexStr.trim();
-                            break;
-                        case BUTTONS_BUTTON_WIDTH:
-                            String buttonWidthStr = jsonObject.optString(key);
-                            holder.buttonWidth =
-                                    Attributes.getInt(mHapEngine, buttonWidthStr, UNDEFINE);
-                            break;
-                        case BUTTONS_ICON:
-                            String iconStr = jsonObject.optString(key);
-                            holder.icon = tryParseUri(iconStr.trim());
-                            break;
-                        case BUTTONS_ICON_WIDTH:
-                            String iconWidthStr = jsonObject.optString(key);
-                            holder.iconWidth =
-                                    Attributes.getInt(mHapEngine, iconWidthStr, UNDEFINE);
-                            break;
-                        case BUTTONS_ICON_HEIGHT:
-                            String iconHeightStr = jsonObject.optString(key);
-                            holder.iconHeight =
-                                    Attributes.getInt(mHapEngine, iconHeightStr, UNDEFINE);
-                            break;
-                        case BUTTONS_ICON_BACKGROUND_COLOR:
-                            String iconBackgroundColorStr = jsonObject.optString(key);
-                            holder.iconBackgroundColor =
-                                    ColorUtil.getColor(iconBackgroundColorStr, UNDEFINE);
-                            break;
-                        case BUTTONS_TEXT:
-                            String textStr = jsonObject.optString(key);
-                            holder.text = textStr;
-                            break;
-                        case BUTTONS_TEXT_SIZE:
-                            String textSizeStr = jsonObject.optString(key);
-                            holder.textSize =
-                                    Attributes.getFontSize(mHapEngine, getPage(), textSizeStr,
-                                            UNDEFINE);
-                            break;
-                        case BUTTONS_TEXT_COLOR:
-                            String textColorStr = jsonObject.optString(key);
-                            holder.textColor = ColorUtil.getColor(textColorStr, UNDEFINE);
-                            break;
-                        case BUTTONS_BACKGROUND_COLOR:
-                            String backgroundColorStr = jsonObject.optString(key);
-                            holder.backgroundColor =
-                                    ColorUtil.getColor(backgroundColorStr, UNDEFINE);
-                            break;
-                        case BUTTONS_BACKGROUND_TYPE:
-                            String backgroundTypeStr = jsonObject.optString(key);
-                            holder.backgroundType = backgroundTypeStr.trim().toLowerCase();
-                            break;
-                        case BUTTONS_SECONDARY_CONFIRM:
-                            String secondaryConfirmStr = jsonObject.optString(key);
-                            holder.secondaryConfirmInfo =
-                                    parseSecondaryConfirmJson(secondaryConfirmStr);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                if (!checkButtonsIdLegal(holder.id)) {
-                    throw new IllegalArgumentException(
-                            "button's id can not be null and should be unique. button:"
-                                    + holder.toString());
-                }
-                buttonsDataList.add(holder);
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "parseButtonJson: JSONException=" + e);
-            e.printStackTrace();
-        }
-        return buttonsDataList;
-    }
-
-    private SlideViewLayout.SecondaryConfirmInfo parseSecondaryConfirmJson(
-            String secondaryConfirmJson) {
-        SlideViewLayout.SecondaryConfirmInfo secondaryConfirmInfo =
-                new SlideViewLayout.SecondaryConfirmInfo();
-        try {
-            JSONObject jsonObject = new JSONObject(secondaryConfirmJson);
-            for (Iterator<String> keys = jsonObject.keys(); keys.hasNext(); ) {
-                String key = ((String) keys.next()).intern();
-                switch (key) {
-                    case BUTTONS_SECONDARY_CONFIRM_TEXT:
-                        String textStr = jsonObject.optString(key);
-                        secondaryConfirmInfo.text = textStr;
-                        break;
-                    case BUTTONS_SECONDARY_CONFIRM_TEXT_SIZE:
-                        String textSizeStr = jsonObject.optString(key);
-                        secondaryConfirmInfo.textSize =
-                                Attributes
-                                        .getFontSize(mHapEngine, getPage(), textSizeStr, UNDEFINE);
-                        break;
-                    case BUTTONS_SECONDARY_CONFIRM_TEXT_COLOR:
-                        String textColorStr = jsonObject.optString(key);
-                        secondaryConfirmInfo.textColor = ColorUtil.getColor(textColorStr, UNDEFINE);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-        } catch (JSONException e) {
-            Log.e(TAG, "parseSecondaryConfirmJson: JSONException=" + e);
-            e.printStackTrace();
-        }
-        return secondaryConfirmInfo;
-    }
-
-    private boolean checkButtonsIdLegal(String id) {
-        if (id == null) {
-            return false;
-        }
-        if (mButtonsIdSet == null) {
-            mButtonsIdSet = new HashSet<>();
-        } else {
-            if (mButtonsIdSet.contains(id)) {
-                return false;
-            }
-        }
-        mButtonsIdSet.add(id);
-        return true;
     }
 
     public void open(boolean animation) {
