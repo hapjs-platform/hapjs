@@ -9,6 +9,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -30,11 +33,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import com.facebook.yoga.YogaNode;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.BrightnessUtils;
+import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.appearance.AppearanceHelper;
 import org.hapjs.component.constants.Attributes;
@@ -112,6 +117,12 @@ public class FlexVideoView extends FrameLayout
     private int mFullscreenState = STATE_NOT_FULLSCREEN;
     private boolean mExitingFullscreen = false;
     private int mScreenOrientaion = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;
+
+    private Path mClipPath;
+    private float[] mRadiusArray;
+    private RectF mRoundRectF;
+    private int mBorderRadiusFlags;
+
     private boolean mAutoPlay = false;
     private MediaGestureHelper mMediaGestureHelper;
     private boolean mIsLazyCreate;
@@ -129,6 +140,62 @@ public class FlexVideoView extends FrameLayout
         mControlsManager = new ControlsManager(controlsVisibility);
         mVisible = true;
         setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+    }
+
+    private void initBorderRadiusParams() {
+        if (mClipPath == null) {
+            mClipPath = new Path();
+        }
+        if (mRadiusArray == null) {
+            mRadiusArray = new float[8];
+        }
+        if (mRoundRectF == null) {
+            mRoundRectF = new RectF();
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        if (isRoundedBorders()) {
+            mRoundRectF.set(0, 0, getWidth(), getHeight());
+            mClipPath.addRoundRect(mRoundRectF, mRadiusArray, Path.Direction.CW);
+            canvas.clipPath(mClipPath);
+        }
+        super.onDraw(canvas);
+    }
+
+    /**
+     * mBorderRadiusFlags 是取int前8位标记mRadiusArray的8个坐标值是否大于0，八个1二进制中等于255
+     *
+     * @param radius
+     */
+    public void setBorderRadius(float radius) {
+        initBorderRadiusParams();
+        Arrays.fill(mRadiusArray, radius);
+        if (radius > 0f) {
+            mBorderRadiusFlags |= 255;
+        } else {
+            mBorderRadiusFlags &= ~255;
+        }
+    }
+
+    public void setBorderCornerRadii(int position, float radius) {
+        initBorderRadiusParams();
+        if (!FloatUtil.floatsEqual(mRadiusArray[position * 2], radius)) {
+            mRadiusArray[position * 2] = radius;
+            mRadiusArray[position * 2 + 1] = radius;
+        }
+        if (radius > 0f) {
+            mBorderRadiusFlags |= (1 << position);
+            mBorderRadiusFlags |= (1 << (position + 1));
+        } else {
+            mBorderRadiusFlags &= ~(1 << position);
+            mBorderRadiusFlags &= ~(1 << (position + 1));
+        }
+    }
+
+    private boolean isRoundedBorders() {
+        return mBorderRadiusFlags > 0f;
     }
 
     public void start() {

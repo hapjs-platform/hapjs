@@ -22,11 +22,13 @@ import java.util.Map;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.net.NetworkReportManager;
+import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.SwipeObserver;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.component.constants.Corner;
 import org.hapjs.component.view.drawable.CSSBackgroundDrawable;
 import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
@@ -679,5 +681,33 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
 
     private void setPlayCount(String playCount) {
         mHost.setPlayCount(playCount);
+    }
+
+    @Override
+    public void setBorderRadius(String position, float borderRadius) {
+        super.setBorderRadius(position, borderRadius);
+        if (FloatUtil.isUndefined(borderRadius) || borderRadius < 0 || mHost == null) {
+            return;
+        }
+
+        switch (position) {
+            case Attributes.Style.BORDER_RADIUS:
+                mHost.setBorderRadius(borderRadius);
+                break;
+            case Attributes.Style.BORDER_TOP_LEFT_RADIUS:
+                mHost.setBorderCornerRadii(Corner.TOP_LEFT, borderRadius);
+                break;
+            case Attributes.Style.BORDER_TOP_RIGHT_RADIUS:
+                mHost.setBorderCornerRadii(Corner.TOP_RIGHT, borderRadius);
+                break;
+            case Attributes.Style.BORDER_BOTTOM_LEFT_RADIUS:
+                mHost.setBorderCornerRadii(Corner.BOTTOM_LEFT, borderRadius);
+                break;
+            case Attributes.Style.BORDER_BOTTOM_RIGHT_RADIUS:
+                mHost.setBorderCornerRadii(Corner.BOTTOM_RIGHT, borderRadius);
+                break;
+            default:
+                break;
+        }
     }
 }
