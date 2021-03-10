@@ -188,7 +188,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         if (getOrientation() == HORIZONTAL
                 || mRecycler == null
                 || mFlexRecyclerView == null
-                || getItemCount() == 0) {
+                || getStateItemCount() == 0) {
             return;
         }
 
@@ -213,7 +213,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
 
             int height = 0;
             int rowHeight = 0;
-            for (int i = 0; i < getItemCount(); i++) {
+            for (int i = 0; i < getStateItemCount(); i++) {
                 measureScrapChild(
                         mRecycler,
                         i,
@@ -222,7 +222,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
                         mMeasuredDimension);
 
                 rowHeight = Math.max(rowHeight, mMeasuredDimension[1]);
-                if (i % getSpanCount() == getSpanCount() - 1 || i == (getItemCount() - 1)) {
+                if (i % getSpanCount() == getSpanCount() - 1 || i == (getStateItemCount() - 1)) {
                     height += rowHeight;
                     rowHeight = 0;
                 }
@@ -233,13 +233,13 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
                     break;
                 }
 
-                if (i == (getItemCount() - 1)) {
+                if (i == (getStateItemCount() - 1)) {
                     mIndex = i;
                 }
             }
 
             mHeight = height;
-            mItemCount = getItemCount();
+            mItemCount = getStateItemCount();
 
             setYogaHeight(height);
         } else {
@@ -380,6 +380,14 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     @Override
     public int getFlexItemCount() {
         return getItemCount();
+    }
+
+    @Override
+    public int getStateItemCount() {
+        if (mFlexRecyclerView != null) {
+            return mFlexRecyclerView.getState().getItemCount();
+        }
+        return 0;
     }
 
     @Override
