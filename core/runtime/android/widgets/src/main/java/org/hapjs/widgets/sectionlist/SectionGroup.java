@@ -58,6 +58,7 @@ public class SectionGroup extends AbstractScrollable<FrameLayout> {
     private static final int STATE_EXPAND = 2;
 
     private RecyclerItem mRecyclerItem;
+    private ItemGroup.OnExpandStateChangeListener mOnExpandStateChangeListener = null;
 
     public SectionGroup(
             HapEngine hapEngine,
@@ -100,16 +101,19 @@ public class SectionGroup extends AbstractScrollable<FrameLayout> {
     @Override
     protected boolean addEvent(String event) {
         if (EVENT_CHANGE.equals(event)) {
+            if (mOnExpandStateChangeListener == null) {
+                mOnExpandStateChangeListener = new ItemGroup.OnExpandStateChangeListener() {
+                    @Override
+                    public void onStateChanged(boolean isExpand) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("state", isExpand ? STATE_EXPAND : STATE_COLLAPSE);
+                        mCallback.onJsEventCallback(getPageId(), getRef(), EVENT_CHANGE, SectionGroup.this, params, null);
+                    }
+                };
+            }
             ItemGroup itemGroup = getItemGroup();
             if (itemGroup != null) {
-                itemGroup.setExpandStateChangeListener(
-                        isExpand -> {
-                            Map<String, Object> params = new HashMap<>();
-                            params.put("state", isExpand ? STATE_EXPAND : STATE_COLLAPSE);
-                            mCallback.onJsEventCallback(
-                                    getPageId(), getRef(), EVENT_CHANGE, SectionGroup.this, params,
-                                    null);
-                        });
+                itemGroup.setExpandStateChangeListener(mOnExpandStateChangeListener);
             }
             return true;
         }
@@ -123,6 +127,7 @@ public class SectionGroup extends AbstractScrollable<FrameLayout> {
             if (itemGroup != null) {
                 itemGroup.setExpandStateChangeListener(null);
             }
+            mOnExpandStateChangeListener = null;
             return true;
         }
         return super.removeEvent(event);
@@ -182,9 +187,17 @@ public class SectionGroup extends AbstractScrollable<FrameLayout> {
 
     private void onBind(RecyclerItem recyclerItem) {
         mRecyclerItem = recyclerItem;
+        ItemGroup itemGroup = (ItemGroup) mRecyclerItem.getItem();
+        if (mOnExpandStateChangeListener != null && itemGroup != null) {
+            itemGroup.setExpandStateChangeListener(mOnExpandStateChangeListener);
+        }
     }
 
     private void unBind() {
+        ItemGroup itemGroup = (ItemGroup) mRecyclerItem.getItem();
+        if (itemGroup != null) {
+            itemGroup.setExpandStateChangeListener(null);
+        }
         mRecyclerItem = null;
     }
 
