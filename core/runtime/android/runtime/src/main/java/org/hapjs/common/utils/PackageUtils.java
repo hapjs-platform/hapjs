@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -131,7 +131,7 @@ public class PackageUtils {
             if (isSourcePkg(targetPkg) && provider.canGoBackToSourcePkg()) { //即将被调起的rpk是当前rpk的启动来源,允许直接调起
                 Log.d(TAG, "go back to source pkg");
                 context.startActivity(intent);
-                RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "");
+                RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "go back to source pkg");
             } else {
                 if (provider.inRouterRpkForbiddenList(context, currentPackage, targetPkg)) { //调起rpk限制名单
                     Log.d(TAG, "Fail to launch rpk: match router forbidden list");
@@ -140,7 +140,7 @@ public class PackageUtils {
                 }
                 if (!provider.inRouterRpkDialogList(context, currentPackage, targetPkg)) { //调起rpk前弹窗提示用户
                     context.startActivity(intent);
-                    RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "");
+                    RuntimeLogManager.getDefault().logRouterQuickApp(currentPackage, targetPkg, routerFrom, true, "do not display dialog");
                 } else {
                     NavigationUtils.showRouterConfirmDialog((Activity) context, intent, currentPackage, uri.toString(), routerFrom, info, packageManager, "", true, targetPkg);
                     Log.d(TAG, "show open rpk dialog");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -419,9 +419,10 @@ public class NestedWebView extends WebView
                             }
                             try {
                                 mContext.startActivity(intent);
-                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, null, mSourceH5);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, "webview pay", mSourceH5);
                             } catch (ActivityNotFoundException e) {
                                 Log.d(TAG, "Fail to launch deeplink", e);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "no compatible activity found", mSourceH5);
                             }
                             return true;
                         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -155,7 +155,7 @@ public class NavigationUtils {
         intent.putExtras(extras);
         context.startActivity(intent);
 
-        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, null, sourceH5);
+        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, "dial", sourceH5);
     }
 
     private static void sendto(
@@ -180,7 +180,7 @@ public class NavigationUtils {
         intent.putExtras(extras);
         context.startActivity(intent);
 
-        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, null, sourceH5);
+        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, "sendto", sourceH5);
     }
 
     private static boolean view(
@@ -312,7 +312,7 @@ public class NavigationUtils {
                                     public void onClick(DialogInterface dialog, int which) {
                                         sDialogRef = null;
                                         boolean tempResult = false;
-                                        String failureMsg = "";
+                                        String failureMsg = "dialog confirm";
                                         if (which == DialogInterface.BUTTON_POSITIVE) {
                                             RouterManageProvider routerProvider =
                                                     ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
@@ -426,7 +426,7 @@ public class NavigationUtils {
             Intent intent,
             String routerAppFrom,
             boolean result,
-            String failureMsg,
+            String resultDesc,
             String sourceH5) {
         ResolveInfo info = context.getPackageManager().resolveActivity(intent, 0);
         if (info != null) {
@@ -438,7 +438,7 @@ public class NavigationUtils {
                             info.activityInfo.name,
                             routerAppFrom,
                             result,
-                            failureMsg,
+                            resultDesc,
                             sourceH5);
         }
     }
