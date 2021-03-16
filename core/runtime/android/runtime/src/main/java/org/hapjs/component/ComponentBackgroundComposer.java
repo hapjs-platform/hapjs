@@ -285,7 +285,11 @@ public class ComponentBackgroundComposer {
         }
 
         hostView.setBackground(mBackgroundDrawable);
-        mDirty = false;
+        if (!mBackgroundHolder.mIsViewAttached || !mBackgroundHolder.mIsVisible) {
+            // 此情况下不将 mDirty 设为 false，否则无法刷新背景
+        } else {
+            mDirty = false;
+        }
 
         if (mImageDrawable != null && mImageDrawable instanceof NinePatchDrawable) {
             mComponent.refreshPaddingFromBackground((NinePatchDrawable) mImageDrawable);
