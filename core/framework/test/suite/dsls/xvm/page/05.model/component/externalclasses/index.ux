@@ -1,0 +1,35 @@
+<!--
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="custom-component1" src="./part1.ux"></import>
+<import name="custom-component2" src="./part2.ux"></import>
+
+<template>
+  <div class="demo-page">
+    <custom-component1 id="comp11" color-class="color-class1" bgcolor-class="bgcolor-class1"></custom-component1>
+    <custom-component1 id="comp12" color-class="color-class1 color-class2"></custom-component1>
+    <custom-component2 id="comp2" color-class="color-class1" bgcolor-class="bgcolor-class1"></custom-component2>
+  </div>
+</template>
+
+<style>
+.demo-page {
+  display: flex;
+  flex-direction: column;
+}
+.color-class2 {
+  color: #0000FF;
+  font-size: 20px
+}
+.bgcolor-class1 {
+  background-color: #0000FF;
+}
+.color-class1 {
+  color: #FF0000;
+}
+.bgcolor-class2 {
+  background-color: #FF0000;
+}
+</style>

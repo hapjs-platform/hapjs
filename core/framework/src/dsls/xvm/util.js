@@ -312,6 +312,20 @@ function assertType(value, type) {
   }
 }
 
+/**
+ * 按添加key的顺序复制对象
+ */
+function assignObjectInOrder(target, source) {
+  if (!source) {
+    return
+  }
+
+  Object.keys(source).forEach(key => {
+    if (target[key]) delete target[key]
+    target[key] = source[key]
+  })
+}
+
 export {
   $def,
   $remove,
@@ -329,5 +343,6 @@ export {
   getType,
   assertType,
   getTypeIndex,
+  assignObjectInOrder,
   arrayMethods
 }

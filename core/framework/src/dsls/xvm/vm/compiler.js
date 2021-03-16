@@ -6,7 +6,7 @@
 
 import { $camelize, isPlainObject, isReserved, isObject } from 'src/shared/util'
 
-import { $bind } from '../util'
+import { $bind, assignObjectInOrder } from '../util'
 
 import context from '../context'
 
@@ -666,7 +666,7 @@ function compileNativeComponent(vm, template, dest, type) {
     styleObject = Object.keys(styleObject).length === 0 ? vm._options.style : styleObject
     context.quickapp.runtime.helper.registerStyleObject(
       vm._type,
-      vm._options.style,
+      styleObject,
       isDocLevel,
       vm._rootElement
     )

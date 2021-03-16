@@ -192,7 +192,7 @@ function getPage(id) {
 }
 
 /**
- * 创建App实例
+ * 创建Page实例
  * @param {string} id - 页面索引
  * @param {string} appid - APP索引
  * @param {string} code - 页面的JS代码
