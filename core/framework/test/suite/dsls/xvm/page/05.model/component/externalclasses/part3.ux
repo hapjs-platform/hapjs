@@ -1,0 +1,31 @@
+<!--
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div class="container">
+    <text id="part3-color" class="color-class1">节点颜色测试</text>
+    <text id="part3-bgcolor" class="bgcolor-class1">节点背景色测试</text>
+  </div>
+</template>
+
+<script>
+export default { 
+  externalClasses: ['color-class1', 'bgcolor-class1'],
+  data() {
+    return {}
+  },
+}
+</script>
+
+<style>
+.container {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.color-class {
+  color: #008000;
+}
+</style>

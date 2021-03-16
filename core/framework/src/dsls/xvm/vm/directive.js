@@ -56,6 +56,7 @@ function bindElement(vm, el, template) {
   setVmId(vm, el, template.attr.id, vm)
   setAttr(vm, el, template.attr)
   setAttrClass(vm, el, template.classList)
+  setExternalClasses(vm, el, template.classList)
   setAttrStyle(vm, el, template.style)
   setCustomDirectives(vm, el, template)
 
@@ -87,6 +88,8 @@ function bindSubVm(vm, subVm, template, repeatItem) {
     delete template.attr.$listeners
   }
 
+  mergeExternalClasses(options, template, subVm, vm)
+
   const repeatItemAttr = isPlainObject(repeatItem) ? repeatItem : {}
   Object.assign(subVm._attrs, template.attr || {}, repeatItemAttr)
 
@@ -107,6 +110,96 @@ function bindSubVm(vm, subVm, template, repeatItem) {
 
   mergeProps(subVm._attrs, options.props, vm, subVm)
   mergeAttrs(subVm._attrs, options.props, vm, subVm)
+}
+
+/**
+ * 在_externalClasses中保存父组件中样式定义
+ * @param {Object} options
+ * @param {Object} template
+ * @param {Object} subVm
+ * @param {Object} vm
+ * @returns
+ */
+function mergeExternalClasses(options, template, subVm, vm) {
+  const subExternalClassesDefine = options.externalClasses
+  const styleDefine = vm._options && vm._options.style
+  if (!subExternalClassesDefine || !styleDefine) {
+    return
+  }
+
+  if (!Array.isArray(subExternalClassesDefine)) {
+    console.error(`### App Framework ### 组件 ${subVm._type} 选项 externalClasses 必须为数组类型`)
+    return
+  }
+
+  subVm._externalClasses = {}
+  subExternalClassesDefine.forEach(className => {
+    const attrName = $camelize(className)
+    const isProps = options.props && options.props[attrName]
+    const value = template.attr && template.attr[attrName]
+    // props中接收的值，此处不能再使用
+    if (!isProps && value) {
+      const classSelector = '.' + className
+      if (typeof value === 'function') {
+        // 传递样式为变量，响应式更新
+        ;(function() {
+          const watcher = watch(vm, value, function(v) {
+            assignExternalClasses(v, classSelector, subVm, vm)
+          })
+          subVm._parentWatchers.push(watcher)
+          assignExternalClasses(watcher.value, classSelector, subVm, vm)
+        })()
+      } else {
+        assignExternalClasses(value, classSelector, subVm, vm)
+      }
+      defineReactive(subVm._externalClasses, classSelector, subVm._externalClasses[classSelector])
+    }
+  })
+
+  /**
+   * 将父组件中样式定义传递给自定义组件，样式重复则后定义的优先
+   * @param {String} value 自定义组件<comp xxx="yyy">中yyy部分
+   * @param {String} classSelector 自定义组件<comp xxx="yyy">中xxx部分
+   * @param {Object} subExtClassesVal 自定义组件_externalClasses样式记录
+   * @param {Object} vm 父组件vm
+   */
+  function assignExternalClasses(value, classSelector, subVm, vm) {
+    // 拿到父组件中样式定义顺序，样式重复则以后定义的为准
+    const classArr = value.trim().split(' ')
+    const styleArr = Object.getOwnPropertyNames(styleDefine)
+    let idx = -1
+    let curIdx
+    const subExtClassesVal = {}
+    classArr.forEach(val => {
+      const selector = '.' + val
+      const styleVal = styleDefine[selector]
+      if (vm._externalClasses && vm._externalClasses[selector]) {
+        // 高阶组件定义了externalClasses则一直往下传，并响应式更新
+        const calc = () => {
+          return vm._externalClasses[selector]
+        }
+        watch(vm, calc, function(v) {
+          const newSubExtClassesVal = {}
+          Object.assign(newSubExtClassesVal, vm._externalClasses[selector])
+          subVm._externalClasses[classSelector] = newSubExtClassesVal
+        })
+        Object.assign(subExtClassesVal, vm._externalClasses[selector])
+      } else if (styleVal) {
+        curIdx = styleArr.indexOf(selector)
+        Object.keys(styleVal).forEach(classObj => {
+          if (!subExtClassesVal[classObj] || curIdx > idx) {
+            subExtClassesVal[classObj] = styleVal[classObj]
+          }
+        })
+        idx = curIdx
+      } else {
+        console.warn(
+          `### App Framework ### 组件 ${subVm._type} 选项 externalClasses 中传递的 ${classSelector}: ${val} 样式在父组件 ${vm._type} 中未找到定义`
+        )
+      }
+    })
+    subVm._externalClasses[classSelector] = subExtClassesVal
+  }
 }
 
 /**
@@ -630,6 +723,55 @@ function setAttrClass(vm, el, classList) {
     updateNodeProperties(el, 'attr', 'class', watcherValue.join(' '))
   } else {
     updateNodeProperties(el, 'attr', 'class', classList.join(' '))
+  }
+}
+
+/**
+ * externalClasses赋予的样式值变化时，响应式更新节点
+ * @param {Object} vm
+ * @param {Object} el
+ * @param {Array || String} classList
+ * @returns
+ */
+function setExternalClasses(vm, el, classList) {
+  if (
+    !vm._externalClasses ||
+    !Object.keys(vm._externalClasses).length ||
+    typeof classList === 'function'
+  ) {
+    return
+  }
+
+  if (!Array.isArray(classList)) {
+    bindExtClasses(vm, el, '.' + classList)
+  } else {
+    classList.forEach(className => {
+      bindExtClasses(vm, el, '.' + className)
+    })
+  }
+}
+
+/**
+ * vm._externalClasses中样式值变化时通知节点更新
+ * @param {*} vm
+ * @param {*} el
+ * @param {String} className
+ */
+function bindExtClasses(vm, el, className) {
+  if (vm._externalClasses[className]) {
+    const calc = () => {
+      return vm._externalClasses[className]
+    }
+    watch(
+      vm,
+      calc,
+      value => {
+        Object.keys(value).forEach(key => {
+          updateNodeProperties(el, 'style', key, value[key])
+        })
+      },
+      el
+    )
   }
 }
 

@@ -1,0 +1,37 @@
+<!--
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="custom-component3" src="./part3.ux"></import>
+
+<template>
+  <div class="container">
+    <text id="part1-color" class="color-class">节点颜色测试</text>
+    <text id="part1-bgcolor" class="bgcolor-class">节点背景色测试</text>
+    <custom-component3 id="comp3" color-class1="color-class" bgcolor-class1="bgcolor-class"></custom-component3>
+  </div>
+</template>
+
+<script>
+export default {
+  externalClasses: ['color-class', 'bgcolor-class'],
+  data() {
+    return {}
+  },
+}
+</script>
+
+<style>
+.container {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.color-class {
+  color: #008000;
+}
+.bgcolor-class {
+  background-color: #808080;
+}
+</style>
