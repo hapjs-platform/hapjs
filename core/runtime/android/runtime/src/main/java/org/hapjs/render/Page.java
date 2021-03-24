@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -451,7 +451,17 @@ public class Page implements IPage {
     }
 
     public String getMenuBarShareCurrentPage() {
-        String parseValue = getPageStyle(DisplayInfo.Style.PARAM_SHARE_CURRENT_PAGE, null, "");
+        String parseValue = getStyle(DisplayInfo.Style.PARAM_SHARE_CURRENT_PAGE,
+                null, "");
+        if (TextUtils.isEmpty(parseValue)) {
+            return "";
+        }
+        return parseValue;
+    }
+
+    public String getMenuBarUsePageParams() {
+        String parseValue = getPageStyle(DisplayInfo.Style.PARAM_SHARE_USE_PAGE_PARAMS,
+                null, "");
         if (TextUtils.isEmpty(parseValue)) {
             return "";
         }
