@@ -128,6 +128,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
     private String mShareCurrentPage = "";
     private String mShareUrl = "";
     private String mShareParams = "";
+    private String mUsePageParams = "";
     private boolean mIsShowMenuBar = false;
     private boolean mIsAllowMenubarMove = true;
     private int mDefaultMenubarStatus = View.GONE;
@@ -743,6 +744,12 @@ public class Display implements ConfigurationManager.ConfigurationListener {
             if (TextUtils.isEmpty(mShareParams)) {
                 mShareParams = mPage.getMenuBarShareParams();
             }
+            if (TextUtils.isEmpty(mUsePageParams)) {
+                mUsePageParams = mPage.getMenuBarUsePageParams();
+                if (TextUtils.isEmpty(mUsePageParams)) {
+                    mUsePageParams = mShareCurrentPage;
+                }
+            }
         }
         SysOpProvider provider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
         final String menuStr = mContext.getResources().getString(R.string.menubar_dlg_menu);
@@ -767,15 +774,19 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                 TextUtils.isEmpty(mShareParams) ? "" : mShareParams);
         mExtraShareData.put(MenubarUtils.PARAM_PACKAGE, mRpkPackage);
         String pagePath = "";
-        JSONObject pageParams = new JSONObject();
-        try {
-            if (null != mPage && null != mPage.params && mPage.params.size() > 0) {
-                HmacUtils.mapToJSONObject(pageParams, mPage.params);
+        if ("true".equalsIgnoreCase(mUsePageParams)) {
+            JSONObject pageParams = new JSONObject();
+            try {
+                if (null != mPage && null != mPage.params && mPage.params.size() > 0) {
+                    HmacUtils.mapToJSONObject(pageParams, mPage.params);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "initShowMenubarDialog  mapToJSONObject error : " + e.getMessage());
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "initShowMenubarDialog  mapToJSONObject error : " + e.getMessage());
+            mExtraShareData.put(MenubarUtils.PARAM_PAGE_PARAMS, pageParams.toString());
+        } else {
+            mExtraShareData.put(MenubarUtils.PARAM_PAGE_PARAMS, "");
         }
-        mExtraShareData.put(MenubarUtils.PARAM_PAGE_PARAMS, pageParams.toString());
         if (null != mPage) {
             pagePath = mPage.getPath();
         }
@@ -798,9 +809,16 @@ public class Display implements ConfigurationManager.ConfigurationListener {
     }
 
     /**
-     * this.$page.setMenubarData( { shareTitle:'分享标题' , shareDescription:'分享描述',
-     * shareIcon:'https://doc.quickapp.cn/assets/images/logo.png', shareCurrentPage:true ,
-     * shareUrl:"cp配置分享url，//在无法跳转快应用时候使用" shareParams: { a: 1, b: 'abc' }//配置透传给分享页面的参数 } )
+     * this.$page.setMenubarData(
+     * { shareTitle:'分享标题' ,
+     * shareDescription:'分享描述',
+     * shareIcon:'https://doc.quickapp.cn/assets/images/logo.png',
+     * shareCurrentPage:true ,
+     * shareUrl:"cp配置分享url,//在无法跳转快应用时候使用"
+     * shareParams: { a: 1, b: 'abc' },//配置透传给分享页面的参数
+     * usePageParams: true
+     * }
+     * )
      *
      * @param
      */
@@ -872,6 +890,16 @@ public class Display implements ConfigurationManager.ConfigurationListener {
             } catch (JSONException e) {
                 Log.e(TAG, "refreshMenubarShareData PARAM_SHARE_PARAMS error : " + e.getMessage());
             }
+        }
+        if (datas.has(DisplayInfo.Style.PARAM_SHARE_USE_PAGE_PARAMS)) {
+            try {
+                boolean tmpValue = datas.getBoolean(DisplayInfo.Style.PARAM_SHARE_USE_PAGE_PARAMS);
+                mUsePageParams = (tmpValue ? "true" : "false");
+            } catch (JSONException e) {
+                Log.e(TAG, "refreshMenubarShareData PARAM_SHARE_USE_PAGE_PARAMS error : " + e.getMessage());
+            }
+        } else {
+            mUsePageParams = mShareCurrentPage;
         }
     }
 
