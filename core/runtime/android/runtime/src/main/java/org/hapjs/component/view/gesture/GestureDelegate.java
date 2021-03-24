@@ -633,7 +633,7 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
         return object;
     }
 
-    private void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
+    public void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
         if (mRouterManageProvider != null) {
             mRouterManageProvider.recordFireEvent(eventName);
         }
