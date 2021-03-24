@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -35,6 +35,7 @@ public interface SysOpProvider {
     String PARAM_APPSIGN_KEY = "appSign";
     String PARAM_PACKAGE_KEY = "package";
     String PARAM_MENUBAR_KEY = "menubar";
+    String PARAM_SHAREBUTTON_KEY = "sharebutton";
     String PARAM_TITLEBAR_TITLE_KEY = "title_name";
     String PARAM_TITLEBAR_TITLE_COLOR_KEY = "title_color";
     String PARAM_TITLEBAR_HOME_KEY = "title_home";
