@@ -187,7 +187,7 @@ public class RuntimePermissionManager implements PermissionManager {
             final PermissionCallbackAdapter callback,
             final int index) {
         Activity activity = hybridManager.getActivity();
-        if (activity.isFinishing()) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
             callback.onPermissionReject(hybridManager, null);
             return;
         }
