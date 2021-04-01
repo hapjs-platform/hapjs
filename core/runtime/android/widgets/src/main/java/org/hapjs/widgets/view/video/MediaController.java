@@ -488,6 +488,10 @@ public class MediaController extends RelativeLayout {
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
                 || keyCode == KeyEvent.KEYCODE_PLUS
                 || keyCode == KeyEvent.KEYCODE_EQUALS) {
+            if (null == mPlayer) {
+                Log.w(TAG, "dispatchKeyEvent keyCode = " + keyCode + " while mPlayer is null.");
+                return true;
+            }
             long increment = mPlayer.getDuration() / 20;
             long position = mPlayer.getCurrentPosition();
             switch (keyCode) {
@@ -497,26 +501,21 @@ public class MediaController extends RelativeLayout {
                         mPlayer.setCurrentState(Player.STATE_PREPARED);
                     }
                     position = Math.max(position - increment, 0);
-                    if (mPlayer != null) {
-                        mPlayer.seek(position);
-                        if (!mPlayer.isPlaying() && position != 0) {
-                            mPlayer.start();
-                        }
-                        show(sDefaultTimeout);
+                    mPlayer.seek(position);
+                    if (!mPlayer.isPlaying() && position != 0) {
+                        mPlayer.start();
                     }
+                    show(sDefaultTimeout);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                 case KeyEvent.KEYCODE_PLUS:
                 case KeyEvent.KEYCODE_EQUALS:
                     position = Math.min(position + increment, mPlayer.getDuration());
-                    if (mPlayer != null) {
-                        mPlayer.seek(position);
-                        if (!mPlayer.isPlaying() && position != mPlayer.getDuration()) {
-                            mPlayer.start();
-                        }
-                        show(sDefaultTimeout);
+                    mPlayer.seek(position);
+                    if (!mPlayer.isPlaying() && position != mPlayer.getDuration()) {
+                        mPlayer.start();
                     }
-
+                    show(sDefaultTimeout);
                     return true;
                 default:
                     return false;
