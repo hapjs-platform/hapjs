@@ -35,25 +35,16 @@ public class Clipboard extends FeatureExtension {
     @Override
     protected Response invokeInner(final Request request) throws Exception {
         if (mClipboard == null) {
-            request
-                    .getNativeInterface()
-                    .getActivity()
-                    .runOnUiThread(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    Context context = request.getNativeInterface().getActivity();
-                                    mClipboard =
-                                            (ClipboardManager) context
-                                                    .getSystemService(Context.CLIPBOARD_SERVICE);
-                                    try {
-                                        invokeInner(request);
-                                    } catch (Exception e) {
-                                        request.getCallback()
-                                                .callback(getExceptionResponse(request, e));
-                                    }
-                                }
-                            });
+            Context context = request.getNativeInterface().getActivity();
+            mClipboard =
+                    (ClipboardManager) context
+                            .getSystemService(Context.CLIPBOARD_SERVICE);
+            try {
+                invokeInner(request);
+            } catch (Exception e) {
+                request.getCallback()
+                        .callback(getExceptionResponse(request, e));
+            }
         } else {
             String action = request.getAction();
             if (ACTION_SET.equals(action)) {
