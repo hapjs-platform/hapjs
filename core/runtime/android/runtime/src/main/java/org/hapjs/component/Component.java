@@ -185,7 +185,6 @@ public abstract class Component<T extends View>
     private ComponentPreDrawListener mUnReadyPreDrawListener;
     private boolean mRegisterClickEvent;
 
-    protected boolean mIsAdMaterial = false;
 
     private View mFullScreenView;
 
@@ -1389,9 +1388,9 @@ public abstract class Component<T extends View>
             return true;
         }
 
-        if (Attributes.Event.FOCUS.equals(event)
-                || Attributes.Event.BLUR.equals(event)
-                || Attributes.Event.CLICK.equals(event)) {
+        if (Attributes.Event.FOCUS.equals(event) ||
+                Attributes.Event.BLUR.equals(event) ||
+                Attributes.Event.CLICK.equals(event)) {
             mHost.setFocusable(true);
         }
 
