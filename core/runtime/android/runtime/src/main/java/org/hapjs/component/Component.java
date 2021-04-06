@@ -185,13 +185,10 @@ public abstract class Component<T extends View>
     private ComponentPreDrawListener mUnReadyPreDrawListener;
     private boolean mRegisterClickEvent;
 
-    public Component(
-            HapEngine hapEngine,
-            Context context,
-            Container parent,
-            int ref,
-            RenderEventCallback callback,
-            Map<String, Object> savedState) {
+    private View mFullScreenView;
+
+    public Component(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback,
+                     Map<String, Object> savedState) {
         mHapEngine = hapEngine;
         mContext = context;
         mParent = parent;
@@ -1389,9 +1386,9 @@ public abstract class Component<T extends View>
             return true;
         }
 
-        if (Attributes.Event.FOCUS.equals(event)
-                || Attributes.Event.BLUR.equals(event)
-                || Attributes.Event.CLICK.equals(event)) {
+        if (Attributes.Event.FOCUS.equals(event) ||
+                Attributes.Event.BLUR.equals(event) ||
+                Attributes.Event.CLICK.equals(event)) {
             mHost.setFocusable(true);
         }
 
