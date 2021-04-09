@@ -90,7 +90,7 @@ public class LruCache<K, V> implements Cache<K, V> {
         while (iterator.hasNext()) {
             Map.Entry<K, V> toRemove = (Map.Entry<K, V>) iterator.next();
             onRemoved(toRemove.getKey(), toRemove.getValue());
-            mMap.remove(toRemove.getKey());
+            iterator.remove();
             mCountMap.remove(toRemove.getKey());
             mMemorySize -= getValueSize(toRemove.getValue());
         }
