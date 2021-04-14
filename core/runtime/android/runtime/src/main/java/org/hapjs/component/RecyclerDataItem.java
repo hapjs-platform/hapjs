@@ -346,7 +346,7 @@ public abstract class RecyclerDataItem implements ComponentDataHolder {
 
     public void destroy() {
         // mTemplate == null, so component will not be used by others
-        if (getBoundComponent() != null) {
+        if (getBoundComponent() != null && mTemplate == null) {
             getBoundComponent().destroy();
         }
 
