@@ -18,15 +18,18 @@ public class DisplayInfo {
 
     private static final String KEY_PAGES = "pages";
     private static final String KEY_THEME_MODE = "themeMode";
+    private static final String KEY_PAGE_ANIMATION = "pageAnimation";
 
     private Style mDefaultStyle;
     private Map<String, Style> mPagesStyle;
     private int mThemeMode; // dark-no--0,dark_yes--1,auto-- -1
+    private JSONObject mPageAnimation;
 
     public static DisplayInfo parse(JSONObject jsonObject) {
         DisplayInfo displayInfo = new DisplayInfo();
         displayInfo.mDefaultStyle = Style.parse(jsonObject);
         displayInfo.mThemeMode = jsonObject.optInt(KEY_THEME_MODE, -1);
+        displayInfo.mPageAnimation = jsonObject.optJSONObject(KEY_PAGE_ANIMATION);
 
         JSONObject pagesObject = jsonObject.optJSONObject(KEY_PAGES);
         if (pagesObject != null) {
@@ -60,6 +63,10 @@ public class DisplayInfo {
             return null;
         }
         return mPagesStyle.get(pageName);
+    }
+
+    public JSONObject getPageAnimation() {
+        return mPageAnimation;
     }
 
     public void setPageStyle(String pageName, Style pageStyle) {
@@ -120,6 +127,7 @@ public class DisplayInfo {
         public static final String KEY_TEXT_SIZE_ADJUST = "textSizeAdjust";
         public static final String MENU_BAR_DARK_STYLE = "dark";
         public static final String MENU_BAR_LIGHT_STYLE = "light";
+        public static final String KEY_PAGE_ANIMATION = "pageAnimation";
 
         private String mBackgroundColor;
         private String mTitleBarBgColor;
@@ -151,6 +159,8 @@ public class DisplayInfo {
         private String mTextSizeAdjust;
         private String mFitCutout;
         private String mForceDark;
+
+        private JSONObject mPageAnimation;
 
         public static Style parse(JSONObject jsonObject) {
             Style style = new Style();
@@ -201,6 +211,7 @@ public class DisplayInfo {
                 style.mMenuBarUsePageParams = "";
             }
 
+            style.mPageAnimation = jsonObject.optJSONObject(KEY_PAGE_ANIMATION);
             return style;
         }
 
@@ -267,6 +278,10 @@ public class DisplayInfo {
             }
 
             return null;
+        }
+
+        public JSONObject getPageAnimation() {
+            return mPageAnimation;
         }
     }
 }

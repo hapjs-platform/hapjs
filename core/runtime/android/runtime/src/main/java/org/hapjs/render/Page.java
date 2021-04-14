@@ -8,8 +8,10 @@ package org.hapjs.render;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,20 +20,25 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.common.utils.ThreadUtils;
+import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.MenubarView;
 import org.hapjs.model.AppInfo;
 import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.RoutableInfo;
+import org.hapjs.render.vdom.DocAnimator;
 import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.BuildConfig;
 import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.runtime.LocaleResourcesParser;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.system.SysOpProvider;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Page implements IPage {
     /**
@@ -81,6 +88,8 @@ public class Page implements IPage {
     private static final String PAGE_ORIENTATION = "orientation";
     private static final String MENU_BAR_DARK_STYLE = "dark";
     private static final String MENU_BAR_LIGHT_STYLE = "light";
+    private static final String TAG = "Page";
+
     public final Map<String, ?> intent;
     public final Map<String, ?> meta;
     public final int pageId;
@@ -113,6 +122,7 @@ public class Page implements IPage {
     private String mTargetPageUri;
     private long mPageLastUsedTime;
     private boolean mCleanCache = false;
+    private PageAnimationConfig mPageAnimationConfig;
 
     public Page(
             AppInfo appInfo,
@@ -129,6 +139,7 @@ public class Page implements IPage {
         this.meta = makePageMetaInfo(routableInfo);
         this.launchFlags = launchFlags;
         mPageLastUsedTime = System.currentTimeMillis();
+        mPageAnimationConfig = parsePageAnimationConfig();
     }
 
     @Override
@@ -727,6 +738,93 @@ public class Page implements IPage {
         return parseValue;
     }
 
+    private PageAnimationConfig parsePageAnimationConfig() {
+        PageAnimationConfig config = null;
+
+        // router.push()优先
+        JSONObject pageAnimateSettingObj = null;
+        if (params != null && params.size() > 0) {
+            Object obj = params.get(HybridRequest.PARAM_PAGE_ANIMATION);
+            if (obj instanceof String) {
+                String animationStr = obj.toString().trim();
+                try {
+                    pageAnimateSettingObj = new JSONObject(animationStr);
+                } catch (JSONException e) {
+                    Log.e(TAG, "parsePageAnimationConfig: ", e);
+                }
+
+            }
+        }
+        // manifest.json配置的单个页面其次
+        DisplayInfo displayInfo = appInfo.getDisplayInfo();
+        DisplayInfo.Style pageStyle = displayInfo != null ? displayInfo.getPageStyle(getName()) : null;
+        if (pageAnimateSettingObj == null && pageStyle != null) {
+            pageAnimateSettingObj = pageStyle.getPageAnimation();
+        }
+        // manifest.json配置的全局最后
+        if (pageAnimateSettingObj == null && displayInfo != null) {
+            pageAnimateSettingObj = displayInfo.getPageAnimation();
+        }
+
+        if (pageAnimateSettingObj != null) {
+            try {
+                Object openEnterObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_OPEN_ENTER);
+                Object openExitObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_OPEN_EXIT);
+                Object closeEnterObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_CLOSE_ENTER);
+                Object closeExitObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_CLOSE_EXIT);
+                if (openEnterObj instanceof String && closeEnterObj instanceof String
+                        && openExitObj instanceof String && closeExitObj instanceof String) {
+                    String openEnter = openEnterObj.toString().trim();
+                    String openExit = openExitObj.toString().trim();
+                    String closeEnter = closeEnterObj.toString().trim();
+                    String closeExit = closeExitObj.toString().trim();
+                    config = new PageAnimationConfig(openEnter, closeEnter, openExit, closeExit);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "parsePageAnimationConfig: ", e);
+            }
+        }
+        return config;
+    }
+
+
+    public int getPageAnimation(String animationType, int defValue) {
+        if (animationType == null || mPageAnimationConfig == null) {
+            return defValue;
+        }
+        String animation;
+        int animationId = defValue;
+        switch (animationType) {
+            case Attributes.PageAnimation.ACTION_OPEN_ENTER:
+                animation = mPageAnimationConfig.mOpenEnter;
+                animationId = DocAnimator.TYPE_PAGE_OPEN_ENTER;
+                break;
+            case Attributes.PageAnimation.ACTION_OPEN_EXIT:
+                animation = mPageAnimationConfig.mOpenExit;
+                animationId = DocAnimator.TYPE_PAGE_OPEN_EXIT;
+                break;
+            case Attributes.PageAnimation.ACTION_CLOSE_ENTER:
+                animation = mPageAnimationConfig.mCloseEnter;
+                animationId = DocAnimator.TYPE_PAGE_CLOSE_ENTER;
+                break;
+            case Attributes.PageAnimation.ACTION_CLOSE_EXIT:
+                animation = mPageAnimationConfig.mCloseExit;
+                animationId = DocAnimator.TYPE_PAGE_CLOSE_EXIT;
+                break;
+            default:
+                animation = Attributes.PageAnimation.NONE;
+        }
+
+        if (Attributes.PageAnimation.SLIDE.equalsIgnoreCase(animation)) {
+            return animationId;
+        } else if (Attributes.PageAnimation.NONE.equalsIgnoreCase(animation)) {
+            //0表示无动画
+            return DocAnimator.TYPE_UNDEFINED;
+        }
+        return animationId;
+    }
+
+
     @Override
     public String toString() {
         return "app: "
@@ -743,5 +841,30 @@ public class Page implements IPage {
         void onLoadStart(Page page);
 
         void onLoadFinish(Page page);
+    }
+
+    private static class PageAnimationConfig {
+
+        private String mOpenEnter;
+        private String mCloseEnter;
+        private String mOpenExit;
+        private String mCloseExit;
+
+        private PageAnimationConfig(String openEnter, String closeEnter, String openExit, String closeExit) {
+            mOpenEnter = openEnter;
+            mCloseEnter = closeEnter;
+            mOpenExit = openExit;
+            mCloseExit = closeExit;
+        }
+
+        @Override
+        public String toString() {
+            return "PageAnimationConfig{" +
+                    "mOpenEnter='" + mOpenEnter + '\'' +
+                    ", mCloseEnter='" + mCloseEnter + '\'' +
+                    ", mOpenExit='" + mOpenExit + '\'' +
+                    ", mCloseExit='" + mCloseExit + '\'' +
+                    '}';
+        }
     }
 }
