@@ -7,28 +7,18 @@ package org.hapjs.widgets;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ViewGroup;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
-import org.hapjs.common.json.JSONArray;
-import org.hapjs.common.json.JSONObject;
-import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.runtime.HapEngine;
-import org.hapjs.widgets.view.slideview.SecondaryConfirmInfo;
 import org.hapjs.widgets.view.slideview.SlideButtonInfo;
 import org.hapjs.widgets.view.slideview.SlideViewLayout;
-import org.json.JSONException;
 
 @WidgetAnnotation(
         name = SlideView.WIDGET_NAME,
@@ -60,6 +50,9 @@ public class SlideView extends Container<SlideViewLayout> {
     private static final String EVENT_CLOSE = "close";
     private static final String EVENT_SLIDE = "slide";
     private static final String EVENT_BUTTON_CLICK = "buttonclick";
+
+    private static final String EVENT_ARGS_ANIMATION = "animation";
+
     private static final String KEY_OPEN_STATE = "open_state";
 
     private static final int UNDEFINE = SlideViewLayout.UNDEFINE;
@@ -204,27 +197,17 @@ public class SlideView extends Container<SlideViewLayout> {
         switch (methodName) {
             case METHOD_OPEN:
                 boolean openAnimation = true;
-                Object openAnimationObj = args.get("animation");
-                if (openAnimationObj != null) {
-                    try {
-                        openAnimation = (boolean) openAnimationObj;
-                    } catch (Exception e) {
-                        Log.e(TAG,
-                                "invokeMethod: method open args animation could't cast to boolean.");
-                    }
+                if (args.containsKey(EVENT_ARGS_ANIMATION)) {
+                    Object openAnimationObj = args.get(EVENT_ARGS_ANIMATION);
+                    openAnimation = Boolean.parseBoolean(String.valueOf(openAnimationObj));
                 }
                 open(openAnimation);
                 return;
             case METHOD_CLOSE:
                 boolean closeAnimation = true;
-                Object closeAnimationObj = args.get("animation");
-                if (closeAnimationObj != null) {
-                    try {
-                        closeAnimation = (boolean) closeAnimationObj;
-                    } catch (Exception e) {
-                        Log.e(TAG,
-                                "invokeMethod: method close args animation could't cast to boolean.");
-                    }
+                if (args.containsKey(EVENT_ARGS_ANIMATION)) {
+                    Object openAnimationObj = args.get(EVENT_ARGS_ANIMATION);
+                    closeAnimation = Boolean.parseBoolean(String.valueOf(openAnimationObj));
                 }
                 close(closeAnimation);
                 return;
