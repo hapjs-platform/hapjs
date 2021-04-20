@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -1165,20 +1165,13 @@ public class FlexVideoView extends FrameLayout
 
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
-        if (null != mComponent) {
-            boolean isPageObtainPlayer = false;
-            Boolean isPageObtainPlayerObj = VideoCacheManager.getInstance().getPageObtainPlayer(mComponent.getPageId());
-            if (null != isPageObtainPlayerObj) {
-                isPageObtainPlayer = isPageObtainPlayerObj.booleanValue();
+        if (mAutoPlay && null != mUri && null == mPlayer) {
+            initPlayer();
+            if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
+                Log.w(TAG, "setAutoPlay mUri is not fullscreen Uri ,setAutoPlay invalid");
+                return;
             }
-            if (mAutoPlay && null != mUri && null == mPlayer && !isPageObtainPlayer) {
-                initPlayer();
-                if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
-                    Log.w(TAG, "setAutoPlay mUri is not fullscreen Uri ,setAutoPlay invalid");
-                    return;
-                }
-                makeEffectVideoURI(false);
-            }
+            makeEffectVideoURI(false);
         }
     }
 
