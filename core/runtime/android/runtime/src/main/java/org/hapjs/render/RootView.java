@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -611,6 +612,10 @@ public class RootView extends FrameLayout
                     };
         }
         mDisplayManager.registerDisplayListener(mDisplayListener, null);
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            onVisibilityChanged(this, getVisibility());
+        }
     }
 
     @Override
