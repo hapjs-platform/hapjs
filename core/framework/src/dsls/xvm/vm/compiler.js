@@ -777,7 +777,7 @@ function bindFor(vm, target, frag, info) {
     compile(newContext, target, frag, { repeat: item })
   }
 
-  const list = watchFragment(vm, frag, getter, 'for', data => {
+  let list = watchFragment(vm, frag, getter, 'for', data => {
     if (!frag || !data) {
       return
     }
@@ -863,6 +863,15 @@ function bindFor(vm, target, frag, info) {
       }
     })
   })
+
+  // for循环固定值
+  if (typeof list === 'number') {
+    const ret = new Array(list)
+    for (let i = 0; i < list; i++) {
+      ret[i] = i + 1
+    }
+    list = ret
+  }
 
   // 初次展开循环节点
   if (list && list.length > 0) {
