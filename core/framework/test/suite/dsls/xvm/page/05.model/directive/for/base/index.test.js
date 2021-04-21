@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -238,5 +238,17 @@ describe('框架：05.指令渲染：for：', () => {
 
     expect(nodeParentFig.childNodes.length).to.equal(1)
     expect(nodeParentFig.layoutChildren.length).to.equal(1)
+  })
+
+  it('for循环固定值', async () => {
+    callActionJsonList.splice(0)
+
+    const nodeParentDiv = pageVm.$element('inst4')
+    const nodeParentFig = nodeParentDiv.layoutChildren[0]
+
+    expect(nodeParentFig.layoutChildren.length).to.equal(3)
+    expect(nodeParentFig.layoutChildren[0].attr.value).to.equal(1)
+    expect(nodeParentFig.layoutChildren[1].attr.value).to.equal(2)
+    expect(nodeParentFig.layoutChildren[2].attr.value).to.equal(3)
   })
 })
