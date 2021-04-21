@@ -169,6 +169,7 @@ function normalize(v, page) {
       }
       return newArgs
     case 'function':
+    case 'asyncfunction':
       const cbId = uniqueCallbackId()
       if (!page._callbacks) {
         console.trace(`### App Framework ### normalize() 页面已经销毁，不再注册回调`)
