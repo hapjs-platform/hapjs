@@ -484,6 +484,93 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         mHost.exitFullscreen();
     }
 
+    private void snapshot(Map<String, Object> args) {
+        if (mHost == null || null == args) {
+            return;
+        }
+
+        DocComponent rootComponent = getRootComponent();
+        if (rootComponent == null) {
+            return;
+        }
+
+        RootView rootView = (RootView) rootComponent.getHostView();
+        if (rootView != null) {
+            HapEngine hapEngine = HapEngine.getInstance(rootView.getPackage());
+            ApplicationContext applicationContext = hapEngine.getApplicationContext();
+            File fileDir = new File(applicationContext.getCacheDir() + File.separator + "video_shot");
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            File tempFile = new File(fileDir, UUID.randomUUID() + ".jpeg");
+            Bitmap bitmap = null;
+            try (OutputStream out = new FileOutputStream(tempFile)) {
+                bitmap = mHost.getVideoView().getBitmap();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, out);
+
+                String internalUri = applicationContext.getInternalUri(tempFile);
+                String name = getFileName(internalUri);
+                Map<String, Object> data = new ArrayMap<>(3);
+                data.put(RESULT_URI, internalUri);
+                data.put(RESULT_NAME, name);
+                data.put(RESULT_SIZE, tempFile.length());
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_SUCCESS), data);
+            } catch (FileNotFoundException e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_FILE_NOT_FOUND);
+            } catch (IOException e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_IO_ERROR);
+            } catch (Exception e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_GENERIC_ERROR);
+            }
+            if (bitmap != null) {
+                bitmap.recycle();
+                bitmap = null;
+            }
+
+            synchronized (this) {
+                File[] files = fileDir.listFiles();
+                if (files != null && files.length > 1) {
+                    long currentTimeMillis = System.currentTimeMillis();
+                    if (currentTimeMillis - mMinLastModified <= MAX_ALIVE_TIME_MILLIS) {
+                        return;
+                    }
+                    mMinLastModified = Long.MAX_VALUE;
+
+                    Executors.io().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (File file : files) {
+                                long lastModified = file.lastModified();
+                                if (currentTimeMillis - lastModified > MAX_ALIVE_TIME_MILLIS) {
+                                    file.delete();
+                                    if (mMinLastModified == Long.MAX_VALUE) {
+                                        mMinLastModified = currentTimeMillis;
+                                    }
+                                } else {
+                                    if (mMinLastModified > lastModified) {
+                                        mMinLastModified = lastModified;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private String getFileName(String uri) {
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf('/');
+        }
+        if (index > 0) {
+            return uri.substring(index + 1);
+        } else {
+            return uri;
+        }
+    }
+
     @Override
     public void invokeMethod(String methodName, Map<String, Object> args) {
         if (METHOD_START.equals(methodName)) {
