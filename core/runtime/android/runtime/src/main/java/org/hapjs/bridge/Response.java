@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -78,7 +78,6 @@ public class Response implements java.io.Serializable {
      * User deny permission request
      */
     public static final int CODE_USER_DENIED = CODE_ERROR + 1;
-    public static final Response USER_DENIED = new Response(CODE_USER_DENIED, "user denied");
     /**
      * Found illegal argument in request parameters
      */
@@ -237,6 +236,22 @@ public class Response implements java.io.Serializable {
             result.put(CONTENT, content);
         } catch (JSONException e) {
             throw new IllegalStateException("Fail to build json response", e);
+        }
+        return result;
+    }
+
+    public static Response getUserDeniedResponse(boolean dontDisturb) {
+        JSONObject result = getResultJsonObject(dontDisturb);
+        return new Response(Response.CODE_USER_DENIED, result);
+    }
+
+    private static JSONObject getResultJsonObject(boolean dontDisturb) {
+        JSONObject result = new JSONObject();
+        try {
+            result.put("message", "user denied.");
+            result.put("dontDisturb", dontDisturb);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
         return result;
     }

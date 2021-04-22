@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -414,6 +414,11 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public ComponentName get5gMgrComponent() {
         return new ComponentName(DEFAULT_5G_MGR_PACKAGE, DEFAULT_5G_MGR_ACTIVITY);
+    }
+
+    @Override
+    public Intent getPermissionActivityIntent(String pkg) {
+        return null;
     }
 
     @Override
