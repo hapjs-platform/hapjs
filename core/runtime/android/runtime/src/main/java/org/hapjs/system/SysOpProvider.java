@@ -124,6 +124,8 @@ public interface SysOpProvider {
 
     ComponentName get5gMgrComponent();
 
+    Intent getPermissionActivityIntent( String pkg);
+
     public BaseJsSdkBridge getJsBridge(HybridManager hybridManager);
 
     boolean isAllowMenubarMove(Context context, AppInfo appInfo, Map<String, Object> otherdatas);
