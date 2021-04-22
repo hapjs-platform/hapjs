@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -646,7 +646,7 @@ public class NestedWebView extends WebView
                                                                 }
 
                                                                 @Override
-                                                                public void onPermissionReject(int reason) {
+                                                                public void onPermissionReject(int reason, boolean dontDisturb) {
                                                                     callback.invoke(origin, false, false);
                                                                 }
                                                             });
@@ -847,7 +847,7 @@ public class NestedWebView extends WebView
                                                                 }
 
                                                                 @Override
-                                                                public void onPermissionReject(int reason) {
+                                                                public void onPermissionReject(int reason, boolean dontDisturb) {
                                                                     ThreadUtils.runOnUiThread(request::deny);
                                                                     StringBuilder builder =
                                                                             new StringBuilder("onPermissionReject reason:")
@@ -1200,7 +1200,7 @@ public class NestedWebView extends WebView
                             }
 
                             @Override
-                            public void onPermissionReject(int reason) {
+                            public void onPermissionReject(int reason, boolean dontDisturb) {
                                 Log.d(TAG, "camera permission deny.");
                                 NestedWebView.this.post(
                                         new Runnable() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -342,16 +342,14 @@ public class ExtensionManager {
             }
 
             @Override
-            public void onPermissionReject(int reason) {
+            public void onPermissionReject(int reason, boolean dontDisturb) {
                 switch (reason) {
                     case Response.CODE_TOO_MANY_REQUEST:
                         mRequest.getCallback().callback(Response.TOO_MANY_REQUEST);
                         break;
                     case Response.CODE_USER_DENIED:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
-                        break;
                     default:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
+                        mRequest.getCallback().callback(Response.getUserDeniedResponse(dontDisturb));
                         break;
                 }
             }

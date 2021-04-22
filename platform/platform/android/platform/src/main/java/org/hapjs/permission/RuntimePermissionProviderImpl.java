@@ -39,6 +39,11 @@ public class RuntimePermissionProviderImpl implements RuntimePermissionProvider 
     }
 
     @Override
+    public int[] getPermissionsMode(String pkg, String[] permissions) {
+        return Permission.checkPermissions(mContext, pkg, permissions);
+    }
+
+    @Override
     public void onPermissionForbidden(Activity activity, String permission) {
     }
 

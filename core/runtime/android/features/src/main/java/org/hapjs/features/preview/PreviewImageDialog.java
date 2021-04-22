@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -399,7 +399,7 @@ public class PreviewImageDialog extends Dialog {
                                 }
 
                                 @Override
-                                public void onPermissionReject(int reason) {
+                                public void onPermissionReject(int reason, boolean dontDisturb) {
                                     Executors.ui()
                                             .execute(
                                                     () ->

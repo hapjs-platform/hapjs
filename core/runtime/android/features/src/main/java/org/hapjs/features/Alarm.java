@@ -145,7 +145,7 @@ public class Alarm extends FeatureExtension {
                                                         request.getCallback().callback(response);
                                                     });
                                 } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                                    request.getCallback().callback(Response.USER_DENIED);
+                                    request.getCallback().callback(Response.getUserDeniedResponse(false));
                                 }
                             }
                         },
