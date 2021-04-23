@@ -33,7 +33,6 @@ import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.runtime.R;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
 import java.lang.reflect.Method;
@@ -704,7 +703,7 @@ public class NetworkPanel extends CollapsedPanel {
         }
 
         @Override
-        public int compareTo(@NotNull NetworkCacheInfo obj) {
+        public int compareTo(NetworkCacheInfo obj) {
             if (Objects.equals(this, obj)) {
                 return 0;
             }
