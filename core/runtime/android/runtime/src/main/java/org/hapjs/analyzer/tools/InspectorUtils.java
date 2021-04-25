@@ -229,12 +229,16 @@ public class InspectorUtils {
         if (currentNode == null || rootViewRect == null) {
             return false;
         }
-        Rect rect = new Rect();
-        currentNode.getDrawingRect(rect);
-        ((ViewGroup) currentNode.getRootView()).offsetDescendantRectToMyCoords(currentNode, rect);
-        if (rect.bottom > rect.top && rect.right > rect.left) {
-            // 屏幕之外
-            return rect.bottom <= rootViewRect.top || rect.top >= rootViewRect.bottom || (rect.left >= rootViewRect.right) || rect.right <= rootViewRect.left;
+        try {
+            Rect rect = new Rect();
+            currentNode.getDrawingRect(rect);
+            ((ViewGroup) currentNode.getRootView()).offsetDescendantRectToMyCoords(currentNode, rect);
+            if (rect.bottom > rect.top && rect.right > rect.left) {
+                // 屏幕之外
+                return rect.bottom <= rootViewRect.top || rect.top >= rootViewRect.bottom || (rect.left >= rootViewRect.right) || rect.right <= rootViewRect.left;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "AnalyzerPanel_LOG fail to determine if it is out of screen: ", e);
         }
         return false;
     }

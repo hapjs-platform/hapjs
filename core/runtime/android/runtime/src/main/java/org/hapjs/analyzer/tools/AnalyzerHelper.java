@@ -51,12 +51,13 @@ public class AnalyzerHelper {
         }
         AnalyzerThreadManager.getInstance().getMainHandler().post(() -> {
             PanelDisplay panelDisplay = context.getPanelDisplay();
-            panelDisplay.showNoticePanel();
-            NoticePanel noticePanel = panelDisplay.getNoticePanel();
-            if (noticePanel == null) {
-                return;
+            if (panelDisplay != null) {
+                panelDisplay.showNoticePanel();
+                NoticePanel noticePanel = panelDisplay.getNoticePanel();
+                if (noticePanel != null) {
+                    noticePanel.pushNoticeMessage(message);
+                }
             }
-            noticePanel.pushNoticeMessage(message);
         });
     }
 
