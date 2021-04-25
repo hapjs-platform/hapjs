@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -92,40 +92,52 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
             if (mCaches.isEmpty()) {
                 return;
             }
-            List<LogPackage.LogData> logDatas = filterData(mCaches);
+            List<LogPackage.LogData> logDatas;
+            synchronized (LogcatMonitor.this) {
+                logDatas = filterData(new ArrayList<>(mCaches));
+            }
             sendLogDatas(0, logDatas);
         });
     }
 
+    private List<LogPackage.LogData> filterData(LogPackage.LogData logData) {
+        ArrayList<LogPackage.LogData> singleList = new ArrayList<>(1);
+        return filterData(singleList);
+    }
+
     private List<LogPackage.LogData> filterData(List<LogPackage.LogData> originData) {
-        if(originData == null || originData.isEmpty()){
+        if (originData == null || originData.isEmpty()) {
             return new ArrayList<>();
         }
-        List<LogPackage.LogData> logDatas = new ArrayList<>(originData.size());
         String filter = mFilter == null ? "" : mFilter.toLowerCase();
-        for (LogPackage.LogData logData : originData) {
+        Iterator<LogPackage.LogData> iterator = originData.iterator();
+        while (iterator.hasNext()) {
+            LogPackage.LogData logData = iterator.next();
             if (mLogStyle == TYPE_LOG_STYLE_ANDROID) {
                 if (logData.mLevel < mLogLevel) {
+                    iterator.remove();
                     continue;
                 }
             } else {
                 if (mLogLevel != Log.VERBOSE && logData.mLevel != mLogLevel) {
+                    iterator.remove();
                     continue;
                 }
             }
             if (!TextUtils.isEmpty(mFilter) && !logData.mContent.toLowerCase().contains(filter)) {
+                iterator.remove();
                 continue;
             }
             boolean isJsLog = logData.mContent.contains(JS_TAG);
             if (isJsLog && (mLogFlag & LOG_JS) == 0) {
+                iterator.remove();
                 continue;
             }
             if (!isJsLog && (mLogFlag & LOG_NATIVE) == 0) {
-                continue;
+                iterator.remove();
             }
-            logDatas.add(logData);
         }
-        return logDatas;
+        return originData;
     }
 
     private synchronized void cacheLog(LogPackage.LogData logData) {
@@ -214,7 +226,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
             LogPackage.LogData logData = new LogPackage.LogData(logLevel, isJsLog, log);
             cacheLog(logData);
             AnalyzerThreadManager.getInstance().getAnalyzerHandler().post(() -> {
-                List<LogPackage.LogData> filterData = filterData(Collections.singletonList(logData));
+                List<LogPackage.LogData> filterData = filterData(logData);
                 if (!filterData.isEmpty()) {
                     sendLogDatas(filterData);
                 }

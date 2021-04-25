@@ -20,4 +20,5 @@ project.ext {
     swiperefreshlayoutVersion = '1.0.0'
     collectionVersion = '1.1.0'
     lifecycleVersion = '2.2.0'
+    androidXconstraintlayoutVersion = '2.0.4'
 }

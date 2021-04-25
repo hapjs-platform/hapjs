@@ -145,7 +145,7 @@ public class AnalyzerContext {
         // RootView is added to content later, so post processing here
         AnalyzerThreadManager.getInstance().getMainHandler().post(() -> {
             ViewGroup parent = (ViewGroup) rootView.getParent();
-            if (parent == null) {
+            if (parent == null || mOverlay == null) {
                 return;
             }
             parent.removeView(parent.findViewById(R.id.panel_overlay));
@@ -156,64 +156,66 @@ public class AnalyzerContext {
     private void onAppCreated(AppInfo appInfo) {
         Log.d(TAG, "AnalyzerPanel_LOG onAppCreated");
         mAppInfo = appInfo;
+        if (mPanelDisplay == null) {
+            Log.e(TAG, "AnalyzerPanel_LOG onAppCreated fail because mPanelDisplay is null");
+            return;
+        }
         mPanelDisplay.open();
         // Page life cycle callback
         PageManager pageManager = getPageManager();
-        if (pageManager == null) {
-            return;
+        if (pageManager != null) {
+            PageManager.PageChangedListener pageChangedListener = pageManager.getPageChangedListener();
+            pageManager.setPageChangedListener(new PageManager.PageChangedListener() {
+                @Override
+                public void onPagePreChange(int oldIndex, int newIndex, Page oldPage, Page newPage) {
+                    if (pageChangedListener != null) {
+                        pageChangedListener.onPagePreChange(oldIndex, newIndex, oldPage, newPage);
+                    }
+                }
+
+                @Override
+                public void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {
+                    for (AnalyzerCallback pageChangedCallback : mPageChangedCallbacks) {
+                        pageChangedCallback.onPageChanged(oldIndex, newIndex, oldPage, newPage);
+                    }
+                    if (pageChangedListener != null) {
+                        pageChangedListener.onPageChanged(oldIndex, newIndex, oldPage, newPage);
+                    }
+                }
+
+                @Override
+                public void onPageRemoved(int index, Page page) {
+                    if (pageChangedListener != null) {
+                        pageChangedListener.onPageRemoved(index, page);
+                    }
+                }
+            });
+        } else {
+            Log.e(TAG, "AnalyzerPanel_LOG register pageChangedListener fail");
         }
-        PageManager.PageChangedListener pageChangedListener = pageManager.getPageChangedListener();
-        pageManager.setPageChangedListener(new PageManager.PageChangedListener() {
-            @Override
-            public void onPagePreChange(int oldIndex, int newIndex, Page oldPage, Page newPage) {
-                if (pageChangedListener != null) {
-                    pageChangedListener.onPagePreChange(oldIndex, newIndex, oldPage, newPage);
-                }
-            }
-
-            @Override
-            public void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {
-                for (AnalyzerCallback pageChangedCallback : mPageChangedCallbacks) {
-                    pageChangedCallback.onPageChanged(oldIndex, newIndex, oldPage, newPage);
-                }
-                if (pageChangedListener != null) {
-                    pageChangedListener.onPageChanged(oldIndex, newIndex, oldPage, newPage);
-                }
-            }
-
-            @Override
-            public void onPageRemoved(int index, Page page) {
-                if (pageChangedListener != null) {
-                    pageChangedListener.onPageRemoved(index, page);
-                }
-            }
-        });
         // Feature call callback
-        RootView rootView = mRootViewRef.get();
-        if(rootView!=null){
-            JsThread jsThread = rootView.getJsThread();
-            if (jsThread != null) {
-                ExtensionManager bridgeManager = jsThread.getBridgeManager();
-                if (bridgeManager != null) {
-                    FeatureInvokeListener featureInvokeListener = bridgeManager.getFeatureInvokeListener();
-                    bridgeManager.setFeatureInvokeListener(new FeatureInvokeListener() {
-                        @Override
-                        public void invoke(String name, String action, Object rawParams, String jsCallback, int instanceId) {
-                            for (AnalyzerCallback pageChangedCallback : mPageChangedCallbacks) {
-                                pageChangedCallback.onFeatureInvoke(name,action,rawParams,jsCallback,instanceId);
-                            }
-                            if (featureInvokeListener != null) {
-                                featureInvokeListener.invoke(name, action, rawParams, jsCallback, instanceId);
-                            }
-                        }
-                    });
+        RootView rootView = getRootView();
+        if (rootView != null && rootView.getJsThread() != null && rootView.getJsThread().getBridgeManager() != null) {
+            ExtensionManager bridgeManager = rootView.getJsThread().getBridgeManager();
+            FeatureInvokeListener featureInvokeListener = bridgeManager.getFeatureInvokeListener();
+            bridgeManager.setFeatureInvokeListener(new FeatureInvokeListener() {
+                @Override
+                public void invoke(String name, String action, Object rawParams, String jsCallback, int instanceId) {
+                    for (AnalyzerCallback pageChangedCallback : mPageChangedCallbacks) {
+                        pageChangedCallback.onFeatureInvoke(name, action, rawParams, jsCallback, instanceId);
+                    }
+                    if (featureInvokeListener != null) {
+                        featureInvokeListener.invoke(name, action, rawParams, jsCallback, instanceId);
+                    }
                 }
-            }
+            });
+        } else {
+            Log.e(TAG, "AnalyzerPanel_LOG register featureInvokeListener fail");
         }
     }
 
     public RootView getRootView() {
-        return mRootViewRef.get();
+        return mRootViewRef == null ? null : mRootViewRef.get();
     }
 
     public PageManager getPageManager() {
@@ -254,7 +256,7 @@ public class AnalyzerContext {
     }
 
     public VDocument getCurrentDocument() {
-        RootView rootView = mRootViewRef.get();
+        RootView rootView = getRootView();
         if (rootView == null) {
             return null;
         }
@@ -270,11 +272,10 @@ public class AnalyzerContext {
     }
 
     public DocComponent getRootComponent() {
-        RootView rootView = mRootViewRef.get();
+        RootView rootView = getRootView();
         if (rootView == null) {
             return null;
         }
-
         DocComponent root = null;
         if (rootView.getDocument() != null) {
             root = rootView.getDocument().getComponent();

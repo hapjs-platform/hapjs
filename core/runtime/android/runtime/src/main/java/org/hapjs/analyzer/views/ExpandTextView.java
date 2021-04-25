@@ -12,6 +12,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
@@ -48,7 +49,7 @@ public class ExpandTextView extends AppCompatTextView {
 
     public ExpandTextView(Context context) {
         super(context);
-        setOnTouchListener(new ClickMovementMethod());
+        setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     public ExpandTextView(Context context, AttributeSet attrs) {
@@ -75,7 +76,7 @@ public class ExpandTextView extends AppCompatTextView {
             mLines = expandLines;
         }
         ta.recycle();
-        setOnTouchListener(new ClickMovementMethod());
+        setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     public void setRenderText(CharSequence text, boolean expand) {
