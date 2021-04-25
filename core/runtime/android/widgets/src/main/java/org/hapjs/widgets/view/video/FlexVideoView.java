@@ -158,6 +158,7 @@ public class FlexVideoView extends FrameLayout
     protected void onDraw(Canvas canvas) {
         if (isRoundedBorders()) {
             mRoundRectF.set(0, 0, getWidth(), getHeight());
+            mClipPath.reset();
             mClipPath.addRoundRect(mRoundRectF, mRadiusArray, Path.Direction.CW);
             canvas.clipPath(mClipPath);
         }
