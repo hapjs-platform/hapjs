@@ -11,8 +11,13 @@ import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Process;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -81,6 +86,7 @@ public class NetworkPanel extends CollapsedPanel {
     public static final int NAME_COLOR_DEFAULT = 0xFFBFBFBF;
     public static final int NAME_COLOR_SELECTED = 0xFFFFFFFF;
     public static final int NAME_COLOR_FAIL = 0xFFFF0000;
+    public static final int COLOR_RETRY_KILL_PROCESS = 0xFF5290EA;
     private static final int MAX_DATA_SIZE = 30;
     private okhttp3.WebSocket.Factory mWebSocketFactory;
     private WebSocket mWebSocket;
@@ -94,7 +100,7 @@ public class NetworkPanel extends CollapsedPanel {
     private ViewGroup mOverviewTitleContainer;
     private EmptyRecyclerView mNetworkRecyclerView;
     private View mEmptyView;
-    private ViewGroup mRetryViewContainer;
+    private TextView mRetryTextView;
     private ViewGroup mListDetailContainer;
     private int mSelectedPosition = -1;
 
@@ -117,7 +123,6 @@ public class NetworkPanel extends CollapsedPanel {
         mDetailTitleContainer = findViewById(R.id.network_detail_title_container);
         mOverviewTitleContainer = findViewById(R.id.network_overview_title_container);
         mEmptyView = findViewById(R.id.analyzer_log_empty_view);
-        mRetryViewContainer = findViewById(R.id.btn_network_panel_retry_content);
         mListDetailContainer = findViewById(R.id.analyzer_network_list_detail_container);
         mNetworkRecyclerView = findViewById(R.id.analyzer_network_item_list);
         mBtnDetailBack.setOnClickListener(v -> {
@@ -133,11 +138,29 @@ public class NetworkPanel extends CollapsedPanel {
                 mSelectedPosition = -1;
             }
         });
-        View retryView = findViewById(R.id.btn_network_retry_kill_process);
-        retryView.setOnClickListener(v -> {
-            mRetryViewContainer.setVisibility(GONE);
-            Process.killProcess(Process.myPid());
-        });
+        mRetryTextView = findViewById(R.id.btn_network_retry_text);
+        mRetryTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        String prefixString = getContext().getResources().getString(R.string.analyzer_net_init_fail_info);
+        String clickableText = getContext().getResources().getString(R.string.analyzer_network_retry_kill_process);
+        String suffixText = getContext().getResources().getString(R.string.analyzer_network_retry_reopen);
+        String retryText = prefixString + clickableText + suffixText;
+        SpannableString spannableString = new SpannableString(retryText);
+        int startIndex = prefixString.length();
+        int endIndex = prefixString.length() + clickableText.length();
+        spannableString.setSpan(new ClickableSpan() {
+            @Override
+            public void updateDrawState(@NonNull TextPaint ds) {
+                ds.setUnderlineText(false);
+            }
+
+            @Override
+            public void onClick(@Nullable View widget) {
+                mRetryTextView.setVisibility(GONE);
+                Process.killProcess(Process.myPid());
+            }
+        }, startIndex, endIndex, 0);
+        spannableString.setSpan(new ForegroundColorSpan(COLOR_RETRY_KILL_PROCESS), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        mRetryTextView.setText(spannableString, TextView.BufferType.SPANNABLE);
         if (!initWebSocket()) {
             showInitFailMessage();
         }
@@ -148,7 +171,7 @@ public class NetworkPanel extends CollapsedPanel {
 
     private void showInitFailMessage(){
         mListDetailContainer.setVisibility(GONE);
-        mRetryViewContainer.setVisibility(VISIBLE);
+        mRetryTextView.setVisibility(VISIBLE);
         mEmptyView.setVisibility(GONE);
     }
 
@@ -394,7 +417,7 @@ public class NetworkPanel extends CollapsedPanel {
         mNetworkRecyclerView.setAdapter(adapter);
         mAdapter = adapter;
         mNetworkRecyclerView.setDataSizeChangedCallback(size -> {
-            if (size <= 0 && mRetryViewContainer.getVisibility() != VISIBLE) {
+            if (size <= 0 && mRetryTextView.getVisibility() != VISIBLE) {
                 mEmptyView.setVisibility(VISIBLE);
             } else if (size > 0) {
                 mEmptyView.setVisibility(GONE);

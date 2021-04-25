@@ -33,8 +33,8 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="203dp"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
@@ -42,6 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:baselineAligned="false"
+        android:gravity="center_vertical"
         android:clickable="true"
         android:focusable="true"
         android:orientation="horizontal"
@@ -51,30 +52,29 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/analyzer_main_quota_panel"
             android:layout_width="187dp"
-            android:layout_height="52dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="4dp"
             android:background="@drawable/ic_analyzer_quota_bg"
+            android:minHeight="52dp"
             android:paddingStart="11dp"
-            android:paddingTop="7dp"
+            android:paddingTop="5dp"
             android:paddingEnd="7dp"
-            android:paddingBottom="7dp"
+            android:paddingBottom="5dp"
             android:visibility="gone">
 
             <LinearLayout
                 android:id="@+id/launch_panel_line_1"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:baselineAligned="false"
+                android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toTopOf="@+id/launch_panel_line_2"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_weight="1">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <LinearLayout
                     android:id="@+id/launch_panel_cpu_item"
-                    android:layout_width="70dp"
+                    android:layout_width="65dp"
                     android:layout_height="wrap_content"
                     android:gravity="start"
                     android:orientation="horizontal"
@@ -82,32 +82,36 @@
                     app:layout_constraintStart_toStartOf="parent">
 
                     <TextView
-                        android:id="@+id/launch_panel_cpu_title"
-                        android:layout_width="24dp"
-                        android:layout_height="wrap_content"
+                        android:id="@+id/launch_panel_frame_title"
+                        android:layout_width="28dp"
+                        android:layout_height="match_parent"
+                        android:ellipsize="end"
                         android:gravity="start"
-                        android:text="@string/analyzer_cpu"
+                        android:lines="1"
+                        android:text="@string/analyzer_frame_fps"
                         android:textColor="#CCFFFFFF"
                         android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/launch_panel_cpu_value"
-                        android:layout_width="43dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
+                        android:id="@+id/launch_panel_frame_value"
+                        android:layout_width="35dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="2dp"
                         android:ellipsize="end"
                         android:gravity="start"
                         android:lines="1"
                         android:text="@string/analyzer_unknown"
                         android:textColor="#fff"
                         android:textSize="11sp"
-                        tools:text=">999%" />
+                        tools:text="120" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/launch_panel_memory_item"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
                     android:gravity="start"
                     android:orientation="horizontal"
                     app:layout_constraintBottom_toTopOf="@id/launch_panel_page_forward_time_item"
@@ -116,26 +120,28 @@
                     app:layout_constraintTop_toTopOf="parent">
 
                     <TextView
-                        android:id="@+id/launch_panel_page_forward_time_title"
-                        android:layout_width="46dp"
-                        android:layout_height="wrap_content"
+                        android:id="@+id/launch_panel_memory_title"
+                        android:layout_width="32dp"
+                        android:layout_height="match_parent"
+                        android:ellipsize="end"
                         android:gravity="start"
-                        android:text="@string/analyzer_page_switch_time"
+                        android:lines="1"
+                        android:text="@string/analyzer_mem"
                         android:textColor="#CCFFFFFF"
                         android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/launch_panel_page_forward_value"
+                        android:id="@+id/launch_panel_memory_value"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="2dp"
                         android:ellipsize="end"
                         android:gravity="start"
                         android:lines="1"
                         android:text="@string/analyzer_unknown"
                         android:textColor="#fff"
                         android:textSize="11sp"
-                        tools:text=">999ms" />
+                        tools:text="1000M" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -143,18 +149,16 @@
             <LinearLayout
                 android:id="@+id/launch_panel_line_2"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:baselineAligned="false"
+                android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintBottom_toTopOf="@+id/launch_panel_line_3"
-                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_1"
-                app:layout_constraintVertical_weight="1">
+                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_1">
 
                 <LinearLayout
                     android:id="@+id/launch_panel_fps_item"
-                    android:layout_width="70dp"
+                    android:layout_width="65dp"
                     android:layout_height="wrap_content"
                     android:gravity="start"
                     android:orientation="horizontal"
@@ -164,19 +168,20 @@
                     app:layout_constraintTop_toBottomOf="@+id/launch_panel_cpu_item">
 
                     <TextView
-                        android:id="@+id/launch_panel_frame_title"
-                        android:layout_width="24dp"
+                        android:id="@+id/launch_panel_feature_invoke_title"
+                        android:layout_width="28dp"
                         android:layout_height="wrap_content"
                         android:gravity="start"
-                        android:text="@string/analyzer_frame_fps"
+                        android:lines="1"
+                        android:text="@string/analyzer_feature_invoke"
                         android:textColor="#CCFFFFFF"
                         android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/launch_panel_frame_value"
-                        android:layout_width="43dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="3dp"
+                        android:id="@+id/launch_panel_feature_invoke_value"
+                        android:layout_width="35dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
                         android:ellipsize="end"
                         android:gravity="start"
                         android:lines="1"
@@ -189,8 +194,10 @@
 
                 <LinearLayout
                     android:id="@+id/launch_panel_page_forward_time_item"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -199,73 +206,63 @@
                     app:layout_constraintTop_toBottomOf="@+id/launch_panel_memory_item">
 
                     <TextView
-                        android:id="@+id/launch_panel_feature_invoke_title"
-                        android:layout_width="46dp"
+                        android:id="@+id/launch_panel_cpu_title"
+                        android:layout_width="32dp"
                         android:layout_height="wrap_content"
                         android:gravity="start"
-                        android:text="@string/analyzer_feature_invoke"
+                        android:lines="1"
+                        android:text="@string/analyzer_cpu"
                         android:textColor="#CCFFFFFF"
                         android:textSize="11sp" />
 
                     <TextView
-                        android:id="@+id/launch_panel_feature_invoke_value"
+                        android:id="@+id/launch_panel_cpu_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
+                        android:layout_marginStart="2dp"
                         android:ellipsize="end"
                         android:gravity="start"
                         android:lines="1"
                         android:text="@string/analyzer_unknown"
                         android:textColor="#fff"
                         android:textSize="11sp"
-                        tools:text="120" />
+                        tools:text=">99.9%" />
                 </LinearLayout>
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/launch_panel_line_3"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_2"
-                app:layout_constraintVertical_weight="1">
+                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_2">
 
-                <LinearLayout
-                    android:id="@+id/launch_panel_feature_invoke_item"
-                    android:layout_width="70dp"
+                <TextView
+                    android:id="@+id/launch_panel_page_forward_time_title"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:gravity="start"
-                    android:orientation="horizontal"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/launch_panel_page_forward_time_item"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/launch_panel_cpu_item">
+                    android:lines="1"
+                    android:text="@string/analyzer_page_switch_time"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="11sp" />
 
-                    <TextView
-                        android:id="@+id/launch_panel_memory_title"
-                        android:layout_width="24dp"
-                        android:layout_height="wrap_content"
-                        android:gravity="start"
-                        android:text="@string/analyzer_mem"
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/launch_panel_page_forward_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:lines="1"
+                    android:text="@string/analyzer_unknown"
+                    android:textColor="#fff"
+                    android:textSize="11sp"
+                    tools:text=">999.9ms" />
 
-                    <TextView
-                        android:id="@+id/launch_panel_memory_value"
-                        android:layout_width="43dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:gravity="start"
-                        android:lines="1"
-                        android:text="@string/analyzer_unknown"
-                        android:textColor="#fff"
-                        android:textSize="11sp"
-                        tools:text=">999M" />
-
-                </LinearLayout>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 

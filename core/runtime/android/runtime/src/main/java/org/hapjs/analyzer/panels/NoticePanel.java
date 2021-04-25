@@ -154,19 +154,15 @@ public class NoticePanel extends AbsPanel {
     }
 
     private void setShowWarningMsgCount(int count) {
-        String warningFrag = getContext().getResources().getQuantityString(R.plurals.analyzer_number_warning_message, count, count);
-        String prefix = getContext().getResources().getQuantityString(R.plurals.analyzer_notice_prefix, count, count);
-        String text = prefix + warningFrag;
+        String text = getContext().getResources().getQuantityString(R.plurals.analyzer_number_warning_message, count, count);
         mMinTitleView.setText(text);
-        mExpandTitleView.setText(getContext().getString(R.string.analyzer_notice_expand_tips, count));
+        mExpandTitleView.setText(getContext().getResources().getQuantityString(R.plurals.analyzer_notice_expand_tips, count, count));
     }
 
     private void setShowErrorMsgCount(int count) {
-        String errorFrag = getContext().getResources().getQuantityString(R.plurals.analyzer_number_error_message, count, count);
-        String prefix = getContext().getResources().getQuantityString(R.plurals.analyzer_notice_prefix, count, count);
-        String text = prefix + errorFrag;
+        String text = getContext().getResources().getQuantityString(R.plurals.analyzer_number_error_message, count, count);
         mMinTitleView.setText(text);
-        mExpandTitleView.setText(getContext().getString(R.string.analyzer_notice_expand_tips, count));
+        mExpandTitleView.setText(getContext().getResources().getQuantityString(R.plurals.analyzer_notice_expand_tips, count, count));
     }
 
     private void setShowMsgCount(int warningCount, int errorCount) {
@@ -174,7 +170,7 @@ public class NoticePanel extends AbsPanel {
         String error = getContext().getResources().getQuantityString(R.plurals.analyzer_number_error_message, errorCount, errorCount);
         String tip = getContext().getString(R.string.analyzer_notice_min_warn_error_message_tips, warning, error);
         mMinTitleView.setText(tip);
-        mExpandTitleView.setText(getContext().getString(R.string.analyzer_notice_expand_tips, warningCount + errorCount));
+        mExpandTitleView.setText(getContext().getResources().getQuantityString(R.plurals.analyzer_notice_expand_tips, warningCount + errorCount, warningCount + errorCount));
     }
 
     @Override
