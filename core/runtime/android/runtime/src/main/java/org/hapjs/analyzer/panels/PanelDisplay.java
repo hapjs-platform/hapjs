@@ -539,7 +539,7 @@ public class PanelDisplay implements View.OnClickListener, AnalyzerContext.Analy
 
         MemoryMonitor memoryMonitor = getMonitor(MemoryMonitor.NAME);
         if (memoryMonitor != null) {
-            memoryMonitor.setPipeline(data -> tvMemory.setText(String.format(Locale.US, "%.0fM", data)));
+            memoryMonitor.setPipeline(data -> tvMemory.setText(String.format(Locale.US, "%.0fm", data)));
             memoryMonitor.start();
         }
 
