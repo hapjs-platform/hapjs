@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -8,6 +8,7 @@ package org.hapjs.common.utils;
 import android.text.TextUtils;
 import android.util.Log;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectUtils {
@@ -64,6 +65,31 @@ public class ReflectUtils {
             return field.get(obj);
         } catch (Exception e) {
             // ignore
+        }
+        return null;
+    }
+
+    public static Object invokeDeclaredMethod(String clsName, Object receiver, String methodName,
+                                              Class[] parameterTypesArray, Object[] params) {
+        try {
+            if (!TextUtils.isEmpty(clsName)) {
+                Class cls = Class.forName(clsName);;
+                if (null != cls && !TextUtils.isEmpty(methodName)) {
+                    Method method = cls.getDeclaredMethod(methodName, parameterTypesArray);
+                    if (null != method) {
+                        method.setAccessible(true);
+                        return method.invoke(receiver, params);
+                    } else {
+                        Log.e(TAG, "null of method");
+                    }
+                } else {
+                    Log.e(TAG, "null of cls or methodName");
+                }
+            } else {
+                Log.e(TAG, "null of clsName");
+            }
+        } catch (Throwable e) {
+            Log.e(TAG, "Throwable", e);
         }
         return null;
     }

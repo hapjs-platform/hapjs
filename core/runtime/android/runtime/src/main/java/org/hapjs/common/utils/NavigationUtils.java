@@ -51,6 +51,8 @@ public class NavigationUtils {
     private static final String PATH_PERMISSIONS = "/permissions";
     private static final String GOOGLE_PLAY_PACKAGE = "com.android.vending";
     private static final String GOOGLE_SERVICE_PACKAGE = "com.google.android.gms";
+    private static final String PATH_NFC_MANAGER = "/nfc_manager";
+
     private static final Set<String> WHITE_APP_SET = new HashSet<>();
     private static final Map<String, String> SETTING_MAP = new HashMap<>();
     private static WeakReference<AlertDialog> sDialogRef;
@@ -62,6 +64,7 @@ public class NavigationUtils {
         SETTING_MAP.put(PATH_LOCATION_SOURCE_MANAGER, Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         SETTING_MAP.put(PATH_WLAN_MANAGER, Settings.ACTION_WIFI_SETTINGS);
         SETTING_MAP.put(PATH_BLUETOOTH_MANAGER, Settings.ACTION_BLUETOOTH_SETTINGS);
+        SETTING_MAP.put(PATH_NFC_MANAGER, Settings.ACTION_NFC_SETTINGS);
     }
 
     public static boolean navigate(Context context, String pkg, HybridRequest request, Bundle extras, String routerAppFrom, String sourceH5) {
