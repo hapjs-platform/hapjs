@@ -20,10 +20,12 @@ public class PlatformSysOpProviderImpl extends DefaultSysOpProviderImpl {
             String params,
             String appName,
             Uri iconUri,
+            String type,
+            String serverIconUrl,
             Source source,
             boolean isComplete) {
-        super.onShortcutInstallComplete(
-                context, pkg, path, params, appName, iconUri, source, isComplete);
+        super.onShortcutInstallComplete(context, pkg, path, params, appName, iconUri,
+                type, serverIconUrl, source, isComplete);
         if (isComplete) {
             ShortcutParamsHelper.insertShortParams(context, pkg, path, params);
         }
