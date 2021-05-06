@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import android.view.Display;
+import android.view.WindowManager;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.Request;
@@ -144,6 +147,8 @@ public class Device extends FeatureExtension {
     protected static final String RESULT_DEVICE_TYPE = "deviceType";
     protected static final String RESULT_STATUS_BAR_HEIGHT = "statusBarHeight";
     protected static final String RESULT_CUTOUT = "cutout";
+    protected static final String RESULT_SCREEN_REFRESH_RATE = "screenRefreshRate";
+
     protected static final String RESULT_ADVERTISING_ID = "advertisingId";
     protected static final String RESULT_USER_ID = "userId";
     protected static final String RESULT_SERIAL = "serial";
@@ -257,6 +262,8 @@ public class Device extends FeatureExtension {
         info.put(RESULT_WINDOW_HEIGHT, windowHeight);
         info.put(RESULT_CUTOUT, getCutoutInfo(request));
         info.put(RESULT_DEVICE_TYPE, BuildConfig.FLAVOR);
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        info.put(RESULT_SCREEN_REFRESH_RATE, display.getRefreshRate());
         return info;
     }
 
