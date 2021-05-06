@@ -27,7 +27,7 @@ public interface RouterManageProvider {
 
     void recordFireEvent(String eventType);
 
-    boolean inAlipayForbiddenList(Context context, String url);
+    boolean inWebpayForbiddenList(Context context, String url);
 
     boolean startActivityIfNeeded(Activity activity, Intent intent, String rpkPkg);
 }

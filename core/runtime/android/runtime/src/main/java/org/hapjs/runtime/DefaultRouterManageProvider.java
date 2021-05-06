@@ -48,7 +48,7 @@ public class DefaultRouterManageProvider implements RouterManageProvider {
     }
 
     @Override
-    public boolean inAlipayForbiddenList(Context context, String url) {
+    public boolean inWebpayForbiddenList(Context context, String url) {
         return false;
     }
 

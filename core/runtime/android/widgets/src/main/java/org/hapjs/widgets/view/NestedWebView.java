@@ -410,14 +410,12 @@ public class NestedWebView extends WebView
 
                         boolean isAlipay = isAlipay(url);
                         if (isWeixinPay(url) || isAlipay || isQQLogin(url)) {
-                            if (isAlipay) {
-                                //不允许跳转到支付宝支付以外的页面
-                                RouterManageProvider provider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
-                                if (provider.inAlipayForbiddenList(getContext(), url)) {
-                                    Log.d(TAG, "in alipay forbidden list");
-                                    NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "in alipay forbidden list", mSourceH5);
-                                    return true;
-                                }
+                            //不允许跳转到支付宝支付以外的页面
+                            RouterManageProvider provider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
+                            if (provider.inWebpayForbiddenList(getContext(), url)) {
+                                Log.d(TAG, "in webpay forbidden list");
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "in webpay forbidden list", mSourceH5);
+                                return true;
                             }
                             try {
                                 mContext.startActivity(intent);
