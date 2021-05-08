@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,8 +29,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.util.UriUtil;
 import com.facebook.datasource.BaseDataSubscriber;
@@ -43,9 +45,6 @@ import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.drawable.DrawableParent;
 import com.facebook.drawee.drawable.FadeDrawable;
 import com.facebook.drawee.drawable.ForwardingDrawable;
-import com.facebook.drawee.drawable.MatrixDrawable;
-import com.facebook.drawee.drawable.Rounded;
-import com.facebook.drawee.drawable.RoundedBitmapDrawable;
 import com.facebook.drawee.drawable.ScaleTypeDrawable;
 import com.facebook.drawee.drawable.ScalingUtils;
 import com.facebook.drawee.generic.GenericDraweeHierarchy;
@@ -69,12 +68,6 @@ import com.facebook.imagepipeline.request.Postprocessor;
 import com.facebook.imageutils.BitmapUtil;
 import com.facebook.yoga.YogaFlexDirection;
 import com.facebook.yoga.YogaNode;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 import org.hapjs.analyzer.model.NoticeMessage;
 import org.hapjs.analyzer.tools.AnalyzerHelper;
@@ -101,6 +94,12 @@ import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.widgets.Image;
 import org.hapjs.widgets.R;
+
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class FlexImageView extends GenericDraweeView implements ComponentHost, GestureHost {
 
@@ -675,10 +674,6 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (mHasRadius
-                                                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                            setDrawableFilterBitmap();
-                                        }
                                         updateImageInfo(imageInfo);
                                     }
                                 });
@@ -733,82 +728,6 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
 
         setController(mDraweeControllerBuilder.build());
         mIsDirty = false;
-    }
-
-    /**
-     * android 9.0 圆角图片锯齿问题
-     */
-    public void setDrawableFilterBitmap() {
-        GenericDraweeHierarchy hierarchy = getHierarchy();
-        RoundingParams roundingParams = null;
-        if (null != hierarchy) {
-            roundingParams = hierarchy.getRoundingParams();
-        }
-        if (null == roundingParams) {
-            Log.e(TAG, "setDrawableFilterBitmap roundingParams is null");
-            return;
-        }
-        FadeDrawable fadeDrawable = getFadeDrawable();
-        if (null == fadeDrawable) {
-            return;
-        }
-        DrawableParent parent = null;
-        for (int i = 0; i < fadeDrawable.getNumberOfLayers(); i++) {
-            parent = fadeDrawable.getDrawableParentForIndex(i);
-            if (parent.getDrawable() instanceof MatrixDrawable) {
-                parent = (MatrixDrawable) parent.getDrawable();
-            }
-            if (parent.getDrawable() instanceof ScaleTypeDrawable) {
-                parent = (ScaleTypeDrawable) parent.getDrawable();
-            }
-            parent = findDrawableParentForLeaf(parent);
-            Drawable child = parent.getDrawable();
-            if (roundingParams != null
-                    && roundingParams.getRoundingMethod()
-                    == RoundingParams.RoundingMethod.BITMAP_ONLY) {
-                if (child instanceof Rounded) {
-                    Rounded rounded = (Rounded) child;
-                    if (rounded instanceof RoundedBitmapDrawable) {
-                        RoundedBitmapDrawable roundedBitmapDrawable =
-                                (RoundedBitmapDrawable) rounded;
-                        try {
-                            Class<?> rounderClass =
-                                    Class.forName(
-                                            "com.facebook.drawee.drawable.RoundedBitmapDrawable");
-                            Field field = rounderClass.getDeclaredField("mPaint");
-                            field.setAccessible(true);
-                            Object paint = field.get(roundedBitmapDrawable);
-                            if (paint instanceof Paint) {
-                                Paint tmpPaint = (Paint) paint;
-                                tmpPaint.setFilterBitmap(true);
-                                roundedBitmapDrawable.invalidateSelf();
-                            } else {
-                                Log.e(
-                                        TAG,
-                                        "setDrawableFilterBitmap RoundedBitmapDrawable error paint not Paint class");
-                            }
-                        } catch (ClassNotFoundException e) {
-                            Log.e(
-                                    TAG,
-                                    "setDrawableFilterBitmap RoundedBitmapDrawable error ClassNotFoundException");
-                        } catch (NoSuchFieldException e) {
-                            Log.e(
-                                    TAG,
-                                    "setDrawableFilterBitmap RoundedBitmapDrawable error NoSuchFieldException");
-                        } catch (IllegalAccessException e) {
-                            Log.e(
-                                    TAG,
-                                    "setDrawableFilterBitmap RoundedBitmapDrawable error IllegalAccessException");
-                        }
-                    } else {
-                        Log.e(TAG,
-                                "setDrawableFilterBitmap child not instanceof RoundedBitmapDrawable");
-                    }
-                }
-            } else {
-                Log.e(TAG, "setDrawableFilterBitmap roundingParams  null or not BITMAP_ONLY");
-            }
-        }
     }
 
     private DrawableParent findDrawableParentForLeaf(DrawableParent parent) {
@@ -866,7 +785,7 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
         if (roundingParams == null) {
             roundingParams = RoundingParams.fromCornersRadius(0);
         }
-
+        roundingParams.setPaintFilterBitmap(true);
         boolean usePostprocessorScaling =
                 mScaleType != ScalingUtils.ScaleType.CENTER_CROP
                         && mScaleType != ScalingUtils.ScaleType.FOCUS_CROP;
