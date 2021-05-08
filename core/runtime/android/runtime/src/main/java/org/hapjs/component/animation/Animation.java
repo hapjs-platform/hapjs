@@ -50,43 +50,73 @@ public class Animation {
     }
 
     public long getStartTime() {
-        return mAnimatorSet.getStartTime();
+        if (mAnimatorSet != null) {
+            return mAnimatorSet.getStartTime();
+        } else {
+            return 0;
+        }
     }
 
     public boolean isReady() {
-        return mAnimatorSet.isReady();
+        if (mAnimatorSet != null) {
+            return mAnimatorSet.isReady();
+        } else {
+            return false;
+        }
     }
 
     public boolean isFinished() {
-        return mAnimatorSet.isFinished();
+        if (mAnimatorSet != null) {
+            return mAnimatorSet.isFinished();
+        } else {
+            return true;
+        }
     }
 
     public boolean isPending() {
-        return mAnimatorSet.isPending();
+        if (mAnimatorSet != null) {
+            return mAnimatorSet.isPending();
+        } else {
+            return false;
+        }
     }
 
     public String getPlayState() {
-        return mAnimatorSet.getPlayState();
+        if (mAnimatorSet != null) {
+            return mAnimatorSet.getPlayState();
+        } else {
+            return "idle";
+        }
     }
 
     public void play() {
-        mAnimatorSet.start();
+        if (mAnimatorSet != null) {
+            mAnimatorSet.start();
+        }
     }
 
     public void pause() {
-        mAnimatorSet.pause();
+        if (mAnimatorSet != null) {
+            mAnimatorSet.pause();
+        }
     }
 
     public void finish() {
-        mAnimatorSet.finish();
+        if (mAnimatorSet != null) {
+            mAnimatorSet.finish();
+        }
     }
 
     public void cancel() {
-        mAnimatorSet.cancel();
+        if (mAnimatorSet != null) {
+            mAnimatorSet.cancel();
+        }
     }
 
     public void reverse() {
-        mAnimatorSet.reverse();
+        if (mAnimatorSet != null) {
+            mAnimatorSet.reverse();
+        }
     }
 
     public void onCancel() {
