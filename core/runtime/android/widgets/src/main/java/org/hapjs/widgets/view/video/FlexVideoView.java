@@ -623,14 +623,14 @@ public class FlexVideoView extends FrameLayout
             return;
         }
 
-        if (uri == null && mUri != null) {
+        if (uri == null) {
             if (mPlayer != null && mControlsManager.mVideoView != null) {
                 mPlayer.stop();
             }
         }
         mUri = uri;
 
-        if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
+        if (mIsFullScreen && null != mCacheFullScreenUri && !mCacheFullScreenUri.equals(mUri)) {
             Log.w(TAG, "setVideoURI mUri is not fullscreen Uri ,start invalid");
             return;
         }
