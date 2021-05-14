@@ -8,6 +8,7 @@ package org.hapjs.component;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -67,7 +68,7 @@ public class ComponentBackgroundComposer {
     }
 
     public void setBackgroundColor(String color) {
-        int c = ColorUtil.getColor(color);
+        int c = ColorUtil.getColor(color, Color.TRANSPARENT);
         setBackgroundColor(c);
     }
 
