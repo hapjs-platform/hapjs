@@ -216,14 +216,10 @@ public class ExtensionManager {
 
         Extension.Mode mode = f.getInvocationMode(request);
         if (mode == Extension.Mode.SYNC) {
+            setCallbackToRequest(jsCallback, realCallback, request, mode);
             return f.invoke(request);
         } else {
-            if (null != realCallback) {
-                request.setCallback(realCallback);
-            } else {
-                Callback callback = new Callback(this, jsCallback, mode);
-                request.setCallback(callback);
-            }
+            setCallbackToRequest(jsCallback, realCallback, request, mode);
             Executor executor = f.getExecutor(request);
             executor = executor == null ? Executors.io() : executor;
             new AsyncInvocation(f, request, executor).execute();
@@ -232,6 +228,15 @@ public class ExtensionManager {
             } else {
                 return RESPONSE_CALLBACK;
             }
+        }
+    }
+
+    private void setCallbackToRequest(String jsCallback, Callback realCallback, Request request, Extension.Mode mode) {
+        if (null != realCallback) {
+            request.setCallback(realCallback);
+        } else {
+            Callback callback = new Callback(this, jsCallback, mode);
+            request.setCallback(callback);
         }
     }
 

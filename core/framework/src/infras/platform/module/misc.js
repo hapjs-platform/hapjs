@@ -483,6 +483,9 @@ function invokeNative(inst, module, method, args, moduleInstId) {
     newArgs = JSON.stringify(newArgs)
   }
 
+  let pInst, pRes, pRej
+  // this指向：1040起更新为undefined
+  const thisContext = global.isRpkMinPlatformVersionGEQ(1040) ? undefined : cbs
   // 调用原生模块函数
   if (mthMode === MODULES.MODE.SYNC) {
     let cbId = '-1'
@@ -493,6 +496,16 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       if (cbId === '-1') {
         return
       }
+    }
+    if (Object.keys(cbs).length) {
+      cbId = uniqueCallbackId()
+      inst._callbacks[cbId] = callbackFunc
+      _callbackSourceMap[cbId] = {
+        instance: inst.id.toString(),
+        preserved: mthMode === MODULES.MODE.SUBSCRIBE,
+        cbFunc: cbs.success
+      }
+      cbId = cbId.toString()
     }
     const ret = bridge.invoke(modName, mthName, newArgs, cbId, moduleInstId)
     if (ret == null) {
@@ -510,11 +523,8 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       cbs.flagCallback = true
     }
 
-    let pInst, pRes, pRej
     const argList = []
     if (Object.keys(cbs).length) {
-      // this指向：1040起更新为undefined
-      const thisContext = global.isRpkMinPlatformVersionGEQ(1040) ? undefined : cbs
       // 需要回调
       let cbId = -1
 
@@ -528,26 +538,7 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       } else {
         cbId = uniqueCallbackId()
       }
-      inst._callbacks[cbId] = ret => {
-        const callbacks = cbs
-        const result = transformModuleResult(inst, ret, module, mthName)
-        const code = result.code
-        const data = result.data
-        if (code === 0 && callbacks.success) {
-          callbacks.success.call(thisContext, data)
-        } else if (code === 100 && callbacks.cancel) {
-          callbacks.cancel.call(thisContext)
-        } else if (code >= 200 && callbacks.fail) {
-          callbacks.fail.call(thisContext, data, code)
-        }
-        if (callbacks.complete) {
-          callbacks.complete.call(thisContext, data)
-        }
-
-        if (pInst) {
-          code === 0 ? pRes({ data }) : pRej({ data, code })
-        }
-      }
+      inst._callbacks[cbId] = callbackFunc
       _callbackSourceMap[cbId] = {
         instance: inst.id.toString(),
         preserved: mthMode === MODULES.MODE.SUBSCRIBE,
@@ -578,7 +569,28 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       }))
     }
   }
+  function callbackFunc(ret) {
+    const callbacks = cbs
+    const result = transformModuleResult(inst, ret, module, mthName)
+    const code = result.code
+    const data = result.data
+    if (code === 0 && callbacks.success) {
+      callbacks.success.call(thisContext, data)
+    } else if (code === 100 && callbacks.cancel) {
+      callbacks.cancel.call(thisContext)
+    } else if (code >= 200 && callbacks.fail) {
+      callbacks.fail.call(thisContext, data, code)
+    }
+    if (callbacks.complete) {
+      callbacks.complete.call(thisContext, data)
+    }
+
+    if (pInst) {
+      code === 0 ? pRes({ data }) : pRej({ data, code })
+    }
+  }
 }
+
 /**
  * 分情况返回不同模块
  * @param inst
