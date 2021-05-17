@@ -489,6 +489,18 @@ function invokeNative(inst, module, method, args, moduleInstId) {
   // 调用原生模块函数
   if (mthMode === MODULES.MODE.SYNC) {
     let cbId = '-1'
+    if (Object.keys(cbs).length) {
+      cbId = uniqueCallbackId()
+      inst._callbacks[cbId] = callbackFunc
+      if (mthMultiple !== MODULES.MULTIPLE.MULTI) {
+        _callbackSourceMap[cbId] = {
+          instance: inst.id.toString(),
+          preserved: mthMode === MODULES.MODE.SUBSCRIBE,
+          cbFunc: cbs.success
+        }
+      }
+      cbId = cbId.toString()
+    }
     if (mthMultiple === MODULES.MULTIPLE.MULTI && isFunction(arg0)) {
       cbId = mapInvokeCallbackId(arg0).toString()
       console.trace(`${mthName} 方法的回调函数参数id：${cbId}`)
@@ -496,16 +508,6 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       if (cbId === '-1') {
         return
       }
-    }
-    if (Object.keys(cbs).length) {
-      cbId = uniqueCallbackId()
-      inst._callbacks[cbId] = callbackFunc
-      _callbackSourceMap[cbId] = {
-        instance: inst.id.toString(),
-        preserved: mthMode === MODULES.MODE.SUBSCRIBE,
-        cbFunc: cbs.success
-      }
-      cbId = cbId.toString()
     }
     const ret = bridge.invoke(modName, mthName, newArgs, cbId, moduleInstId)
     if (ret == null) {
