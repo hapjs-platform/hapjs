@@ -113,9 +113,8 @@ public class SectionList extends AbstractScrollable<SectionRecyclerView>
                                 notifyEventScroll(0, 0, newState);
                             }
 
-                            if (mRegisterEvents.contains(EVENT_SCROLL_TOP)) {
-                                int lastVisibleItemPosition =
-                                        mLayoutManager.findLastVisibleItemPosition();
+                            if (mRegisterEvents.contains(EVENT_SCROLL_BOTTOM)) {
+                                int lastVisibleItemPosition = mLayoutManager.findLastCompletelyVisibleItemPosition();
                                 if (lastVisibleItemPosition == mAdapter.getItemCount() - 1) {
                                     notifyEventScrollBottom();
                                 }
