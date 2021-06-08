@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -60,14 +60,6 @@ describe('框架：05.自定义子组件', () => {
       .include('show')
       .include('保留字')
     expect(warnMsgs[2])
-      .to.include('d5')
-      .include('未在props定义')
-      .include('$attrs')
-    expect(warnMsgs[3])
-      .to.include('name')
-      .include('未在props定义')
-      .include('$attrs')
-    expect(warnMsgs[4])
       .to.include('class属性')
       .include('part1-class')
 
@@ -78,13 +70,13 @@ describe('框架：05.自定义子组件', () => {
     expect(subVmPart2.d2.name).to.equal('page-d2')
     expect(subVmPart2.d3.name).to.equal('page-d2-d3')
 
-    expect(warnMsgs[5])
+    expect(warnMsgs[3])
       .to.include('d3')
       .include('不要与props重复')
-    expect(warnMsgs[6])
+    expect(warnMsgs[4])
       .to.include('d2')
       .include('不要与props重复')
-    expect(warnMsgs[7])
+    expect(warnMsgs[5])
       .to.include('d1')
       .include('不要与props重复')
 
@@ -104,7 +96,7 @@ describe('框架：05.自定义子组件', () => {
       .to.equal(subVmPart2.d4.name)
       .equal('page-d4-modify')
 
-    expect(warnMsgs.length).to.equal(8)
+    expect(warnMsgs.length).to.equal(6)
     expect(errorMsgs.length).to.equal(1)
   })
 })

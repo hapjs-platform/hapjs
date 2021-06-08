@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -147,7 +147,7 @@ function mergeProps(attrs, props, vm, subVm) {
   }
   if (attrs && !props) {
     console.warn(
-      `### App Framework ### 组件${subVm._type} 中无props属性，放弃属性校验；推荐增加props属性`
+      `### App Framework ### 组件 ${subVm._type} 中无props属性，放弃属性校验；推荐增加props属性`
     )
     for (const key in attrs) {
       let targetFunction
@@ -321,8 +321,8 @@ function mergeAttrs(attrs, props, vm, subVm) {
   }
   const reservedAttr = ['id', 'tid']
   for (const key in attrs) {
-    // props未定义或props已定义但不包含该变量
-    if (!props || (!props.hasOwnProperty(key) && reservedAttr.indexOf(key) === -1)) {
+    // props 未定义或 props 已定义但不包含该变量
+    if ((!props || !props.hasOwnProperty(key)) && reservedAttr.indexOf(key) === -1) {
       // targetVm 和 targetFunction 用来确保响应式数据更新正确
       let targetFunction
       if (attrs[key] && attrs[key].targetFunction) {
@@ -334,11 +334,6 @@ function mergeAttrs(attrs, props, vm, subVm) {
         targetFunction = attrs[key]
       }
       initAttrs(key, targetFunction, vm, subVm, props)
-      if (props && reservedAttr.indexOf(key) === -1) {
-        console.warn(
-          `### App Framework ### 组件${subVm._type} 属性'${key}'未在props定义，可通过 $attrs 访问 `
-        )
-      }
     }
   }
 }
@@ -365,13 +360,17 @@ function initAttrs(key, value, vm, subVm, props) {
     )
   }
   if (typeof value === 'function') {
-    ;(function() {
-      const watcher = watch(vm, value, function(v) {
-        _$attrs[key] = v
-      })
-      subVm._parentWatchers.push(watcher)
-      defineReactive(_$attrs, key, watcher.value)
-    })()
+    try {
+      ;(function() {
+        const watcher = watch(vm, value, function(v) {
+          _$attrs[key] = v
+        })
+        subVm._parentWatchers.push(watcher)
+        defineReactive(_$attrs, key, watcher.value)
+      })()
+    } catch (err) {
+      console.error(`### App Framework ### ${err}`)
+    }
   } else {
     defineReactive(_$attrs, key, value)
   }
