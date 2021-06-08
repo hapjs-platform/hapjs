@@ -767,21 +767,22 @@ public class Page implements IPage {
         }
 
         if (pageAnimateSettingObj != null) {
-            try {
-                Object openEnterObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_OPEN_ENTER);
-                Object openExitObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_OPEN_EXIT);
-                Object closeEnterObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_CLOSE_ENTER);
-                Object closeExitObj = pageAnimateSettingObj.get(Attributes.PageAnimation.ACTION_CLOSE_EXIT);
-                if (openEnterObj instanceof String && closeEnterObj instanceof String
-                        && openExitObj instanceof String && closeExitObj instanceof String) {
-                    String openEnter = openEnterObj.toString().trim();
-                    String openExit = openExitObj.toString().trim();
-                    String closeEnter = closeEnterObj.toString().trim();
-                    String closeExit = closeExitObj.toString().trim();
-                    config = new PageAnimationConfig(openEnter, closeEnter, openExit, closeExit);
-                }
-            } catch (JSONException e) {
-                Log.e(TAG, "parsePageAnimationConfig: ", e);
+            Object openEnterObj = pageAnimateSettingObj.opt(Attributes.PageAnimation.ACTION_OPEN_ENTER);
+            Object openExitObj = pageAnimateSettingObj.opt(Attributes.PageAnimation.ACTION_OPEN_EXIT);
+            Object closeEnterObj = pageAnimateSettingObj.opt(Attributes.PageAnimation.ACTION_CLOSE_ENTER);
+            Object closeExitObj = pageAnimateSettingObj.opt(Attributes.PageAnimation.ACTION_CLOSE_EXIT);
+            config = new PageAnimationConfig();
+            if (openEnterObj instanceof String) {
+                config.openEnter = openEnterObj.toString().trim();
+            }
+            if (openExitObj instanceof String) {
+                config.openExit = openExitObj.toString().trim();
+            }
+            if (closeEnterObj instanceof String) {
+                config.closeEnter = closeEnterObj.toString().trim();
+            }
+            if (closeExitObj instanceof String) {
+                config.closeExit = closeExitObj.toString().trim();
             }
         }
         return config;
@@ -796,23 +797,28 @@ public class Page implements IPage {
         int animationId = defValue;
         switch (animationType) {
             case Attributes.PageAnimation.ACTION_OPEN_ENTER:
-                animation = mPageAnimationConfig.mOpenEnter;
+                animation = mPageAnimationConfig.openEnter;
                 animationId = DocAnimator.TYPE_PAGE_OPEN_ENTER;
                 break;
             case Attributes.PageAnimation.ACTION_OPEN_EXIT:
-                animation = mPageAnimationConfig.mOpenExit;
+                animation = mPageAnimationConfig.openExit;
                 animationId = DocAnimator.TYPE_PAGE_OPEN_EXIT;
                 break;
             case Attributes.PageAnimation.ACTION_CLOSE_ENTER:
-                animation = mPageAnimationConfig.mCloseEnter;
+                animation = mPageAnimationConfig.closeEnter;
                 animationId = DocAnimator.TYPE_PAGE_CLOSE_ENTER;
                 break;
             case Attributes.PageAnimation.ACTION_CLOSE_EXIT:
-                animation = mPageAnimationConfig.mCloseExit;
+                animation = mPageAnimationConfig.closeExit;
                 animationId = DocAnimator.TYPE_PAGE_CLOSE_EXIT;
                 break;
             default:
                 animation = Attributes.PageAnimation.NONE;
+        }
+
+        //default animation : slide
+        if (animation == null) {
+            animation = Attributes.PageAnimation.SLIDE;
         }
 
         if (Attributes.PageAnimation.SLIDE.equalsIgnoreCase(animation)) {
@@ -845,25 +851,21 @@ public class Page implements IPage {
 
     private static class PageAnimationConfig {
 
-        private String mOpenEnter;
-        private String mCloseEnter;
-        private String mOpenExit;
-        private String mCloseExit;
+        private String openEnter;
+        private String closeEnter;
+        private String openExit;
+        private String closeExit;
 
-        private PageAnimationConfig(String openEnter, String closeEnter, String openExit, String closeExit) {
-            mOpenEnter = openEnter;
-            mCloseEnter = closeEnter;
-            mOpenExit = openExit;
-            mCloseExit = closeExit;
+        private PageAnimationConfig() {
         }
 
         @Override
         public String toString() {
             return "PageAnimationConfig{" +
-                    "mOpenEnter='" + mOpenEnter + '\'' +
-                    ", mCloseEnter='" + mCloseEnter + '\'' +
-                    ", mOpenExit='" + mOpenExit + '\'' +
-                    ", mCloseExit='" + mCloseExit + '\'' +
+                    "mOpenEnter='" + openEnter + '\'' +
+                    ", mCloseEnter='" + closeEnter + '\'' +
+                    ", mOpenExit='" + openExit + '\'' +
+                    ", mCloseExit='" + closeExit + '\'' +
                     '}';
         }
     }
