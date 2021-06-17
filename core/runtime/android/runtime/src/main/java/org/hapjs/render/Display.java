@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -1762,16 +1762,9 @@ public class Display implements ConfigurationManager.ConfigurationListener {
             return;
         }
         Context context = mRootView.getContext();
-        if (null != context && context instanceof Activity) {
-            if (mPage.hasSetOrientation()) {
-                ((Activity) context).setRequestedOrientation(mPage.getOrientation());
-            } else {
-                ((Activity) context)
-                        .setRequestedOrientation(
-                                BuildPlatform.isTV()
-                                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                                        : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
+        if (context instanceof Activity) {
+            SysOpProvider provider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+            ((Activity) context).setRequestedOrientation(provider.getScreenOrientation(mPage, mAppInfo));
         }
     }
 

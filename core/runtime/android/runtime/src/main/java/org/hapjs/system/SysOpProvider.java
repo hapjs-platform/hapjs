@@ -160,4 +160,5 @@ public interface SysOpProvider {
 
     int getScreenHeightPixels(Context context, int platformVersion);
 
+    int getScreenOrientation(Page page, AppInfo info);
 }

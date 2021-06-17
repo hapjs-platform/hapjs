@@ -6,11 +6,13 @@
 package org.hapjs.system;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.database.Cursor;
@@ -28,11 +30,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import androidx.appcompat.widget.Toolbar;
+
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.bridge.BaseJsSdkBridge;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.common.compat.BuildPlatform;
@@ -125,7 +129,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
 
     private Intent getShortcutPendingIntentOnBase(Context context, String pkg, String path) {
         Uri uri = getQueryUri();
-        String[] projection = new String[] {"intent"};
+        String[] projection = new String[]{"intent"};
         String selection = "itemType=1";
         Cursor cursor = null;
         try {
@@ -469,5 +473,19 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.widthPixels : displayMetrics.heightPixels;
         }
         return displayMetrics.heightPixels;
+    }
+
+    @Override
+    public int getScreenOrientation(Page page, AppInfo info) {
+        int screenOrientation;
+        if (page.hasSetOrientation()) {
+            screenOrientation = page.getOrientation();
+        } else {
+            screenOrientation =
+                    BuildPlatform.isTV() ?
+                            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                            : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        }
+        return screenOrientation;
     }
 }
