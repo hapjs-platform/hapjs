@@ -91,6 +91,8 @@ public class JsThread extends HandlerThread {
 
     public static final String CONFIGURATION_TYPE_LOCALE = "locale";
     public static final String CONFIGURATION_TYPE_THEME_MODE = "themeMode";
+    public static final String CONFIGURATION_TYPE_ORIENTATION = "orientation";
+    public static final String CONFIGURATION_TYPE_SCREEN_SIZE = "screenSize";
     public static final String INFRASJS_SNAPSHOT_SO_NAME = "infrasjs_snapshot";
     public static final boolean HAS_INFRASJS_SNAPSHOT;
     private static final String TAG = "JsThread";
