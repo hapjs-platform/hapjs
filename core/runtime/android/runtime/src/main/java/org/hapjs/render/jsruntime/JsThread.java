@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -91,6 +91,8 @@ public class JsThread extends HandlerThread {
 
     public static final String CONFIGURATION_TYPE_LOCALE = "locale";
     public static final String CONFIGURATION_TYPE_THEME_MODE = "themeMode";
+    public static final String CONFIGURATION_TYPE_ORIENTATION = "orientation";
+    public static final String CONFIGURATION_TYPE_SCREEN_SIZE = "screenSize";
     public static final String INFRASJS_SNAPSHOT_SO_NAME = "infrasjs_snapshot";
     public static final boolean HAS_INFRASJS_SNAPSHOT;
     private static final String TAG = "JsThread";

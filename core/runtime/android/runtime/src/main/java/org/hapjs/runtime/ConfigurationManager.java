@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,6 +38,7 @@ public class ConfigurationManager {
                 obtainLocale(applicationContext.getContext().getResources().getConfiguration()));
         updateThemeMode(applicationContext.getContext().getResources().getConfiguration());
         updateOrientation(applicationContext.getContext().getResources().getConfiguration());
+        updateScreenSize(applicationContext.getContext().getResources().getConfiguration());
     }
 
     public void addListener(ConfigurationListener listener) {
@@ -67,6 +68,7 @@ public class ConfigurationManager {
         updateLocale(obtainLocale(configuration));
         updateThemeMode(configuration);
         updateOrientation(configuration);
+        updateScreenSize(configuration);
 
         for (ConfigurationListener l : mConfigurationListener) {
             l.onConfigurationChanged(mCurrentConfiguration);
@@ -83,6 +85,10 @@ public class ConfigurationManager {
 
     private void updateOrientation(Configuration configuration) {
         mCurrentConfiguration.setOrientation(configuration.orientation);
+    }
+
+    private void updateScreenSize(Configuration configuration) {
+        mCurrentConfiguration.setScreenSize(configuration.screenWidthDp);
     }
 
     public void reset(Context context) {
