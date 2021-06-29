@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,7 +21,6 @@ import org.json.JSONException;
 public class FeatureBridge extends ExtensionBridge {
     private static final String TAG = "FeatureBridge";
 
-    private static final Map<String, ExtensionMetaData> FEATURE_MAP = new HashMap<>();
     private static boolean sCardModeEnabled = false;
     private ConcurrentHashMap<String, Map<String, String>> mFeatureParams;
     private Set<FeatureAliasRule> mFeatureAliasRules;
@@ -36,11 +35,39 @@ public class FeatureBridge extends ExtensionBridge {
         applyProxy();
     }
 
-    public static Map<String, ExtensionMetaData> getFeatureMap() {
-        if (FEATURE_MAP.isEmpty()) {
+    private static class FeatureMapLoader {
+        static final Map<String, ExtensionMetaData> FEATURE_MAP = new HashMap<>();
+
+        static {
             FEATURE_MAP.putAll(MetaDataSet.getInstance().getFeatureMetaDataMap());
         }
-        return FEATURE_MAP;
+
+        public static void configCardBlacklist() {
+            Map<String, CardConfig.FeatureBlacklistItem> blacklist =
+                    CardConfig.getInstance().getFeatureBlacklistMap();
+            for (String name : blacklist.keySet()) {
+                if (!FEATURE_MAP.containsKey(name)) {
+                    continue;
+                }
+                CardConfig.FeatureBlacklistItem featureBlacklistItem = blacklist.get(name);
+                if (featureBlacklistItem == null) {
+                    FEATURE_MAP.remove(name);
+                    continue;
+                }
+                List<String> blacklistMethods = featureBlacklistItem.methods;
+                ExtensionMetaData extensionMetaData = FEATURE_MAP.get(name);
+                if (extensionMetaData != null && blacklistMethods != null && !blacklistMethods.isEmpty()) {
+                    extensionMetaData.removeMethods(blacklistMethods);
+                } else {
+                    // No methods means remove feature completely
+                    FEATURE_MAP.remove(name);
+                }
+            }
+        }
+    }
+
+    public static Map<String, ExtensionMetaData> getFeatureMap() {
+        return FeatureMapLoader.FEATURE_MAP;
     }
 
     public static String getFeatureMapJSONString() {
@@ -49,27 +76,7 @@ public class FeatureBridge extends ExtensionBridge {
 
     public static void configCardBlacklist() {
         sCardModeEnabled = true;
-        Map<String, CardConfig.FeatureBlacklistItem> blacklist =
-                CardConfig.getInstance().getFeatureBlacklistMap();
-        for (String name : blacklist.keySet()) {
-            if (!FEATURE_MAP.containsKey(name)) {
-                continue;
-            }
-            CardConfig.FeatureBlacklistItem featureBlacklistItem = blacklist.get(name);
-            if (featureBlacklistItem == null) {
-                FEATURE_MAP.remove(name);
-                continue;
-            }
-            List<String> blacklistMethods = featureBlacklistItem.methods;
-            ExtensionMetaData extensionMetaData = FEATURE_MAP.get(name);
-            if (extensionMetaData != null && blacklistMethods != null
-                    && !blacklistMethods.isEmpty()) {
-                extensionMetaData.removeMethods(blacklistMethods);
-            } else {
-                // No methods means remove feature completely
-                FEATURE_MAP.remove(name);
-            }
-        }
+        FeatureMapLoader.configCardBlacklist();
     }
 
     public void addFeatures(List<FeatureInfo> featureInfos) {
