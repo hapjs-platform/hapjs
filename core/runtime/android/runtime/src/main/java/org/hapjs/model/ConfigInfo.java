@@ -35,6 +35,7 @@ public class ConfigInfo {
     private Set<String> mBackgroundFeatures = new HashSet<>();
     private NetworkConfig mNetworkConfig;
     private GrayModeConfig mGrayModeConfig;
+    private boolean mDynamicDesignWidth = false;
 
     public ConfigInfo(JSONObject data) {
         mData = data;
@@ -44,6 +45,9 @@ public class ConfigInfo {
         ConfigInfo configInfo = new ConfigInfo(configObject);
         if (configObject != null) {
             configInfo.mDesignWidth = parseDesignWidth(configObject.opt(KEY_DESIGN_WIDTH));
+            if (configInfo.mDesignWidth == CODE_DEVICE_WIDTH) {
+                configInfo.mDynamicDesignWidth = true;
+            }
             configInfo.mDebug = configObject.optBoolean(KEY_DEBUG, false);
             JSONObject jsonBackground = configObject.optJSONObject(KEY_BACKGROUND);
             if (null != jsonBackground && jsonBackground.has(KEY_FEATURES)) {
@@ -102,7 +106,7 @@ public class ConfigInfo {
     }
 
     public int getDesignWidth() {
-        if (mDesignWidth == CODE_DEVICE_WIDTH) {
+        if (mDynamicDesignWidth) {
             Context context = Runtime.getInstance().getContext();
             DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
             int screenWidth = DisplayUtil.getScreenWidth(context);
