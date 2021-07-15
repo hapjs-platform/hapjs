@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,6 +27,10 @@ public class CSSStyleSheet {
 
     public synchronized void addOwner(Node owner) {
         mOwners.add(owner);
+    }
+
+    public synchronized void removeOwner(Node owner) {
+        mOwners.remove(owner);
     }
 
     public synchronized Set<Node> getOwners() {

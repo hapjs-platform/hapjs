@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,9 +7,13 @@ package org.hapjs.render.action;
 
 import android.text.TextUtils;
 import android.util.SparseArray;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import org.hapjs.component.Component;
+import org.hapjs.component.RecyclerDataItem;
 import org.hapjs.render.css.CSSStyleSheet;
 
 public class RenderActionDocument extends RenderActionNode {
@@ -70,7 +74,9 @@ public class RenderActionDocument extends RenderActionNode {
             return;
         }
         mNodes.remove(node.getVId());
-        node.setParent(null);
+
+        clearNodeReference(node);
+
         synchronized (node.getChildren()) {
             Iterator<RenderActionNode> iterator = node.getChildren().iterator();
             while (iterator.hasNext()) {
@@ -79,6 +85,30 @@ public class RenderActionDocument extends RenderActionNode {
                 iterator.remove();
             }
         }
+    }
+
+    private void clearNodeReference(RenderActionNode node) {
+        //remove node from component.mCssNode
+        Component component = node.getComponent();
+        if (component != null) {
+            component.setCssNode(null);
+        }
+        node.setComponent(null);
+
+        //remove node from recyclerDataItem.mCssNode
+        RecyclerDataItem recyclerDataItem = node.getRecyclerDataItem();
+        if (recyclerDataItem != null) {
+            recyclerDataItem.setCssNode(null);
+        }
+        node.setRecyclerDataItem(null);
+
+        //remove node from set cssStyleSheet.mOwners
+        CSSStyleSheet cssStyleSheet = mCSSStyleSheets.get(node.getStyleObjectId());
+        if (cssStyleSheet != null) {
+            cssStyleSheet.removeOwner(node);
+        }
+
+        node.setParent(null);
     }
 
     synchronized CSSStyleSheet findStyleSheetById(int styleObjectId) {
