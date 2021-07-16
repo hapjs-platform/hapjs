@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -276,10 +276,13 @@ class RenderActionParser {
         action.styles.putAll(node.calFinalStyle(matchedStyles).convertStyleProps());
 
         if (updateChild) {
-            for (RenderActionNode child : node.getChildren()) {
-                VDomChangeAction childAction = new VDomChangeAction();
-                updateStyles(child, childAction, true);
-                action.children.add(childAction);
+            // SynchronizedList 在增强for循环中是非线程安全的，需要同步
+            synchronized (node.getChildren()){
+                for (RenderActionNode child : node.getChildren()) {
+                    VDomChangeAction childAction = new VDomChangeAction();
+                    updateStyles(child, childAction, true);
+                    action.children.add(childAction);
+                }
             }
         }
     }
