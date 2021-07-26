@@ -56,7 +56,6 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
     private static final String RESULT_KEY_STATUS_CODE = "statusCode";
     private static final String RESULT_KEY_FILE_PATH = "filePath";
     private static final String RESULT_KEY_RESP_HEADER = "header";
-    private static final String RESULT_KEY_MSG = "errMsg";
 
     protected static long DEFAULT_TIMEOUT_MILLIS = 10 * 1000;
 
@@ -247,15 +246,10 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
 
     private void onFail(int code, String msg) {
         if (mDownloadRequest == null) return;
-        JSONObject msgObject = new JSONObject();
-        try {
-            msgObject.put(RESULT_KEY_MSG, msg);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
         if (mDownloadRequest.getCallback() != null) {
-            mDownloadRequest.getCallback().callback(new Response(code, msgObject));
+            mDownloadRequest.getCallback().callback(new Response(code, msg));
         }
+
         release();
     }
 
