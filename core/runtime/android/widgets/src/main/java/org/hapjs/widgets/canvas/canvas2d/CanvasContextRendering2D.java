@@ -190,15 +190,16 @@ public class CanvasContextRendering2D extends CanvasContext {
 
     private boolean isDrawAction(CanvasRenderAction action) {
         String name = action.getAction();
-        return TextUtils.equals(name, "fill")
-                || TextUtils.equals(name, "fillRect")
-                || TextUtils.equals(name, "stroke")
-                || TextUtils.equals(name, "strokeRect")
-                || TextUtils.equals(name, "clearRect")
-                || TextUtils.equals(name, "drawImage")
-                || TextUtils.equals(name, "putImageData")
-                || TextUtils.equals(name, "transform")
-                || TextUtils.equals(name, "setTransform");
+        return TextUtils.equals(name, "fill") ||
+                TextUtils.equals(name, "fillRect") ||
+                TextUtils.equals(name, "stroke") ||
+                TextUtils.equals(name, "strokeRect") ||
+                TextUtils.equals(name, "clearRect") ||
+                TextUtils.equals(name, "drawImage") ||
+                TextUtils.equals(name, "putImageData") ||
+                TextUtils.equals(name, "transform") ||
+                TextUtils.equals(name, "setTransform") ||
+                TextUtils.equals(name, "fillText");
     }
 
     public Rect getOrCreateClipWhiteArea() {
