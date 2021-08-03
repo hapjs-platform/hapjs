@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -30,9 +30,9 @@ public class PlatformSysOpProviderImpl extends DefaultSysOpProviderImpl {
     }
 
     @Override
-    public boolean updateShortcut(
-            Context context, String pkg, String path, String params, String appName, Bitmap icon) {
-        boolean result = super.updateShortcut(context, pkg, path, params, appName, icon);
+    public boolean updateShortcut(Context context, String pkg, String path, String params, String appName,
+                                  Bitmap icon, boolean isOpIconUpdate) {
+        boolean result = super.updateShortcut(context, pkg, path, params, appName, icon, isOpIconUpdate);
         result = ShortcutParamsHelper.updateShortParams(context, pkg, path, params) || result;
         return result;
     }

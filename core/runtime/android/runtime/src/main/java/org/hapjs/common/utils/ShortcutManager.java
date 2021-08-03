@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -247,21 +247,21 @@ public class ShortcutManager {
     }
 
     public static boolean update(Context context, String pkg, String appName, Uri iconUri) {
-        return update(context, pkg, "", appName, iconUri);
+        return update(context, pkg, "", appName, iconUri, false);
     }
 
-    public static boolean update(
-            Context context, String pkg, String path, String appName, Uri iconUri) {
+    public static boolean update(Context context, String pkg, String path, String appName, Uri iconUri,
+                                 boolean isOpIconUpdate) {
         Bitmap icon = IconUtils.getIconBitmap(context, iconUri);
         if (icon == null) {
             return false;
         }
-        return update(context, pkg, path, "", appName, icon);
+        return update(context, pkg, path, "", appName, icon, isOpIconUpdate);
     }
 
-    public static boolean update(
-            Context context, String pkg, String path, String params, String appName, Bitmap icon) {
-        return IMPL.updateShortcut(context, pkg, path, params, appName, icon);
+    public static boolean update(Context context, String pkg, String path, String params, String appName,
+                                 Bitmap icon, boolean isOpIconUpdate) {
+        return IMPL.updateShortcut(context, pkg, path, params, appName, icon, isOpIconUpdate);
     }
 
     public static boolean uninstall(Context context, String pkg, String appName) {
