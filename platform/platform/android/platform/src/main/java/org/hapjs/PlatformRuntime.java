@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -139,7 +139,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                                     Log.e(TAG, "expected a non-null appInfo.");
                                     return;
                                 }
-                                ShortcutUtils.updateShortcutAsync(mContext, pkg);
+                                updateShortcutAsync(mContext, false, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_ADDED);
                                 InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
@@ -152,7 +152,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                                     Log.e(TAG, "expected a non-null appInfo.");
                                     return;
                                 }
-                                ShortcutUtils.updateShortcutAsync(mContext, pkg);
+                                updateShortcutAsync(mContext, false, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_UPDATED);
                                 InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
@@ -186,12 +186,21 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                         new Runnable() {
                             @Override
                             public void run() {
-                                ShortcutUtils.updateAllShortcutsAsync(mContext);
+                                updateShortcutAsync(mContext, true, null);
                             }
                         },
                         10 * 1000);
 
         InstallFileFlagManager.clearAllFlags(mContext);
+    }
+
+    //新增方法，由厂商自己实现
+    protected void updateShortcutAsync(Context context, boolean isAllShortcut, String packageName) {
+        if (isAllShortcut) {
+            ShortcutUtils.updateAllShortcutsAsync(context);
+        } else if (!TextUtils.isEmpty(packageName)) {
+            ShortcutUtils.updateShortcutAsync(context, packageName);
+        }
     }
 
     private void sendPackageChangeBroadcast(String pkg, String action) {

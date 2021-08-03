@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -45,8 +45,8 @@ public interface SysOpProvider {
 
     boolean hasShortcutInstalled(Context context, String pkg, String path);
 
-    boolean updateShortcut(
-            Context context, String pkg, String path, String params, String appName, Bitmap icon);
+    boolean updateShortcut(Context context, String pkg, String path, String params, String appName,
+                           Bitmap icon, boolean isOpIconUpdate);
 
     boolean uninstallShortcut(Context context, String pkg, String appName);
 

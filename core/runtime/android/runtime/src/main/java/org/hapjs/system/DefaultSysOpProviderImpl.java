@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -89,8 +89,8 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public boolean updateShortcut(
-            Context context, String pkg, String path, String params, String appName, Bitmap icon) {
+    public boolean updateShortcut(Context context, String pkg, String path, String params, String appName,
+                                  Bitmap icon, boolean isOpIconUpdate) {
         boolean result = false;
         if (Build.VERSION.SDK_INT >= 26) {
             result = updateShortcutAboveOreo(context, pkg, path, appName, icon);
