@@ -5,6 +5,7 @@
 
 package org.hapjs.features.net.task;
 
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.URLUtil;
@@ -13,6 +14,7 @@ import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
+import org.hapjs.bridge.storage.file.InternalUriUtils;
 import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.utils.FileHelper;
 import org.hapjs.common.utils.FileUtils;
@@ -48,7 +50,7 @@ import static org.hapjs.features.net.task.DownloadTask.FEATURE_NAME;
 public class DownloadTaskImpl implements InstanceManager.IInstance {
     private static final String TAG = "DownloadTask";
 
-    private static final String RESULT_KEY_HEADERS = "headers";
+    private static final String RESULT_KEY_HEADER = "header";
     private static final String RESULT_KEY_PROGRESS = "progress";
     private static final String RESULT_KEY_RECEIVED_SIZE = "totalBytesWritten";
     private static final String RESULT_KEY_TOTAL_SIZE = "totalBytesExpectedToWrite";
@@ -68,32 +70,16 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
     private Request mDownloadRequest;
     private long mTimeoutMillis = DEFAULT_TIMEOUT_MILLIS;
     protected Map<String, ArrayList<CallbackWrapper>> mCallbackMap = new ConcurrentHashMap<>();
-    protected String mFileName;
-    protected Response mCachedHeadersResponse;
+    protected String mFilePath;
 
-    public DownloadTaskImpl(String pkg, String url, Headers headers, String fileName, Long timeout) {
+    public DownloadTaskImpl(String pkg, String url, Headers headers, String filePath, Long timeout) {
         this.mPackage = pkg;
         this.mUrl = url;
         this.mHeaders = headers;
-        this.mFileName = fileName;
+        this.mFilePath = filePath;
         if (timeout > 0) {
             this.mTimeoutMillis = timeout;
         }
-    }
-
-    protected File getCacheDir() {
-        return HapEngine.getInstance(mPackage).getApplicationContext().getCacheDir();
-    }
-
-    private boolean checkFileName(String fileName) {
-        if (!TextUtils.isEmpty(fileName)) {
-            // Android文件名最大长度：255字节.
-            if (fileName.getBytes(Charset.defaultCharset()).length > 255) {
-                return false;
-            }
-            return fileName.matches("^[A-Za-z0-9_]+(\\.[A-Za-z0-9]{1,5})$");
-        }
-        return true;
     }
 
     @Override
@@ -108,15 +94,32 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
         return FEATURE_NAME;
     }
 
+    /**
+     * mFilePath must be internal path.
+     */
     public void run() {
-        if (checkFileName(mFileName)) {
-            File dir = getCacheDir();
+        // check filePath if filePath is not null or empty.
+        if (TextUtils.isEmpty(mFilePath)) {
             try {
-                this.mFile = FileHelper.generateAvailableFile(mFileName, dir);
+                this.mFile = FileHelper.generateAvailableFile(Uri.parse(mUrl).getLastPathSegment(), getCacheDir());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            if (!InternalUriUtils.isWritableInternalUri(mFilePath)) {
+                onError(Response.CODE_ILLEGAL_ARGUMENT, "File path must be internal uri.");
+                return;
+            }
+
+            File dstFile = mDownloadRequest.getApplicationContext().getUnderlyingFile(mFilePath);
+            if (!checkFileName(dstFile.getName())) {
+                onError(Response.CODE_ILLEGAL_ARGUMENT, "File path must end with filename.");
+                return;
+            }
+
+            mFile = dstFile;
         }
+
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(mUrl)
                 .headers(mHeaders)
@@ -161,6 +164,22 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
         });
     }
 
+
+    protected File getCacheDir() {
+        return HapEngine.getInstance(mPackage).getApplicationContext().getCacheDir();
+    }
+
+    private boolean checkFileName(String fileName) {
+        if (!TextUtils.isEmpty(fileName)) {
+            // Android文件名最大长度：255字节.
+            if (fileName.getBytes(Charset.defaultCharset()).length > 255) {
+                return false;
+            }
+            return fileName.matches("^[A-Za-z0-9_]+(\\.[A-Za-z0-9]{1,5})$");
+        }
+        return true;
+    }
+
     public void abort() {
         if (mCall != null && !mCall.isCanceled()) {
             mCall.cancel();
@@ -193,7 +212,7 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
         mRespHeaders = headers;
         ArrayList<CallbackWrapper> actionCallbacks = mCallbackMap.get(DownloadTask.EVENT_ON_HEADERS_RECEIVED);
         SerializeObject result = new JavaSerializeObject();
-        result.put(RESULT_KEY_HEADERS, RequestHelper.parseHeaders(headers));
+        result.put(RESULT_KEY_HEADER, RequestHelper.parseHeaders(headers));
         Response response = new Response(result);
         if (actionCallbacks != null && actionCallbacks.size() > 0) {
             for (CallbackWrapper wrapper : actionCallbacks) {
