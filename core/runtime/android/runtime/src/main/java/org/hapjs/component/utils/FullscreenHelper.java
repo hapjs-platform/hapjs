@@ -251,6 +251,7 @@ public class FullscreenHelper implements ConfigurationManager.ConfigurationListe
 
         // restore descendant focus
         mDecorLayout.setDescendantFocusability(mRootDescendantFocus);
+        setFullscreenVisibility(mDecorLayout, false);
         if (mComponent.getRootComponent() != null) {
             mComponent.getRootComponent().resetStatusBar();
         }
