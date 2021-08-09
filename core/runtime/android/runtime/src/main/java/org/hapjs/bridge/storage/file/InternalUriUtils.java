@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -47,5 +47,9 @@ public class InternalUriUtils {
 
     public static boolean isTmpUri(String uri) {
         return uri.startsWith(TEMP_PREFIX);
+    }
+
+    public static boolean isWritableInternalUri(String uri) {
+        return uri.startsWith(CACHE_PREFIX) || uri.startsWith(FILES_PREFIX) || uri.startsWith(MASS_PREFIX);
     }
 }

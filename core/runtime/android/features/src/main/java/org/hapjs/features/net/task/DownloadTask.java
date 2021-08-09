@@ -46,7 +46,7 @@ public class DownloadTask extends FeatureExtension {
 
     public static final String PARAMS_KEY_URL = "url";
     public static final String PARAMS_KEY_HEADER = "header";
-    public static final String PARAMS_KEY_FILE_NAME = "fileName";
+    public static final String PARAMS_KEY_FILE_PATH = "filePath";
     public static final String PARAMS_KEY_TIMEOUT = "timeout";
 
     @Override
@@ -83,10 +83,10 @@ public class DownloadTask extends FeatureExtension {
         String url = params.getString(PARAMS_KEY_URL);
         SerializeObject jsonHeader = params.optSerializeObject(PARAMS_KEY_HEADER);
         Headers headers = RequestHelper.getHeaders(jsonHeader);
-        String fileName = params.optString(PARAMS_KEY_FILE_NAME);
+        String filePath = params.optString(PARAMS_KEY_FILE_PATH);
         long timeoutMillis = params.optLong(PARAMS_KEY_TIMEOUT, 0L);
 
-        DownloadTaskImpl task = new DownloadTaskImpl(pkg, url, headers, fileName, timeoutMillis);
+        DownloadTaskImpl task = new DownloadTaskImpl(pkg, url, headers, filePath, timeoutMillis);
         task.subscribe(request);
         Executors.io().execute(new Runnable() {
             @Override
