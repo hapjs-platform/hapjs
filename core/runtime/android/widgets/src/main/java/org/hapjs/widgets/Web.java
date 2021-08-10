@@ -485,48 +485,40 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         builder.append(']');
         final String mTrustedUrlsStr = builder.toString();
 
-        String checkUrlJs =
-                "javascript:"
-                        + "function checkUrl (url, trustedUrl) {\n"
-                        + "  return trustedUrl.some(function(item) {\n"
-                        + "    if (typeof item === 'string') {\n"
-                        + "      if (url.endsWith('/')) {\n"
-                        + "        if (!item.endsWith('/')) {\n"
-                        + "          item += '/'\n"
-                        + "        }\n"
-                        + "      } else {\n"
-                        + "        if (item.endsWith('/')) {\n"
-                        + "          url += '/'\n"
-                        + "        }\n"
-                        + "      }\n"
-                        + "      return url === item\n"
-                        + "    }\n"
-                        + "    else {\n"
-                        + "      if (item.type === 'regexp') {\n"
-                        + "        var reg = new RegExp(item.source, item.flags)\n"
-                        + "        return reg.test(url)\n"
-                        + "      }\n"
-                        + "    }\n"
-                        + "    return false\n"
-                        + "  })\n"
-                        + "}\n"
-                        + "checkUrl(\'"
-                        + url
-                        + "\', "
-                        + mTrustedUrlsStr
-                        + ")";
-        mHost.evaluateJavascript(
-                checkUrlJs,
-                new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        if ("true".equals(value)) {
-                            listener.onTrusted();
-                        } else {
-                            checkDecodeUrl(url, mTrustedUrlsStr, listener);
-                        }
-                    }
-                });
+        String checkUrlJs = "javascript:" +
+                "function checkUrl (url, trustedUrl) {\n" +
+                "  return trustedUrl.some(function(item) {\n" +
+                "    if (typeof item === 'string') {\n" +
+                "       if (url.endsWith('/')) {\n" +
+                "         if (!item.endsWith('/')) {\n" +
+                "           item += '/'\n" +
+                "         }\n" +
+                "      } else {\n" +
+                "        if (item.endsWith('/')) {\n" +
+                "          url += '/'\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "    else {\n" +
+                "      if (item.type === 'regexp') {\n" +
+                "        var reg = new RegExp(item.source, item.flags)\n" +
+                "        return reg.test(url)\n" +
+                "      }\n" +
+                "    }\n" +
+                "    return false\n" +
+                "  })\n" +
+                "}\n" +
+                "checkUrl(\'" + url + "\', " + mTrustedUrlsStr + ")";
+        mHost.evaluateJavascript(checkUrlJs, new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String value) {
+                if ("true".equals(value)) {
+                    listener.onTrusted();
+                } else {
+                    checkDecodeUrl(url, mTrustedUrlsStr, listener);
+                }
+            }
+        });
     }
 
     private void checkDecodeUrl(String url, String trustedUrlsStrs,
