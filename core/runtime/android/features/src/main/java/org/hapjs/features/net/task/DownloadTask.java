@@ -5,6 +5,7 @@
 package org.hapjs.features.net.task;
 
 import android.util.Log;
+import android.webkit.URLUtil;
 
 import org.hapjs.bridge.Extension;
 import org.hapjs.bridge.FeatureExtension;
@@ -81,6 +82,10 @@ public class DownloadTask extends FeatureExtension {
         String pkg = request.getApplicationContext().getPackage();
         SerializeObject params = request.getSerializeParams();
         String url = params.getString(PARAMS_KEY_URL);
+        if (!URLUtil.isHttpsUrl(url) && !URLUtil.isHttpUrl(url)) {
+            request.getCallback().callback(new Response(Response.CODE_ILLEGAL_ARGUMENT, "invalid url."));
+            return null;
+        }
         SerializeObject jsonHeader = params.optSerializeObject(PARAMS_KEY_HEADER);
         Headers headers = RequestHelper.getHeaders(jsonHeader);
         String filePath = params.optString(PARAMS_KEY_FILE_PATH);

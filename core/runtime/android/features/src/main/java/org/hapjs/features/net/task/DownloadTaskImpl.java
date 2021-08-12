@@ -15,6 +15,7 @@ import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.bridge.storage.file.InternalUriUtils;
+import org.hapjs.bridge.storage.file.Resource;
 import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.utils.FileHelper;
 import org.hapjs.common.utils.FileUtils;
@@ -149,7 +150,7 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
                     if (file == null) {
                         String fileName = URLUtil.guessFileName(mUrl,
                                 response.header(RequestHelper.CONTENT_DISPOSITION),
-                                response.header(RequestHelper.CONTENT_TYPE));
+                                null);
                         File dir = HapEngine.getInstance(mPackage).getApplicationContext().getCacheDir();
                         file = FileHelper.generateAvailableFile(fileName, dir);
                     }
@@ -248,7 +249,7 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
             if (mDownloadRequest != null) {
                 SerializeObject result = new JavaSerializeObject();
                 result.put(RESULT_KEY_STATUS_CODE, statusCode);
-                result.put(RESULT_KEY_FILE_PATH, file.getPath());
+                result.put(RESULT_KEY_FILE_PATH, toInternalUri(file));
                 result.put(RESULT_KEY_RESP_HEADER, header);
                 if (mDownloadRequest.getCallback() != null) {
                     mDownloadRequest.getCallback().callback(new Response(result));
@@ -261,6 +262,11 @@ public class DownloadTaskImpl implements InstanceManager.IInstance {
         }
 
         release();
+    }
+
+    private String toInternalUri(File file) {
+        Resource resource = HapEngine.getInstance(mPackage).getApplicationContext().getResourceFactory().create(file);
+        return resource.toUri();
     }
 
     private void onFail(int code, String msg) {
