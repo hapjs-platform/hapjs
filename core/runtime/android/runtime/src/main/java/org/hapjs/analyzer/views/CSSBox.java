@@ -88,7 +88,7 @@ public class CSSBox extends View {
         mBackgroundPaint.setStrokeWidth(DisplayUtil.dip2Pixel(context, 1));
         mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.setColor(TEXT_COLOR);
-        mTextPaint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12, context.getResources().getDisplayMetrics()));
+        mTextPaint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, context.getResources().getDisplayMetrics()));
         mPathEffect = new DashPathEffect(new float[]{10, 10, 10, 10}, 0);
     }
 

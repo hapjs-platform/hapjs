@@ -97,7 +97,7 @@
     <LinearLayout
         android:id="@+id/analyzer_notice_min"
         android:layout_width="wrap_content"
-        android:layout_height="34dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
@@ -114,12 +114,13 @@
             android:layout_width="13dp"
             android:layout_height="13dp"
             android:scaleType="fitXY"
+            android:layout_gravity="center_vertical"
             app:srcCompat="@drawable/ic_analyzer_notice_tip" />
 
         <TextView
             android:id="@+id/analyzer_notice_min_title"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
             android:textColor="#fff"
             android:gravity="center_vertical"
