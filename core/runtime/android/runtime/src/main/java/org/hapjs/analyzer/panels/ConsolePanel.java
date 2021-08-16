@@ -51,6 +51,8 @@ public class ConsolePanel extends CollapsedPanel {
     private View mClearBtn;
     private EditText mFilterEdit;
     private View mEmptyView;
+    private boolean mFilterMode;
+    private boolean mFilterModeChanging;
 
     public ConsolePanel(Context context) {
         super(context, NAME, BOTTOM);
@@ -81,16 +83,50 @@ public class ConsolePanel extends CollapsedPanel {
         View btnLogFilterCancel = findViewById(R.id.btn_panel_log_filter_clear);
         View btnLogFilterCollapse = findViewById(R.id.btn_panel_log_filter_collapse);
         btnLogFilter.setOnClickListener(v -> {
-            logFilterContainer.setSelected(false);
-            btnLogFilterCancel.setVisibility(TextUtils.isEmpty(mFilterEdit.getText().toString()) ? INVISIBLE : VISIBLE);
-            btnLogFilterCollapse.setVisibility(VISIBLE);
-            btnLogFilterCollapse.setAlpha(0);
-            mFilterEdit.requestFocus();
-            post(() -> {
-                int containerWidth = logFilterContainerParent.getWidth();
-                int widthTo = mFilterEdit.getWidth() + containerWidth - logFilterContainer.getRight();
-                int widthFrom = mFilterEdit.getWidth();
-                ValueAnimator valueAnimator = ValueAnimator.ofInt(widthFrom, widthTo);
+            if (!mFilterMode && !mFilterModeChanging) {
+                logFilterContainer.setSelected(false);
+                btnLogFilterCancel.setVisibility(TextUtils.isEmpty(mFilterEdit.getText().toString()) ? INVISIBLE : VISIBLE);
+                mFilterEdit.requestFocus();
+                mFilterMode = true;
+                mFilterModeChanging = true;
+                btnLogFilterCollapse.setVisibility(VISIBLE);
+                btnLogFilterCollapse.setAlpha(0);
+                post(() -> {
+                    int containerWidth = logFilterContainerParent.getWidth();
+                    int widthTo = mFilterEdit.getWidth() + containerWidth - logFilterContainer.getRight();
+                    int widthFrom = mFilterEdit.getWidth();
+                    ValueAnimator valueAnimator = ValueAnimator.ofInt(widthFrom, widthTo);
+                    valueAnimator.setDuration(300);
+                    valueAnimator.setRepeatCount(0);
+                    valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+                    valueAnimator.addUpdateListener(animation -> {
+                        int animatedValue = (int) animation.getAnimatedValue();
+                        ViewGroup.LayoutParams layoutParams = mFilterEdit.getLayoutParams();
+                        layoutParams.width = animatedValue;
+                        mFilterEdit.setLayoutParams(layoutParams);
+                        btnLogFilterCollapse.setAlpha(animation.getAnimatedFraction());
+                        funcContainer.setAlpha(1 - animation.getAnimatedFraction());
+                    });
+                    valueAnimator.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            funcContainer.setVisibility(GONE);
+                            mFilterModeChanging = false;
+                        }
+                    });
+                    valueAnimator.start();
+                });
+                showSoftInput();
+            }
+        });
+        btnLogFilterCollapse.setOnClickListener(v -> {
+            if (mFilterMode && !mFilterModeChanging) {
+                mFilterMode = false;
+                mFilterModeChanging = true;
+                btnLogFilterCancel.setVisibility(GONE);
+                funcContainer.setVisibility(VISIBLE);
+                funcContainer.setAlpha(0);
+                ValueAnimator valueAnimator = ValueAnimator.ofInt(mFilterEdit.getWidth(), 0);
                 valueAnimator.setDuration(300);
                 valueAnimator.setRepeatCount(0);
                 valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -99,46 +135,22 @@ public class ConsolePanel extends CollapsedPanel {
                     ViewGroup.LayoutParams layoutParams = mFilterEdit.getLayoutParams();
                     layoutParams.width = animatedValue;
                     mFilterEdit.setLayoutParams(layoutParams);
-                    btnLogFilterCollapse.setAlpha(animation.getAnimatedFraction());
-                    funcContainer.setAlpha(1 - animation.getAnimatedFraction());
+                    btnLogFilterCollapse.setAlpha(1 - valueAnimator.getAnimatedFraction());
+                    funcContainer.setAlpha(valueAnimator.getAnimatedFraction());
                 });
                 valueAnimator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        funcContainer.setVisibility(GONE);
+                        btnLogFilterCollapse.setVisibility(GONE);
+                        if (mFilterEdit.getText().toString().length() > 0) {
+                            logFilterContainer.setSelected(true);
+                        }
+                        mFilterModeChanging = false;
                     }
                 });
                 valueAnimator.start();
-            });
-            showSoftInput();
-        });
-        btnLogFilterCollapse.setOnClickListener(v -> {
-            btnLogFilterCancel.setVisibility(GONE);
-            funcContainer.setVisibility(VISIBLE);
-            funcContainer.setAlpha(0);
-            ValueAnimator valueAnimator = ValueAnimator.ofInt(mFilterEdit.getWidth(), 0);
-            valueAnimator.setDuration(300);
-            valueAnimator.setRepeatCount(0);
-            valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-            valueAnimator.addUpdateListener(animation -> {
-                int animatedValue = (int) animation.getAnimatedValue();
-                ViewGroup.LayoutParams layoutParams = mFilterEdit.getLayoutParams();
-                layoutParams.width = animatedValue;
-                mFilterEdit.setLayoutParams(layoutParams);
-                btnLogFilterCollapse.setAlpha(1 - valueAnimator.getAnimatedFraction());
-                funcContainer.setAlpha(valueAnimator.getAnimatedFraction());
-            });
-            valueAnimator.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    btnLogFilterCollapse.setVisibility(GONE);
-                    if (mFilterEdit.getText().toString().length() > 0) {
-                        logFilterContainer.setSelected(true);
-                    }
-                }
-            });
-            valueAnimator.start();
-            hiddenSoftInput();
+                hiddenSoftInput();
+            }
         });
         btnLogFilterCancel.setOnClickListener(v -> {
             if (!TextUtils.isEmpty(mFilterEdit.getText().toString())) {
