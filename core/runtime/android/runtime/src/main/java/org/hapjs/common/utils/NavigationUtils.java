@@ -69,7 +69,7 @@ public class NavigationUtils {
             return false;
         }
         String url = request.getUri();
-        if (url == null) {
+        if (url == null || url.startsWith("android-app://")) {
             return false;
         }
 
@@ -233,15 +233,19 @@ public class NavigationUtils {
         }
         String packageName = info.activityInfo.packageName;
         RouterManageProvider routerProvider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
-        if (routerProvider.inRouterForbiddenList(activity, rpkPkg, packageName) || !routerProvider.triggeredByGestureEvent(activity, rpkPkg)) {
+        if (routerProvider.inRouterForbiddenList(activity, rpkPkg, packageName, info) || !routerProvider.triggeredByGestureEvent(activity, rpkPkg)) {
             Log.d(TAG, "Fail to launch app: match router blacklist or open app without user input.");
             statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, false, "match router blacklist or open app without user input", sourceH5);
             return false;
         }
 
-        if (!routerProvider.inRouterDialogList(activity, rpkPkg, packageName)) {
-            activity.startActivity(intent);
-            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, true, null, sourceH5);
+        if (!routerProvider.inRouterDialogList(activity, rpkPkg, packageName, info)) {
+            if (!routerProvider.startActivityIfNeeded(activity, intent, rpkPkg)) {
+                Log.d(TAG, "Fail to launch app: no matched apps.");
+                statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, false, "no matched apps", sourceH5);
+                return false;
+            }
+            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, true, "do not display dialog", sourceH5);
         } else {
             Log.d(TAG, "show open app dialog");
             showRouterConfirmDialog(activity, intent, rpkPkg, url, routerAppFrom, info, packageManager, sourceH5, false, null);
@@ -305,24 +309,32 @@ public class NavigationUtils {
                                     public void onClick(DialogInterface dialog, int which) {
                                         sDialogRef = null;
                                         boolean tempResult = false;
+                                        String failureMsg = "";
                                         if (which == DialogInterface.BUTTON_POSITIVE) {
-                                            activity.startActivity(intent);
-                                            tempResult = true;
+                                            RouterManageProvider routerProvider =
+                                                    ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
+                                            tempResult = routerProvider.startActivityIfNeeded(activity, intent, rpkPkg);
+                                            if (!tempResult) {
+                                                failureMsg = "no matched apps";
+                                            }
                                         } else {
                                             Log.d(TAG, "Fail to open native package: " + rpkPkg
                                                     + ", user denied");
+                                            failureMsg = "dialog user denied";
                                         }
                                         activity
                                                 .getApplication()
                                                 .unregisterActivityLifecycleCallbacks(
                                                         activityLifecycle);
                                         if (!startRpk) {
-                                            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, tempResult, tempResult ? null : "dialog user denied", sourceH5);
+                                            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, tempResult,
+                                                    failureMsg, sourceH5);
                                             RuntimeLogManager.getDefault()
                                                     .logRouterDialogClick(rpkPkg,
                                                             info.activityInfo.packageName, tempResult);
                                         } else {
-                                            RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, tempResult, tempResult ? "" : "dialog user denied");
+                                            RuntimeLogManager.getDefault()
+                                                    .logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, tempResult, failureMsg);
                                             RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, info.activityInfo.packageName, tempResult);
                                         }
                                     }
