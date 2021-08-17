@@ -101,8 +101,9 @@ public class InspectorPanel extends CollapsedPanel implements AnalyzerContext.An
             NodeItemInfo nodeItemInfo = node.data;
             VElement element = (VElement) nodeItemInfo.data;
             mCSSBox.setNative(false);
-            Map<String, String> properties = InspectorUtils.dumpVirtualDomProperties(element);
-            updateDisplay(true, properties);
+            Map<String, String> domProperties = InspectorUtils.dumpVirtualDomProperties(element);
+            Map<String, String> cssBoxValues = InspectorUtils.dumpCSSBoxProperties(element.getComponent(), mContext);
+            updateDisplay(domProperties, cssBoxValues);
             int nodePageId = nodeItemInfo.pageId;
             int pageId = getAnalyzerContext().getCurrentPageId();
             if (pageId == -1 || pageId != nodePageId) {
@@ -120,8 +121,8 @@ public class InspectorPanel extends CollapsedPanel implements AnalyzerContext.An
             int nodePageId = nodeItemInfo.pageId;
             View targetView = (View) nodeItemInfo.data;
             mCSSBox.setNative(true);
-            Map<String, String> properties = InspectorUtils.dumpNativeViewProperties(targetView);
-            updateDisplay(false, properties);
+            Map<String, String> nativeProperties = InspectorUtils.dumpNativeViewProperties(targetView);
+            updateDisplay(nativeProperties, nativeProperties);
             int pageId = getAnalyzerContext().getCurrentPageId();
             if (pageId == -1 || pageId != nodePageId) {
                 return;
@@ -313,12 +314,12 @@ public class InspectorPanel extends CollapsedPanel implements AnalyzerContext.An
         mNativeViewTree.setData(null);
     }
 
-    private void updateDisplay(boolean isVirtual, Map<String, String> properties) {
-        applyPropertyToCSSBox(isVirtual, properties);
+    private void updateDisplay(Map<String, String> properties, Map<String, String> cssBoxValues) {
+        applyPropertyToCSSBox(cssBoxValues);
         updatePropertiesDisplay(properties);
     }
 
-    private void applyPropertyToCSSBox(boolean isVirtual, Map<String, String> properties) {
+    private void applyPropertyToCSSBox(Map<String, String> properties) {
         mCSSBox.setMarginLeftText(properties.get(AnalyzerConstant.MARGIN_LEFT));
         mCSSBox.setMarginTopText(properties.get(AnalyzerConstant.MARGIN_TOP));
         mCSSBox.setMarginRightText(properties.get(AnalyzerConstant.MARGIN_RIGHT));
