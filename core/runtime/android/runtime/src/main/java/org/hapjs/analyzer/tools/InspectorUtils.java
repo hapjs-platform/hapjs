@@ -5,6 +5,7 @@
 
 package org.hapjs.analyzer.tools;
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
@@ -13,8 +14,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.hapjs.analyzer.Analyzer;
 import org.hapjs.analyzer.model.AnalyzerConstant;
 import org.hapjs.analyzer.views.tree.NodeItemInfo;
+import org.hapjs.cache.Cache;
+import org.hapjs.cache.CacheStorage;
+import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.ComponentDataHolder;
@@ -24,6 +29,8 @@ import org.hapjs.component.constants.Spacing;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.drawable.CSSBackgroundDrawable;
 import org.hapjs.component.view.state.State;
+import org.hapjs.model.AppInfo;
+import org.hapjs.model.ConfigInfo;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.render.vdom.VDocument;
 import org.hapjs.render.vdom.VElement;
@@ -341,7 +348,7 @@ public class InspectorUtils {
                 CSSValues styleValue = entry.getValue();
                 Object value;
                 if (styleValue != null && (value = styleValue.get(State.NORMAL)) != null) {
-                    props.put(styleName, extractDigital(value.toString()));
+                    props.put(styleName, value.toString());
                 }
             }
         }
@@ -358,6 +365,55 @@ public class InspectorUtils {
             }
         }
         return props;
+    }
+
+    public static Map<String, String> dumpCSSBoxProperties(Component comp, Context context) {
+        if (comp == null) {
+            Log.w(TAG, "dumpCSSBoxProperties fail because component is null");
+            return Collections.emptyMap();
+        }
+        View view = comp.getHostView();
+        if (view == null) {
+            Log.w(TAG, "dumpCSSBoxProperties fail because view is null");
+            return Collections.emptyMap();
+        }
+        Map<String, String> props = new LinkedHashMap<>();
+        String packageName = Analyzer.get().getPackageName();
+        if (TextUtils.isEmpty(packageName)) {
+            Log.w(TAG, "dumpCSSBoxProperties fail because packageName is null");
+            return Collections.emptyMap();
+        }
+        Cache cache = CacheStorage.getInstance(context).getCache(packageName);
+        AppInfo appInfo = cache.getAppInfo(true);
+        ConfigInfo info = appInfo == null ? null : appInfo.getConfigInfo();
+        int designWidth = info == null ? ConfigInfo.DEFAULT_DESIGN_WIDTH : info.getDesignWidth();
+        try {
+            // margin
+            props.put(AnalyzerConstant.MARGIN_LEFT, toPixel(comp.getMargin(Attributes.Style.MARGIN_LEFT), designWidth));
+            props.put(AnalyzerConstant.MARGIN_TOP, toPixel(comp.getMargin(Attributes.Style.MARGIN_TOP), designWidth));
+            props.put(AnalyzerConstant.MARGIN_RIGHT, toPixel(comp.getMargin(Attributes.Style.MARGIN_RIGHT), designWidth));
+            props.put(AnalyzerConstant.MARGIN_BOTTOM, toPixel(comp.getMargin(Attributes.Style.MARGIN_BOTTOM), designWidth));
+            // border
+            props.put(AnalyzerConstant.BORDER_LEFT_WIDTH, toPixel((int) comp.getBorderWidth(Attributes.Style.BORDER_LEFT_WIDTH), designWidth));
+            props.put(AnalyzerConstant.BORDER_TOP_WIDTH, toPixel((int) comp.getBorderWidth(Attributes.Style.BORDER_TOP_WIDTH), designWidth));
+            props.put(AnalyzerConstant.BORDER_RIGHT_WIDTH, toPixel((int) comp.getBorderWidth(Attributes.Style.BORDER_RIGHT_WIDTH), designWidth));
+            props.put(AnalyzerConstant.BORDER_BOTTOM_WIDTH, toPixel((int) comp.getBorderWidth(Attributes.Style.BORDER_BOTTOM_WIDTH), designWidth));
+            // padding
+            props.put(AnalyzerConstant.PADDING_LEFT, toPixel(view.getPaddingLeft(), designWidth));
+            props.put(AnalyzerConstant.PADDING_TOP, toPixel(view.getPaddingTop(), designWidth));
+            props.put(AnalyzerConstant.PADDING_RIGHT, toPixel(view.getPaddingRight(), designWidth));
+            props.put(AnalyzerConstant.PADDING_BOTTOM, toPixel(view.getPaddingBottom(), designWidth));
+            // size
+            props.put(AnalyzerConstant.WIDTH, String.valueOf(toPixel(view.getWidth(), designWidth)));
+            props.put(AnalyzerConstant.HEIGHT, String.valueOf(toPixel(view.getHeight(), designWidth)));
+        } catch (Exception e) {
+            Log.e(TAG, "AnalyzerPanel_LOG dumpVirtualDomProperties fail: ", e);
+        }
+        return props;
+    }
+
+    private static String toPixel(int value, int designWidth) {
+        return String.valueOf((int) DisplayUtil.getDesignPxByWidth(value, designWidth));
     }
 
     public static Map<String, String> dumpNativeViewProperties(View view) {
