@@ -466,7 +466,7 @@ public class ConsolePanel extends CollapsedPanel {
 
         void setLogData(LogPackage.LogData logData) {
             setText(logData.mContent);
-            itemView.setSelected(logData.mIsJsLog);
+            itemView.setSelected(logData.mType == LogPackage.LOG_TYPE_JS);
             switch (logData.mLevel) {
                 case Log.VERBOSE:
                     setTextColor(Color.parseColor("#BBBBBB"));

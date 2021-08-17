@@ -5,12 +5,15 @@
 package org.hapjs.analyzer.monitors;
 
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.hapjs.analyzer.model.LogPackage;
 import org.hapjs.analyzer.monitors.abs.AbsMonitor;
 import org.hapjs.analyzer.tools.AnalyzerThreadManager;
+import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.FileUtils;
 
 import java.io.BufferedReader;
@@ -30,14 +33,24 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
     public static final int TYPE_LOG_STYLE_ANDROID = 1;
     private static final String JS_TAG = "LOGCAT_CONSOLE";
     private static final int CACHE_SIZE = 500;
+    private static final int MSG_SEND_ONE_LOG = 1;
     private int mLogLevel = Log.VERBOSE;
     private int mLogFlag = LOG_JS | ~LOG_NATIVE;
     private int mLogStyle = TYPE_LOG_STYLE_WEB;
     private String mFilter = "";
     private Dumper mDumper;
-    private Thread mThread;
     private LinkedList<LogPackage.LogData> mCaches = new LinkedList<>();
-    private Handler mMainHandler = AnalyzerThreadManager.getInstance().getMainHandler();
+    private final Handler mMainHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == MSG_SEND_ONE_LOG) {
+                Pipeline<LogPackage> pipeline = getPipeline();
+                if (pipeline != null) {
+                    pipeline.output((LogPackage) msg.obj);
+                }
+            }
+        }
+    };
 
     public LogcatMonitor() {
         super(NAME);
@@ -45,9 +58,11 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
 
     @Override
     protected void onStart() {
+        if (mDumper != null) {
+            mDumper.close();
+        }
         mDumper = new Dumper();
-        mThread = new Thread(mDumper);
-        mThread.start();
+        Executors.io().execute(mDumper);
         onRuleChanged();
     }
 
@@ -56,10 +71,6 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         if (mDumper != null) {
             mDumper.close();
             mDumper = null;
-        }
-        if (mThread != null) {
-            mThread.interrupt();
-            mThread = null;
         }
     }
 
@@ -88,6 +99,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
     }
 
     private void onRuleChanged() {
+        mMainHandler.removeMessages(MSG_SEND_ONE_LOG);
         AnalyzerThreadManager.getInstance().getAnalyzerHandler().post(() -> {
             if (mCaches.isEmpty()) {
                 return;
@@ -102,6 +114,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
 
     private List<LogPackage.LogData> filterData(LogPackage.LogData logData) {
         ArrayList<LogPackage.LogData> singleList = new ArrayList<>(1);
+        singleList.add(logData);
         return filterData(singleList);
     }
 
@@ -113,6 +126,9 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         Iterator<LogPackage.LogData> iterator = originData.iterator();
         while (iterator.hasNext()) {
             LogPackage.LogData logData = iterator.next();
+            if (logData.mType == LogPackage.LOG_TYPE_DEFAULT) {
+                continue;
+            }
             if (mLogStyle == TYPE_LOG_STYLE_ANDROID) {
                 if (logData.mLevel < mLogLevel) {
                     iterator.remove();
@@ -128,7 +144,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
                 iterator.remove();
                 continue;
             }
-            boolean isJsLog = logData.mContent.contains(JS_TAG);
+            boolean isJsLog = logData.mType == LogPackage.LOG_TYPE_JS;
             if (isJsLog && (mLogFlag & LOG_JS) == 0) {
                 iterator.remove();
                 continue;
@@ -152,15 +168,6 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         mCaches.clear();
     }
 
-    private void sendLogDatas(List<LogPackage.LogData> logDatas) {
-        if (logDatas != null) {
-            Pipeline<LogPackage> pipeline = getPipeline();
-            if (pipeline != null) {
-                mMainHandler.post(() -> pipeline.output(new LogPackage(logDatas)));
-            }
-        }
-    }
-
     private void sendLogDatas(int position, List<LogPackage.LogData> logDatas) {
         if (logDatas != null) {
             Pipeline<LogPackage> pipeline = getPipeline();
@@ -171,22 +178,27 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
     }
 
     private class Dumper implements Runnable {
-        private static final  String STR_DUMP_FAIL = "--------- LOGCAT_CONSOLE dump log fail !";
+        private static final  String STR_DUMP_FAIL = "--- LOGCAT_CONSOLE dump log fail ! ---";
         private Process mLogcatProcess;
         private boolean mIsStop;
 
         void clearLogcat() {
-            Process process = null;
-            try {
-                process = Runtime.getRuntime().exec("logcat -b main -c");
-                process.waitFor();
-            } catch (Exception e) {
-                // ignore
-            } finally {
-                if (process != null) {
-                    process.destroy();
+            Executors.io().execute(new Runnable() {
+                @Override
+                public void run() {
+                    Process process = null;
+                    try {
+                        process = Runtime.getRuntime().exec("logcat -b main -c");
+                        Thread.sleep(1000);
+                    } catch (Exception e) {
+                        // ignore
+                    } finally {
+                        if (process != null) {
+                            process.destroy();
+                        }
+                    }
                 }
-            }
+            });
         }
 
         private BufferedReader getLogReader() throws IOException {
@@ -207,7 +219,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
                 while (!mIsStop) {
                     line = reader.readLine();
                     if (line == null) {
-                        dumpLog(STR_DUMP_FAIL);
+                        dumpFailLog();
                         break;
                     } else {
                         dumpLog(line);
@@ -223,17 +235,28 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         private void dumpLog(String log) {
             int logLevel = getLogLevel(log);
             boolean isJsLog = log.contains(JS_TAG);
-            LogPackage.LogData logData = new LogPackage.LogData(logLevel, isJsLog, log);
+            LogPackage.LogData logData = new LogPackage.LogData(logLevel, isJsLog ? LogPackage.LOG_TYPE_JS : LogPackage.LOG_TYPE_NATIVE, log);
+            dumpLog(logData);
+        }
+
+        private void dumpFailLog() {
+            LogPackage.LogData logData = new LogPackage.LogData(LogPackage.LOG_LEVEL_DEFAULT, LogPackage.LOG_TYPE_DEFAULT, STR_DUMP_FAIL);
+            dumpLog(logData);
+        }
+
+        private void dumpLog(LogPackage.LogData logData) {
             cacheLog(logData);
             AnalyzerThreadManager.getInstance().getAnalyzerHandler().post(() -> {
                 List<LogPackage.LogData> filterData = filterData(logData);
                 if (!filterData.isEmpty()) {
-                    sendLogDatas(filterData);
+                    Message message = mMainHandler.obtainMessage(MSG_SEND_ONE_LOG);
+                    message.obj = new LogPackage(filterData);
+                    mMainHandler.sendMessage(message);
                 }
             });
         }
 
-        private int getLogLevel(String log) {
+        private @LogPackage.LogLevel int getLogLevel(String log) {
             if (log.length() < 20) {
                 return Log.VERBOSE;
             }
