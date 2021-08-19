@@ -35,7 +35,7 @@ public class NetworkDetailView extends LinearLayout implements SlideDetectable, 
     private static final String RESPONSE_LOAD_FAIL = "Fail to load response data.";
     private static final String EMPTY_STRING = "";
     private static final String METHOD_POST = "POST";
-    private static final String TYPE_IMAGE = "Image";
+    private static final String ORIGIN_TYPE_IMAGE = "Image";
     private static final String TEXT_UNKNOWN = "unknown";
     private String mCurrentId = String.valueOf(Integer.MAX_VALUE);
     private SlideMonitoredScrollView mScroll;
@@ -185,6 +185,8 @@ public class NetworkDetailView extends LinearLayout implements SlideDetectable, 
                 }
                 mResponseContent.setRenderText(resBody, false);
                 mResponseMarker.setSelected(true);
+            } else {
+                mResponseContent.setRenderText(data.isSuccess() ? RESPONSE_NOT_AVAILABLE : RESPONSE_LOAD_FAIL, false);
             }
             // response is not expanded by default
         } else {
@@ -194,7 +196,7 @@ public class NetworkDetailView extends LinearLayout implements SlideDetectable, 
         mPreviewImage.setImageURI("");
         mPreviewImage.setVisibility(GONE);
         mNoPreviewText.setVisibility(VISIBLE);
-        if (data.isSuccess() && TextUtils.equals(data.getType(), TYPE_IMAGE)) {
+        if (data.isSuccess() && TextUtils.equals(data.getOriginType(), ORIGIN_TYPE_IMAGE)) {
             // load picture from cache
             FileBinaryResource resource = (FileBinaryResource) Fresco.getImagePipelineFactory().getMainFileCache().getResource(new SimpleCacheKey(data.getReqUrl()));
             if (resource != null) {
