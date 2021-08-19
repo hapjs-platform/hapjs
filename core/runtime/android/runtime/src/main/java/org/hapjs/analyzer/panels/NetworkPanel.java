@@ -77,22 +77,27 @@ public class NetworkPanel extends CollapsedPanel {
     private static final String PARAMS_KEY_URL = "url";
     private static final String PARAMS_KEY_TYPE = "type";
     private static final String PARAMS_KEY_STATUS = "status";
+    private static final String PARAMS_KEY_STATUS_TEXT = "statusText";
+    private static final String STATUS_FAIL_TEXT = "(failed)";
     private static final String PARAMS_KEY_ENCODED = "base64Encoded";
     private static final String PARAMS_KEY_RESULT = "result";
     private static final String PARAMS_KEY_BODY = "body";
     private static final String PARAMS_KEY_DATA_LEN = "encodedDataLength";
     private static final String PARAMS_KEY_PARAMS = "params";
     private static final String HTTP_REQ_METHOD_POST = "POST";
+    private static final String EMPTY_STRING = "";
     public static final int NAME_COLOR_DEFAULT = 0xFFBFBFBF;
     public static final int NAME_COLOR_SELECTED = 0xFFFFFFFF;
     public static final int NAME_COLOR_FAIL = 0xFFFF0000;
     public static final int COLOR_RETRY_KILL_PROCESS = 0xFF5290EA;
-    private static final int MAX_DATA_SIZE = 30;
+    private static final int MAX_DATA_SIZE = 50;
     private okhttp3.WebSocket.Factory mWebSocketFactory;
     private WebSocket mWebSocket;
     private NetworkItemListAdapter mAdapter;
     private List<NetworkCacheInfo> mData;
     private Map<String, NetworkCacheInfo> mCacheMap;
+    // mWaitForResMap: store those requestIds that need to wait for the responseBody to arrive after being removed from the mCacheMap
+    private Map<String, NetworkCacheInfo> mWaitForResMap;
     private long sStartTime = -1;
     private long sLatestTime = -1;
     private NetworkDetailView mDetailView;
@@ -118,6 +123,7 @@ public class NetworkPanel extends CollapsedPanel {
         super.onCreateFinish();
         mData = new ArrayList<>();
         mCacheMap = new HashMap<>();
+        mWaitForResMap = new HashMap<>();
         View mBtnDetailBack = findViewById(R.id.network_detail_back_btn);
         mDetailView = findViewById(R.id.network_content_detail);
         mDetailTitleContainer = findViewById(R.id.network_detail_title_container);
@@ -279,8 +285,11 @@ public class NetworkPanel extends CollapsedPanel {
                                             String documentURL = paramsJson.getString(PARAMS_KEY_DOC_URL);
                                             if (!TextUtils.isEmpty(documentURL)) {
                                                 Uri uri = Uri.parse(documentURL);
-                                                String lastPathSegment = uri.getLastPathSegment();
-                                                cacheInfo.setName(lastPathSegment);
+                                                String name = uri.getLastPathSegment();
+                                                if (TextUtils.isEmpty(name) || TextUtils.isEmpty(name.trim())) {
+                                                    name = uri.getHost();
+                                                }
+                                                cacheInfo.setName(name);
                                             }
                                             mCacheMap.put(requestId, cacheInfo);
                                         }
@@ -291,10 +300,21 @@ public class NetworkPanel extends CollapsedPanel {
                                                 && paramsJson.has(PARAMS_KEY_TYPE)) {
                                             NetworkCacheInfo cacheInfo = mCacheMap.get(requestId);
                                             cacheInfo.setResReceivedTime((long) (paramsJson.getDouble(PARAMS_KEY_TIMESTAMP) * 1000));
-                                            cacheInfo.setType(paramsJson.getString(PARAMS_KEY_TYPE));
                                             JSONObject response = paramsJson.getJSONObject(PARAMS_KEY_RES);
+                                            String originType = paramsJson.getString(PARAMS_KEY_TYPE);
+                                            cacheInfo.setOriginType(originType);
+                                            cacheInfo.setType(simplifyTypeName(originType));
                                             if (response.has(PARAMS_KEY_STATUS)) {
-                                                cacheInfo.setStatus(response.getString(PARAMS_KEY_STATUS));
+                                                String statusCode = response.getString(PARAMS_KEY_STATUS);
+                                                if (Integer.parseInt(statusCode) >= 400) {
+                                                    cacheInfo.setStatusError(true);
+                                                }
+                                                String status = statusCode;
+                                                if (response.has(PARAMS_KEY_STATUS_TEXT)) {
+                                                    String statusText = response.getString(PARAMS_KEY_STATUS_TEXT);
+                                                    status = status + " " + statusText;
+                                                }
+                                                cacheInfo.setStatus(status);
                                             }
                                         } else {
                                             mCacheMap.remove(requestId);
@@ -312,7 +332,7 @@ public class NetworkPanel extends CollapsedPanel {
                                         break;
                                     case METHOD_LOADING_FINISHED:
                                         if (paramsJson.has(PARAMS_KEY_TIMESTAMP) && mCacheMap.containsKey(requestId)) {
-                                            NetworkCacheInfo cacheInfo = mCacheMap.get(requestId);
+                                            NetworkCacheInfo cacheInfo = mCacheMap.remove(requestId);
                                             long timestamp = (long) (paramsJson.getDouble(PARAMS_KEY_TIMESTAMP) * 1000);
                                             cacheInfo.setEndTime(timestamp);
                                             if (timestamp > sLatestTime) {
@@ -324,6 +344,7 @@ public class NetworkPanel extends CollapsedPanel {
                                                 jo.put(PARAMS_KEY_ID, Integer.parseInt(requestId));
                                                 jo.put(PARAMS_KEY_PARAMS, new JSONObject().put(PARAMS_KEY_REQ_ID, requestId));
                                                 mWebSocket.send(jo.toString());
+                                                mWaitForResMap.put(requestId, cacheInfo);
                                             }
                                             cacheInfo.setSuccess(true);
                                             cacheInfo.generateTime();
@@ -336,6 +357,9 @@ public class NetworkPanel extends CollapsedPanel {
                                             cacheInfo.setEndTime((long) (paramsJson.getDouble(PARAMS_KEY_TIMESTAMP) * 1000));
                                             cacheInfo.setSuccess(false);
                                             cacheInfo.generateTime();
+                                            if (TextUtils.equals(cacheInfo.getStatus(), EMPTY_STRING)) {
+                                                cacheInfo.setStatus(STATUS_FAIL_TEXT);
+                                            }
                                             addData(cacheInfo);
                                         } else {
                                             mCacheMap.remove(requestId);
@@ -348,7 +372,7 @@ public class NetworkPanel extends CollapsedPanel {
                         } else if (jsonObject.has(PARAMS_KEY_ID) && jsonObject.has(PARAMS_KEY_RESULT)) {
                             JSONObject result = jsonObject.getJSONObject(PARAMS_KEY_RESULT);
                             int id = jsonObject.getInt(PARAMS_KEY_ID);
-                            NetworkCacheInfo cacheInfo = mCacheMap.remove(String.valueOf(id));
+                            NetworkCacheInfo cacheInfo = mWaitForResMap.remove(String.valueOf(id));
                             if (cacheInfo != null) {
                                 if (result.has(PARAMS_KEY_ENCODED)) {
                                     boolean base64Encoded = result.getBoolean(PARAMS_KEY_ENCODED);
@@ -462,7 +486,7 @@ public class NetworkPanel extends CollapsedPanel {
                     paint.setAntiAlias(true);
                 }
                 holder.mName.setText(networkItemData.mName);
-                holder.mName.setTextColor(networkItemData.isSuccess() ?
+                holder.mName.setTextColor((networkItemData.isSuccess() && !networkItemData.isStatusError()) ?
                         (mSelectedPosition == position ? NAME_COLOR_SELECTED : NAME_COLOR_DEFAULT) : NAME_COLOR_FAIL);
                 holder.mSize.setText(networkItemData.mSizeStr);
                 holder.mTime.setText(networkItemData.mTime);
@@ -513,6 +537,28 @@ public class NetworkPanel extends CollapsedPanel {
         }
     }
 
+    private String simplifyTypeName(String originType) {
+        String result;
+        switch (originType) {
+            case "Image":
+                result = "Img";
+                break;
+            case "Document":
+                result = "Doc";
+                break;
+            case "WebSocket":
+                result = "WS";
+                break;
+            case "Stylesheet":
+                result = "CSS";
+                break;
+            default:
+                result = originType;
+                break;
+        }
+        return result;
+    }
+
     private class NetWorkItemHolder extends RecyclerView.ViewHolder {
         ViewGroup mContainer;
         TextView mType;
@@ -540,7 +586,6 @@ public class NetworkPanel extends CollapsedPanel {
         static final String TIME_SECOND_SUFFIX = "s";
         static final String TIME_MILLIS_SUFFIX = "ms";
         public static final String STRING_UNKNOWN = "unknown";
-        private static final String EMPTY_STRING = "";
         private static final long SIZE_GB = 1024 * 1024 * 1024;
         private static final long SIZE_MB = 1024 * 1024;
         private static final long SIZE_KB = 1024;
@@ -548,11 +593,12 @@ public class NetworkPanel extends CollapsedPanel {
         private static DecimalFormat sDecimalOneFormat = new DecimalFormat("0.0");
         private static DecimalFormat sDecimalZeroFormat = new DecimalFormat("0");
         private String mId;
-        private String mType = "Other";
+        private String mType = EMPTY_STRING;
+        private String mOriginType = EMPTY_STRING;
         private String mStatus = EMPTY_STRING;
         private String mName = STRING_UNKNOWN;
         private int mSize;
-        private String mSizeStr;
+        private String mSizeStr = "0B";
         private long mSequenceStartTime = -1; // The earliest request time in the same sequence
         private long mSentTime;
         private long mResReceivedTime;
@@ -562,6 +608,7 @@ public class NetworkPanel extends CollapsedPanel {
         private String mTimeStalled;
         private String mTimeDownload;
         private boolean mSuccess;
+        private boolean mStatusCodeError;
         private String mReqUrl;
         private String mReqMethod;
         private String mPostData = EMPTY_STRING;
@@ -608,6 +655,14 @@ public class NetworkPanel extends CollapsedPanel {
             this.mType = mType;
         }
 
+        public String getOriginType() {
+            return mOriginType;
+        }
+
+        public void setOriginType(String originType) {
+            this.mOriginType = originType;
+        }
+
         public String getStatus() {
             return mStatus;
         }
@@ -620,8 +675,10 @@ public class NetworkPanel extends CollapsedPanel {
             return mName;
         }
 
-        public void setName(String mName) {
-            this.mName = mName;
+        public void setName(String name) {
+            if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(name.trim())) {
+                this.mName = name;
+            }
         }
 
         public int getSize() {
@@ -667,6 +724,14 @@ public class NetworkPanel extends CollapsedPanel {
 
         public void setSuccess(boolean mSuccess) {
             this.mSuccess = mSuccess;
+        }
+
+        public boolean isStatusError() {
+            return mStatusCodeError;
+        }
+
+        public void setStatusError(boolean b) {
+            this.mStatusCodeError = b;
         }
 
         void generateTime() {

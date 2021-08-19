@@ -24,7 +24,7 @@
 
     <TextView
         android:id="@+id/analyzer_network_item_type"
-        android:layout_width="40dp"
+        android:layout_width="42dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:ellipsize="end"
