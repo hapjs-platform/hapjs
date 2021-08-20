@@ -40,6 +40,7 @@ public class ExpandTextView extends AppCompatTextView {
     private boolean mExpanded;
     private int mExpectedLines;
     private Callback mCallback;
+    private OnClickListener mOnClickListener;
 
     public interface Callback {
         void onExpand();
@@ -124,8 +125,27 @@ public class ExpandTextView extends AppCompatTextView {
      * try to show suffix of "show more" if expected number of rows is greater than mLines
      */
     private void setupShowMoreButton() {
-        String text = getText().toString();
-        if (TextUtils.isEmpty(text) || mLines >= mExpectedLines) {
+        if (TextUtils.isEmpty(mOriginText)) {
+            return;
+        }
+        if (mLines >= mExpectedLines) {
+            SpannableString spannableString = new SpannableString(mOriginText);
+            spannableString.setSpan(new ClickableSpan() {
+                                        @Override
+                                        public void updateDrawState(TextPaint ds) {
+                                            ds.setUnderlineText(false);
+                                        }
+
+                                        @Override
+                                        public void onClick(@Nullable View view) {
+                                            if (mOnClickListener != null) {
+                                                mOnClickListener.onClick(view);
+                                            }
+                                        }
+                                    },
+                    0,
+                    mOriginText.length(), 0);
+            setText(spannableString, TextView.BufferType.SPANNABLE);
             return;
         }
         mExpanded = false;
@@ -134,14 +154,14 @@ public class ExpandTextView extends AppCompatTextView {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < mLines - 1; i++) {
             end = getLayout().getLineEnd(i);
-            builder.append(text.substring(start, end));
+            builder.append(mOriginText.toString().substring(start, end));
             start = end;
         }
         // Other text content except the last line
         String preText = builder.toString();
         // The text content of the last line
         end = getLayout().getLineEnd(mLines - 1);
-        String lastLineText = text.substring(start, end);
+        String lastLineText = mOriginText.toString().substring(start, end);
         // Prevent the inconsistency of Chinese and English widths from causing incomplete display of the "More" button
         String tempText = lastLineText + ELLIPSIZE + mShowMoreText;
         float measureLength = getPaint().measureText(tempText);
@@ -169,6 +189,21 @@ public class ExpandTextView extends AppCompatTextView {
         spannableString.setSpan(new ForegroundColorSpan(mShowMoreTextColor),
                 tempText.length() - mShowMoreText.length(),
                 tempText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(new ClickableSpan() {
+                                    @Override
+                                    public void updateDrawState(TextPaint ds) {
+                                        ds.setUnderlineText(false);
+                                    }
+
+                                    @Override
+                                    public void onClick(@Nullable View view) {
+                                        if (mOnClickListener != null) {
+                                            mOnClickListener.onClick(view);
+                                        }
+                                    }
+                                },
+                0,
+                tempText.length() - mShowMoreText.length(), 0);
         setText(spannableString, TextView.BufferType.SPANNABLE);
         if (mCallback != null) {
             mCallback.onCollapse();
@@ -179,7 +214,27 @@ public class ExpandTextView extends AppCompatTextView {
      * try to show suffix of "show less" when expected number of rows is greater than mLines
      */
     private void setupShowLessButton() {
-        if (TextUtils.isEmpty(mOriginText) || mLines >= mExpectedLines) {
+        if (TextUtils.isEmpty(mOriginText)) {
+            return;
+        }
+        if (mLines >= mExpectedLines) {
+            SpannableString spannableString = new SpannableString(mOriginText);
+            spannableString.setSpan(new ClickableSpan() {
+                                        @Override
+                                        public void updateDrawState(TextPaint ds) {
+                                            ds.setUnderlineText(false);
+                                        }
+
+                                        @Override
+                                        public void onClick(@Nullable View view) {
+                                            if (mOnClickListener != null) {
+                                                mOnClickListener.onClick(view);
+                                            }
+                                        }
+                                    },
+                    0,
+                    mOriginText.length(), 0);
+            setText(spannableString, TextView.BufferType.SPANNABLE);
             return;
         }
         mExpanded = true;
@@ -203,10 +258,30 @@ public class ExpandTextView extends AppCompatTextView {
         spannableString.setSpan(new ForegroundColorSpan(mShowLessTextColor),
                 text.length() - mShowLessText.length(),
                 text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableString.setSpan(new ClickableSpan() {
+                                    @Override
+                                    public void updateDrawState(TextPaint ds) {
+                                        ds.setUnderlineText(false);
+                                    }
+
+                                    @Override
+                                    public void onClick(@Nullable View view) {
+                                        if (mOnClickListener != null) {
+                                            mOnClickListener.onClick(view);
+                                        }
+                                    }
+                                },
+                0,
+                text.length() - mShowLessText.length(), 0);
         setText(spannableString, TextView.BufferType.SPANNABLE);
         if (mCallback != null) {
             mCallback.onExpand();
         }
+    }
+
+    @Override
+    public void setOnClickListener(OnClickListener l) {
+        mOnClickListener = l;
     }
 
     public void setShowMoreText(String showMoreText) {

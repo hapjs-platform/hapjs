@@ -303,20 +303,18 @@ public class NoticePanel extends AbsPanel {
         @Override
         public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(mContext).inflate(R.layout.layout_anayler_notice_item, parent, false);
-            Holder holder = new Holder(view);
-            view.setOnClickListener(v -> {
-                int position = holder.getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION && mOnItemClickListener != null) {
-                    mOnItemClickListener.onItemClick(holder, position, mMessages.get(position).mNoticeMessage);
-                }
-            });
-            return holder;
+            return new Holder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull Holder holder, int position) {
             NoticeItem noticeItem = mMessages.get(position);
             NoticeMessage noticeMessage = noticeItem.mNoticeMessage;
+            holder.mTv.setOnClickListener(v -> {
+                if (position != RecyclerView.NO_POSITION && mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(holder, position, mMessages.get(position).mNoticeMessage);
+                }
+            });
             holder.mTv.setRenderText(noticeMessage.getMessage(), noticeItem.mExpanded);
             holder.mTv.setCallback(new ExpandTextView.Callback() {
                 @Override
