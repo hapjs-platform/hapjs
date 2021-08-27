@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,7 +14,9 @@ import org.hapjs.bridge.AppInfoProvider;
 import org.hapjs.bridge.ApplicationProvider;
 import org.hapjs.bridge.DefaultAppInfoProvider;
 import org.hapjs.bridge.DefaultApplicationProvider;
+import org.hapjs.bridge.DefaultFitWidescreenProvider;
 import org.hapjs.bridge.DependencyManager;
+import org.hapjs.bridge.FitWidescreenProvider;
 import org.hapjs.bridge.annotation.DependencyAnnotation;
 import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
 import org.hapjs.bridge.provider.webview.WebviewSettingProviderImpl;
@@ -158,6 +160,7 @@ public class Runtime {
         pm.addProvider(NativePackageProvider.NAME, new DefaultNativePackageProviderImpl());
         pm.addProvider(ApplicationProvider.NAME, new DefaultApplicationProvider());
         pm.addProvider(AppInfoProvider.NAME, new DefaultAppInfoProvider());
+        pm.addProvider(FitWidescreenProvider.NAME, new DefaultFitWidescreenProvider());
         pm.addProvider(PackageCheckProvider.NAME, new DefaultPackageCheckProvider());
         pm.addProvider(ThemeProvider.NAME, new DefaultThemeProvider());
         ProviderManager.getDefault()
