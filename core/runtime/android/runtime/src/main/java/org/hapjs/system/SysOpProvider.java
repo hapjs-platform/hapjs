@@ -22,6 +22,7 @@ import org.hapjs.bridge.BaseJsSdkBridge;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
+import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.MenubarItemData;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
@@ -127,6 +128,8 @@ public interface SysOpProvider {
     ComponentName get5gMgrComponent();
 
     Intent getPermissionActivityIntent( String pkg);
+
+    int getDesignWidth(Context context, AppInfo appInfo);
 
     public BaseJsSdkBridge getJsBridge(HybridManager hybridManager);
 

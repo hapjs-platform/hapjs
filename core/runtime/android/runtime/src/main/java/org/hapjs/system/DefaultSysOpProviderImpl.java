@@ -48,6 +48,8 @@ import org.hapjs.common.utils.PackageUtils;
 import org.hapjs.common.utils.ThemeUtils;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
+import org.hapjs.model.ConfigInfo;
+import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.MenubarItemData;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
@@ -420,6 +422,12 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public ComponentName get5gMgrComponent() {
         return new ComponentName(DEFAULT_5G_MGR_PACKAGE, DEFAULT_5G_MGR_ACTIVITY);
+    }
+
+    @Override
+    public int getDesignWidth(Context context, AppInfo appInfo) {
+        ConfigInfo info = appInfo.getConfigInfo();
+        return info == null ? ConfigInfo.DEFAULT_DESIGN_WIDTH : info.getDesignWidth();
     }
 
     @Override
