@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import androidx.core.app.ActivityCompat;
 
+import java.util.List;
+
 public class LocationClient {
 
     private static final int INTERVAL_TIME = 1000;
@@ -107,12 +109,11 @@ public class LocationClient {
 
         stop();
 
-        mLocationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER, INTERVAL_TIME, INTERVAL_DISTANCE,
-                mNetworkLocationListener);
-        mLocationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, INTERVAL_TIME, INTERVAL_DISTANCE,
-                mGPSLocationListener);
+        if (hasGPSModule(mContext)) {
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, INTERVAL_TIME, INTERVAL_DISTANCE, mNetworkLocationListener);
+        }
+
+        mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, INTERVAL_TIME, INTERVAL_DISTANCE, mGPSLocationListener);
     }
 
     @SuppressWarnings("MissingPermission")
@@ -165,5 +166,17 @@ public class LocationClient {
         public void onProviderDisabled(String provider) {
             updateLocation(mLocationManager.getLastKnownLocation(provider));
         }
+    }
+
+    public boolean hasGPSModule(Context context) {
+        final LocationManager mgr = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
+        if ( mgr == null ) {
+            return false;
+        }
+        final List<String> providers = mgr.getAllProviders();
+        if ( providers == null ) {
+            return false;
+        }
+        return providers.contains(LocationManager.GPS_PROVIDER);
     }
 }
