@@ -1315,12 +1315,17 @@ public class RootView extends FrameLayout
         if (mDocument != null) {
             oldDocument = mDocument;
             JSONObject oldPageAnimateSettingObj = getPageAnimationJsonFromParams(oldPage);
-            int animType =
-                    newIndex >= oldIndex
-                            ? Attributes.getPageOpenExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_EXIT)
-                            : Attributes.getPageCloseExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            int animType;
+            if (oldPage == null) {
+                animType = newIndex >= oldIndex ? DocAnimator.TYPE_PAGE_OPEN_EXIT : DocAnimator.TYPE_PAGE_CLOSE_EXIT;
+            } else {
+                animType =
+                        newIndex >= oldIndex
+                                ? Attributes.getPageOpenExitAnimation(
+                                oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_EXIT)
+                                : Attributes.getPageCloseExitAnimation(
+                                oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            }
             mDocument.detachChildren(
                     animType,
                     new InnerPageExitListener(mDocument, oldPage, newIndex > oldIndex),
