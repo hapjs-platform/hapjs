@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -1313,12 +1313,17 @@ public class RootView extends FrameLayout
         if (mDocument != null) {
             oldDocument = mDocument;
             JSONObject oldPageAnimateSettingObj = getPageAnimationJsonFromParams(oldPage);
-            int animType =
-                    newIndex >= oldIndex
-                            ? Attributes.getPageOpenExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_EXIT)
-                            : Attributes.getPageCloseExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            int animType;
+            if (oldPage == null) {
+                animType = newIndex >= oldIndex ? DocAnimator.TYPE_PAGE_OPEN_EXIT : DocAnimator.TYPE_PAGE_CLOSE_EXIT;
+            } else {
+                animType =
+                        newIndex >= oldIndex
+                                ? Attributes.getPageOpenExitAnimation(
+                                oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_EXIT)
+                                : Attributes.getPageCloseExitAnimation(
+                                oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            }
             mDocument.detachChildren(
                     animType,
                     new InnerPageExitListener(mDocument, oldPage, newIndex > oldIndex),
