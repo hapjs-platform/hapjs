@@ -188,28 +188,23 @@ public class MenubarUtils {
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, "error EncodingException startShare msg : " + e.getMessage());
             }
-            extensionManager.invokeWithCallback(
-                    "service.share",
-                    action,
-                    sharejson.toString(),
-                    "-1",
-                    -1,
-                    new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+            FeatureInnerBridge.invokeWithCallback(extensionManager, "service.share", action, sharejson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+                @Override
+                public void callback(Response response) {
+                    ThreadUtils.runOnUiThread(new Runnable() {
                         @Override
-                        public void callback(Response response) {
+                        public void run() {
                             if (null != response) {
-                                Log.d(
-                                        TAG,
-                                        "startShare response  code : "
-                                                + response.getCode()
-                                                + " content : "
-                                                + response.getContent());
+                                Log.d(TAG, "startShare response  code : " + response.getCode() + " content : " + response.getContent());
                                 if (null != shareCallback) {
                                     shareCallback.onShareCallback(response);
                                 }
                             }
                         }
                     });
+
+                }
+            });
 
         } else {
             Log.e(TAG, "startShare extensionManager null.");
@@ -309,18 +304,15 @@ public class MenubarUtils {
             }
             extensionManager = getExtensionManager(rootView);
         }
-        if (null != extensionManager) {
+        final ExtensionManager curExtensionManager = extensionManager;
+        if (null != curExtensionManager) {
             JSONObject emptyJson = new JSONObject();
-            extensionManager.invokeWithCallback(
-                    "system.shortcut",
-                    "hasInstalled",
-                    emptyJson.toString(),
-                    "-1",
-                    -1,
-                    new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+            FeatureInnerBridge.invokeWithCallback(extensionManager, "system.shortcut", "hasInstalled", emptyJson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+                @Override
+                public void callback(Response response) {
+                    ThreadUtils.runOnUiThread(new Runnable() {
                         @Override
-                        public void callback(Response response) {
-
+                        public void run() {
                             boolean hasInstall = false;
                             if (null != callback) {
                                 if (null != response) {
@@ -335,14 +327,15 @@ public class MenubarUtils {
                                         maps.put(MENUBAR_HAS_SHORTCUT_INSTALLED, hasInstall);
                                         callback.onMenubarStatusCallback(maps);
                                     }
-                                }
 
+                                }
                             } else {
                                 Log.e(TAG, "isShortCutInstalled callback is null.");
                             }
                         }
                     });
-            Log.e(TAG, "isShortCutInstalled extensionManager null.");
+                }
+            });
         } else {
             Log.e(TAG, "isShortCutInstalled extensionManager null.");
         }

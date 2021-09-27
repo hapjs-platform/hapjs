@@ -8,15 +8,19 @@ package org.hapjs.bridge;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+
 import androidx.annotation.Nullable;
+
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+
 import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.executors.Executor;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.FeatureInnerBridge;
 import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.model.AppInfo;
 import org.hapjs.model.CardInfo;
@@ -160,24 +164,7 @@ public class ExtensionManager {
         return onInvoke(name, action, rawParams, jsCallback, instanceId, null);
     }
 
-    public Response invokeWithCallback(
-            String name,
-            String action,
-            Object rawParams,
-            String jsCallback,
-            int instanceId,
-            Callback realCallback) {
-        if (null == mHybridManager) {
-            Log.e(TAG, "invokeWithCallback error mHybridManager null.");
-            return null;
-        }
-        RuntimeLogManager.getDefault()
-                .logFeatureInvoke(mHybridManager.getApplicationContext().getPackage(), name,
-                        action);
-        return onInvoke(name, action, rawParams, jsCallback, instanceId, realCallback);
-    }
-
-    private Response onInvoke(
+    public Response onInvoke(
             String name,
             String action,
             Object rawParams,
@@ -193,7 +180,7 @@ public class ExtensionManager {
                         new Response(
                                 Response.CODE_PERMISSION_ERROR,
                                 "Refuse to use this interfaces in background: " + name);
-                callback(response, jsCallback);
+                callback(response, jsCallback, realCallback);
                 return response;
             }
         }
@@ -208,7 +195,7 @@ public class ExtensionManager {
             String err = "Extension not available: " + name;
             Log.e(TAG, err);
             Response response = new Response(Response.CODE_PERMISSION_ERROR, err);
-            callback(response, jsCallback);
+            callback(response, jsCallback, realCallback);
             return response;
         }
 
@@ -216,7 +203,13 @@ public class ExtensionManager {
 
         Extension.Mode mode = f.getInvocationMode(request);
         if (mode == Extension.Mode.SYNC) {
-            return f.invoke(request);
+            Response response = f.invoke(request);
+            if (FeatureInnerBridge.H5_JS_CALLBACK.equals(jsCallback)) {
+                if (realCallback != null) {
+                    realCallback.callback(response);
+                }
+            }
+            return response;
         } else {
             if (null != realCallback) {
                 request.setCallback(realCallback);
@@ -254,8 +247,18 @@ public class ExtensionManager {
     }
 
     public void callback(Response response, String jsCallback) {
+        callback(response, jsCallback, null);
+    }
+
+    public void callback(Response response, String jsCallback, Callback realCallback) {
         if (response != null && isValidCallback(jsCallback)) {
-            SINGLE_THREAD_EXECUTOR.execute(new JsInvocation(response, jsCallback));
+            if (FeatureInnerBridge.H5_JS_CALLBACK.equals(jsCallback)) {
+                if (realCallback != null) {
+                    realCallback.callback(response);
+                }
+            } else {
+                SINGLE_THREAD_EXECUTOR.execute(new JsInvocation(response, jsCallback));
+            }
         }
     }
 
@@ -406,5 +409,13 @@ public class ExtensionManager {
             super.onDestroy();
             disposeFeature(true, this);
         }
+    }
+
+    public HybridManager getHybridManager() {
+        return mHybridManager;
+    }
+
+    public JsThread getJsThread() {
+        return mJsThread;
     }
 }

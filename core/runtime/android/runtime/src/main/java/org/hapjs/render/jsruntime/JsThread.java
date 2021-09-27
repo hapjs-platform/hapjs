@@ -21,12 +21,14 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
+
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8RuntimeException;
 import com.eclipsesource.v8.V8Value;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import org.hapjs.bridge.EnvironmentManager;
 import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.HybridRequest;
@@ -357,7 +360,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postNotifyConfigurationChanged(Page page, String type) {
-        Object[] params = new Object[] {page, type};
+        Object[] params = new Object[]{page, type};
         mHandler.obtainMessage(H.MSG_NOTIFY_CONFIGURATION_CHANGED, params).sendToTarget();
     }
 
@@ -382,7 +385,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postUpdateLocale(Locale locale, Map<String, JSONObject> resources) {
-        Object[] params = new Object[] {locale, resources};
+        Object[] params = new Object[]{locale, resources};
         mHandler.obtainMessage(H.MSG_UPDATE_LOCALE, params).sendToTarget();
     }
 
@@ -429,7 +432,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postRegisterBundleChunks(String content) {
-        Object[] params = new Object[] {content};
+        Object[] params = new Object[]{content};
         Message.obtain(mHandler, H.MSG_REGISTER_BUNDLE_CHUNKS, params).sendToTarget();
     }
 
@@ -447,7 +450,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postCreateApplication(String jsContent, String css, HybridRequest request) {
-        Object[] params = new Object[] {jsContent, css, request};
+        Object[] params = new Object[]{jsContent, css, request};
         Message.obtain(mHandler, H.MSG_CREATE_APPLICATION, params).sendToTarget();
     }
 
@@ -539,7 +542,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postOnMenuButtonPress(Page page, HybridView.OnKeyUpListener onKeyUpIsConsumption) {
-        Object[] params = new Object[] {page, onKeyUpIsConsumption};
+        Object[] params = new Object[]{page, onKeyUpIsConsumption};
         mHandler.obtainMessage(H.MSG_ON_MENU_BUTTON_PRESS, params).sendToTarget();
     }
 
@@ -755,7 +758,7 @@ public class JsThread extends HandlerThread {
                                 String js = JavascriptReader.get().read(jssource);
                                 String css = TextReader.get().read(csssource);
                                 parseStyleSheets(css, page);
-                                return new String[] {js, css};
+                                return new String[]{js, css};
                             }
 
                             @Override
@@ -819,7 +822,7 @@ public class JsThread extends HandlerThread {
     }
 
     private void postCreatePage(Page page, String js, String uri, String css) {
-        Object[] params = new Object[] {page, js, uri, css};
+        Object[] params = new Object[]{page, js, uri, css};
         Message.obtain(mHandler, H.MSG_CREATE_PAGE, params).sendToTarget();
         page.setState(Page.STATE_CREATED);
     }
@@ -1034,7 +1037,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postFoldCard(int id, boolean fold) {
-        Object[] params = new Object[] {id, fold};
+        Object[] params = new Object[]{id, fold};
         mHandler.obtainMessage(H.MSG_FOLD_CARD, params).sendToTarget();
     }
 
@@ -1061,6 +1064,10 @@ public class JsThread extends HandlerThread {
 
     private void post(Runnable runnable) {
         mHandler.postAtFrontOfQueue(runnable);
+    }
+
+    public void postInJsThread(Runnable runnable) {
+        mHandler.post(runnable);
     }
 
     private void fireEvent(
@@ -1314,7 +1321,7 @@ public class JsThread extends HandlerThread {
     }
 
     public void postPageScroll(Page page, int scrollTop) {
-        Object[] args = new Object[] {page, scrollTop};
+        Object[] args = new Object[]{page, scrollTop};
         mHandler.obtainMessage(H.MSG_PAGE_SCROLL, args).sendToTarget();
     }
 
