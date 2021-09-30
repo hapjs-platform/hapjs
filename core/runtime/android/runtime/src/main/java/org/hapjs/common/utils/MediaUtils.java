@@ -133,6 +133,12 @@ public class MediaUtils {
         return dir;
     }
 
+    private static File getQQShareFileProDir(Context context) {
+        File dir = new File(context.getExternalFilesDir(null), "Images/tmp");
+        FileUtils.mkdirs(dir);
+        return dir;
+    }
+
     private static boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
