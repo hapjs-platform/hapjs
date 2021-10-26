@@ -300,9 +300,7 @@ class RenderActionParser {
                                 oldParent.removeChild(node); // 需要更新父节点，从旧父节点中移除
                             }
                             node.setParent(parent);
-                            if (!parent.getChildren().contains(node)) { // 已存在，不重复添加
-                                parent.appendChild(node); // 这里目前不需要关心顺序
-                            }
+                            parent.appendChild(node); // 这里目前不需要关心顺序
                         }
                     } else {
                         // 如果没有获取到父节点，设置当前节点为脏节点

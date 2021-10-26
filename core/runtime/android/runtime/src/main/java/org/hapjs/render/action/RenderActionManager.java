@@ -192,8 +192,10 @@ public class RenderActionManager {
 
         // match child node.
         List<RenderActionNode> children = node.getChildren();
-        for (RenderActionNode child : children) {
-            getCSSRuleMatchedNodes(child, cssRuleLists, nodes);
+        synchronized (children) {
+            for (RenderActionNode child : children) {
+                getCSSRuleMatchedNodes(child, cssRuleLists, nodes);
+            }
         }
     }
 
