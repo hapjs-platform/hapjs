@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -144,6 +144,7 @@ public class Notification extends FeatureExtension {
         }
         String source = Source.currentSourceString();
         intent.putExtra(RuntimeActivity.EXTRA_SOURCE, source);
+        intent.setPackage(activity.getPackageName());
         return PendingIntent.getActivity(activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
