@@ -32,6 +32,7 @@ import org.hapjs.card.api.InstallListener;
 import org.hapjs.card.sdk.utils.CardConfigUtils;
 import org.hapjs.card.support.utils.CardRuntimeErrorManager;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.SimpleActivityLifecycleCallbacks;
 import org.hapjs.io.AssetSource;
 import org.hapjs.logging.LogHelper;
 import org.hapjs.logging.RuntimeLogManager;
@@ -436,15 +437,10 @@ public class CardView extends RootView
     private void registerLifecycleCallback() {
         unregisterLifecycleCallback();
         mActivityLifecycleCallbacks =
-                new Application.ActivityLifecycleCallbacks() {
+                new SimpleActivityLifecycleCallbacks() {
                     private boolean mStarted;
                     private boolean mResumed;
                     private boolean mDestroyed;
-
-                    @Override
-                    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                        // ignore
-                    }
 
                     @Override
                     public void onActivityStarted(Activity activity) {
@@ -496,11 +492,6 @@ public class CardView extends RootView
                             manager.onStop();
                         }
                         mStarted = false;
-                    }
-
-                    @Override
-                    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                        // ignore
                     }
 
                     @Override
