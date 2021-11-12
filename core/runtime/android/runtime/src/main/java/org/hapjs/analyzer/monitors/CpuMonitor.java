@@ -157,10 +157,14 @@ public class CpuMonitor extends AbsTimerMonitor<String> {
                 return DEFAULT;
             }
         }
-        if (currentCpuTime == lastCpuTime) {
-            return DEFAULT;
+        float cpuValue = 0;
+        if (currentCpuTime != lastCpuTime) {
+            cpuValue = 100 * (currentAppCpuTime - lastAppCpuTime) * 1f / (currentCpuTime - lastCpuTime);
+            if (cpuValue < 0) {
+                cpuValue = 0;
+            }
         }
-        return String.format(Locale.US, "%.1f%%", 100f * (currentAppCpuTime - lastAppCpuTime) * 1f / (currentCpuTime - lastCpuTime));
+        return String.format(Locale.US, "%.1f%%", cpuValue);
     }
 
 
@@ -195,7 +199,11 @@ public class CpuMonitor extends AbsTimerMonitor<String> {
                     if (cpu.endsWith("%")) {
                         cpu = cpu.substring(0, cpu.lastIndexOf('%'));
                     }
-                    return String.format(Locale.US, "%.1f%%", Float.parseFloat(cpu) / java.lang.Runtime.getRuntime().availableProcessors());
+                    float cpuValue = Float.parseFloat(cpu);
+                    if (cpuValue < 0) {
+                        cpuValue = 0;
+                    }
+                    return String.format(Locale.US, "%.1f%%", cpuValue / java.lang.Runtime.getRuntime().availableProcessors());
                 }
             }
         } catch (IOException e) {
