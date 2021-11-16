@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,7 +27,11 @@ public class DeepLinkClient implements LauncherManager.LauncherClient {
     private static final String TAG = "DeepLinkClient";
     private static final String[] DEEP_LINK_PREFIXES =
             new String[] {
-                    "http://hapjs.org/app/", "https://hapjs.org/app/", "hap://app/",
+                    "http://hapjs.org/app/",
+                    "https://hapjs.org/app/",
+                    "http://qr.quickapp.cn/app/",
+                    "https://qr.quickapp.cn/app/",
+                    "hap://app/"
             };
     protected Uri mUri;
     protected String mPackage;
