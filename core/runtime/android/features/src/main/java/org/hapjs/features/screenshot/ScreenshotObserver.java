@@ -26,6 +26,8 @@ import java.util.Set;
 public class ScreenshotObserver {
     private static final String TAG = "ScreenshotObserver";
 
+    private static final String SCREENSHOT_DIR = "截屏";
+
     private static final String[] MEDIA_PROJECTIONS = {
             MediaStore.Images.ImageColumns.DATA, MediaStore.Images.ImageColumns.DATE_TAKEN,
     };
@@ -111,6 +113,16 @@ public class ScreenshotObserver {
             }
         }
 
+        // vivo android 5部分机器的ContentObserver失效, 使用FileObserver辅助监视
+        // 如果ContentObserver生效, 连续的相同检测会被去重, 不会触发多次回调
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            File dcimDir = new File(Environment.getExternalStorageDirectory() +
+                    File.separator + SCREENSHOT_DIR + File.separator);
+            if (dcimDir.exists()) {
+                mFileObserver = new ScreenshotFileObserver(dcimDir.getPath());
+                mFileObserver.startWatching();
+            }
+        }
     }
 
     public void stopListen() {
