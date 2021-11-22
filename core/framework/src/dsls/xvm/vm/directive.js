@@ -235,13 +235,15 @@ function postBindSubVm(vm, subVm, template, dest = {}) {
  * @param subVm
  */
 function mergeProps(attrs, props, vm, subVm) {
-  if (!attrs || Object.keys(attrs).length === 0) {
+  if (!attrs) {
     return
   }
   if (!props) {
-    console.warn(
-      `### App Framework ### 组件 ${subVm._type} 中无props属性，放弃属性校验；推荐增加props属性`
-    )
+    if (Object.keys(attrs).length !== 0) {
+      console.warn(
+        `### App Framework ### 组件${subVm._type}中无props属性，放弃属性校验；推荐增加props属性`
+      )
+    }
     for (const key in attrs) {
       let targetFunction
       if (attrs[key] && attrs[key].targetFunction) {
