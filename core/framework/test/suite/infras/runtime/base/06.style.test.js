@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -199,6 +199,22 @@ describe('基础：6.样式操作', () => {
     expect(callNativeMessageList[0]).to.include('borderLeftWidth')
     expect(callNativeMessageList[0]).to.include('10px')
     callNativeMessageList.splice(0)
+
+    // border 分开写;
+    config.helper.setElementStyles(
+      nodeBody,
+      'borderTopColor: #0000FF;borderRightColor: #FF0000;borderBottomColor: #0000FF;borderLeftColor: #FF0000;borderTopWidth: 10px;borderRightWidth: 10px;borderBottomWidth: 10px;borderLeftWidth: 10px'
+    )
+    nodeBodyAttrStyle = config.misc.getNodeInlineStyleAsObject(nodeBody)
+    expect(nodeBodyAttrStyle.borderTopColor).to.equal('#0000FF')
+    expect(nodeBodyAttrStyle.borderRightColor).to.equal('#FF0000')
+    expect(nodeBodyAttrStyle.borderBottomColor).to.equal('#0000FF')
+    expect(nodeBodyAttrStyle.borderLeftColor).to.equal('#FF0000')
+    expect(nodeBodyAttrStyle.borderTopWidth).to.equal('10px')
+    expect(nodeBodyAttrStyle.borderRightWidth).to.equal('10px')
+    expect(nodeBodyAttrStyle.borderBottomWidth).to.equal('10px')
+    expect(nodeBodyAttrStyle.borderLeftWidth).to.equal('10px')
+    callNativeMessageList.splice(0)
   })
 
   it('padding样式', () => {
@@ -278,6 +294,21 @@ describe('基础：6.样式操作', () => {
     expect(background).to.include('linearGradient')
     expect(background).to.include('#FF0000')
     expect(background).to.include('#0000FF')
+    callNativeMessageList.splice(0)
+
+    config.helper.setElementStyles(nodeBody, `backgroundImage: /assets/images/logo.png`)
+    nodeBodyAttrStyle = config.misc.getNodeInlineStyleAsObject(nodeBody)
+    expect(nodeBodyAttrStyle.backgroundImage).to.equal('/assets/images/logo.png')
+    callNativeMessageList.splice(0)
+
+    config.helper.setElementStyles(
+      nodeBody,
+      'background: {"values":[{"type":"linearGradient","directions":["to","bottom"],"values":["#FF0000","#0000FF"]}]}'
+    )
+    nodeBodyAttrStyle = config.misc.getNodeInlineStyleAsObject(nodeBody)
+    expect(nodeBodyAttrStyle.background).to.equal(
+      '{"values":[{"type":"linearGradient","directions":["to","bottom"],"values":["#FF0000","#0000FF"]}]}'
+    )
     callNativeMessageList.splice(0)
   })
 })
