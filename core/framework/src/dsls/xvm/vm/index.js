@@ -101,7 +101,7 @@ function initExternalData(vm, externalData) {
  */
 function initCustomDirective(vm) {
   const appCustomDirective =
-    (vm._page.app && vm._page.app._def && vm._page.app._def.directives) || {}
+    (vm._page && vm._page.app && vm._page.app._def && vm._page.app._def.directives) || {}
   const vmCustomDirective = vm._options.directives || {}
   const directives = {}
   // 合并指令存入一个新对象中，页面覆盖全局级别的指令

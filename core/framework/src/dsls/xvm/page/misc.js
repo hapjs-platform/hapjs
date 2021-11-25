@@ -49,7 +49,7 @@ function updatePageActions(page) {
   const hasActions = execPageTasks(page)
   // 发送更新结束标识
   if (hasActions) {
-    const hasCallbacks = page ? page.nextTickCallbacks.length > 0 : false
+    const hasCallbacks = page && page.nextTickCallbacks ? page.nextTickCallbacks.length > 0 : false
     page.doc.listener.updateFinish(null, hasCallbacks)
   }
 }
