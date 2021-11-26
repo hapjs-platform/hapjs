@@ -657,6 +657,13 @@ function compileNativeComponent(vm, template, dest, type) {
 
     // 定义样式到文档中
     const isDocLevel = app._shareDocStyle && dest === doc.documentElement
+
+    let styleObject = {}
+    // 合并父组件externalClasses传入的样式
+    assignObjectInOrder(styleObject, vm._options && vm._options.style)
+    assignObjectInOrder(styleObject, vm._externalClasses)
+
+    styleObject = Object.keys(styleObject).length === 0 ? vm._options.style : styleObject
     context.quickapp.runtime.helper.registerStyleObject(
       vm._type,
       vm._options.style,
