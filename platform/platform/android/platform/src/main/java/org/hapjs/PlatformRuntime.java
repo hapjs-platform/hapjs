@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -126,7 +126,7 @@ public class PlatformRuntime extends Runtime {
                                 ShortcutUtils.updateShortcutAsync(mContext, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_ADDED);
-                                InstalledSubpackageManager.clearOutdatedSubpackages(
+                                InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
                                         mContext, pkg, appInfo.getVersionCode());
                             }
 
@@ -139,7 +139,7 @@ public class PlatformRuntime extends Runtime {
                                 ShortcutUtils.updateShortcutAsync(mContext, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_UPDATED);
-                                InstalledSubpackageManager.clearOutdatedSubpackages(
+                                InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
                                         mContext, pkg, appInfo.getVersionCode());
                             }
 
@@ -147,7 +147,7 @@ public class PlatformRuntime extends Runtime {
                             public void onPackageRemoved(String pkg) {
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_REMOVED);
-                                InstalledSubpackageManager.clearSubpackages(mContext, pkg);
+                                InstalledSubpackageManager.getInstance().clearSubpackages(mContext, pkg);
                             }
 
                             @Override
@@ -157,7 +157,7 @@ public class PlatformRuntime extends Runtime {
                                     Log.e(TAG, "expected a non-null subpackageInfo.");
                                     return;
                                 }
-                                InstalledSubpackageManager.installSubpackage(
+                                InstalledSubpackageManager.getInstance().installSubpackage(
                                         mContext, pkg, subpackageInfo.getName(), versionCode);
                             }
                         });
