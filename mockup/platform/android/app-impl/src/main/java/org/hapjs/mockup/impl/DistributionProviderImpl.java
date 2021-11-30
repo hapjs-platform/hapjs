@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -102,7 +102,7 @@ public class DistributionProviderImpl implements DistributionProvider {
     public boolean needSubpackageUpdate(String packageName, String subpackageName) {
         AppItem appItem = AppManager.getApp(mContext, packageName);
         if (appItem != null) {
-            return !InstalledSubpackageManager.checkInstalled(
+            return !InstalledSubpackageManager.getInstance().checkInstalled(
                     mContext, packageName, subpackageName, appItem.getVersion());
         }
         return false;
@@ -118,7 +118,7 @@ public class DistributionProviderImpl implements DistributionProvider {
             List<SubpackageInfo> needUpdateSubpackages = new ArrayList<>();
             if (subpackageInfos != null && !subpackageInfos.isEmpty()) {
                 List<String> installedList =
-                        InstalledSubpackageManager.queryInstallList(
+                        InstalledSubpackageManager.getInstance().queryInstallList(
                                 mContext, packageName, appItem.getVersion());
                 if (installedList == null) {
                     needUpdateSubpackages.addAll(subpackageInfos);

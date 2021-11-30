@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -60,7 +60,7 @@ public abstract class SrpkPackageInstallerBase extends PackageInstaller {
             cleanWhenFinish(mContext, mPackageName, mInstallFlag.hasSuccess());
             // 安装成功后，清除之前分包安装记录
             if (mInstallFlag.hasSuccess()) {
-                InstalledSubpackageManager
+                InstalledSubpackageManager.getInstance()
                         .clearOutdatedSubpackages(mContext, mPackageName, mVersionCode);
             }
             InstallInterceptProvider installProvider =

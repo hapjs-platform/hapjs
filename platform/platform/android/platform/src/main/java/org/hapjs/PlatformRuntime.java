@@ -142,7 +142,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                                 ShortcutUtils.updateShortcutAsync(mContext, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_ADDED);
-                                InstalledSubpackageManager.clearOutdatedSubpackages(
+                                InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
                                         mContext, pkg, appInfo.getVersionCode());
                             }
 
@@ -155,7 +155,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                                 ShortcutUtils.updateShortcutAsync(mContext, pkg);
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_UPDATED);
-                                InstalledSubpackageManager.clearOutdatedSubpackages(
+                                InstalledSubpackageManager.getInstance().clearOutdatedSubpackages(
                                         mContext, pkg, appInfo.getVersionCode());
                             }
 
@@ -163,7 +163,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                             public void onPackageRemoved(String pkg) {
                                 sendPackageChangeBroadcast(pkg,
                                         CardConstants.ACTION_PACKAGE_PACKAGE_REMOVED);
-                                InstalledSubpackageManager.clearSubpackages(mContext, pkg);
+                                InstalledSubpackageManager.getInstance().clearSubpackages(mContext, pkg);
                             }
 
                             @Override
@@ -173,7 +173,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                                     Log.e(TAG, "expected a non-null subpackageInfo.");
                                     return;
                                 }
-                                InstalledSubpackageManager.installSubpackage(
+                                InstalledSubpackageManager.getInstance().installSubpackage(
                                         mContext, pkg, subpackageInfo.getName(), versionCode);
                             }
                         });

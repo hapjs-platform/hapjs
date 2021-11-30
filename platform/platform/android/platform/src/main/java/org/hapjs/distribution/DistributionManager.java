@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -240,7 +240,7 @@ public class DistributionManager {
 
         int versionCode = appInfo.getVersionCode();
         List<String> installedList =
-                InstalledSubpackageManager.queryInstallList(mContext, pkg, versionCode);
+                InstalledSubpackageManager.getInstance().queryInstallList(mContext, pkg, versionCode);
         if (installedList == null || installedList.isEmpty()) {
             // 每个分包安装完都会在数据库保存记录. 如果数据库没有记录, 那说明不是通过分包而是整包安装的.如果正在安装中则说明不完整
             return !InstallFileFlagManager.isPackageInstalling(mContext, pkg);

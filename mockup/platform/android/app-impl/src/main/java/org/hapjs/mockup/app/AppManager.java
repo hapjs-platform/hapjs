@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -96,7 +96,7 @@ public class AppManager {
                                     appItem =
                                             new AppItem(f, appInfo, AppItem.STATE_UPDATE_AVAILABLE);
                                     appItemMap.put(appItem.getPackageName(), appItem);
-                                    InstalledSubpackageManager.clearSubpackages(
+                                    InstalledSubpackageManager.getInstance().clearSubpackages(
                                             Runtime.getInstance().getContext(),
                                             appItem.getPackageName());
                                 }
