@@ -32,3 +32,5 @@
  1.4.0 增加后台运行注解ResidentType
  1.5.0 增加Multiple属性，表示是否支持多个回调; 增加subAttrs属性，表示子属性
  2.1.0 对单个方法增加后台运行注解ResidentType,目前针对方法的后台级别只能设置为USEABLE
+ 2.2.0 Extension.Mode新增SYNC_CALLBACK类型，同步返回对象时可以携带Callback
+ 2.3.0 升级annotation-processor模块的依赖库jackson-databind至2.11.0版本, 重新生成插件
