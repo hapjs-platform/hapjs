@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2023, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<org.hapjs.widgets.view.readerdiv.ReaderPageLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/reader_layout_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@color/near_transparent_color"
+    android:padding="40px">
+
+    <LinearLayout
+        android:id="@+id/reader_title_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/reader_title_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left|center_vertical"
+            android:textSize="@dimen/video_error_text_size"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+    <org.hapjs.widgets.view.readerdiv.ReaderText
+        android:id="@+id/reader_content_tv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+
+</org.hapjs.widgets.view.readerdiv.ReaderPageLayout>

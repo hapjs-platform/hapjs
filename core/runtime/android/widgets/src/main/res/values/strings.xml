@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -38,4 +38,5 @@
     <string name="webrtc_warn_permission_camera_and_microphone"><xliff:g id="origin">%s</xliff:g> wants to know your camera and microphone</string>
     <string name="webrtc_warn_reject">Decline</string>
     <string name="webrtc_warn_allow">Allow</string>
+    <string name="header_2_space">\u3000\u3000</string>
 </resources>
