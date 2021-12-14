@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -131,6 +131,8 @@ public class RuntimeLogManager {
     private static final String STATE_PHONE_PROMPT_DELETE = "phonePromptDelete";
     private static final String STATE_APP_JS_LOAD = "appJsLoad";
     private static final String STATE_LAUNCHER_ACTIVITY_CREATE = "launcherActivityCreate";
+    public static final String KEY_APP_EVENT_READERDIV_CLICK = "readerdivClick";
+    public static final String KEY_APP_EVENT_RADERDIV_AD_SHOW = "readerdivAdShow";
     private static final String KEY_APP_ROUTER_DIALOG_SHOW = "routerDialogShow";
     private static final String KEY_APP_ROUTER_DIALOG_CLICK = "routerDialogClick";
     private LogProvider mProvider;

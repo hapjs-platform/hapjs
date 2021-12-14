@@ -454,7 +454,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public int getScreenWidthPixels(Context context, int platformVersion) {
+    public int getScreenWidthPixels(Context context, int platformVersion,HashMap<String, Object> datas) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         if (platformVersion < 1063 && !BuildPlatform.isTV()) {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.heightPixels : displayMetrics.widthPixels;
@@ -463,7 +463,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public int getScreenHeightPixels(Context context, int platformVersion) {
+    public int getScreenHeightPixels(Context context, int platformVersion,HashMap<String, Object> datas) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         if (platformVersion < 1063 && !BuildPlatform.isTV()) {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.widthPixels : displayMetrics.heightPixels;
