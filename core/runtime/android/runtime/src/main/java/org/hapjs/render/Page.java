@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -123,6 +123,7 @@ public class Page implements IPage {
     private long mPageLastUsedTime;
     private boolean mCleanCache = false;
     private PageAnimationConfig mPageAnimationConfig;
+    private boolean mIsTabPage = false;
 
     public Page(
             AppInfo appInfo,
@@ -167,6 +168,14 @@ public class Page implements IPage {
         metaInfo.put(META_PATH, routableInfo.getPath());
         metaInfo.put(META_COMP, routableInfo.getComponent());
         return metaInfo;
+    }
+
+    public boolean isTabPage() {
+        return mIsTabPage;
+    }
+
+    public void setTabPage(boolean mIsTabPage) {
+        this.mIsTabPage = mIsTabPage;
     }
 
     public int getInnerPageTag() {

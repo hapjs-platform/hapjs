@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,7 +36,8 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_RECT, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_DATA, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_BOUNDING_RECT, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_TIPS, mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_TIPS, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = PageModule.ACTION_SET_TABBAR_ITEM, mode = Extension.Mode.SYNC)
         }
 )
 public class PageModule extends ModuleExtension {
@@ -53,6 +54,7 @@ public class PageModule extends ModuleExtension {
     protected static final String RESULT_MENU_BAR_BOTTOM = "menuBarBottom";
     protected static final String ACTION_SET_MENUBAR_DATA = "setMenubarData";
     protected static final String ACTION_SET_MENUBAR_TIPS = "setMenubarTips";
+    protected static final String ACTION_SET_TABBAR_ITEM = "setTabBarItem";
     private static final String TAG = "PageModule";
     private PageManager mPageManager;
 
@@ -80,6 +82,8 @@ public class PageModule extends ModuleExtension {
             return setMenuBarData(request);
         } else if (ACTION_SET_MENUBAR_TIPS.equals(action)) {
             return setMenuBarTips(request);
+        } else if (ACTION_SET_TABBAR_ITEM.equals(action)) {
+            return setTabBarItem(request);
         }
         return Response.NO_ACTION;
     }
@@ -184,6 +188,37 @@ public class PageModule extends ModuleExtension {
         if (null != display) {
             display.refreshMenubarShareData(params);
             return Response.SUCCESS;
+        }
+        return Response.ERROR;
+    }
+
+    private Response setTabBarItem(Request request) {
+        if (null == request) {
+            Log.e(TAG, "setTabBarItem request is null.");
+            return Response.ERROR;
+        }
+        JSONObject params = null;
+        try {
+            JSONObject jsonParams = request.getJSONParams();
+            if (null != jsonParams && jsonParams.has("attr")) {
+                params = jsonParams.getJSONObject("attr");
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, " setTabBarItem jsonParams is null.");
+            return Response.ERROR;
+        }
+        NativeInterface nativeInterface = null;
+        if (null != request) {
+            nativeInterface = request.getNativeInterface();
+        }
+        if (null != nativeInterface) {
+            RootView rootView = nativeInterface.getRootView();
+            if (null != rootView) {
+                rootView.updateTabBarData(params);
+                return Response.SUCCESS;
+            } else {
+                return Response.ERROR;
+            }
         }
         return Response.ERROR;
     }
