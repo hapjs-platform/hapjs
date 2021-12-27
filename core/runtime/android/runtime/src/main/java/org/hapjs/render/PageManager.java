@@ -9,16 +9,20 @@ import static org.hapjs.bridge.HybridRequest.INTENT_ACTION;
 import static org.hapjs.bridge.HybridRequest.INTENT_FROM_EXTERNAL;
 import static org.hapjs.bridge.HybridRequest.INTENT_URI;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+
 import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
@@ -28,6 +32,7 @@ import org.hapjs.model.PageInfo;
 import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.RouterInfo;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.RuntimeActivity;
 
 public class PageManager {
 
@@ -318,7 +323,11 @@ public class PageManager {
             mHandler.obtainMessage(MSG_PUSH, page).sendToTarget();
             return;
         }
-
+        if (null != page && !page.isTabPage()
+                && prepareTabBar(page, false)) {
+            Log.w(TAG, "push page path is not valid tabbar path : " + page.getPath());
+            return;
+        }
         List<String> flags = page.getLaunchFlags();
         if (flags != null) {
             if (flags.contains(PageInfo.FLAG_CLEAR_TASK) && mPageInfos.size() > 0) {
@@ -326,7 +335,12 @@ public class PageManager {
                 return;
             }
         }
-
+        if (page.isTabPage()) {
+            if (mPageInfos.size() > 0) {
+                clearPageTask(page);
+                return;
+            }
+        }
         RoutableInfo routableInfo = page.getRoutableInfo();
         if (routableInfo != null) {
             String path = page.getPath();
@@ -410,7 +424,11 @@ public class PageManager {
             mHandler.obtainMessage(MSG_REPLACE, page).sendToTarget();
             return;
         }
-
+        if (null != page && !page.isTabPage()
+                && prepareTabBar(page, false)) {
+            Log.w(TAG, "replace page path is not valid tabbar path : " + page.getPath());
+            return;
+        }
         Page oldPage = getCurrPage();
         int index = getCurrIndex();
         if (index < 0 || index >= mPageInfos.size()) {
@@ -489,6 +507,9 @@ public class PageManager {
         int newCurrIndex = oldCurrIndex + changeIndex;
         Page oldPage = getPage(oldCurrIndex);
         Page newPage = getPage(newCurrIndex);
+        if (null != newPage) {
+            prepareTabBar(newPage, true);
+        }
         mPageChangedListener.onPagePreChange(oldCurrIndex, newCurrIndex, oldPage, newPage);
         for (int i = oldCurrIndex; i > newCurrIndex && i >= 0; i--) {
             Page page = mPageInfos.remove(i);
@@ -525,6 +546,40 @@ public class PageManager {
         void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage);
 
         void onPageRemoved(int index, Page page);
+    }
+
+    private boolean prepareTabBar(Page page, boolean isBack) {
+        if (!ThreadUtils.isInMainThread()) {
+            Log.w(TAG, "prepareTabBar not in main thread.");
+            return false;
+        }
+        boolean isTabBar = false;
+        if (null == page) {
+            Log.w(TAG, "prepareTabBar page is null.");
+            return false;
+        }
+        String path = page.getPath();
+        RuntimeActivity runtimeActivity = null;
+        if (mPageChangedListener instanceof RootView) {
+            Context context = ((RootView) mPageChangedListener).getContext();
+            if (context instanceof RuntimeActivity) {
+                runtimeActivity = (RuntimeActivity) context;
+            }
+        }
+        if (null != runtimeActivity) {
+            isTabBar = runtimeActivity.prepareTabBarPath(page.isTabPage(), path);
+            if (isTabBar) {
+                if (isBack) {
+                    runtimeActivity.notifyTabBarChange(path);
+                } else if (mPageInfos.size() == 0) {
+                    isTabBar = false;
+                    runtimeActivity.notifyTabBarChange(path);
+                }
+            }
+        } else {
+            Log.w(TAG, "prepareTabBar runtimeActivity null.");
+        }
+        return isTabBar;
     }
 
     private class HandlerImpl extends Handler {

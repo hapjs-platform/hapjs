@@ -23,12 +23,15 @@ import org.hapjs.bridge.HybridRequest;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.LifecycleListener;
 import org.hapjs.common.utils.IntentUtils;
+import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.logging.LogHelper;
 import org.hapjs.logging.Source;
 import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.RootView;
+import org.hapjs.render.TabBar;
 import org.hapjs.render.jsruntime.JsThread;
+import org.json.JSONObject;
 
 public class RuntimeActivity extends AppCompatActivity {
     public static final String PROP_APP = "runtime.app";
@@ -85,6 +88,7 @@ public class RuntimeActivity extends AppCompatActivity {
     private String mLaunchFrom;
     private boolean mFromDebugger;
     private boolean mShouldReload;
+    private TabBar mTabBar = null;
 
     protected static int getRequestBaseCode() {
         sRequestBaseCode += 100;
@@ -278,6 +282,20 @@ public class RuntimeActivity extends AppCompatActivity {
 
     private RootView initializeAndroidRuntime(String url) {
         final RootView rootView = getInnerRootView();
+        rootView.setRootViewCallback(new RootViewCallback() {
+            @Override
+            public void onAppInfoInit() {
+                ThreadUtils.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (null == mTabBar) {
+                            mTabBar = new TabBar();
+                        }
+                        mTabBar.initTabBarView(RuntimeActivity.this, rootView);
+                    }
+                });
+            }
+        });
         HybridView hybridView = new org.hapjs.bridge.impl.android.HybridViewImpl(rootView);
         registerHybridView(hybridView, url);
         hybridView
@@ -330,10 +348,42 @@ public class RuntimeActivity extends AppCompatActivity {
         return rootView;
     }
 
+    public void updateTabBarData(JSONObject tabbarData) {
+        if (null != mTabBar) {
+            mTabBar.updateTabBarData(RuntimeActivity.this, tabbarData);
+        } else {
+            Log.w(TAG, "updateTabBarData mTabBar is null.");
+        }
+    }
+
+    public boolean notifyTabBarChange(String routerPath) {
+        boolean isValid = false;
+        if (null != mTabBar) {
+            isValid = mTabBar.notifyTabBarChange(RuntimeActivity.this, routerPath);
+        } else {
+            Log.w(TAG, "notifyTabBarChange mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    public boolean prepareTabBarPath(boolean isTabBarPage, String path) {
+        boolean isValid = isTabBarPage;
+        if (null != mTabBar) {
+            isValid = mTabBar.prepareTabBarPath(isTabBarPage, path);
+        } else {
+            Log.w(TAG, "prepareTabBarPath mTabBar is null.");
+        }
+        return isValid;
+    }
+
     protected RootView getInnerRootView() {
         final RootView rootView = new RootView(this);
         rootView.setId(R.id.hybrid_view);
         return rootView;
+    }
+
+    public interface RootViewCallback {
+        void onAppInfoInit();
     }
 
     public HybridView getHybridView() {
@@ -449,6 +499,10 @@ public class RuntimeActivity extends AppCompatActivity {
             mHybridView.getHybridManager().onDestroy();
         }
         VideoCacheManager.getInstance().clearAllVideoData();
+        if (null != mTabBar) {
+            mTabBar.clearTabBar();
+            mTabBar = null;
+        }
     }
 
     @Override

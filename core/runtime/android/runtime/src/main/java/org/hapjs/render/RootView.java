@@ -28,9 +28,11 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.FitWindowsViewGroup;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -47,11 +49,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.greenrobot.eventbus.EventBus;
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.impl.android.AndroidViewClient;
+import org.hapjs.bridge.storage.file.InternalUriUtils;
 import org.hapjs.card.api.IRenderListener;
 import org.hapjs.common.executors.AbsTask;
 import org.hapjs.common.executors.Executors;
@@ -64,6 +68,7 @@ import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.MediaUtils;
 import org.hapjs.common.utils.RouterUtils;
 import org.hapjs.common.utils.ThreadUtils;
+import org.hapjs.common.utils.UriUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.ResizeEventDispatcher;
@@ -105,6 +110,7 @@ import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.LocaleResourcesParser;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.R;
+import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.runtime.inspect.InspectorManager;
 import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
@@ -174,7 +180,13 @@ public class RootView extends FrameLayout
     private ConfigurationManager.ConfigurationListener mConfigurationListener;
     private AutoplayManager mAutoplayManager;
     private OnDetachedListener mOnDetachedListener;
+    private RuntimeActivity.RootViewCallback mRootViewCallback;
     private CountDownLatch mEventCountDownLatch;
+
+    public void setRootViewCallback(RuntimeActivity.RootViewCallback mRootViewCallback) {
+        this.mRootViewCallback = mRootViewCallback;
+    }
+
     protected RenderEventCallback mRenderEventCallback =
             new RenderEventCallback() {
                 @Override
@@ -323,7 +335,7 @@ public class RootView extends FrameLayout
                 }
 
                 @Override
-                public boolean shouldOverrideUrlLoading(String url, String sourceH5,int pageId) {
+                public boolean shouldOverrideUrlLoading(String url, String sourceH5, int pageId) {
                     HybridRequest request =
                             new HybridRequest.Builder().uri(url).isDeepLink(true).pkg(mPackage)
                                     .build();
@@ -468,6 +480,9 @@ public class RootView extends FrameLayout
         } else {
             if (!routerPage(request)) {
                 onRenderFailed(IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND, "Page not found");
+            }
+            if (null != mRootViewCallback) {
+                mRootViewCallback.onAppInfoInit();
             }
         }
     }
@@ -938,7 +953,10 @@ public class RootView extends FrameLayout
                                 } finally {
                                     mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
                                 }
-
+                                if (null != mAppInfo &&
+                                        null != mRootViewCallback) {
+                                    mRootViewCallback.onAppInfoInit();
+                                }
                                 return LoadResult.SUCCESS;
                             }
 
@@ -1228,6 +1246,37 @@ public class RootView extends FrameLayout
         InspectorManager.getInspector().onPagePreChange(oldIndex, newIndex, oldPage, newPage);
     }
     /* end implement JsBridgeCallback */
+
+    @Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        super.addView(child, index, params);
+        refreshViewOrder();
+    }
+
+    private void refreshViewOrder() {
+        View tabbarView = findViewById(R.id.tabbar_container);
+        if (tabbarView != null) {
+            if (indexOfChild(tabbarView) < getChildCount() - 1) {
+                bringChildToFront(tabbarView);
+            }
+        }
+    }
+
+    public Uri tryParseUri(String src) {
+        if (null == mRenderEventCallback) {
+            return null;
+        }
+        Uri result = null;
+        if (!TextUtils.isEmpty(src)) {
+            result = UriUtils.computeUri(src);
+            if (result == null) {
+                result = mRenderEventCallback.getCache(src);
+            } else if (InternalUriUtils.isInternalUri(result)) {
+                result = mRenderEventCallback.getUnderlyingUri(src);
+            }
+        }
+        return result;
+    }
 
     @Override
     public void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {

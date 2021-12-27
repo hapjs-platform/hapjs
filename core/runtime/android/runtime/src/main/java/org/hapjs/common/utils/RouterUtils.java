@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.cache.CacheStorage;
@@ -23,6 +24,7 @@ import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.RuntimeActivity;
 
 public class RouterUtils {
     public static final String EXTRA_HAP_NAME = "HAP_NAME";
@@ -31,6 +33,7 @@ public class RouterUtils {
     public static final String EXTRA_HAP_SOURCE_ENTRY = "HAP_SOURCE_ENTRY";
     public static final String EXTRA_CARD_HOST_SOURCE = "CARD_HOST_SOURCE";
     public static final String EXTRA_SESSION = "SESSION";
+    private static final String TAG = "RouterUtils";
 
     public static boolean router(Context context, PageManager pageManager, HybridRequest request) {
         return router(context, pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER, null);
@@ -54,6 +57,51 @@ public class RouterUtils {
         }
     }
 
+    public static boolean switchTab(Context context, PageManager pageManager, HybridRequest request) {
+        if (pageManager == null) {
+            return false;
+        }
+        RuntimeActivity runtimeActivity = null;
+        if (context instanceof RuntimeActivity) {
+            runtimeActivity = (RuntimeActivity) context;
+        }
+        if (null == runtimeActivity) {
+            Log.w(TAG, "switchTab runtimeActivity is null.");
+            return false;
+        }
+        boolean isValid = false;
+        if (null != request) {
+            String path = request.getUriWithoutParams();
+            if (!TextUtils.isEmpty(path)) {
+                isValid = runtimeActivity.notifyTabBarChange(path);
+            }
+            if (isValid) {
+                request.setTabRequest(true);
+                return routerTabBar(pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER, null);
+            } else {
+                Log.w(TAG, "switchTab request not isValid  path :  " + path);
+                return false;
+            }
+        } else {
+            Log.w(TAG, "switchTab request is null.");
+            return false;
+        }
+    }
+
+    public static boolean routerTabBar(PageManager pageManager,
+                                       int pageId, HybridRequest request, String routerAppFrom, String sourceH5) {
+        if (pageManager == null) {
+            return false;
+        }
+        recordAppRouterStats(pageManager, request);
+        try {
+            return pushPage(pageManager, pageId, request);
+        } catch (PageNotFoundException e) {
+            Log.w(TAG, "routerTabBar PageNotFoundException : " + e.getMessage());
+            return false;
+        }
+    }
+
     public static boolean push(PageManager pageManager, HybridRequest request)
             throws PageNotFoundException {
         if (pageManager == null) {
@@ -68,6 +116,10 @@ public class RouterUtils {
         Page page = null;
         try {
             page = pageManager.buildPage(request);
+            if (null != request && null != page
+                    && request.isTabRequest()) {
+                page.setTabPage(true);
+            }
         } catch (PageNotFoundException e) {
             if (!HapEngine.getInstance(request.getPackage()).isCardMode()
                     && request instanceof HybridRequest.HapRequest

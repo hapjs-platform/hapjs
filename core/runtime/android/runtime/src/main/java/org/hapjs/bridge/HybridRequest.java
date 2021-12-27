@@ -40,6 +40,7 @@ public class HybridRequest {
     protected final boolean mAllowThirdPartyCookies;
     protected final boolean mShowLoadingDialog;
     protected final String mUserAgent;
+    private boolean mTabRequest = false;
 
     protected HybridRequest(String action,
                             String uriWithoutParams,
@@ -78,6 +79,14 @@ public class HybridRequest {
                 builder.showLoadingDialog,
                 builder.userAgent,
                 builder.launchFlags);
+    }
+
+    public boolean isTabRequest() {
+        return mTabRequest;
+    }
+
+    public void setTabRequest(boolean mIsTabRequest) {
+        this.mTabRequest = mIsTabRequest;
     }
 
     protected static String buildFullUri(String uri, Map<String, String> params, String fragment) {
@@ -133,6 +142,10 @@ public class HybridRequest {
         } else {
             return buildFullUri(mUriWithoutParams, mParams, mFragment);
         }
+    }
+
+    public String getUriWithoutParams() {
+        return mUriWithoutParams;
     }
 
     public String getPackage() {

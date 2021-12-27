@@ -602,6 +602,15 @@ export default class XVm {
             return pageModule.setMenubarData({ id: page.id, attr })
           }
         },
+        setTabBarItem: function(attr) {
+          // 调用native侧提供的接口，设置TabBardata数据
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.setTabBarItem({ id: page.id, attr })
+          }
+        },
         hideSkeleton: function() {
           if (page && page.doc) {
             console.log(`### App Framework ### 页面 ${page.id} 调用 hideSkeleton ----`)
