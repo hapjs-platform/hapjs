@@ -113,6 +113,7 @@ public class Page implements IPage {
     private String mTargetPageUri;
     private long mPageLastUsedTime;
     private boolean mCleanCache = false;
+    private boolean mIsTabPage = false;
 
     public Page(
             AppInfo appInfo,
@@ -156,6 +157,14 @@ public class Page implements IPage {
         metaInfo.put(META_PATH, routableInfo.getPath());
         metaInfo.put(META_COMP, routableInfo.getComponent());
         return metaInfo;
+    }
+
+    public boolean isTabPage() {
+        return mIsTabPage;
+    }
+
+    public void setTabPage(boolean mIsTabPage) {
+        this.mIsTabPage = mIsTabPage;
     }
 
     public int getInnerPageTag() {

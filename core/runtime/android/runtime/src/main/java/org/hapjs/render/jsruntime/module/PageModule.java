@@ -5,10 +5,12 @@
 
 package org.hapjs.render.jsruntime.module;
 
+import android.app.Activity;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
 import org.hapjs.bridge.Extension;
 import org.hapjs.bridge.NativeInterface;
 import org.hapjs.bridge.Request;
@@ -24,6 +26,7 @@ import org.hapjs.render.RootView;
 import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.RuntimeActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +36,8 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = PageModule.ACTION_FINISH_PAGE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_RECT, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_DATA, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_BOUNDING_RECT, mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_BOUNDING_RECT, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = PageModule.ACTION_SET_TABBAR_ITEM, mode = Extension.Mode.SYNC)
         }
 )
 public class PageModule extends ModuleExtension {
@@ -49,6 +53,7 @@ public class PageModule extends ModuleExtension {
     protected static final String RESULT_MENU_BAR_RIGHT = "menuBarRight";
     protected static final String RESULT_MENU_BAR_BOTTOM = "menuBarBottom";
     protected static final String ACTION_SET_MENUBAR_DATA = "setMenubarData";
+    protected static final String ACTION_SET_TABBAR_ITEM = "setTabBarItem";
     private static final String TAG = "PageModule";
     private PageManager mPageManager;
 
@@ -74,6 +79,8 @@ public class PageModule extends ModuleExtension {
             return getMenuBarBoundingRect(request);
         } else if (ACTION_SET_MENUBAR_DATA.equals(action)) {
             return setMenuBarData(request);
+        } else if (ACTION_SET_TABBAR_ITEM.equals(action)) {
+            return setTabBarItem(request);
         }
         return Response.NO_ACTION;
     }
@@ -140,6 +147,41 @@ public class PageModule extends ModuleExtension {
             Log.w(TAG, "getMenuBarBoundingRect menubarView or designWidth is not valid.");
         }
         return new Response(result);
+    }
+
+    private Response setTabBarItem(Request request) {
+        if (null == request) {
+            Log.e(TAG, "setTabBarItem request is null.");
+            return Response.ERROR;
+        }
+        JSONObject params = null;
+        try {
+            JSONObject jsonParams = request.getJSONParams();
+            if (null != jsonParams && jsonParams.has("attr")) {
+                params = jsonParams.getJSONObject("attr");
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, " setTabBarItem jsonParams is null.");
+            return Response.ERROR;
+        }
+        NativeInterface nativeInterface = null;
+        RuntimeActivity runtimeActivity = null;
+        if (null != request) {
+            nativeInterface = request.getNativeInterface();
+        }
+        if (null != nativeInterface) {
+            Activity activity = nativeInterface.getActivity();
+            if (activity instanceof RuntimeActivity) {
+                runtimeActivity = (RuntimeActivity) activity;
+            }
+            if (null != runtimeActivity) {
+                runtimeActivity.updateTabBarData(params);
+                return Response.SUCCESS;
+            } else {
+                return Response.ERROR;
+            }
+        }
+        return Response.ERROR;
     }
 
     private Response setMenuBarData(Request request) {
