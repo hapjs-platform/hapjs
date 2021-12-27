@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -52,11 +52,11 @@ import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.impl.android.AndroidViewClient;
+import org.hapjs.bridge.storage.file.InternalUriUtils;
 import org.hapjs.card.api.IRenderListener;
 import org.hapjs.common.executors.AbsTask;
 import org.hapjs.common.executors.Executor;
 import org.hapjs.common.executors.Executors;
-import org.hapjs.common.json.JSONObject;
 import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.resident.ResidentManager;
@@ -65,6 +65,7 @@ import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.MediaUtils;
 import org.hapjs.common.utils.RouterUtils;
 import org.hapjs.common.utils.ThreadUtils;
+import org.hapjs.common.utils.UriUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.ResizeEventDispatcher;
@@ -110,6 +111,7 @@ import org.hapjs.runtime.R;
 import org.hapjs.runtime.inspect.InspectorManager;
 import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * It's a view like WebView, used to render a native app
@@ -176,6 +178,7 @@ public class RootView extends FrameLayout
     private ConfigurationManager.ConfigurationListener mConfigurationListener;
     private AutoplayManager mAutoplayManager;
     private OnDetachedListener mOnDetachedListener;
+    private TabBar mTabBar = null;
     private CountDownLatch mEventCountDownLatch;
     protected RenderEventCallback mRenderEventCallback =
             new RenderEventCallback() {
@@ -471,6 +474,7 @@ public class RootView extends FrameLayout
             if (!routerPage(request)) {
                 onRenderFailed(IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND, "Page not found");
             }
+            initTabBar();
         }
     }
 
@@ -627,6 +631,10 @@ public class RootView extends FrameLayout
         mDisplayManager.unregisterDisplayListener(mDisplayListener);
         if (mOnDetachedListener != null) {
             mOnDetachedListener.onDetached();
+        }
+        if (null != mTabBar) {
+            mTabBar.clearTabBar();
+            mTabBar = null;
         }
     }
 
@@ -943,7 +951,9 @@ public class RootView extends FrameLayout
                         } finally {
                             mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
                         }
-
+                        if (null != mAppInfo) {
+                            initTabBar();
+                        }
                         return LoadResult.SUCCESS;
                     }
 
@@ -1233,6 +1243,78 @@ public class RootView extends FrameLayout
         InspectorManager.getInspector().onPagePreChange(oldIndex, newIndex, oldPage, newPage);
     }
     /* end implement JsBridgeCallback */
+
+    private void initTabBar() {
+        ThreadUtils.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (null == mTabBar) {
+                    mTabBar = new TabBar();
+                }
+                mTabBar.initTabBarView(RootView.this);
+            }
+        });
+
+    }
+
+    public void updateTabBarData(JSONObject tabbarData) {
+        if (null != mTabBar) {
+            mTabBar.updateTabBarData(this, tabbarData);
+        } else {
+            Log.w(TAG, "updateTabBarData mTabBar is null.");
+        }
+    }
+
+    public boolean notifyTabBarChange(String routerPath) {
+        boolean isValid = false;
+        if (null != mTabBar) {
+            isValid = mTabBar.notifyTabBarChange(this, routerPath);
+        } else {
+            Log.w(TAG, "notifyTabBarChange mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    public boolean prepareTabBarPath(boolean isTabBarPage, String path) {
+        boolean isValid = isTabBarPage;
+        if (null != mTabBar) {
+            isValid = mTabBar.prepareTabBarPath(isTabBarPage, path);
+        } else {
+            Log.w(TAG, "prepareTabBarPath mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    @Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        super.addView(child, index, params);
+        refreshViewOrder();
+    }
+
+    private void refreshViewOrder() {
+        View tabbarView = findViewById(R.id.tabbar_container);
+        if (tabbarView != null) {
+            if (indexOfChild(tabbarView) < getChildCount() - 1) {
+                bringChildToFront(tabbarView);
+            }
+        }
+    }
+
+    public Uri tryParseUri(String src) {
+        if (null == mRenderEventCallback) {
+            return null;
+        }
+        Uri result = null;
+        if (!TextUtils.isEmpty(src)) {
+            result = UriUtils.computeUri(src);
+            if (result == null) {
+                result = mRenderEventCallback.getCache(src);
+            } else if (InternalUriUtils.isInternalUri(result)) {
+                result = mRenderEventCallback.getUnderlyingUri(src);
+            }
+        }
+        return result;
+    }
 
     @Override
     public void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {

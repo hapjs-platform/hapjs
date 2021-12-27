@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -40,6 +40,7 @@ public class HybridRequest {
     protected final boolean mAllowThirdPartyCookies;
     protected final boolean mShowLoadingDialog;
     protected final String mUserAgent;
+    private boolean mTabRequest = false;
 
     protected HybridRequest(String action,
                             String uriWithoutParams,
@@ -120,6 +121,18 @@ public class HybridRequest {
             return params;
         }
         return null;
+    }
+
+    public boolean isTabRequest() {
+        return mTabRequest;
+    }
+
+    public void setTabRequest(boolean tabRequest) {
+        this.mTabRequest = tabRequest;
+    }
+
+    public String getUriWithoutParams() {
+        return mUriWithoutParams;
     }
 
     public String getAction() {

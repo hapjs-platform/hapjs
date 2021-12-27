@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -338,7 +338,11 @@ public class PageManager {
             mHandler.obtainMessage(MSG_PUSH, page).sendToTarget();
             return;
         }
-
+        if (null != page && !page.isTabPage()
+                && prepareTabBar(page, false)) {
+            Log.w(TAG, "push page path is not valid tabbar path : " + page.getPath());
+            return;
+        }
         List<String> flags = page.getLaunchFlags();
         if (flags != null) {
             if (flags.contains(PageInfo.FLAG_CLEAR_TASK) && mPageInfos.size() > 0) {
@@ -346,7 +350,12 @@ public class PageManager {
                 return;
             }
         }
-
+        if (page.isTabPage()) {
+            if (mPageInfos.size() > 0) {
+                clearPageTask(page);
+                return;
+            }
+        }
         RoutableInfo routableInfo = page.getRoutableInfo();
         if (routableInfo != null) {
             String path = page.getPath();
@@ -430,7 +439,11 @@ public class PageManager {
             mHandler.obtainMessage(MSG_REPLACE, page).sendToTarget();
             return;
         }
-
+        if (null != page && !page.isTabPage()
+                && prepareTabBar(page, false)) {
+            Log.w(TAG, "replace page path is not valid tabbar path : " + page.getPath());
+            return;
+        }
         Page oldPage = getCurrPage();
         int index = getCurrIndex();
         if (index < 0 || index >= mPageInfos.size()) {
@@ -509,6 +522,9 @@ public class PageManager {
         int newCurrIndex = oldCurrIndex + changeIndex;
         Page oldPage = getPage(oldCurrIndex);
         Page newPage = getPage(newCurrIndex);
+        if (null != newPage) {
+            prepareTabBar(newPage, true);
+        }
         mPageChangedListener.onPagePreChange(oldCurrIndex, newCurrIndex, oldPage, newPage);
         for (int i = oldCurrIndex; i > newCurrIndex && i >= 0; i--) {
             Page page = mPageInfos.remove(i);
@@ -545,6 +561,37 @@ public class PageManager {
         void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage);
 
         void onPageRemoved(int index, Page page);
+    }
+
+    private boolean prepareTabBar(Page page, boolean isBack) {
+        if (!ThreadUtils.isInMainThread()) {
+            Log.w(TAG, "prepareTabBar not in main thread.");
+            return false;
+        }
+        boolean isTabBar = false;
+        if (null == page) {
+            Log.w(TAG, "prepareTabBar page is null.");
+            return false;
+        }
+        String path = page.getPath();
+        RootView rootView = null;
+        if (mPageChangedListener instanceof RootView) {
+            rootView = ((RootView) mPageChangedListener);
+        }
+        if (null != rootView) {
+            isTabBar = rootView.prepareTabBarPath(page.isTabPage(), path);
+            if (isTabBar) {
+                if (isBack) {
+                    rootView.notifyTabBarChange(path);
+                } else if (mPageInfos.size() == 0) {
+                    isTabBar = false;
+                    rootView.notifyTabBarChange(path);
+                }
+            }
+        } else {
+            Log.w(TAG, "prepareTabBar rootView null.");
+        }
+        return isTabBar;
     }
 
     private class HandlerImpl extends Handler {
