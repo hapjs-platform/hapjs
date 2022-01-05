@@ -420,7 +420,10 @@ public class Device extends FeatureExtension {
 
     private Response getSerial(Request request) throws JSONException {
         String serial;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            //Starting with Android API level 29(Q),third part App not allowed to get SN.
+            return new Response(Response.CODE_GENERIC_ERROR, "getSerial fail，not allowed to get SN starting with Android Q");
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
                 serial = Build.getSerial();
             } catch (SecurityException e) {
