@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -67,11 +67,9 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = Network.ACTION_GET_TYPE, mode = FeatureExtension.Mode.ASYNC),
                 @ActionAnnotation(name = Network.ACTION_SUBSCRIBE, mode = FeatureExtension.Mode.CALLBACK),
                 @ActionAnnotation(name = Network.ACTION_UNSUBSCRIBE, mode = FeatureExtension.Mode.SYNC),
-                @ActionAnnotation(
-                        name = Network.ACTION_GET_SIM_OPERATORS,
-                        mode = FeatureExtension.Mode.ASYNC,
-                        permissions = {Manifest.permission.READ_PHONE_STATE}),
-        })
+                @ActionAnnotation(name = Network.ACTION_GET_SIM_OPERATORS, mode = FeatureExtension.Mode.ASYNC)
+        }
+)
 public class Network extends CallbackHybridFeature {
     protected static final String FEATURE_NAME = "system.network";
     protected static final String ACTION_GET_TYPE = "getType";
