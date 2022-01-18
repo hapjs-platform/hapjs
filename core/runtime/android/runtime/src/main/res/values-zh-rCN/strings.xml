@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -39,6 +39,8 @@
     <!-- Hap Permission -->
     <string name="hap_permission_ringtone_desc">修改系统铃声</string>
     <string name="hap_permission_step_counter_desc">获取计步数据</string>
+    <string name="hap_permission_access_clipboard_desc">访问剪贴板</string>
+    <string name="hap_permission_write_clipboard_desc">写入剪贴板</string>
 
     <!--unsupported element-->
     <string name="unsupported_element_tip">不支持的组件:<xliff:g id="app">%1$s</xliff:g></string>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,6 +14,8 @@ public class HapCustomPermissions {
     public static final String HAP_PERMISSION_RINGTONE = "hap.permission.RINGTONE";
     public static final String HAP_PERMISSION_STEP_COUNTER = "hap.permission.STEP_COUNTER";
     public static final String HAP_PERMISSION_RECEIVE_BROADCAST = ".permission.RECEIVE_BROADCAST";
+    public static final String HAP_PERMISSION_ACCESS_CLIPBOARD = "hap.permission.ACCESS_CLIPBOARD";
+    public static final String HAP_PERMISSION_WRITE_CLIPBOARD = "hap.permission.WRITE_CLIPBOARD";
 
     // key is permission name, value is permission description resource id
     private static HashMap<String, Integer> sHapPermissions = new HashMap<>();
@@ -21,6 +23,8 @@ public class HapCustomPermissions {
     static {
         sHapPermissions.put(HAP_PERMISSION_RINGTONE, R.string.hap_permission_ringtone_desc);
         sHapPermissions.put(HAP_PERMISSION_STEP_COUNTER, R.string.hap_permission_step_counter_desc);
+        sHapPermissions.put(HAP_PERMISSION_ACCESS_CLIPBOARD, R.string.hap_permission_access_clipboard_desc);
+        sHapPermissions.put(HAP_PERMISSION_WRITE_CLIPBOARD, R.string.hap_permission_write_clipboard_desc);
     }
 
     public static boolean isHapPermission(String permission) {
