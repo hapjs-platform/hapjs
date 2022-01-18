@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -33,7 +33,7 @@ public class Clipboard extends FeatureExtension {
 
     protected static final String PARAM_KEY_TEXT = "text";
 
-    protected ClipboardManager mClipboard;
+    protected volatile ClipboardManager mClipboard;
 
     @Override
     protected Response invokeInner(final Request request) throws Exception {
