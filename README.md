@@ -108,13 +108,13 @@ mockup/plugin：快应用框架三方接口（账户，支付，推送等）
 快应用框架项目使用 gradle 进行编译。
 
 ### 快应用框架编译
-在`quickapp/mockup/platform/android`目录下执行
+在`hapjs/mockup/platform/android`目录下执行
 
 ```
 ./gradlew assembleDebug/Release
 
 ```
-即可在`quickapp/mockup/platform/android/app/build/outputs/apk/`目录生成相应的android apk安装文件。
+即可在`hapjs/mockup/platform/android/app/build/outputs/apk/`目录生成相应的android apk安装文件。
 
 ```
 // 生成的文件，以执行 assembleDebug 为例
@@ -132,7 +132,7 @@ mockup/plugin：快应用框架三方接口（账户，支付，推送等）
 ### 安装到手机
 
 ```
-cd quickapp/mockup/platform/android
+cd hapjs/mockup/platform/android
 
 adb install -r -d app/build/outputs/apk/phone/debug/phone/debug/app-phone-debug.apk 
 
@@ -155,7 +155,7 @@ adb install -r -d app/build/outputs/apk/phone/debug/phone/debug/app-phone-debug.
 #### 编译快应用调试器
 快应用调试器使用 gradle 进行编译。
 
-在`quickapp/debug/shell/android`目录下执行
+在`hapjs/debug/shell/android`目录下执行
 
 ```
 ./gradlew assembleDebug/Release
