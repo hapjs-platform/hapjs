@@ -1,0 +1,20 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <block>
+    <div if="{{ ifData1 }}">
+      <text>part1</text>
+    </div>
+  </block>
+</template>
+
+<script>
+  export default {
+    data: {
+      ifData1: false
+    }
+  }
+</script>

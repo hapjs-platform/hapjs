@@ -1,0 +1,21 @@
+{
+  "name": "sys-components",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "hap server & hap watch --devtool source-map & echo watch",
+    "build": "hap build",
+    "release": "hap release",
+    "server": "hap server",
+    "watch": "hap watch"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.12.1",
+    "eslint-plugin-hybrid": "0.0.5",
+    "hap-toolkit": "^0.6.10"
+  },
+  "browserslist": [
+    "chrome 65"
+  ]
+}

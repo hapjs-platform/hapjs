@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--  
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+          name="viewport"/>
+    <script type="text/javascript">
+        var elementText = {
+            zh: {
+                warningText: "您访问的网站使用的证书已过期或无效",
+                exitText: "退出",
+                ignoreText: "继续访问"
+            },
+            en: {
+                warningText: "The certificate used by the website you are visiting has expired or is invalid",
+                exitText: "Exit",
+                ignoreText: "Continue"
+            }
+        }
+
+        function ignoreSslError() {
+            // continue
+            window.system.ignoreSslError();
+        }
+
+        function exitSslError() {
+            // exit
+            window.system.exitSslError();
+        }
+
+        function onLoad() {
+            var url = document.location.toString();
+            var arrUrl = url.split("?");
+            var urlParamsArray = arrUrl[1];
+            var language = (navigator.language || navigator.browserLanguage);
+            var type = "other";
+            // get type and language
+            if (urlParamsArray) {
+                var params = urlParamsArray.split("&");
+                if (Array.isArray(params)) {
+                    var typeParams;
+                    params.some(function (element) {
+                        if (element.indexOf("type") !== -1) {
+                            typeParams = element;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (typeParams) {
+                        type = typeParams.split("=")[1];
+                    }
+                    var languageParams;
+                    params.some(function (element) {
+                        if (element.indexOf("lang") !== -1) {
+                            languageParams = element;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (languageParams) {
+                        language = languageParams.split("=")[1];
+                    }
+                }
+            }
+            if (type.indexOf("inWhiteList") !== -1) {
+                document.getElementById("btn_ignore").style.display = 'block';
+            } else {
+                document.getElementById("btn_ignore").style.display = 'none';
+            }
+            // multi language
+            initElementText(language);
+        }
+
+        function initElementText(lang) {
+            if (lang) {
+                var item = lang.indexOf("zh") !== -1 ? elementText.zh : elementText.en;
+                document.getElementById("txt_warning").textContent = item.warningText;
+                document.getElementById("btn_exit").value = item.exitText;
+                document.getElementById("btn_ignore").value = item.ignoreText;
+            }
+        }
+
+        function init() {
+            var width = document.documentElement.clientWidth;
+            var rem = width / 10.80;
+            document.documentElement.style.fontSize = rem + 'px';
+        }
+        init();
+
+
+    </script>
+    <style type="text/css">
+        .body {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0rem;
+            overflow: hidden;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .icon {
+            width: 3rem;
+            margin-top: 6rem;
+        }
+
+        .warning-text {
+            width: 6.9rem;
+            font-size: 0.45rem;
+            color: rgba(0, 0, 0, 0.50);
+            text-align: center;
+            margin-top: 0.18rem;
+            margin-bottom: 0rem
+        }
+
+        .btn-layout {
+            display: flex;
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding-left: 1.2rem;
+            padding-right: 1.2rem;
+            margin-top: 0.66rem;
+            overflow: hidden;
+        }
+
+        .btn-continue {
+            width: 3.96rem;
+            height: 1.02rem;
+            background-color: #158CFF;
+            border-radius: 0.51rem;
+            font-size: 0.45rem;
+            color: #FFFFFF;
+            text-align: center;
+            border: 0rem;
+            outline: none;
+            margin-left: 0.48rem;
+        }
+
+        .btn-exit {
+            width: 3.96rem;
+            height: 1.02rem;
+            background-color: #FFFFFF;
+            border-radius: 0.51rem;
+            font-size: 0.45rem;
+            color: #0086FF;
+            text-align: center;
+            border: 1px solid #0086FF;
+            outline: none;
+        }
+
+
+    </style>
+</head>
+
+<body class="body" id="body" onload="onLoad()">
+<div class="content" id="content">
+    <img alt="ssl_error_icon" class="icon" id="warning_icon" src="images/ssl_error_icon.webp">
+    <p class="warning-text" id="txt_warning">您访问的网站使用的证书已过期或无效</p>
+    <div class="btn-layout" id="btn_layout">
+        <input class="btn-exit" id="btn_exit" onclick="exitSslError()" type="button" value="退出"/>
+        <input class="btn-continue" display="none" id="btn_ignore" onclick="ignoreSslError()"
+               type="button"
+               value="继续访问"/>
+    </div>
+</div>
+</body>
+
+</html>

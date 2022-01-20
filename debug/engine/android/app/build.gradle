@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+def getPlatformVersionCode() {
+    def prop = System.properties['platformVersionCode']
+    if (prop != null) {
+        println 'platform versionCode is ' + prop + ' (specified)'
+        return prop
+    }
+    int code = android.defaultConfig.versionCode / 10000
+    println 'platform versionCode is ' + code
+    return code.toString()
+}
+
+String PLATFORM_VERSION_TEXT = getPlatformVersionCode()
+
+android {
+    defaultConfig {
+        applicationId "org.hapjs.debug.core.v" + PLATFORM_VERSION_TEXT
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            if (variant.buildType.name == 'release') {
+                output.outputFileName = "debug_core_${defaultConfig.versionCode}.apk"
+            } else if (variant.buildType.name == 'debug') {
+                output.outputFileName = "debug_core_${defaultConfig.versionCode}_debug.apk"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:appcompat-v7:${rootProject.supportLibraryVersion}"
+
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':inspector')
+    } else {
+        implementation 'org.hapjs:inspector:' + rootProject.appVersionName
+    }
+}

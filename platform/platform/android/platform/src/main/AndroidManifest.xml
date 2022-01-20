@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.hapjs.platform">
+
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.UNINSTALL_SHORTCUT" />
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="${applicationId}.permission.CARD" />
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:multiArch="true"
+        android:supportsRtl="true">
+        <activity
+            android:name="org.hapjs.LauncherActivity$Launcher0"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":Launcher0"
+            android:screenOrientation="portrait"
+            android:taskAffinity=":Launcher0"
+            android:theme="@style/HapTheme.Launcher"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.hapjs.LauncherActivity$Launcher1"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":Launcher1"
+            android:screenOrientation="portrait"
+            android:taskAffinity=":Launcher1"
+            android:theme="@style/HapTheme.Launcher"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.hapjs.LauncherActivity$Launcher2"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":Launcher2"
+            android:screenOrientation="portrait"
+            android:taskAffinity=":Launcher2"
+            android:theme="@style/HapTheme.Launcher"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.hapjs.LauncherActivity$Launcher3"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":Launcher3"
+            android:screenOrientation="portrait"
+            android:taskAffinity=":Launcher3"
+            android:theme="@style/HapTheme.Launcher"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.hapjs.LauncherActivity$Launcher4"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|locale|layoutDirection|uiMode"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:process=":Launcher4"
+            android:screenOrientation="portrait"
+            android:taskAffinity=":Launcher4"
+            android:theme="@style/HapTheme.Launcher"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.hapjs.DispatcherActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:theme="@style/HapTheme.Dispatcher">
+            <intent-filter>
+                <action android:name="${applicationId}.action.LAUNCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="hapjs.org"
+                    android:pathPattern="/app/.*"
+                    android:scheme="http" />
+                <data
+                    android:host="hapjs.org"
+                    android:pathPattern="/app/.*"
+                    android:scheme="https" />
+                <data
+                    android:host="app"
+                    android:pathPattern="/.*"
+                    android:scheme="hap" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="org.hapjs.persistence.HybridProvider"
+            android:authorities="${applicationId}"
+            android:exported="false" />
+
+        <service
+            android:name="org.hapjs.distribution.DistributionService"
+            android:exported="false" />
+
+        <provider
+            android:name="org.hapjs.bridge.provider.SettingsProvider"
+            android:authorities="${applicationId}.settings"
+            android:exported="true"
+            tools:node="replace" />
+
+        <provider
+            android:name="org.hapjs.cache.CacheProvider"
+            android:authorities="${applicationId}.res"
+            android:exported="true" />
+
+        <service
+            android:name="org.hapjs.card.support.service.RemoteInstallService"
+            tools:node="remove" />
+
+        <service
+            android:name="org.hapjs.card.support.service.PlatformInstallService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.action.INSTALL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="org.hapjs.debug.DebugService"
+            tools:node="remove"></service>
+
+        <service
+            android:name="org.hapjs.debug.SrpkDebugService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.hapjs.intent.action.BIND_DEBUG_SERVICE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

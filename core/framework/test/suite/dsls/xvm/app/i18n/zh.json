@@ -1,0 +1,59 @@
+{
+  "message": {
+    "text": "纯文本内容",
+    "empty": "",
+    "format": {
+      "object": "类型-{name}",
+      "array": "类型-{0}"
+    },
+    "array": [
+      "元素-类型-字符串",
+      {
+        "key": "元素-类型-对象-属性"
+      },
+      ["元素-类型-数组"]
+    ],
+    "plurals": {
+      "double": "车 | 车s",
+      "three": "no 苹果s | one 苹果 | {count} 苹果s",
+      "format": {
+        "object": "类型-{name}",
+        "array": "类型-{0}"
+      }
+    }
+  },
+  "dateTimeFormat": {
+    "long": {
+      "year": "numeric",
+      "month": "2-digit",
+      "day": "2-digit",
+      "hour": "2-digit",
+      "minute": "2-digit",
+      "second": "2-digit",
+      "timeZone": "Asia/Shanghai"
+    },
+    "short": {
+      "year": "numeric",
+      "month": "2-digit",
+      "day": "2-digit",
+      "hour": "2-digit",
+      "minute": "2-digit",
+      "timeZone": "Asia/Shanghai"
+    }
+  },
+  "numberFormat": {
+    "currency": {
+      "style": "currency",
+      "currency": "RMB",
+      "currencyDisplay": "symbol"
+    },
+    "numeric": {
+      "style": "decimal",
+      "useGrouping": false
+    },
+    "percent": {
+      "style": "percent",
+      "useGrouping": false
+    }
+  }
+}

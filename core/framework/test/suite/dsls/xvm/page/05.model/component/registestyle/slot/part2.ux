@@ -1,0 +1,25 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part21"></import>
+
+<template>
+  <part21 class="classOuter">
+    <div if="{{ ifData1 }}">
+      <text>part2</text>
+    </div>
+  </part21>
+</template>
+
+<style>
+</style>
+
+<script>
+  export default {
+    data: {
+      ifData1: false
+    }
+  }
+</script>

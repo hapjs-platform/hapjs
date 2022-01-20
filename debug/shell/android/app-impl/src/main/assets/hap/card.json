@@ -1,0 +1,175 @@
+{
+  "platform": "org.hapjs.mockup",
+  "featureBlacklist": [
+    {
+      "name": "system.router",
+      "methods": [
+        "replace",
+        "back",
+        "clear",
+        "getLength",
+        "getState"
+      ]
+    },
+    {
+      "name": "system.notification"
+    },
+    {
+      "name": "system.webview"
+    },
+    {
+      "name": "system.request"
+    },
+    {
+      "name": "system.file"
+    },
+    {
+      "name": "system.barcode"
+    },
+    {
+      "name": "system.sensor"
+    },
+    {
+      "name": "system.geolocation",
+      "methods": [
+        "subscribe",
+        "unsubscribe"
+      ]
+    },
+    {
+      "name": "system.shortcut"
+    },
+    {
+      "name": "system.network",
+      "methods": [
+        "subscribe",
+        "unsubscribe"
+      ]
+    },
+    {
+      "name": "system.device",
+      "methods": [
+        "getAdvertisingId",
+        "getUserId",
+        "getDeviceId",
+        "getId",
+        "getCpuInfo",
+        "getTotalStorage",
+        "getAvailableStorage"
+      ]
+    },
+    {
+      "name": "system.brightness"
+    },
+    {
+      "name": "system.volume"
+    },
+    {
+      "name": "system.package",
+      "methods": [
+        "install"
+      ]
+    },
+    {
+      "name": "system.record"
+    },
+    {
+      "name": "system.media"
+    },
+    {
+      "name": "system.image"
+    },
+    {
+      "name": "system.audio"
+    },
+    {
+      "name": "service.push"
+    },
+    {
+      "name": "service.pay"
+    },
+    {
+      "name": "service.account"
+    },
+    {
+      "name": "service.stats"
+    },
+    {
+      "name": "service.share"
+    },
+    {
+      "name": "service.wxpay"
+    },
+    {
+      "name": "service.qqaccount"
+    },
+    {
+      "name": "service.wxaccount"
+    },
+    {
+      "name": "service.wbaccount"
+    },
+    {
+      "name": "service.alipay"
+    },
+    {
+      "name": "system.sms"
+    },
+    {
+      "name": "system.contact"
+    },
+    {
+      "name": "system.wifi"
+    },
+    {
+      "name": "system.websocketfactory"
+    },
+    {
+      "name": "system.share"
+    },
+    {
+      "name": "system.bluetooth"
+    }
+  ],
+  "componentBlacklist": [
+    {
+      "name": "list"
+    },
+    {
+      "name": "list-item"
+    },
+    {
+      "name": "refresh"
+    },
+    {
+      "name": "richtext"
+    },
+    {
+      "name": "tabs"
+    },
+    {
+      "name": "tab-bar"
+    },
+    {
+      "name": "tab-content"
+    },
+    {
+      "name": "swiper"
+    },
+    {
+      "name": "slider"
+    },
+    {
+      "name": "video"
+    },
+    {
+      "name": "web"
+    },
+    {
+      "name": "canvas"
+    },
+    {
+      "name": "map"
+    }
+  ]
+}

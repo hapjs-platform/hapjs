@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<!-- android:background="#FFFFFFFF"-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/titlebar_dialog_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFFFF"
+    android:orientation="vertical">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/menubar_dialog_left_container"
+            android:layout_width="wrap_content"
+            android:layout_height="26dp"
+            android:layout_marginTop="17dp"
+            android:orientation="horizontal"
+            android:paddingLeft="20dp">
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/title_rpk_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                fresco:roundedCornerRadius="5dp"></com.facebook.drawee.view.SimpleDraweeView>
+
+            <TextView
+                android:id="@+id/title_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:maxWidth="160dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="5dp"
+                android:textColor="#FF000000"
+                android:textSize="16sp"></TextView>
+
+            <ImageView
+                android:id="@+id/menubar_about_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/menubar_about_img"></ImageView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="26dp"
+            android:layout_marginTop="17dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:orientation="horizontal"
+            android:paddingRight="20dp">
+
+            <ImageView
+                android:id="@+id/titlebar_dialog_status_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                android:src="@drawable/menu_dot"></ImageView>
+
+            <TextView
+                android:id="@+id/titlebar_dialog_status_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:gravity="center_vertical"
+                android:paddingLeft="6dp"
+                android:text=""
+                android:textColor="#80000000"
+                android:textSize="10sp"></TextView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/titlebar_dialog_top_layout"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:layout_marginTop="8dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/titlebar_dialog_toplistview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="16dp"></LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="#FFF2F2F2"></View>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="16dp"></LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/titlebar_dialog_bottom_layout"
+        android:layout_width="match_parent"
+        android:layout_height="90dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/titlebar_dialog_bottomlistview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/titlebar_dialog_bottom_line"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginTop="16dp"
+        android:background="#FFF2F2F2"></View>
+
+    <LinearLayout
+        android:id="@+id/titlebar_dialog_cancel_layout"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:id="@+id/titlebar_dialog_cancel_textview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/menubar_dlg_cancel"
+            android:textColor="#4d000000 "
+            android:textSize="15sp">
+
+        </TextView>
+    </LinearLayout>
+
+</LinearLayout>

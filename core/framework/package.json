@@ -1,0 +1,110 @@
+{
+  "name": "framework",
+  "version": "0.0.7",
+  "description": "",
+  "scripts": {
+    "format": "prettier \"{src,test,config}/**/*.{md,js,json}\" --write",
+    "format-c": "clang-format -i --glob=../../*/**/*.{h,cpp,cc,c}",
+    "format-check": "prettier --list-different \"{src,test,config}/**/*.{md,js,json}\"",
+    "build": "npm run native && npm run native:release",
+    "build:h5": "npm run h5:dv && npm run h5:ol",
+    "clear": "rm -rf dist/*",
+    "native": "npm run na:dv",
+    "native:release": "npm run na:ol",
+    "na": "npm run na:dv -- -w",
+    "na:dv": "cross-env NODE_PLATFORM=na NODE_PHASE=dv rollup -c config/rollup.config.js",
+    "na:ol": "cross-env NODE_PLATFORM=na NODE_PHASE=ol rollup -c config/rollup.config.js",
+    "h5": "npm run h5:dv -- -w",
+    "h5:dv": "cross-env NODE_PLATFORM=h5 NODE_PHASE=dv rollup -c config/rollup.config.js",
+    "h5:ol": "cross-env NODE_PLATFORM=h5 NODE_PHASE=ol rollup -c config/rollup.config.js",
+    "test": "npm run test:xparser:build && npm run test:xparser",
+    "test:suite": "npm run test:suite:lint && npm run format-check && npm run test:suite:common && nyc --clean=true npm run test:suite:runtime && nyc --clean=false npm run test:suite:framework",
+    "test:suite:lint": "eslint src/ test/suite/",
+    "test:suite:common": "mocha --exit --require @babel/register test/suite/infras/common/*.js",
+    "test:suite:runtime": "mocha --exit --require @babel/register test/suite/infras/runtime/**/*.js",
+    "test:suite:runtime:css": "mocha --exit --require @babel/register test/suite/infras/runtime/*/07.*.js",
+    "test:suite:runtime:perf": "mocha --exit --timeout 0 --require @babel/register test/suite/infras/runtime/*/perf/*.js",
+    "test:suite:framework": "rm -rf test/build && npm run test:suite:framework:main && npm run test:suite:framework:worker && npm run test:suite:framework:importthen",
+    "test:suite:framework:main": "npm run test:suite:framework:main:build && npm run test:suite:framework:main:index",
+    "test:suite:framework:main:build": "webpack --config test/config/webpack.config.ux.js",
+    "test:suite:framework:main:index": "mocha --exit --recursive --require @babel/register test/suite/dsls/xvm/page/**/*.test.js",
+    "test:suite:framework:worker": "npm run test:suite:framework:worker:build && mocha --exit --recursive --require @babel/register test/suite/infras/worker/**/*.test.js",
+    "test:suite:framework:worker:build": "webpack --config test/config/webpack.worker.config.js",
+    "test:suite:framework:importthen:build": "cd ./test/suite/dsls/xvms/importthen/project && npm i  && npm run build && rm -rf ./node_modules",
+    "test:suite:framework:importthen": "npm run test:suite:framework:importthen:build && mocha --exit --require @babel/register test/suite/dsls/xvms/importthen/**/*.test.js",
+    "test:xparser": "npm run test:xparser:build && mocha --exit --recursive ./test/xparser/test.js",
+    "test:xparser:build": "babel src/infras/bundles/parser --out-dir lib/xparser",
+    "na:ol:ext": "cross-env NODE_PLATFORM=na NODE_PHASE=ol NODE_DIST_EXTRA=infras-ext rollup -c config/rollup.config.js",
+    "deploy": "npm run na:ol:ext && node config/deploy.js",
+    "test:suite:dsl": "npm run na:ol:ext && cross-env NODE_REPO_FROM=minify npm run test:suite:framework:main"
+  },
+  "keywords": [],
+  "engines": {
+    "node": ">=10.0",
+    "npm": ">=6.0"
+  },
+  "subversion": {
+    "framework": "0.0.6",
+    "packager": "0.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*../../*/**/*.{h,cpp,cc,c}": [
+      "npm run format-c",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "app-module-path": "^2.2.0",
+    "chai": "^3.5.0",
+    "chokidar": "^3.3.1",
+    "clang-format": "^1.5.0",
+    "cross-env": "^3.2.4",
+    "css-loader": "^3.2.0",
+    "css-what": "^2.1.3",
+    "eslint": "^6.2.2",
+    "eslint-config-prettier": "^4.1.0",
+    "eslint-config-standard": "^14.0.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "hap-toolkit": "^0.7.4",
+    "husky": "^1.3.1",
+    "istanbul-instrumenter-loader": "^3.0.1",
+    "json-loader": "0.5.4",
+    "lint-staged": "^8.1.4",
+    "mini-css-extract-plugin": "^0.4.5",
+    "mocha": "^5.2.0",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "pretty-format": "^25.1.0",
+    "rollup": "^1.13.0",
+    "rollup-plugin-alias": "^1.4.0",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-commonjs": "^10.0.0",
+    "rollup-plugin-eslint": "^5.0.0",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.0.1",
+    "rollup-plugin-postcss": "^0.2.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-plugin-terser": "^4.0.0",
+    "sinon": "^1.17.4",
+    "sinon-chai": "^2.8.0",
+    "source-map": "^0.5.6",
+    "webpack": "^4.28",
+    "webpack-cli": "^3.1.2",
+    "webpack-sources": "^1.3.0",
+    "yargs": "^13.2.2"
+  }
+}

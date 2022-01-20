@@ -1,0 +1,56 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1" name="part1"></import>
+<import src="./part2" name="part2"></import>
+
+<template>
+  <div class="doc-page">
+    <input type="button" value="点击改变组件" class="btn" @click="changeComponent"/>
+    <component id="comp" is="{{comName}}" pname="{{partName}}" @emit-event="getEvent"></component>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        comName: '',
+        comList: ['part1', 'part2'],
+        comIndex: 0,
+        partName: '',
+        nameList: ['first', 'second', 'third', 'forth'],
+        nameIndex: 0
+      }
+    },
+    getEvent(e) {
+      this.message = e.detail
+    },
+    changeComponent() {
+      this.comIndex = ++this.comIndex % 2
+      this.comName = this.comList[this.comIndex]
+      this.nameIndex = ++this.nameIndex % 4
+      this.partName = this.nameList[this.nameIndex]
+    }
+  }
+</script>
+
+<style>
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+  }
+
+  .doc-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+</style>

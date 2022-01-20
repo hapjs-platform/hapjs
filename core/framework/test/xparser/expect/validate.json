@@ -1,0 +1,366 @@
+{
+  "type": "div",
+  "children": [
+    {
+      "type": "div",
+      "children": [
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "text"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "abc": "12"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test padding1"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "paddingTop": "10px",
+            "paddingRight": "20px",
+            "paddingBottom": "30px",
+            "paddingLeft": "20px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test padding2"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "paddingTop": "10px",
+            "paddingRight": "20px",
+            "paddingBottom": "30px",
+            "paddingLeft": "20px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test padding3"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "paddingTop": "10px",
+            "paddingRight": "10px",
+            "paddingBottom": "10px",
+            "paddingLeft": "10px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test margin1"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "marginTop": "10px",
+            "marginRight": "20px",
+            "marginBottom": "30px",
+            "marginLeft": "40px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test margin2"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "marginTop": "10px",
+            "marginRight": "20px",
+            "marginBottom": "30px",
+            "marginLeft": "40px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test margin3"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "marginTop": "10px",
+            "marginRight": "10px",
+            "marginBottom": "10px",
+            "marginLeft": "10px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border1"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderStyle": "dotted",
+            "borderTopColor": "#FF0000",
+            "borderRightColor": "#FF0000",
+            "borderBottomColor": "#FF0000",
+            "borderLeftColor": "#FF0000"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border2"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {}
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border3"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {}
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border4"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border-width"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "borderTopWidth": "1px",
+            "borderRightWidth": "2px",
+            "borderBottomWidth": "3px",
+            "borderLeftWidth": "4px"
+          }
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "test border-color"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "borderTopColor": "#FF0000",
+            "borderRightColor": "#0000FF",
+            "borderBottomColor": "#FF0000",
+            "borderLeftColor": "#0000FF"
+          }
+        },
+        {
+          "type": "div",
+          "children": [],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {
+            "backgroundColor": "#FF0000",
+            "color": "rgba(255,255,50,0.5)",
+            "paddingTop": "10px",
+            "paddingRight": "20px",
+            "paddingBottom": "30px",
+            "paddingLeft": "40px",
+            "marginTop": "10px",
+            "marginRight": "20px",
+            "marginBottom": "10px",
+            "marginLeft": "20px",
+            "borderTopWidth": "10px",
+            "borderRightWidth": "20px",
+            "borderBottomWidth": "10px",
+            "borderLeftWidth": "20px",
+            "borderStyle": "solid",
+            "borderTopColor": "#FF0000",
+            "borderRightColor": "#000000",
+            "borderBottomColor": "#0000FF",
+            "borderLeftColor": "#ffffff"
+          }
+        }
+      ],
+      "events": {},
+      "classList": [],
+      "attr": {},
+      "style": {}
+    }
+  ],
+  "events": {},
+  "classList": [],
+  "attr": {},
+  "style": {
+    "flex": 1,
+    "flexDirection": "column"
+  }
+}

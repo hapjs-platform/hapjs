@@ -1,0 +1,17 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>part21-head</text>
+    <slot></slot>
+    <text>part21-foot</text>
+  </div>
+</template>
+
+<script>
+  export default {
+  }
+</script>

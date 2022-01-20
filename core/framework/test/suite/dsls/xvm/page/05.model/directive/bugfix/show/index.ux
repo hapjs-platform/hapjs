@@ -1,0 +1,20 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+
+<template>
+  <div>
+    <part1 id="vmInst1" show="{{part1ShowValue1}}"></part1>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      part1ShowValue1: true
+    }
+  }
+</script>

@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+dependencies {
+    if ('repo' != System.properties['moduleDepsType']) {
+        compileOnly project(':runtime')
+        api project(':features')
+        api project(':platform')
+    } else {
+        compileOnly 'org.hapjs:runtime:' + rootProject.appVersionName
+        api 'org.hapjs:features:' + rootProject.appVersionName
+        api 'org.hapjs:platform:' + rootProject.appVersionName
+    }
+}

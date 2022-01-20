@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+dependencies {
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':runtime')
+        implementation project(':widgets')
+        implementation project(':platform')
+        implementation project(':stats')
+    } else {
+        implementation 'org.hapjs:runtime:' + rootProject.appVersionName
+        implementation 'org.hapjs:widgets:' + rootProject.appVersionName
+        implementation 'org.hapjs:platform:' + rootProject.appVersionName
+        implementation 'org.hapjs:stats:' + rootProject.appVersionName
+    }
+    implementation "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
+    implementation "com.google.android.material:material:${rootProject.androidXVersion}"
+    implementation "androidx.legacy:legacy-support-v4:${rootProject.androidXVersion}"
+    implementation "androidx.recyclerview:recyclerview:${rootProject.androidXVersion}"
+}

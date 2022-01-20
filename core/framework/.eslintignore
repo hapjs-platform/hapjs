@@ -1,0 +1,4 @@
+# do not lint test case source files
+/test/build/**
+/test/xparser/build/**
+/test/suite/dsls/xvms/importthen/project/build/**

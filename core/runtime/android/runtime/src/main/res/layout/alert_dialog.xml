@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parentPanel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/topPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/alertTitle"
+            style="@style/AppWidget.DialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="@dimen/dialog_icon_drawable_padding"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="@dimen/dialog_title_horizontal_padding"
+            android:paddingTop="@dimen/dialog_title_vertical_padding"
+            android:paddingEnd="@dimen/dialog_title_horizontal_padding" />
+        <!-- If the client uses a customTitle, it will be added here. -->
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/contentPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/dialog_message_vertical_padding"
+        android:visibility="gone">
+
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:overScrollMode="ifContentScrolls">
+
+            <TextView
+                android:id="@+id/message"
+                style="@style/AppTextAppearance.Dialog.Medium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/dialog_message_horizontal_padding"
+                android:paddingEnd="@dimen/dialog_message_horizontal_padding" />
+        </ScrollView>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/customPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingStart="@dimen/dialog_custom_horizontal_padding"
+        android:paddingTop="@dimen/dialog_custom_vertical_padding"
+        android:paddingEnd="@dimen/dialog_custom_horizontal_padding"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@android:id/custom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/checkboxPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/dialog_checkbox_horizontal_padding"
+        android:paddingTop="@dimen/dialog_checkbox_vertical_padding"
+        android:paddingEnd="@dimen/dialog_checkbox_horizontal_padding"
+        android:paddingBottom="@dimen/dialog_checkbox_vertical_padding"
+        android:visibility="gone">
+
+        <CheckBox
+            android:id="@android:id/checkbox"
+            style="@style/AppTextAppearance.Dialog.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:button="@null"
+            android:drawableStart="@drawable/btn_checkbox_dialog_light" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/buttonGroup"
+            style="@style/AppWidget.ButtonBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:measureWithLargestChild="true"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@android:id/button2"
+                style="@style/AppWidget.Button.Dialog"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/btn_bg_dialog_first"
+                android:gravity="center"
+                android:maxLines="2"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@android:id/button3"
+                style="@style/AppWidget.Button.Dialog"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/btn_bg_dialog_middle"
+                android:gravity="center"
+                android:maxLines="2"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@android:id/button1"
+                style="@style/AppWidget.Button.Dialog.Highlight"
+                android:layout_width="0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/btn_bg_dialog_last"
+                android:gravity="center"
+                android:maxLines="2"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

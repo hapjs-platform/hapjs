@@ -1,0 +1,18 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text id="d1Id">{{d1Str}}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      d1Str: 'v1Str'
+    }
+  }
+</script>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <org.hapjs.features.preview.PreviewViewPager
+        android:id="@+id/preview_vp_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black" />
+
+    <TextView
+        android:id="@+id/preview_tv_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/viewpager_indicator_margin"
+        android:layout_marginTop="@dimen/viewpager_indicator_margin"
+        android:textColor="@color/result_text"
+        android:textSize="@dimen/text_size_indicator" />
+
+</RelativeLayout>

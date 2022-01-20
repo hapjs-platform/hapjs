@@ -1,0 +1,77 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="part1" src="./part1.ux"></import>
+<import name="part2" src="./part2.ux"/></import>
+<import name="part3" src="./part3.ux"></import>
+<import name="part4" src="./part4.ux"></import>
+
+<template>
+  <div>
+    <part1 id="vmInst1">
+      <text>reset slot data : {{parentVmText}}</text>
+    </part1>
+
+    <part2 id="vmInst2">
+      <text>reset slot data : {{parentVmText}}</text>
+    </part2>
+
+    <part1 id="vmInst3">
+      <div if="isShowVmInst3">
+        <text>vmInst3 : {{parentVmText}}</text>
+      </div>
+    </part1>
+
+    <div for="item in list1">
+      <part3>
+        <text id="elNode41">{{item.attr1}}</text>
+      </part3>
+    </div>
+
+    <div for="itemInList1 in list1">
+      <part3>
+        <div for="itemInList2 in list2">
+          <part3>
+            <text id="elNode521">{{itemInList2.attr2}}</text>
+          </part3>
+        </div>
+      </part3>
+    </div>
+
+    <div>
+      <part4>
+        <text class="parent_class" id="elNode61"> I can get parent_class </text>
+      </part4>
+    </div>
+  </div>
+</template>
+
+<style>
+  .parent_class {
+    background-color: #FF0000;
+  }
+</style>
+
+<script>
+export default {
+  private: {
+    parentVmText: 'from parent',
+    isShowVmInst3: false,
+    list1: [
+      {
+        attr1: 'val1'
+      }
+    ],
+    list2: [
+      {
+        attr2: 'val2'
+      }
+    ]
+  },
+  toggleVmInst3() {
+    this.isShowVmInst3 = !this.isShowVmInst3
+  }
+}
+</script>

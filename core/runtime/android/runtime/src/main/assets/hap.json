@@ -1,0 +1,16 @@
+{
+  "features": [
+  ],
+  "featureAlias": [
+    {
+      "name": "miui\\.(.+)",
+      "target": "system.$1",
+      "regex": true
+    },
+    {
+      "name": "miuix\\.(.+)",
+      "target": "service.$1",
+      "regex": true
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:' + rootProject.androidXVersion
+    implementation 'androidx.constraintlayout:constraintlayout:' + rootProject.androidXConstraintlayoutVersion
+    implementation 'com.google.android.material:material:' + rootProject.androidXVersion
+    implementation 'com.squareup.okhttp3:okhttp:3.5.0'
+
+    // Debugger should no longer compile latest inspector, instead it should compile with 1010
+    // version inspector aar, and along with its dependencies
+    implementation fileTree(dir: 'inspector', include: ['*.aar'])
+    implementation 'commons-cli:commons-cli:1.2'
+    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'androidx.recyclerview:recyclerview:' + rootProject.androidXVersion
+    implementation project(':debug-log')
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':card-common')
+        implementation project(':card-sdk')
+        compileOnly project(':card-api')
+    } else {
+        implementation 'org.hapjs:card-common:' + rootProject.appVersionName
+        implementation 'org.hapjs:card-sdk:' + rootProject.appVersionName
+        compileOnly 'org.hapjs:card-api:' + rootProject.appVersionName
+    }
+}

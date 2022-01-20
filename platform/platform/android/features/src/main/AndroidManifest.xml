@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.hapjs.features.adapter">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+        <service
+            android:name="org.hapjs.features.audio.service.AudioService"
+            tools:node="remove" />
+        <service
+            android:name=".audio.service.AudioService$AudioService0"
+            android:exported="false"
+            android:process=":Launcher0" />
+        <service
+            android:name=".audio.service.AudioService$AudioService1"
+            android:exported="false"
+            android:process=":Launcher1" />
+        <service
+            android:name=".audio.service.AudioService$AudioService2"
+            android:exported="false"
+            android:process=":Launcher2" />
+        <service
+            android:name=".audio.service.AudioService$AudioService3"
+            android:exported="false"
+            android:process=":Launcher3" />
+        <service
+            android:name=".audio.service.AudioService$AudioService4"
+            android:exported="false"
+            android:process=":Launcher4" />
+
+        <provider
+            android:name=".StorageProvider"
+            android:authorities="${applicationId}.storage"
+            android:exported="true" />
+        <provider
+            android:name="org.hapjs.features.storage.data.StorageProvider"
+            android:authorities="${applicationId}.storage"
+            tools:node="remove" />
+    </application>
+
+</manifest>

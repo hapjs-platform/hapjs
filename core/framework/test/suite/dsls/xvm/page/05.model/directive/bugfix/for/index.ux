@@ -1,0 +1,27 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text if="{{show0}}" for="{{item in list}}">{{item}}</text>
+    <block>
+        <text for="{{item in list}}" if="{{show1}}">{{item}}</text>
+    </block>
+    <div for="{{item in list}}" if="{{show2}}">
+      <text>{{item}}</text>
+    </div>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      show0: false,
+      show1: false,
+      show2: false,
+      list: [1, '', 3]
+    }
+  }
+</script>

@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+plugins {
+    id "java-gradle-plugin"
+    id "groovy"
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'com.sun.codemodel:codemodel:2.6'
+    compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+    implementation project(":annotation-processor")
+}
+
+gradlePlugin {
+    plugins {
+        generatorPlugin {
+            id = 'org.hapjs.gradle.plugin.annotation.generator'
+            implementationClass = 'org.hapjs.build.AnnotationGeneratorPlugin'
+        }
+    }
+}

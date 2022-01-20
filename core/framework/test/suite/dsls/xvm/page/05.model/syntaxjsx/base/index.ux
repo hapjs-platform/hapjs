@@ -1,0 +1,105 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div class="hap-page">
+    <block if="{{renderSlotFlag > 0}}">
+      <slot content="renderText"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 1}}">
+      <slot content="{{renderTextWithParams('params')}}"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 2}}">
+      <slot content="testDataBinding"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 3}}">
+      <slot content="testEventBinding"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 4}}">
+      <slot content="testEventBindingWithParams"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 5}}">
+      <slot content="testObjectSpread"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 6}}">
+      <slot content="testIf"></slot>
+    </block>
+
+    <block if="{{renderSlotFlag > 7}}">
+      <slot content="testFor"></slot>
+    </block>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      renderSlotFlag: 0,
+      detail: 'vmData',
+      className: 'btn-m',
+      params: []
+    },
+    showMsg (msg) {
+      this.params.push(typeof msg === 'object' ? JSON.stringify(msg) : msg)
+    },
+    renderText () {
+      return (<text>{this.detail}</text>)
+    },
+    renderTextWithParams (info) {
+      return (<text>{info}</text>)
+    },
+    testDataBinding () {
+      const className = 'color-red'
+      return (<text class={className}>{this.detail}</text>)
+    },
+    testEventBinding () {
+      return (<input id="input1" type="button" class={this.className} onclick={this.showMsg} value="点击显示toast:event"/>)
+    },
+    testEventBindingWithParams () {
+      return (<input id="input2" type="button" class={this.className} onclick={this.showMsg.bind(this, 'click')} value="点击显示toast:click"/>)
+    },
+    testObjectSpread () {
+      const props = {
+        id: 'input3',
+        type: 'button',
+        class: this.className,
+        style: 'background-color: #f76160',
+        onclick: function () {
+          this.showMsg('click')
+        },
+        value: '点击显示toast:click'
+      }
+      return (<input {...props}/>)
+    },
+    testIf () {
+      const show = true
+      return (
+        <div>
+          {show ? (<text>show=true</text>) : (<text>show=false</text>)}
+        </div>
+      )
+    },
+    testFor () {
+      const listData = ['list-item1', 'list-item2', 'list-item3']
+      return (
+        <list style="height: 130px">
+          {listData.map((item) => {
+            return (
+              <list-item type="listItem">
+                <text>{item}</text>
+              </list-item>
+            )
+          })}
+        </list>
+      )
+    }
+  }
+</script>

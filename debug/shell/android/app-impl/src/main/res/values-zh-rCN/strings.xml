@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">快应用调试器</string>
+    <string name="action_settings">设置</string>
+
+    <string name="btn_scan_install">扫码安装</string>
+    <string name="btn_local_install">本地安装</string>
+    <string name="btn_update_online">在线更新</string>
+    <string name="btn_start_debug">开始调试</string>
+
+    <string name="btn_scan_installing">扫码安装中...</string>
+    <string name="btn_local_installing">本地安装中...</string>
+    <string name="btn_updating_online">在线更新中...</string>
+
+    <string name="hint_fail_to_bind_service">无法启动【快应用预览版】，请在系统权限管理相关设置页面中将【关联启动】/【自启动】权限授予【快应用预览版】，或者手动打开【快应用预览版】。</string>
+    <string name="hint_no_response">如果【开始调试】按钮没有反应，请在系统权限管理相关设置页面中将【关联启动】/【自启动】和【后台弹出界面】权限授予【快应用预览版】。</string>
+
+    <string name="dlg_uninstall_title">卸载提示</string>
+    <string name="dlg_uninstall_msg">您已经安装了较高版本的平台预览版，是否卸载当前版本再进行安装呢？</string>
+
+    <string name="toast_no_barcode_scanner">找不到扫码器</string>
+    <string name="toast_barcode_scanner_fail">扫码失败</string>
+    <string name="toast_no_server">没有服务器信息, 请先使用扫码安装或在设置中填写服务器信息</string>
+    <string name="toast_install_fail">安装失败 <xliff:g id="error_code">%1$d</xliff:g></string>
+    <string name="toast_permission_fail">权限请求失败</string>
+    <string name="toast_no_debuggable_package">没有可调试的应用</string>
+    <string name="toast_platform_not_choose">没有选择运行时平台，请选择一个合适的平台</string>
+    <string name="toast_start_download">开始下载平台预览版，请稍等</string>
+    <string name="toast_uninstall_success">卸载成功</string>
+    <string name="toast_uninstall_fail">卸载失败</string>
+    <string name="toast_serial_number_user_denied">USB调试需要设备序列号来指定调试手机</string>
+    <string name="toast_debug_core_launch_success">启动调试器内核成功</string>
+    <string name="toast_debug_core_download_success">下载调试器内核成功，请安装</string>
+    <string name="toast_no_compatible_core_error">没有安装合适的调试器内核，请检查您的网络并重试</string>
+    <string name="toast_no_card">没有卡片信息</string>
+    <string name="toast_platform_not_support_debug">该平台不支持调试</string>
+    <string name="toast_debug_error">调试失败</string>
+    <string name="toast_platform_incompatible">当前平台版本为 <xliff:g id="cur_version">%1$d</xliff:g>，低于<xliff:g id="app">%2$s</xliff:g>所依赖的<xliff:g id="min_version">%3$d</xliff:g>，请升级平台版本。</string>
+    <string name="toast_view_card_in">请到\"<xliff:g id="host">%1$s</xliff:g>\"中查看</string>
+    <string name="toast_please_choose_rpk_file">请选择.rpk格式文件</string>
+
+    <string name="dlg_pick_package">选择一个应用安装包</string>
+    <string name="dlg_package_cert_changed_title">安装失败</string>
+    <string name="dlg_package_cert_changed_desc">当前应用的签名和已安装的版本不一致，请卸载之前的版本。
+        <b>注意：卸载会清除该应用的所有数据。</b>
+        \n\n是否卸载，并安装当前版本？
+    </string>
+    <string name="toast_no_wifi_connected">Wifi未连接，调试需要在Wifi环境下进行</string>
+
+    <string name="dlg_network_error_title">网络错误</string>
+    <string name="dlg_network_error_desc">获取rpk失败，请检查:
+        \n\n1. 您的手机是否和电脑处于同一局域网
+        \n\n2. 是否已经执行\"npm run server\"命令
+        \n\n3. 该服务器地址是否可以取到有效rpk：%s </string>
+    <string name="dlg_usb_error_title">USB连接错误</string>
+    <string name="dlg_usb_error_desc">获取rpk失败，请检查:
+        \n\n1. 您的手机是否与电脑用USB线连接
+        \n\n2. 是否已经执行\"npm run server\"命令
+        \n\n3. hap-toolkit版本是否支持USB调试
+        \n\n4. 开发者选项中的USB调试是否打开</string>
+    <string name="dlg_hint_downloading">正在下载...</string>
+    <string name="dlg_universal_scan_confirm_title">是否启动快应用？</string>
+
+    <string name="text_mode">运行模式: </string>
+    <string name="text_mode_application">应用</string>
+    <string name="text_mode_card">卡片</string>
+
+    <string name="hint_choose_platform">选择运行平台</string>
+    <string name="hint_choose_card">选择卡片</string>
+    <string name="text_platform">运行平台: </string>
+    <string name="text_platform_version_code_download">平台版本号: %s</string>
+    <string name="text_platform_version_code">平台标准号（版本号）: %s(%s)</string>
+    <string name="text_platform_version_name">平台版本名称: %s</string>
+    <string name="text_platform_version_beta">内测版</string>
+    <string name="text_enable_usb_debug">开启USB调试</string>
+    <string name="text_framework">运行框架: </string>
+    <string name="text_version_not_support_card">框架版本不支持卡片: %s</string>
+    <string name="text_platform_hint_app">请安装最新预览版</string>
+    <string name="text_platform_hint_card">请安装最新预览版并允许调试器自启动</string>
+
+    <string name="setting_category_general">通用</string>
+    <string name="setting_item_server_title">服务器</string>
+    <string name="setting_category_inspect">调试</string>
+    <string name="setting_item_unset_summary">未设置</string>
+    <string name="setting_item_reload_strategy">应用更新策略</string>
+    <string name="setting_item_reload_strategy_app">重启应用</string>
+    <string name="setting_item_reload_strategy_page">仅刷新页面</string>
+    <string name="setting_item_wait_devtools_title">等待DevTools连接</string>
+    <string name="setting_item_wait_devtools_summary">如果需要调试首页，打开此开关</string>
+    <string name="setting_item_web_debug_title">开启Web组件调试</string>
+    <string name="setting_item_web_debug_summary">如果需要调试Web组件，打开此开关</string>
+    <string name="setting_item_set_params_title">启动参数</string>
+    <string name="setting_category_others">其他</string>
+    <string name="setting_item_signature_title">获取应用签名</string>
+    <string name="setting_item_set_params_hint">如: /pageName?key=value 或 key=value</string>
+    <string name="toast_params_illegal">参数不能包含\"__DEBUG_PARAMS__\"</string>
+
+    <string name="hint_launch_package">快应用包名</string>
+    <string name="hint_launch_path">快应用页面路径</string>
+    <string name="hint_launch_deeplink">快应用Deeplink</string>
+    <string name="btn_launch_app">启动</string>
+    <string name="menu_label_launch_app_test">启动应用测试</string>
+    <string name="text_keyword_title">页面路径启动测试</string>
+    <string name="text_keyword_desc">本功能支持测试页面跳转，如关键词跳转等。请输入快应用包名和页面路径名\n(如: com.test.app和/pageName?key=value)</string>
+    <string name="text_deeplink_title">Deeplink启动测试</string>
+    <string name="text_deeplink_desc">请输入Deeplink跳转链接\n(如: http://hapjs.org/app/com.test.app)</string>
+    <string name="toast_no_package">请输入快应用包名！</string>
+    <string name="toast_no_deeplink">请输入Deeplink跳转链接！</string>
+    <string name="toast_wrong_deeplink">Deeplink跳转链接输入有误！</string>
+    <string name="toast_card_mode_added">卡片模式已添加</string>
+
+    <string name="btn_close">关闭</string>
+    <string name="btn_get_sign">获取签名</string>
+    <string name="btn_choose_native_app">选择已安装的原生应用</string>
+    <string name="btn_choose_apk_file">选择apk文件</string>
+    <string name="btn_choose_rpk_file">选择rpk或rpks文件</string>
+    <string name="btn_choose_pem_file">选择PEM文件</string>
+    <string name="btn_copy_md5">复制签名MD5</string>
+    <string name="btn_copy_sha256">复制签名SHA-256</string>
+    <string name="btn_copy_sign">复制签名</string>
+    <string name="btn_copy_sms_hash">复制短信Hash</string>
+    <string name="title_get_native_app_sign">获取原生应用签名</string>
+    <string name="title_get_rpk_sign">获取快应用签名</string>
+    <string name="title_get_pem_sign">从PEM文件获取签名</string>
+    <string name="title_md5">签名MD5</string>
+    <string name="title_sha256">签名SHA-256</string>
+    <string name="title_sign">签名</string>
+    <string name="title_sms_hash">短信Hash</string>
+    <string name="hint_enter_pkg">输入已安装的原生应用包名</string>
+    <string name="get_signature_label">获取签名</string>
+    <string name="choose_app_label">选择应用</string>
+    <string name="toast_pkg_name_null">请输入应用包名</string>
+    <string name="toast_pkg_not_found">应用不存在</string>
+    <string name="toast_copy_to_clipboard_succ">已复制到剪切版</string>
+    <string name="toast_get_signature_fail">获取签名失败</string>
+    <string name="toast_app_not_install">应用未安装</string>
+</resources>

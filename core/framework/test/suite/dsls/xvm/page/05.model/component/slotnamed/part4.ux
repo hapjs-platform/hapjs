@@ -1,0 +1,19 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="part5" src="./part5.ux"/></import>
+
+<template>
+  <div id="rootEl">
+    <part5 id="part5">
+      <slot>
+        <text>default: content from part4</text>
+      </slot>
+      <slot name="slot1" slot="slot1">
+        <text>slot1: content from part4</text>
+      </slot>
+    </part5>
+  </div>
+</template>

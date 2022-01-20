@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <dimen name="video_button_height">36dip</dimen>
+    <dimen name="video_default_padding">2dip</dimen>
+    <dimen name="video_controls_height">38dip</dimen>
+    <dimen name="video_controls_restry_bg_radius">15dp</dimen>
+    <dimen name="video_default_text_size">13sp</dimen>
+    <dimen name="video_error_text_size">14sp</dimen>
+    <dimen name="video_error_text_padding">15dp</dimen>
+    <dimen name="video_dialog_pg_height">3dp</dimen>
+    <dimen name="video_dialog_height">155dp</dimen>
+    <dimen name="video_dialog_width">120dp</dimen>
+    <dimen name="video_dialog_bg_radius">12dp</dimen>
+    <dimen name="video_dialog_progress_radius">2dp</dimen>
+    <dimen name="video_dialog_progress_height">2dp</dimen>
+    <dimen name="video_controls_seekbar_height">14dp</dimen>
+    <dimen name="video_title_text_size">14sp</dimen>
+
+    <dimen name="slider_max_height">3dp</dimen>
+</resources>

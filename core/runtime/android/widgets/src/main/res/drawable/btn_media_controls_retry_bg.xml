@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/video_controls_restry_bg_radius" />
+            <solid android:color="@color/video_contorls_retry_bg_color" />
+            <stroke android:width="1px" android:color="#a5ffffff" />
+        </shape>
+    </item>
+</selector>

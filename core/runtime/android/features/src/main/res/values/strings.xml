@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" translatable="false">Features</string>
+    <string name="webview_loading" translatable="false"></string>
+    <string name="share_title">Share</string>
+    <string name="button_ok">OK</string>
+    <string name="msg_camera_framework_bug">A camera error occurred. Try to restart your device.</string>
+    <string name="msg_default_status">Place the barcode inside the frame to scan it.</string>
+    <string name="feature_barcode_flight">Flashlight</string>
+    <string name="audio_playing_label">Playing</string>
+    <string name="audio_paused_label">Paused</string>
+    <string name="send_sms_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;wants to&#160;send SMS.</string>
+    <string name="set_alarm_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;wants to&#160;set an alarm.</string>
+    <string name="get_contactlist_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;wants to&#160;get contact information.</string>
+    <string name="dlg_permission_accept">Allow</string>
+    <string name="dlg_permission_reject">Restrict</string>
+
+    <!-- shortcut dialog -->
+    <string name="features_dlg_shortcut_title">Create shortcut</string>
+    <string name="features_dlg_shortcut_message">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034; is trying to create a Home screen shortcut.</string>
+    <string name="features_dlg_shortcut_ok">Allow</string>
+    <string name="features_dlg_shortcut_cancel">Cancel</string>
+
+    <!-- Prompt loading -->
+    <string name="loading_hint">Loading...</string>
+    <!-- media dialog -->
+    <string name="features_media_ringtone_msg">\"<xliff:g id="app">%1$s</xliff:g>\" is trying to set system ringtone.</string>
+
+    <!-- Image Preview -->
+    <string name="preview_save_successfully">Save successfully</string>
+    <string name="preview_save_failed">Save failed.</string>
+    <string name="preview_share_failed">Share failed.</string>
+    <string name="preview_share_to">Share to:</string>
+    <string-array name="item_preview">
+        <item>Save Pictures</item>
+        <item>Share Pictures</item>
+        <item>Cancel</item>
+    </string-array>
+
+    <!-- geolocation -->
+    <string name="no_map">Maps aren\'t supported.</string>
+    <string name="install_baidu_map_tip">Install Baidu map.</string>
+    <string name="baidu_map">Baidu Map</string>
+    <string name="a_map">AMap</string>
+    <string name="qq_map">Tencent Map</string>
+    <string name="open_location_title">Location Info</string>
+    <string name="choose_location_title">Location</string>
+    <string name="choose_done_btn">Done</string>
+    <string name="choose_search_hint">Search for location</string>
+</resources>

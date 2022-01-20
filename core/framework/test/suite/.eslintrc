@@ -1,0 +1,18 @@
+{
+  "extends": ["../../.eslintrc"],
+  "globals": {
+    "document": false,
+    "navigator": false,
+    "window": false,
+    "location": false,
+    "callNative": false,
+    "callJS": false,
+    "ENV_PLATFORM": false,
+    "ENV_PHASE": false,
+    "config": false,
+    "callNativeMessageList": false,
+    "expect": false,
+    "suppressConsole": false,
+    "waitForOK": false
+  }
+}

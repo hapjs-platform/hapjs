@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <string name="app_name">快应用预览版</string>
+    <string name="action_settings">设置</string>
+
+    <string name="btn_launch">秒开</string>
+    <string name="btn_update">更新</string>
+    <string name="toast_permission_fail">权限请求失败</string>
+
+    <string name="add_card_to_assistant_screen">将%s添加到负一屏</string>
+    <string name="dlg_add_card_to_assistant_screen">添加到负一屏</string>
+    <string name="dlg_cancel_add_card">取消</string>
+</resources>

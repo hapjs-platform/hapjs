@@ -1,0 +1,70 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part.ux" name="part1"></import>
+<template>
+  <div>
+    <div for="{{item in list1}}" tid="flag"><part1 name="{{item.name}}"></part1></div>
+    <div for="{{item in list2}}" tid="uuid"><part1 name="{{item.name}}"></part1></div>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      list: [],
+      list1: [],
+      list2: []
+    },
+    onReady() {
+      this.list = [
+        {
+          name: '103',
+          uuid: 103,
+          flag: false
+        }, {
+          name: '104',
+          uuid: 104,
+          flag: false
+        }, {
+          name: '105',
+          uuid: 105,
+          flag: false
+        }, {
+          name: '106',
+          uuid: 106,
+          flag: false
+        }
+      ]
+
+      this.list1 = this.list.slice(0)
+      this.list2 = this.list.slice(0)
+    },
+    changeList1() {
+      this.list1 = this.list1.reverse().map((item, index) => ({
+        ...item,
+        flag: index % 2 === 0 ? true : false
+      }))
+    },
+    revertList1() {
+      this.list1 = this.list1.reverse().map((item, index) => ({
+        ...item,
+        flag: false
+      }))
+    },
+    changeList2() {
+      this.list2 = this.list2.reverse().map((item, index) => ({
+        ...item,
+        flag: index % 2 === 0 ? true : false
+      }))
+    },
+    revertList2() {
+      this.list2 = this.list2.reverse().map((item, index) => ({
+        ...item,
+        flag: false
+      }))
+    }
+  }
+</script>

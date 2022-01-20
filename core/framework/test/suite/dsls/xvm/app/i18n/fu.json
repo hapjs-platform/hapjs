@@ -1,0 +1,17 @@
+{
+  "message": {
+    "text": "fulocale-pure-text-content",
+    "empty": "",
+    "format": {
+      "object": "fulocale-type-{name}",
+      "array": "fulocale-type-{0}"
+    },
+    "array": [
+      "fulocale-item-type-string",
+      {
+        "key": "fulocale-item-type-object-attribute"
+      },
+      ["fulocale-item-type-array"]
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "package": "com.application.demo",
+  "name": "dynamicImport-app",
+  "versionName": "1.0.0",
+  "versionCode": "1",
+  "minPlatformVersion": "1080",
+  "features": [],
+  "permissions": [{ "origin": "*" }],
+  "config": {
+    "logLevel": "log"
+  },
+  "router": {
+    "entry": "Demo",
+    "pages": {
+      "Demo": {
+        "component": "index"
+      }
+    }
+  }
+}

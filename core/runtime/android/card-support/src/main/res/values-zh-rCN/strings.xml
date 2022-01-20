@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <string name="card_load_failed">卡片加载失败</string>
+    <string name="card_outdated">卡片已失效</string>
+    <string name="card_loading">加载中...</string>
+</resources>

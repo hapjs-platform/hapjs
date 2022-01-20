@@ -1,0 +1,15 @@
+*~
+.DS_Store
+Thumbs.db
+
+*.iml
+.gradle
+.idea/
+captures/
+.externalNativeBuild
+src/main/obj
+*.swp
+
+.vscode/
+.cxx/
+yarn.lock

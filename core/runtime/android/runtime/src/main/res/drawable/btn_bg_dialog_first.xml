@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/btn_bg_dialog_first_pressed_light" android:state_pressed="true" />
+    <item android:drawable="@drawable/btn_bg_dialog_first_normal_light" />
+</selector>

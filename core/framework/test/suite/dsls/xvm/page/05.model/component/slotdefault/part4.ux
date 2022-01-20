@@ -1,0 +1,27 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div  id="slotContainer1">
+    <slot>
+      <text class="test-style">slot1: {{vmText}}</text>
+    </slot>
+    <slot>
+      <text class="test-style">slot2: {{vmText}}</text>
+    </slot>
+  </div>
+</template>
+
+<script>
+export default {
+  data: {
+    vmText: 'par1'
+  }
+}
+</script>
+
+<style>
+.test-style {color: #4cb4e7;}
+</style>

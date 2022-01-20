@@ -1,0 +1,47 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+
+<template>
+  <div>
+    <part1 id="vm1Id"></part1>
+    <part1 id="vm2Id" if="{{boolRender}}"></part1>
+  </div>
+</template>
+
+<script>
+  import testEval from './script/script0.js'
+
+  export default {
+    data: {
+      boolRender: false
+    },
+    toggleRender () {
+      this.boolRender = !this.boolRender
+    },
+    onRefresh (query, intent) {
+      this.refreshQuery = query
+      this.refreshIntent = intent
+    },
+    onReady () {
+      // 绑到VM
+      this.testEval = testEval
+    },
+    // 不支持async,默认按false处理
+    async onBackPress () {
+    },
+    // 原行为：声明函数即代表自己处理逻辑；
+    onMenuPress () {
+    },
+    // onKey 返回true时由前端处理事件，返回false为客户端执行键位操作。默认值为false
+    onKey () {
+    },
+    // 页面中加载独立的JS文件
+    testEvalInPage (path) {
+      $app_evaluate$(path)
+    }
+  }
+</script>

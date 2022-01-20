@@ -1,0 +1,20 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div class="part1-class">
+  </div>
+</template>
+
+<style>
+  .part1-class {
+    color: #00FF00;
+  }
+</style>
+
+<script>
+  export default {
+  }
+</script>

@@ -1,0 +1,28 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text id="d1Id">{{d1Str}}</text>
+    <!-- web组件：属性传递数组，且元素可能为正则 -->
+    <web if="{{webInst1If}}" trustedurl="{{webInst1List}}"></web>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      d1Str: 'v1Str',
+      webInst1If: false,
+      webInst1List: [
+        'str',
+        /reg/i
+      ]
+    },
+    onInit (query) {
+      this.query = query
+    }
+  }
+</script>

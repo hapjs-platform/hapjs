@@ -1,0 +1,26 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+
+<template>
+  <div>
+    <part1 class="index-part1-class" id="index-part1-id"></part1>
+  </div>
+</template>
+
+<style>
+  .index-part1-class {
+    color: #FF0000;
+  }
+  .index-part2-class {
+    color: #0000FF;
+  }
+</style>
+
+<script>
+  export default {
+  }
+</script>

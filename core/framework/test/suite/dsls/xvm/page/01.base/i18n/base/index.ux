@@ -1,0 +1,35 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+
+<template>
+  <div>
+    <text id="elNode101">{{ $t('message.text') }}</text>
+    <text id="elNode102">{{ $t('message.empty') }}</text>
+    <text id="elNode103">{{ $t() }}</text>
+    <text id="elNode104">{{ $t('not.exist') }}</text>
+    <text id="elNode105">{{ $t('message.format.object', { name: 'object' }) }}</text>
+    <text id="elNode106">{{ $t('message.format.array', ['array']) }}</text>
+    <text id="elNode107">{{ $t('message.format').toString() }}</text>
+
+    <text id="elNode108">{{ $t('message.array[0]') }}</text>
+    <text id="elNode109">{{ $t('message.array[1].key') }}</text>
+    <text id="elNode110">{{ $t('message.array[2][0]') }}</text>
+
+    <part1 id="vmChild201"></part1>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+    },
+    onConfigurationChanged (evt) {
+      this.evtOnConfigurationChanged = true
+      this.evtOnConfigurationChangedEvt = evt
+    }
+  }
+</script>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <me.relex.photodraweeview.PhotoDraweeView
+        android:id="@+id/preview_item_pre_photo_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:progressBarAutoRotateInterval="2000"
+        app:progressBarImage="@drawable/progress_indeterminate_circle"
+        app:progressBarImageScaleType="centerInside" />
+</LinearLayout>

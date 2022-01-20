@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<runtime>
+    <feature-alias
+        name="miui\\.(.+)"
+        regex="true"
+        target="system.$1" />
+    <feature-alias
+        name="miuix\\.(.+)"
+        regex="true"
+        target="service.$1" />
+    <feature name="system.canvas" />
+    <feature name="system.websocket" />
+    <feature name="system.animation" />
+</runtime>

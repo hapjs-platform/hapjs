@@ -1,0 +1,47 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+  </div>
+</template>
+
+<script>
+  /**
+   * VM被销毁时事件不再被$broadcast触发
+   */
+  import sample from '@system.sample'
+
+  export default {
+    data: {
+      list: []
+    },
+    props: ['obj'],
+    onInit () {
+      this.$on('part2-evt1', this.bindVMEvt1)
+    },
+    bindVMEvt1 () {
+      throw new Error(`不应该被调到`)
+    },
+    fn () {},
+    accessVmAsync () {
+      const that = this
+      sample.methodCallback1({
+        success () {
+          // data
+          that.list.push('success')
+          // props
+          that.obj.name
+          // method
+          that.fn()
+          // 原型上的方法
+          that.$emit('test')
+          // 原型上额外增加的方法
+          that.$element('test')
+        }
+      })
+    }
+  }
+</script>

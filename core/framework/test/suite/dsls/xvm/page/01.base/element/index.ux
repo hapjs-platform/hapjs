@@ -1,0 +1,22 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <element1 id="node1Id"></element1>
+
+    <!-- 测试data属性 -->
+    <text id="node2Id" data-attr1="v101" data-attr2-type1="{{attr2Type1}}" data---attr3-2="v301" data--attr4-2="v401" data--attr5--a="v501"></text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      attr1: 'v101',
+      attr2Type1: 'v201'
+    }
+  }
+</script>

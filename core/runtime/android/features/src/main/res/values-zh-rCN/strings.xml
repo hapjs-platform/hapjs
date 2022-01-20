@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="share_title">分享</string>
+    <string name="button_ok">确定</string>
+    <string name="msg_camera_framework_bug">抱歉，Android相机出现问题。您可能需要重启设备。</string>
+    <string name="msg_default_status">请将条码置于取景框内扫描。</string>
+    <string name="feature_barcode_flight">闪光灯</string>
+    <string name="audio_playing_label">正在播放</string>
+    <string name="audio_paused_label">暂停播放</string>
+    <string name="send_sms_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;正在尝试发送短信</string>
+    <string name="set_alarm_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;正在尝试设置闹钟</string>
+    <string name="get_contactlist_tip">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;正在尝试获取联系人信息</string>
+    <string name="dlg_permission_accept">允许</string>
+    <string name="dlg_permission_reject">拒绝</string>
+
+    <!-- shortcut dialog -->
+    <string name="features_dlg_shortcut_title">创建桌面图标</string>
+    <string name="features_dlg_shortcut_message">\&#034;<xliff:g id="app">%1$s</xliff:g>\&#034;正在尝试创建桌面图标</string>
+    <string name="features_dlg_shortcut_ok">确定</string>
+    <string name="features_dlg_shortcut_cancel">取消</string>
+
+    <!-- Prompt loading -->
+    <string name="loading_hint">正在载入...</string>
+
+    <!-- media dialog -->
+    <string name="features_media_ringtone_msg">\"<xliff:g id="app">%1$s</xliff:g>\"&#160;正在尝试修改系统铃声</string>
+
+    <!-- Image Preview -->
+    <string name="preview_save_successfully">保存成功</string>
+    <string name="preview_save_failed">保存失败</string>
+    <string name="preview_share_failed">分享失败</string>
+    <string name="preview_share_to">分享到:</string>
+    <string-array name="item_preview">
+        <item>保存图片</item>
+        <item>分享图片</item>
+        <item>取消</item>
+    </string-array>
+
+    <!-- geolocation -->
+    <string name="no_map">没有支持的地图</string>
+    <string name="install_baidu_map_tip">安装百度地图</string>
+    <string name="baidu_map">百度地图</string>
+    <string name="a_map">高德地图</string>
+    <string name="qq_map">腾讯地图</string>
+    <string name="open_location_title">位置信息</string>
+    <string name="choose_location_title">位置</string>
+    <string name="choose_done_btn">完成</string>
+    <string name="choose_search_hint">搜索地点</string>
+</resources>

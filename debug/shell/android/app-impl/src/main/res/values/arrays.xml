@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <string-array name="strategies">
+        <item>@string/setting_item_reload_strategy_app</item>
+        <item>@string/setting_item_reload_strategy_page</item>
+    </string-array>
+
+    <string-array name="strategy_values">
+        <item>@string/setting_item_reload_app_value</item>
+        <item>@string/setting_item_reload_page_value</item>
+    </string-array>
+</resources>

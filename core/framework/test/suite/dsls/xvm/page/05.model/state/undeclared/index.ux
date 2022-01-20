@@ -1,0 +1,79 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text id="a">{{a}}</text>
+    <text id="b">{{b}}</text>
+    <text id="c">{{c}}</text>
+
+    <div if="{{loading1}}">
+      <text id="d">{{d}}</text>
+    </div>
+
+    <div if="{{loading2}}">
+      <text id="b1">{{b}}</text>
+    </div>
+
+    <div if="{{loading3}}">
+      <text id="b2">{{b}}</text>
+      <text id="c1">{{c}}</text>
+    </div>
+
+    <div if="{{loading4}}">
+      <div for="{{item in list}}">
+        <text>{{item.text === indexA ? 'x' : 'y'}}</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      a: 'propA',
+      loading1: false,
+      loading2: false,
+      loading3: false,
+      loading4: false,
+      list: [{
+        text: 0
+      }, {
+        text: 1
+      }, {
+        text: 2
+      }],
+      indexA: 1
+    },
+    computed: {
+      c() {
+        return this.a + ',' + this.b
+      }
+    },
+    showLoading1() {
+      return Promise.resolve().then(() => {
+        this.d = 'propD'
+        this.loading1 = true
+      })
+    },
+    showLoading2() {
+      return Promise.resolve().then(() => {
+        this.loading2 = true
+      }).then(() => {
+        this.b = 'propB'
+      })
+    },
+    showLoading3() {
+      return Promise.resolve().then(() => {
+        this.loading3 = true
+      })
+    },
+    showLoading4() {
+      return Promise.resolve().then(() => {
+        this.loading4 = true
+      })
+    }
+  }
+</script>

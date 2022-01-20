@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="exception_activity_label">错误详情</string>
+    <string name="exception_btn_copy">复制</string>
+    <string name="exception_btn_close">关闭</string>
+    <string name="inspector_unready">等待DevTools连接</string>
+    <string name="app_name">运行</string>
+    <!-- permissions of features -->
+    <string name="permission_dialog_message"><xliff:g id="app">%1$s</xliff:g> 正在尝试 <xliff:g id="perm">%2$s</xliff:g>。</string>
+    <string name="permission_dialog_allow">允许</string>
+    <string name="permission_dialog_block">拒绝</string>
+    <string name="permission_desc_location">获取您的地理位置</string>
+    <string name="permission_desc_record_audio">开启录音功能</string>
+    <string name="permission_desc_read_phone_state">获取设备信息</string>
+    <string name="dlg_permission_accept">允许</string>
+    <string name="dlg_permission_reject">拒绝</string>
+    <string name="dlg_permission_remind">不再询问</string>
+
+    <string name="platform_incompatible">平台版本太低，不能运行 <xliff:g id="app">%1$s</xliff:g>，请升级平台版本。</string>
+
+    <string name="dlg_page_error_title">很抱歉，<xliff:g id="app">%1$s</xliff:g> 出现错误。</string>
+    <string name="dlg_page_error_message">查看错误详情</string>
+    <string name="dlg_btn_continue">继续</string>
+    <string name="dlg_btn_quit">退出</string>
+    <string name="toast_error_detail_copied">错误详情已复制。</string>
+    <string name="toast_error_debugger_too_old">调试器版本过低，请升级</string>
+    <string name="toast_error_debug_core_not_install">调试器内核没有安装</string>
+    <string name="notification_creating_shortcut_for">正在为%s创建桌面图标</string>
+    <string name="resident_notification_desc">%s 正在后台运行</string>
+
+    <!-- system menu -->
+    <string name="create_shortcut">创建桌面图标</string>
+
+    <!-- Hap Permission -->
+    <string name="hap_permission_ringtone_desc">修改系统铃声</string>
+    <string name="hap_permission_step_counter_desc">获取计步数据</string>
+
+    <!--unsupported element-->
+    <string name="unsupported_element_tip">不支持的组件:<xliff:g id="app">%1$s</xliff:g></string>
+
+    <!-- Notification Channel-->
+    <string name="features_notification_channel_audio">音频通知</string>
+    <string name="features_notification_channel_default">应用通知</string>
+    <string name="platform_notification_channel_service">服务通知</string>
+    <string name="resident_notification_channel_name">后台运行通知</string>
+    <!--    menubar-->
+    <string name="menubar_dlg_menu">菜单</string>
+    <string name="menubar_dlg_background_run">后台运行</string>
+    <string name="menubar_dlg_about">关于</string>
+    <string name="menubar_dlg_share">分享</string>
+    <string name="menubar_dlg_create_shortcut">添加到桌面</string>
+    <string name="menubar_dlg_go_home">返回首页</string>
+    <string name="menubar_dlg_already_added_shortcut">已添加桌面图标</string>
+    <string name="menubar_dlg_cancel">取消</string>
+    <string name="menubar_dlg_using_location">正在定位</string>
+    <string name="menubar_dlg_using_record">正在录音</string>
+    <string name="menubar_share_default_description">打开快应用，无需下载，即点即用！</string>
+    <string name="menubar_tips">如有遮挡，可以拖动把我移开哦！</string>
+    <string name="quick_app_open_native">正在打开“%s”APP，确认打开？</string>
+</resources>

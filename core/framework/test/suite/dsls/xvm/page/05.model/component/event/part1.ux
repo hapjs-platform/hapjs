@@ -1,0 +1,24 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text onclick="trigger"></text>
+    <text onclick="triggerTwice"></text>
+  </div>
+</template>
+
+<script>
+  export default {
+    trigger() {
+      this.$emit('event1', 'evt1-v1')
+      this.$emit('vmEvent2', 'evt2-v1')
+    },
+    triggerTwice() {
+      this.$emit('event1', 'evt1-v1')
+      this.$emit('event1', 'evt1-v2')
+    }
+  }
+</script>

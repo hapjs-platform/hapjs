@@ -1,0 +1,95 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="part1" src="./part1.ux"></import>
+<import name="part2" src="./part2.ux"/></import>
+<import name="part3" src="./part3.ux"/></import>
+<import name="part4" src="./part4.ux"/></import>
+
+<template>
+  <div>
+    <part1 id="vmInst1"></part1>
+
+    <part1 id="vmInst2">
+      <text class="test-style">text: {{parentVmText}}</text>
+    </part1>
+
+    <part3 id="vmInst3">
+      <div id="elNode31" if="isShowVmInst3" for="(inx, val) in vmInst3Array">
+        <text class="test-style">vmInst3-{{parentVmText}}|{{inx}}:{{val}}</text>
+      </div>
+    </part3>
+
+    <part3 id="vmInst4">
+      <div if="isShowChild1" id="elNode41">
+        <text>child1 : {{parentVmText}}</text>
+      </div>
+      <div if="isShowChild2"  id="elNode42">
+        <text>child2 : {{parentVmText}}</text>
+      </div>
+      <div for="itemArray"  id="elNode43">
+        <text>for: {{$item}}</text>
+      </div>
+    </part3>
+
+    <part1 id="vmInst5">
+      <text>part1  inner define {{parentVmText}}</text>
+      <part3></part3>
+    </part1>
+    <part1 id="vmInst6">
+      <part3 id="vmInst61">
+        <text>part3 inner define {{parentVmText}}</text>
+      </part3>
+    </part1>
+    <part2 id="vmInst7">
+      <text id="elNode71" onclick="eventTest">part2</text>
+    </part2>
+
+    <part4 id="vmInst8">
+      <div if="isShowVmInst8">
+        <text class="test-style">{{parentVmText}}</text>
+      </div>
+    </part4>
+  </div>
+</template>
+
+<script>
+export default {
+  private: {
+    parentVmText: 'from parent',
+    isShowVmInst3: false,
+    isShowChild1: false,
+    isShowChild2 :false,
+    itemArray: [],
+    vmInst3Array: [],
+    eventTriggerNums : 0,
+    isShowVmInst8: true
+  },
+  toggleVmInst3() {
+    this.isShowVmInst3 = !this.isShowVmInst3
+  },
+  toggleChild1() {
+    this.isShowChild1 = !this.isShowChild1
+  },
+  toggleChild2() {
+    this.isShowChild2 = !this.isShowChild2
+  },
+  toggleFor() {
+    if (this.itemArray.length === 0) {
+      this.itemArray = ['item1', 'item2']
+    }
+    else {
+      this.itemArray = []
+    }
+  },
+  eventTest () {
+    this.eventTriggerNums++
+  }
+}
+</script>
+
+<style>
+.test-style {color: #ff0000;}
+</style>

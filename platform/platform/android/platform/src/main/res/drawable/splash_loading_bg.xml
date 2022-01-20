@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:gravity="left"
+        android:right="32dp">
+        <animation-list>
+            <item
+                android:drawable="@drawable/splash_loading_dot1"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot2"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot3"
+                android:duration="200" />
+        </animation-list>
+    </item>
+    <item
+        android:gravity="left"
+        android:left="16dp"
+        android:right="16dp">
+        <animation-list>
+            <item
+                android:drawable="@drawable/splash_loading_dot2"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot3"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot1"
+                android:duration="200" />
+        </animation-list>
+    </item>
+    <item
+        android:gravity="left"
+        android:left="32dp">
+        <animation-list>
+            <item
+                android:drawable="@drawable/splash_loading_dot3"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot1"
+                android:duration="200" />
+            <item
+                android:drawable="@drawable/splash_loading_dot2"
+                android:duration="200" />
+        </animation-list>
+    </item>
+</layer-list>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <dimen name="dialog_title_vertical_padding">35dip</dimen>
+    <dimen name="dialog_message_vertical_padding">30dip</dimen>
+    <dimen name="dialog_message_horizontal_padding">17.3dip</dimen>
+    <dimen name="dialog_checkbox_vertical_padding">12dip</dimen>
+    <dimen name="dialog_text_size">16sp</dimen>
+</resources>

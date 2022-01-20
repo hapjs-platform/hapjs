@@ -1,0 +1,39 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./component/part1.ux" name="part1"></import>
+<import src="./component/part2.ux" name="part2"></import>
+<import src="./component/part3.ux" name="part2"></import>
+<script>
+  import pluginDemo from './plugin-demo.js'
+
+  export default {
+    plugins: [
+      // 默认：支持对象类型
+      pluginDemo,
+      // 如果是数组，则install时传递多个参数
+      [ Object.assign({}, pluginDemo), 'installOptions']
+    ],
+    onCreate () {
+    },
+    onError (params) {
+      this[`app.onError`] = true
+      this[`app.onError.params`] = params
+    },
+
+    // onPageNotFound params often shows as an object
+    // like {uri: 'hap://app/com.application.demo/nowhereToBeFound' }
+    onPageNotFound(params) {
+      this[`app.onPageNotFound`] = true
+      this[`app.onPageNotFound.params`] = params
+    }
+  }
+</script>
+
+<style>
+  .color-red {
+    color: #ff0000;
+  }
+</style>

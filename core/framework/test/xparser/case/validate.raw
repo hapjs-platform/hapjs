@@ -1,0 +1,16 @@
+<div>
+    <text style="abc: 12;">text</text>
+    <text style="padding: 10px 20px 30px;">test padding1</text>
+    <text style="padding: 10 20 30;">test padding2</text>
+    <text style="padding: 10px;">test padding3</text>
+    <text style="margin: 10px 20px 30px 40px;">test margin1</text>
+    <text style="margin: 10 20 30 40;">test margin2</text>
+    <text style="margin: 10px;">test margin3</text>
+    <text style="border: 1px dotted red;">test border1</text>
+    <text style="border: 1px style red;">test border2</text>
+    <text style="border: 1px red dotted;">test border3</text>
+    <text style="border: 1px;">test border4</text>
+    <text style="border-width: 1px 2px 3px 4px;">test border-width</text>
+    <text style="border-color: red blue;">test border-color</text>
+    <div style="background-color: red;color:rgba(255,255,50,0.5);padding:10px 20px 30px 40;margin: 10px 20px;border: 1px solid red;border-width: 10px 20px;border-color: red black blue #fff;"></div>
+</div>

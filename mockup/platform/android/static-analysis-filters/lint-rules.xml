@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<lint>
+    <issue id="ButtonCase" severity="ignore" />
+    <issue id="ButtonStyle" severity="ignore" />
+    <issue id="IconDensities" severity="ignore" />
+    <issue id="IconMissingDensityFolder" severity="ignore" />
+    <issue id="LogConditional" severity="ignore" />
+    <issue id="NewApi" severity="ignore" />
+</lint>

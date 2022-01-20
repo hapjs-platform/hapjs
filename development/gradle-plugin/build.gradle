@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.0'
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+static String guessGroup(Project project) {
+    if (project.projectDir.absolutePath.contains("gradle-plugin")) {
+        "org.hapjs.gradle.plugin"
+    } else {
+        "org.hapjs"
+    }
+}
+
+subprojects {
+    group guessGroup(project)
+
+    project.version="2.1.0"
+
+    apply plugin: 'maven'
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                if ('remote' == project.properties['repoType']) {
+                    snapshotRepository(url: project.properties['snapshotRepo']) {
+                        authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                    }
+                    repository(url: project.properties['releaseRepo']) {
+                        authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                    }
+                } else {
+                    repository(url: mavenLocal().url)
+                }
+            }
+        }
+    }
+
+    assemble.doLast {
+        def version = project.version
+        copy {
+            from 'build/libs/'
+            into "${rootProject.projectDir.absolutePath}/prebuilts/${version}"
+            include "*-${version}.jar"
+        }
+    }
+}

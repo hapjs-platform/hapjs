@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="false">
+        <shape android:shape="rectangle">
+            <gradient android:endColor="#158CFF" android:startColor="#0EA8FF" />
+            <corners android:radius="17dp" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <gradient android:endColor="#4D158CFF" android:startColor="#4D0EA8FF" />
+            <corners android:radius="17dp" />
+        </shape>
+    </item>
+</selector>

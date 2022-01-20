@@ -1,0 +1,29 @@
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion = "8.44"
+}
+
+task checkstyle(type: Checkstyle) {
+    description 'Runs Checkstyle inspection against Android sourcesets.'
+    group = 'Code Quality'
+
+    ignoreFailures = false
+    showViolations = false
+    // 需要排除一些未用到的模块中的文件，比如gcanvas-adapter, bridge_spec中的文件
+    source '../../../../'
+    include '**/*.java'
+    exclude '**/gen/**', '**/src/androidTest/**', '**/app/build/generated/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+    reports {
+        xml {
+            println("$project.buildDir/reports/checkstyle-report.xml")
+            destination = new File("$project.buildDir/reports/checkstyle-report.xml")
+        }
+    }
+    classpath = files()
+    configFile = file("${rootDir}/app/config/checkstyle.xml")
+
+    configProperties.lineWidth = 120
+}

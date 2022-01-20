@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Widgets</string>
+    <string name="media_contorls_restart">Play again</string>
+    <string name="media_contorls_retry">Try again</string>
+
+    <string name="text_ok">OK</string>
+    <string name="text_cancel">Cancel</string>
+    <string name="web_dialog_file_name">Filename: </string>
+    <string name="web_dialog_file_size">File size: <xliff:g id="file_size">%s</xliff:g></string>
+    <string name="web_dialog_save_file">Save file</string>
+    <string name="web_download_no_permission">Couldn\'t download. Check storage permissions and try again.</string>
+    <string name="web_download_no_file_name">Enter file name</string>
+    <string name="web_download_invalid_url">Couldn\'t download. Please check the resource url.</string>
+
+    <string name="no_canvas">This engine doesn\'t support Canvas.</string>
+
+    <string name="permission_request_location_service">Can\'t get location info. Allow access to location first.</string>
+    <string name="dlg_permission_ok">OK</string>
+    <string name="no_map">Maps aren\'t supported.</string>
+
+    <string name="location_warn_title">Location</string>
+    <string name="location_warn_message"><xliff:g id="origin">%s</xliff:g>wants to know your location.</string>
+    <string name="location_warn_reject">Decline</string>
+    <string name="location_warn_allow">Allow</string>
+    <string name="location_warn_remember_pref">Remember preference</string>
+    <string name="web_loading_name">loading&#8230;</string>
+
+    <string name="webrtc_warn_title">Ask for the permission</string>
+    <string name="webrtc_warn_single_permission"><xliff:g id="origin">%s</xliff:g>wants to know your %s</string>
+    <string name="webrtc_warn_double_permission"><xliff:g id="origin">%s</xliff:g>wants to know your %s and %s</string>
+    <string name="webrtc_warn_reject">Decline</string>
+    <string name="webrtc_warn_allow">Allow</string>
+    <string name="webrtc_warn_camera">camera</string>
+    <string name="webrtc_warn_microphone">microphone</string>
+</resources>

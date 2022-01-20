@@ -1,0 +1,40 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text class="part2 btn" @click="emitEvent">{{name}}-{{pname}}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        name: 'part2'
+      }
+    },
+    emitEvent() {
+      this.$emit('emitEvent', this.name)
+    },
+    props: ['pname']
+  }
+</script>
+
+<style>
+  .part2 {
+    color: #09ba07;
+  }
+  .btn {
+    width: 550px;
+    height: 86px;
+    margin-top: 75px;
+    border-radius: 43px;
+    background-color: #09ba07;
+    font-size: 30px;
+    color: #ffffff;
+    text-align: center;
+  }
+</style>

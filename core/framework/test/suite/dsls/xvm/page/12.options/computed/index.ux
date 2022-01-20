@@ -1,0 +1,96 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+
+<import name='part1' src='./part1.ux'></import>
+
+<template>
+  <div>
+    <text id="fullName">{{fullName}}</text>
+    <text id="reverseMsg">{{reverseMessage}}</text>
+    <part1 relay-data="{{relayData}}" id="part1"></part1>
+  </div>
+</template>
+
+<script>
+  let count = 0
+
+  let runTest = function(vm, methodName) {
+    let hasError
+    try {
+      vm[methodName]()
+      hasError = false
+    } catch(e) {
+      hasError = true
+    }
+    expect(hasError).to.equal(false)
+  }
+
+  export default {
+    data: {
+      firstName: 'hello',
+      lastName: 'world',
+      message: 'hi jack',
+      num: 0,
+      repeatWidthData: '',
+      initData: 'data'
+    },
+    computed: {
+      fullName() {
+        runTest(this, 'callInComputed')
+        return this.firstName + ' ' + this.lastName
+      },
+
+      reverseMessage: {
+        get() {
+          runTest(this, 'callInComputed')
+          return this.message.split('').reverse().join('')
+        },
+
+        set(v) {
+          runTest(this, 'callInComputed')
+          this.message = v.split('').reverse().join('')
+        }
+      },
+
+      updatedNum() {
+        count++
+        return this.num + 1
+      },
+
+      show() {
+      },
+
+      repeatWidthData() {
+      },
+
+      noGetter: {
+        setter() {}
+      },
+
+      noSetter() {
+      },
+
+      errorAttr: 'str',
+
+      repeatWidthMethod() {
+      },
+
+      relayData: {
+        get() {
+          return 'relay: ' + this.initData
+        }
+      }
+    },
+    getCount() {
+      return count
+    },
+    callInComputed() {
+    },
+    repeatWidthMethod() {
+      console.log(1)
+    }
+  }
+</script>

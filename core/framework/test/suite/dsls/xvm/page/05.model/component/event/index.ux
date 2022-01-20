@@ -1,0 +1,37 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1.ux"></import>
+
+<template>
+  <div>
+    <part1 id="vmInst1" onevent1="bindEvent1('hi')" onvm-event2="bindVmEvent2"></part1>
+    <part1 id="vmInst2" onevent1="{{bindEvent1('hi')}}" onvm-event2="{{bindVmEvent2}}"></part1>
+    <part1 id="vmInst3" onevent1="bindEvent1(msg)"></part1>
+    <part1 id="vmInst4" onevent1="incrementCount"></part1>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      msg: 'test',
+      evt1Params: null,
+      evt1Detail: null,
+      evt2Detail: null,
+      count: 0
+    },
+    bindEvent1(params, evt) {
+      this.evt1Params = params
+      this.evt1Detail = evt.detail
+    },
+    bindVmEvent2(evt) {
+      this.evt2Detail = evt.detail
+    },
+    incrementCount() {
+      this.count++
+    }
+  }
+</script>

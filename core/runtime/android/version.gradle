@@ -1,0 +1,86 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+def getAppVersionMeta() {
+    def branch = System.properties['appVersionBranch']
+    def version = System.properties['appVersionTag']
+    if (branch == null) {
+        branch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
+    }
+    if (version == null) {
+        version = 'git describe --tags'.execute().text.trim()
+    }
+    if (version == '') {
+        version = '1.5.0.0'
+    }
+    def values = version.split('\\.')
+    assert values.length == 4
+    return [values[0], values[1], values[2], values[3], version, branch]
+}
+
+def getAppVersionCode() {
+    def prop = System.properties['appVersionCode']
+    if (prop != null) {
+        println 'app versionCode is ' + prop + ' (specified)'
+        return prop.toInteger()
+    }
+    def meta = getAppVersionMeta()
+    def code = meta[0].toInteger() * 10000000
+    def values = meta[3].split('-')
+    if (values.length == 1) {
+        def tags = 'git tag'.execute().text.trim().split('\n')
+        def rcCode = 1
+        tags.each { tag ->
+           if (tag.contains(meta[4]) && tag.contains("RC")) {
+             def tmp = tag.split('-')
+             rcCode = tmp[2].toInteger()
+           }
+        }
+        code += meta[1].toInteger() * 100000 + meta[2].toInteger() * 10000 + values[0].toInteger() * 100 + rcCode
+    } else if (values.length == 3 && values[1] == 'RC') {
+        code += meta[1].toInteger() * 100000 + meta[2].toInteger() * 10000 + values[0].toInteger() * 100 + values[2].toInteger()
+    } else if (values.length == 3 && values[1] != 'RC') {
+        if (meta[5] == 'master') {
+            assert values[0] == '0'
+            code += (meta[1].toInteger() + 1) * 100000 + values[0].toInteger() * 100 + 1
+        } else {
+            code += meta[1].toInteger() * 100000 + (values[0].toInteger() + 1) * 100 + 1
+        }
+    } else {
+        code += meta[1].toInteger() * 100000 + values[0].toInteger() * 100 + (values[2].toInteger() + 1)
+    }
+    println 'app versionCode is ' + code
+    return code
+}
+
+def getAppVersionName() {
+    def prop = System.properties['appVersionName']
+    if (prop != null) {
+        println 'app versionName is ' + prop + ' (specified)'
+        return prop
+    }
+    def meta = getAppVersionMeta()
+    def name = meta[0] + '.'
+    def values = meta[3].split('-')
+    if (values.length == 1) {
+        name += meta[1] + '.' + meta[2] + '.' + meta[3]
+    } else if (values.length == 3 && values[1] == 'RC') {
+        name += meta[1] + '.' + meta[2] + '.' + meta[3]
+    } else if (values.length == 3 && values[1] != 'RC') {
+        if (meta[5] == 'master') {
+            assert values[0] == '0'
+            name += (meta[1].toInteger() + 1).toString() + '.' + meta[2] + '.' + values[0] + '-SNAPSHOT'
+        } else {
+            name += meta[1] + '.' + meta[2] + '.' + (values[0].toInteger() + 1).toString() + '-SNAPSHOT'
+        }
+    } else {
+        name += meta[1] + '.' + meta[2] + '.' + values[0] + '-SNAPSHOT'
+    }
+    println 'app versionName is ' + name
+    return name
+}
+
+ext.appVersionCode = getAppVersionCode()
+ext.appVersionName = getAppVersionName()

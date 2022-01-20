@@ -1,0 +1,25 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div id="slotContainer3">
+    <slot>
+      <div><text  class="test-style">slot 多个节点</text></div>
+      <text>default slot: {{vmText}}</text>
+    </slot>
+  </div>
+</template>
+
+<script>
+export default {
+  data: {
+    vmText: "from part3"
+  }
+}
+</script>
+
+<style>
+.test-style {color: #1a2d27;}
+</style>

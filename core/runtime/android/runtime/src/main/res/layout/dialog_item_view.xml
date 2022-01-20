@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/titlebar_dialog_item_container"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="@dimen/menubar_dialog_item_top_margin"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="left|top"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp">
+
+            <ImageView
+                android:id="@+id/titlebar_dialog_item_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"></ImageView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginLeft="-6dp"
+            android:gravity="top|right">
+
+            <ImageView
+                android:id="@+id/menubar_item_point_iv"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/titlebar_point_bg"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/title_item_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:ellipsize="end"
+            android:gravity="center_horizontal"
+            android:maxWidth="55dp"
+            android:maxLines="2"
+            android:paddingTop="0dp"
+            android:textSize="10dp"></TextView>
+    </LinearLayout>
+
+</LinearLayout>

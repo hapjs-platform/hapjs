@@ -1,0 +1,17 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div id="test-create-event">
+    <text class="text-desc" id="elNode">Test createEvent</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+    }
+  }
+</script>

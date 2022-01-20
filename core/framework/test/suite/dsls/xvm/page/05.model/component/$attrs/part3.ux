@@ -1,0 +1,23 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>part3</text>
+    <input id="ip1" type="text" value="{{v1}}"></input>
+    <input id="ip2" type="text" value="{{d5}}"></input>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: function () {
+      return {
+        v1: '',
+        d5: ''
+      }
+    }
+  }
+</script>

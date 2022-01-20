@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+    defaultConfig {
+        applicationId "org.hapjs.debugger"
+    }
+}
+
+
+dependencies {
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':app-impl')
+    } else {
+        implementation 'org.hapjs:app-impl:' + rootProject.appVersionName
+    }
+}

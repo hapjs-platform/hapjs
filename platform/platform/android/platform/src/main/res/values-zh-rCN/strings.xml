@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="loading_message">正在启动快应用</string>
+    <string name="loading_slogan">无安装 | 体积小 | 服务直达</string>
+    <string name="app_name">平台</string>
+    <string name="dlg_shortcut_title">创建快应用桌面图标</string>
+    <string name="dlg_shortcut_message_on_exit">快应用无需下载，即点即用。是否为 <xliff:g id="app_name">%1$s</xliff:g> 快应用创建桌面图标？</string>
+    <string name="dlg_shortcut_message_on_timing">你已使用 <xliff:g id="app_name">%1$s</xliff:g> 超过5分钟，是否创建桌面图标？</string>
+    <string name="dlg_shortcut_message_on_count">你已在一天之内使用 <xliff:g id="app_name">%1$s</xliff:g> 超过3次，是否创建桌面图标？</string>
+    <string name="dlg_shortcut_ok">确定</string>
+    <string name="dlg_shortcut_cancel">取消</string>
+    <string name="dlg_shortcut_silent">7天之内不再提醒</string>
+
+    <string name="loading_fail_message_no_network">网络链接异常，请检查网络</string>
+    <string name="loading_fail_message_install_error">数据加载异常，请点击重试</string>
+    <string name="loading_fail_message_incompatible_platform">平台版本较低\n请进行升级</string>
+    <string name="loading_fail_message_package_unavailable">应用已下架</string>
+    <string name="loading_fail_message_package_certificate_changed">该应用新版与您手机中的旧版签名不一致，存在安全风险，是否继续更新？</string>
+    <string name="loading_fail_back">返回</string>
+    <string name="loading_fail_refresh">刷新</string>
+    <string name="loading_fail_btn_continue">否，继续使用老版本</string>
+    <string name="loading_fail_btn_reinstall">是，卸载并重装新版本</string>
+
+</resources>

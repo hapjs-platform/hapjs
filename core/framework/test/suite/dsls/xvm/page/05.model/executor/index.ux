@@ -1,0 +1,38 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <list id="l1"></list>
+
+    <div>
+      <text>{{d1}}<span>{{d2}}</span></text>
+    </div>
+
+    <div if="{{s1}}">
+      <text>{{d3}}</text>
+    </div>
+
+    <div for="{{arr1}}">
+      <text>{{d4}}</text>
+    </div>
+
+    <text>{{d5}}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      d1: 'd1',
+      d2: 'd2',
+      s1: true,
+      d3: 'd3',
+      arr1: ['a', 'b', 'c'],
+      d4: 'd4',
+      d5: 'd5'
+    }
+  }
+</script>

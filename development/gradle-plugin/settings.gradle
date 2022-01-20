@@ -1,0 +1,9 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+include ':annotation', ":annotation-processor", ":annotation-executor", ':annotation-generator'
+
+project(':annotation').projectDir = new File("../../core/runtime/android/annotation")
+project(':annotation-processor').projectDir = new File("../../core/runtime/android/annotation-processor")

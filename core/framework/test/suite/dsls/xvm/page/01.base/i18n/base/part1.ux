@@ -1,0 +1,15 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text id="elNode201">{{ $t('message.text') }}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+  }
+</script>

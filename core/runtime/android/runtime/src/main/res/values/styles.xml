@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+
+    <style name="AppTextAppearance.Dialog" parent="TextAppearance.AppCompat.Medium">
+        <!-- Clear fontFamily to use system default font. -->
+        <item name="android:fontFamily">@null</item>
+    </style>
+
+    <style name="AppTextAppearance.Dialog.Medium">
+        <item name="android:textColor">#b2000000</item>
+        <item name="android:textColorHighlight">?android:attr/textColorHighlight</item>
+        <item name="android:textColorHint">?android:attr/textColorHint</item>
+        <item name="android:textColorLink">?android:attr/textColorLink</item>
+        <item name="android:textSize">@dimen/dialog_text_size</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="AppWidget" />
+
+    <style name="AppWidget.Button.Dialog" parent="Widget.AppCompat.Button">
+        <item name="android:maxLines">1</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/btn_bg_dialog_single</item>
+        <item name="android:textSize">@dimen/dialog_text_size</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">#b2000000</item>
+    </style>
+
+    <style name="AppWidget.Button.Dialog.Highlight">
+        <item name="android:textColor">@color/button_text_color_guide_light</item>
+    </style>
+
+    <style name="AppWidget.ButtonBar">
+        <item name="android:divider">@null</item>
+        <item name="android:dividerPadding">0dip</item>
+        <item name="android:background">@drawable/dialog_button_bar_bg</item>
+    </style>
+
+    <style name="AppWidget.DialogTitle">
+        <item name="android:textAppearance">@style/AppTextAppearance.Dialog.Medium</item>
+        <item name="android:textColor">@color/dialog_title_text_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="MenubarAnimationDialog" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/menubar_enter</item>
+        <item name="android:windowExitAnimation">@anim/menubar_exit</item>
+    </style>
+</resources>

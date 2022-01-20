@@ -1,0 +1,3 @@
+/build
+src/main/assets/js/**/*.js
+src/main/resources/jsenv_version

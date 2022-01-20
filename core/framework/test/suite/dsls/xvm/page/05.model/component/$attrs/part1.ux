@@ -1,0 +1,32 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part2"></import>
+<import src="./part3"></import>
+
+<template>
+  <div>
+    <text>part1</text>
+    <input id="ip1" type="text" value="{{$attrs.d1}}"></input>
+    <part2 id="vmInst2" v1={{v1}} v2={{v2}} d5="{{d5}}" d6="10" $attrs></part2>
+    <part3 id="vmInst3" v1={{v1}} $attrs></part3>
+  </div>
+</template>
+
+<script>
+  export default {
+    props: ['d2', 'd4'],
+    data: function () {
+      return {
+        v1: 'part1-v1',
+        v2: 'part1-v2',
+        v3: {
+          name: 'part1-v3'
+        },
+        d5: 'part1-d5'
+      }
+    }
+  }
+</script>

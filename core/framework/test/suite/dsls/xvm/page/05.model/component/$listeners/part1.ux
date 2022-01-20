@@ -1,0 +1,39 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part2.ux"></import>
+
+<template>
+  <div>
+    <part2 id="vmInst2" @event1="handlePart1Event1" @event2="handlePart1Event2" @event4="handleEvent4" $listeners></part2>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      evt1Detail: null,
+      evt2Detail: null,
+      evt3Detail: null,
+      evt4Detail: null,
+    },
+    props: {},
+    handlePart1Event1(evt) {
+      this.evt1Detail = evt.detail
+    },
+    handlePart1Event2(evt) {
+      this.evt2Detail = evt.detail
+    },
+    handlePart1Event3(evt) {
+      this.evt3Detail = evt.detail
+    },
+    trigger() {
+      this.$emit('event1', 'evt1-part1')
+      this.$emit('event2', 'evt2-part1')
+      this.$emit('event3', 'evt3-part1')
+      this.$emit('event4', 'evt4-part1')
+    }
+  }
+</script>

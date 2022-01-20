@@ -1,0 +1,19 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+<import src="./part2"></import>
+
+<template>
+  <div>
+    <part1 id="instPart1"></part1>
+    <part2 id="instPart2"></part2>
+  </div>
+</template>
+
+<script>
+  export default {
+  }
+</script>

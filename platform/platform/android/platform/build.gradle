@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+dependencies {
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':runtime')
+        implementation project(':card-api')
+        implementation project(':card-support')
+    } else {
+        implementation 'org.hapjs:runtime:' + rootProject.appVersionName
+        implementation 'org.hapjs:card-api:' + rootProject.appVersionName
+        implementation 'org.hapjs:card-support:' + rootProject.appVersionName
+    }
+}

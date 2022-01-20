@@ -1,0 +1,17 @@
+{
+  "platformPreferredPkgs": [
+    "android.support.",
+    "androidx.",
+    "com.google.android.material."
+  ],
+  "hostPreferredPkgs": [
+    "java.",
+    "javax.",
+    "android.",
+    "org.json.",
+    "org.hapjs.card.api.",
+    "org.hapjs.card.common.",
+    "org.hapjs.card.sdk."
+  ],
+  "default": "platform"
+}

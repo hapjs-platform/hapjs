@@ -1,0 +1,29 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <block if="{{v1}}">
+      <text for="{{v2}}"></text>
+    </block>
+
+    <list id="compId1" if="{{v3}}">
+    </list>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      v1: true,
+      v2: [ 'A', 'B' ],
+      v3: true
+    },
+    changeData () {
+      this.v1 = false
+      this.v2 = [ 'C' ]
+    }
+  }
+</script>

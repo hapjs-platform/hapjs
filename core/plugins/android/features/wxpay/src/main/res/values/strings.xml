@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <string name="app_name">WeChat Pay</string>
+    <string name="h5_pay_dialog_title">Sending pay request to WeChat\u2026</string>
+</resources>

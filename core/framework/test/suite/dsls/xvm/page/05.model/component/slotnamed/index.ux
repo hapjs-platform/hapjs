@@ -1,0 +1,66 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="part1" src="./part1.ux"></import>
+<import name="part2" src="./part2.ux"/></import>
+<import name="part3" src="./part3.ux"/></import>
+<import name="part4" src="./part4.ux"/></import>
+<import name="part6" src="./part6.ux"/></import>
+<import name="part7" src="./part7.ux"/></import>
+<import name="part8" src="./part8.ux"/></import>
+
+<template>
+  <div>
+    <part1 id="part1">
+      <text slot="slot1">slot1: content from parent</text>
+    </part1>
+
+    <part2 id="part2">
+      <text>default: content1 from parent</text>
+      <text slot="slot1">slot1: content1 from parent</text>
+      <text slot="slot1">slot1: content2 from parent</text>
+      <text>default: content2 from parent</text>
+    </part2>
+
+    <part3 id="part3">
+      <div>
+        <text slot="slot1">default: content from parent</text>
+      </div>
+    </part3>
+
+    <part4 id="part4">
+      <text slot="slot1">slot1: content from parent</text>
+    </part4>
+
+    <part6 id="part6">
+      <text slot="slot1">slot1: content from parent</text>
+    </part6>
+
+    <part7 id="part7">
+      <text>default: content1 from parent</text>
+      <text slot="default">default: content2 from parent</text>
+    </part7>
+
+    <part8 id="part8" if="{{showPart}}">
+      <text slot="demo1">demo1: from parent {{count}}</text>
+      <text slot="demo2">demo2: from parent {{count}}</text>
+    </part8>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        showPart: true,
+        count: 0
+      }
+    },
+    changeShow() {
+      this.showPart = !this.showPart
+      this.count++
+    }
+  }
+</script>

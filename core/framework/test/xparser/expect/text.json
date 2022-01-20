@@ -1,0 +1,62 @@
+{
+  "type": "div",
+  "children": [
+    {
+      "type": "div",
+      "children": [
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "text"
+              },
+              "style": {},
+              "polyfill": true
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {}
+        },
+        {
+          "type": "text",
+          "children": [
+            {
+              "type": "span",
+              "children": [],
+              "events": {},
+              "classList": [],
+              "attr": {
+                "value": "span"
+              },
+              "style": {}
+            }
+          ],
+          "events": {},
+          "classList": [],
+          "attr": {},
+          "style": {}
+        }
+      ],
+      "events": {},
+      "classList": [
+        "item-container"
+      ],
+      "attr": {},
+      "style": {}
+    }
+  ],
+  "events": {},
+  "classList": [],
+  "attr": {},
+  "style": {
+    "flex": 1,
+    "flexDirection": "column"
+  }
+}

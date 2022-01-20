@@ -1,0 +1,114 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        jcenter()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.0'
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.1.1'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: 'version.gradle', to: rootProject
+apply from: '../../../core/runtime/android/version.gradle', to: rootProject
+apply from: '../../../core/runtime/android/config.gradle', to: rootProject
+
+allprojects {
+    repositories {
+        if ('remote' != project.properties['repoType']) {
+            mavenLocal()
+        } else {
+            maven { url project.properties['privateRepo'] }
+        }
+        jcenter()
+        google()
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+subprojects {
+    if (project.name == 'card-api' || project.name == 'android-stub' || project.name == 'android-hack') {
+        apply plugin: 'java'
+        return
+    } else if (project.name == 'app') {
+        apply plugin: 'com.android.application'
+    } else {
+        apply plugin: 'com.android.library'
+    }
+
+    android {
+        compileSdkVersion rootProject.compileSdkVersion
+        buildToolsVersion rootProject.buildToolsVersion
+        group "org.hapjs"
+        version rootProject.appVersionName
+        defaultConfig {
+            minSdkVersion 19
+            targetSdkVersion 28
+            versionCode rootProject.appVersionCode
+            versionName rootProject.appVersionName
+            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        }
+        signingConfigs {
+            release {
+                if ('true' == project.properties['signMode']) {
+                    storeFile file(project.properties['storeFile'])
+                    storePassword project.properties['storePassword']
+                    keyAlias project.properties['keyAlias']
+                    keyPassword project.properties['keyPassword']
+                }
+            }
+        }
+        buildTypes {
+            release {
+                if ('true' == project.properties['signMode']) {
+                    signingConfig signingConfigs.release
+                }
+                minifyEnabled 'true' != project.properties['debugMode']
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            }
+        }
+    }
+
+    dependencies {
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
+        androidTestImplementation('androidx.test.espresso:espresso-core:' + rootProject.androidXEspressoVersion, {
+            exclude group: 'com.android.support', module: 'support-annotations'
+            exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        })
+        testImplementation 'junit:junit:4.12'
+    }
+
+    if (project.name != 'app') {
+        apply plugin: 'maven'
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    if ('remote'.equals(project.properties['repoType'])) {
+                        snapshotRepository(url: project.properties['snapshotRepo']) {
+                            authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                        }
+                        repository(url: project.properties['releaseRepo']) {
+                            authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                        }
+                    } else {
+                        repository(url: mavenLocal().url)
+                    }
+                }
+            }
+        }
+    }
+}

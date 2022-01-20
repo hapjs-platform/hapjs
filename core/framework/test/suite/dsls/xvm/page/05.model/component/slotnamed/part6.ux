@@ -1,0 +1,22 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div id="rootEl">
+    <slot>
+      <text>default: content1 from part6</text>
+      <slot>
+        <text>default: content2 from part6</text>
+      </slot>
+    </slot>
+
+    <slot name="slot1">
+      <text>slot1: content1 from part6</text>
+      <slot name="slot1">
+        <text>slot1: content2 from part6</text>
+      </slot>
+    </slot>
+  </div>
+</template>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <color name="button_text_color_guide_disabled_light">#27000000</color>
+    <color name="button_text_color_guide_normal_light">#33aaff</color>
+    <color name="dialog_title_text_color">#ff000000</color>
+
+    <color name="link_text_light">#cc000000</color>
+    <color name="titlebar_bg_light">#CCFFFFFF</color>
+    <color name="titlebar_bg">#33000000</color>
+    <color name="titlebar_tips_point">#FFF55353</color>
+    <color name="titlebar_large_text_color">#FF000000</color>
+    <color name="titlebar_small_text_color">#80000000</color>
+</resources>

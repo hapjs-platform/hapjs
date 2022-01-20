@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+dependencies {
+    def pluginVersion= "1.0.0"
+    if ('repo' != System.properties['moduleDepsType']) {
+        classpath 'com.sun.codemodel:codemodel:2.6'
+        classpath 'org.apache.bcel:bcel:6.0'
+        classpath files("generator-${pluginVersion}.jar")
+    } else {
+        classpath "org.hapjs.gradle.plugin:generator:${pluginVersion}"
+    }
+}
+

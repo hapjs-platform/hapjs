@@ -1,0 +1,21 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+  </div>
+</template>
+
+<script>
+  export default {
+    props:{},
+    trigger() {
+      this.$emit('event1', 'evt1-part2')
+      this.$emit('event2', 'evt2-part2')
+      this.$emit('event3', 'evt3-part2')
+      this.$emit('event4', 'evt4-part2')
+    }
+  }
+</script>

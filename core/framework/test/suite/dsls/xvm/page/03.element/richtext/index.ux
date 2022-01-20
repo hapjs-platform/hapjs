@@ -1,0 +1,20 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <richtext id="richtextInst" type="ux">
+      {{content1}}
+    </richtext>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      content1: '<div>test</div>'
+    }
+  }
+</script>

@@ -1,0 +1,22 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+dependencies {
+    def pluginVersion= "1.6.0"
+    if ('repo' != System.properties['moduleDepsType']) {
+        classpath 'com.sun.codemodel:codemodel:2.6'
+        classpath 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+        classpath files("annotation-${pluginVersion}.jar")
+        classpath files("annotation-processor-${pluginVersion}.jar")
+        classpath files("annotation-executor-${pluginVersion}.jar")
+        classpath files("annotation-generator-${pluginVersion}.jar")
+        classpath files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+    } else {
+        classpath "org.hapjs.gradle.plugin:annotation-executor:${pluginVersion}"
+        classpath "org.hapjs.gradle.plugin:annotation-generator:${pluginVersion}"
+        classpath files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+    }
+}
+

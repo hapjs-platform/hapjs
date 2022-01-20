@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <color name="video_primary_color">#ff009688</color>
+    <color name="video_secondary_color">#ffffffff</color>
+    <color name="video_secondary_pressed_color">#fff0f0f0</color>
+    <color name="video_pg_background_color">#a5ffffff</color>
+    <color name="video_contorls_retry_bg_color">#1fffffff</color>
+
+    <color name="image_placeholder_color">#ffeeeeee</color>
+    <color name="image_placeholder_color_dark">#12ffffff</color>
+</resources>

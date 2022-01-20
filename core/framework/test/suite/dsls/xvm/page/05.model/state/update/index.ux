@@ -1,0 +1,18 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>{{arr}}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      arr: ['a']
+    }
+  }
+</script>

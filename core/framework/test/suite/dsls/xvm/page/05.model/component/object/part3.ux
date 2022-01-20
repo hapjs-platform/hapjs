@@ -1,0 +1,52 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>part3</text>
+    <text>{{d1}}</text>
+    <text>{{d2.name}}</text>
+    <text>{{d3.name}}</text>
+    <text>{{d4.name}}</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    props: {
+      d1: {
+        type: String
+      },
+      d2: {
+        type: Object,
+        validator: function (val) {
+          return val.hasOwnProperty('name')
+        }
+      },
+      d3: {
+        default: {
+          name: 'part3-default-d3'
+        }
+      },
+      d4: {
+        type: null,
+        validator: function (val) {
+          return typeof val === 'object' && val.hasOwnProperty('name')
+        }
+      }
+    },
+    data: function () {
+      return {
+        d1: 'part3-d1',
+        d2: {
+          name: this.d1 + '-d2'
+        },
+        d3: {
+          name: this.d2.name + '-d3'
+        }
+      }
+    }
+  }
+</script>

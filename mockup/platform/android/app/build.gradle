@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+apply from: './checkstyle.gradle'
+android {
+    defaultConfig {
+        applicationId "org.hapjs.mockup"
+        ndk { abiFilters 'armeabi-v7a', 'arm64-v8a' }
+        multiDexEnabled true
+    }
+
+    sourceSets {
+        androidTest {
+            java {
+                srcDirs += ["../../../../cts/platform/android/app/src/androidTest/java"]
+            }
+            res {
+                srcDirs += ["../../../../cts/platform/android/app/src/androidTest/res"]
+            }
+        }
+    }
+    aaptOptions {
+        additionalParameters '--allow-reserved-package-id', '--package-id', '0x70'
+    }
+
+    packagingOptions {
+        excludes -= ["/META-INF/NOTICE"]
+    }
+}
+
+dependencies {
+    if ('repo' != System.properties['moduleDepsType']) {
+        implementation project(':runtime')
+        implementation project(':widgets')
+        implementation project(':features')
+        implementation project(':inspector')
+        phoneImplementation project(':alipay')
+        phoneImplementation project(':wxpay')
+        implementation project(':share')
+        phoneImplementation project(':qqaccount')
+        phoneImplementation project(':wxaccount')
+        phoneImplementation project(':wbaccount')
+        implementation project(':platform')
+        implementation project(':features-adapter')
+        implementation project(':push')
+        phoneImplementation project(':pay')
+        phoneImplementation project(':account')
+        implementation project(':stats')
+        implementation project(':exchange')
+        implementation project(':debug-log')
+        implementation project(':app-impl')
+    } else {
+        implementation 'org.hapjs:runtime:' + rootProject.appVersionName
+        implementation 'org.hapjs:widgets:' + rootProject.appVersionName
+        implementation 'org.hapjs:features:' + rootProject.appVersionName
+        implementation 'org.hapjs:inspector:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:alipay:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:wxpay:' + rootProject.appVersionName
+        implementation 'org.hapjs:share:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:qqaccount:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:wxaccount:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:wbaccount:' + rootProject.appVersionName
+        implementation 'org.hapjs:platform:' + rootProject.appVersionName
+        implementation 'org.hapjs:features-adapter:' + rootProject.appVersionName
+        implementation 'org.hapjs:push:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:pay:' + rootProject.appVersionName
+        phoneImplementation 'org.hapjs:account:' + rootProject.appVersionName
+        implementation 'org.hapjs:stats:' + rootProject.appVersionName
+        implementation 'org.hapjs:exchange:' + rootProject.appVersionName
+        implementation 'org.hapjs:sentry:' + rootProject.appVersionName
+        implementation 'org.hapjs:debug-log:' + rootProject.appVersionName
+        implementation 'org.hapjs:app-impl:' + rootProject.appVersionName
+    }
+
+    implementation 'androidx.multidex:multidex:2.0.0'
+}

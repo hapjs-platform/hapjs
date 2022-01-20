@@ -1,0 +1,62 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <div id="inst1">
+      <text for="list1" tid="uuid">
+        {{$item.name}}
+      </text>
+    </div>
+
+    <div id="inst2">
+      <block for="list2" tid="uuid">
+        <text>
+          {{$item.name}}
+        </text>
+      </block>
+    </div>
+
+    <div id="inst3">
+      <text for="list3" tid="uuid">
+        {{$item}}
+      </text>
+    </div>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      list1: [
+        {
+          name: '103',
+          uuid: 103
+        },
+        {
+          name: '104',
+          uuid: 104
+        }
+      ],
+      list2: [
+        {
+          name: '103',
+          uuid: 103
+        },
+        {
+          name: '104',
+          uuid: 104
+        }
+      ],
+      // 存在同名方法时
+      list3: []
+    },
+    list3 () {
+    },
+    onInit () {
+      this.list3 = [ 'itemData' ]
+    }
+  }
+</script>

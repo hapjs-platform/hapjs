@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/loading_failed_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:paddingTop="60dp"
+    android:paddingBottom="60dp">
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/error_app_icon"
+        android:layout_width="85.33dp"
+        android:layout_height="85.33dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        fresco:roundedCornerRadius="12.8dp" />
+
+    <TextView
+        android:id="@+id/error_app_name"
+        style="@style/AppTextAppearance.Medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/error_app_icon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15.33dp"
+        android:gravity="center_horizontal"
+        android:textColor="#b3000000"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/error_message"
+            style="@style/AppTextAppearance.Medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="26.67dp"
+            android:layout_marginRight="26.67dp"
+            android:layout_marginBottom="38dp"
+            android:gravity="center_horizontal"
+            android:textColor="#b3000000"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/error_btn_top"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="26.67dp"
+            android:layout_marginRight="26.67dp"
+            android:layout_marginBottom="16.67dp"
+            android:background="@drawable/loading_error_btn_bg1"
+            android:gravity="center"
+            android:stateListAnimator="@null"
+            android:textColor="#46bf7f"
+            android:textSize="13.33sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/error_btn_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="26.67dp"
+            android:layout_marginRight="26.67dp"
+            android:background="@drawable/loading_error_btn_bg2"
+            android:gravity="center"
+            android:stateListAnimator="@null"
+            android:textColor="#ffffff"
+            android:textSize="13.33sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</RelativeLayout>

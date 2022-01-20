@@ -1,0 +1,15 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div id="rootEl">
+    <slot name="demo1">
+      <text>demo1 兜底数据</text>
+    </slot>
+    <slot name="demo2">
+      <text>demo2 兜底数据</text>
+    </slot>
+  </div>
+</template>

@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+include ':app-impl', ':app', ':annotation-processor', ':annotation', ':debug-log'
+
+if ('repo' != System.properties['moduleDepsType']) {
+    include ':features', ':runtime', ':widgets', ':card-api', ':card-common', ':card-support', ':inspector',
+            ':platform', ':account', ':pay', ':push', ':stats',
+            ':alipay', ':share', ':wxpay', ':qqaccount', ':wxaccount', ':wbaccount',
+            ':features-adapter',
+            ':exchange', ':exchange-common',
+            ':annotation', ':annotation-processor'
+
+    // core
+    project(':features').projectDir = new File("../../../core/runtime/android/features")
+    project(':runtime').projectDir = new File("../../../core/runtime/android/runtime")
+    project(':widgets').projectDir = new File("../../../core/runtime/android/widgets")
+    project(':card-api').projectDir = new File("../../../core/runtime/android/card-api")
+    project(':card-common').projectDir = new File("../../../core/runtime/android/card-common")
+    project(':card-support').projectDir = new File("../../../core/runtime/android/card-support")
+    project(':debug-log').projectDir = new File("../../../core/runtime/android/debug-log")
+
+    project(':inspector').projectDir = new File("../../../debug/engine/android/inspector")
+
+    // platform
+    project(':platform').projectDir = new File("../../../platform/platform/android/platform")
+
+    // vendor features
+    project(':account').projectDir = new File("../../plugins/android/features/account")
+    project(':pay').projectDir = new File("../../plugins/android/features/pay")
+    project(':push').projectDir = new File("../../plugins/android/features/push")
+    project(':stats').projectDir = new File("../../plugins/android/features/stats")
+
+    // external features
+    project(':alipay').projectDir = new File("../../../core/plugins/android/features/alipay")
+    project(':share').projectDir = new File("../../../core/plugins/android/features/share")
+    project(':wxpay').projectDir = new File("../../../core/plugins/android/features/wxpay")
+    project(':qqaccount').projectDir = new File("../../../core/plugins/android/features/qqaccount")
+    project(':wxaccount').projectDir = new File("../../../core/plugins/android/features/wxaccount")
+    project(':wbaccount').projectDir = new File("../../../core/plugins/android/features/wbaccount")
+
+    // features adapter
+    project(':features-adapter').projectDir = new File("../../../platform/platform/android/features")
+
+    //exchange
+    project(':exchange').projectDir = new File("../../../core/plugins/android/features/exchange")
+    project(':exchange-common').projectDir = new File("../../../core/plugins/android/libraries/exchange-common")
+
+    project(':annotation').projectDir = new File("../../../core/runtime/android/annotation")
+    project(':annotation-processor').projectDir = new File("../../../core/runtime/android/annotation-processor")
+}

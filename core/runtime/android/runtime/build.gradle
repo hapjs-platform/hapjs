@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+def getPlatformVersionCode() {
+    def prop = System.properties['platformVersionCode']
+    if (prop != null) {
+        println 'platform versionCode is ' + prop + ' (specified)'
+        return prop
+    }
+    int code = android.defaultConfig.versionCode / 10000
+    println 'platform versionCode is ' + code
+    return code.toString()
+}
+
+def getPlatformVersionName() {
+    def prop = System.properties['platformVersionName']
+    if (prop != null) {
+        println 'platform versionName is ' + prop + ' (specified)'
+        return prop
+    }
+    int code = android.defaultConfig.versionCode / 100000
+    String name = (int) (code / 100) + '.' + (code % 100)
+    println 'platform versionName is ' + name
+    return name
+}
+
+String PLATFORM_VERSION_TEXT = getPlatformVersionCode()
+String PLATFORM_VERSION_NAME = getPlatformVersionName()
+def JSENV_VERSION = "1.2.6"
+
+// add version file
+task addVersionFile(type: Exec) {
+    def versionFilePath = "" + projectDir + "/src/main/resources/jsenv_version"
+    File versionFile = new File(versionFilePath)
+    versionFile.withOutputStream { os ->
+        os << ("jsenv_aar_version = " + JSENV_VERSION).getBytes();
+    }
+}
+
+android {
+    buildTypes {
+        debug {
+            manifestPlaceholders = [platformVersion: PLATFORM_VERSION_TEXT, platformVersionName: PLATFORM_VERSION_NAME]
+            buildConfigField "int", "platformVersion", PLATFORM_VERSION_TEXT
+            buildConfigField "String", "platformVersionName", "\"" + PLATFORM_VERSION_NAME + "\""
+        }
+        release {
+            manifestPlaceholders = [platformVersion: PLATFORM_VERSION_TEXT, platformVersionName: PLATFORM_VERSION_NAME]
+            buildConfigField "int", "platformVersion", PLATFORM_VERSION_TEXT
+            buildConfigField "String", "platformVersionName", "\"" + PLATFORM_VERSION_NAME + "\""
+        }
+    }
+}
+
+dependencies {
+    api "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
+    api 'com.squareup.okhttp3:okhttp:3.12.3'
+    api 'com.facebook.fresco:fresco:2.3.0'
+    api 'com.facebook.fresco:animated-gif:2.3.0'
+    api 'com.facebook.fresco:animated-webp:2.3.0'
+    api 'com.facebook.fresco:animated-drawable:2.3.0'
+    api fileTree(dir: 'libs', include: ["yoga-1.5.0.aar"])
+    api 'com.google.code.findbugs:jsr305:3.0.1'
+    api 'com.facebook.soloader:soloader:0.9.0'
+    api 'com.caverock:androidsvg:1.4'
+    api 'org.greenrobot:eventbus:3.1.1'
+    api 'com.tencent:mmkv:1.2.1'
+    compileOnly project(':card-api')
+    api project(":annotation")
+    implementation project(":debug-log")
+    api 'com.google.zxing:core:3.1.0'
+
+    def jsenvArtifactId = 'jsenv'
+    def jsenvVersionCode = JSENV_VERSION
+    if ('true' == project.properties['noV8Symbols']) {
+        jsenvArtifactId += '-no-v8symbols'
+    }
+    def jsenv = jsenvArtifactId + "-" + jsenvVersionCode + ".aar"
+
+    api fileTree(dir: 'jsenv-libs', include: [jsenv])
+    // api fileTree(include: ['*.aar'], dir: '/yourproject/build/outputs/aar')
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+}
+
+apply plugin: 'com.moowork.node'
+
+node {
+    version = '12.13.0'
+    distBaseUrl = "https://npm.taobao.org/mirrors/node"
+    download = true
+    workDir = file("../.gradle/node")
+    nodeModulesDir = file("../../../framework")
+}
+
+task buildInfrasJS(type: NpmTask, dependsOn: 'npmInstall') {
+    args = ['run', ('true' != project.properties['debugMode']) ? 'native:release' : 'native']
+}
+
+task copyInfrasJS(type: Copy, dependsOn: 'buildInfrasJS') {
+    from '../../../framework/dist/' + (('true' != project.properties['debugMode']) ? 'release' : 'debug')
+    include 'infras.js', 'bundles/*.js', 'dsls/dsl-xvm.js', 'app/*/*.js'
+    into 'src/main/assets/js'
+}
+
+task cleanJS(type: Delete) {
+    delete 'src/main/assets/js'
+}
+clean.dependsOn cleanJS

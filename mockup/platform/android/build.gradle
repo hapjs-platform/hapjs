@@ -1,0 +1,331 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import com.github.spotbugs.SpotBugsTask
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    ext.kotlin_version = '1.3.61'
+    repositories {
+        google()
+        maven { url "https://plugins.gradle.org/m2/" }
+        jcenter()
+    }
+    dependencies {
+        // https://github.com/spotbugs/spotbugs-gradle-plugin/issues/147
+        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.1.1'
+        classpath "gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:2.0.0"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+    apply from: '../../../development/gradle-plugin/prebuilts/2.1.0/buildscript.gradle', to: buildscript
+}
+
+apply from: '../../../core/runtime/android/version.gradle', to: rootProject
+apply from: '../../../core/runtime/android/config.gradle', to: rootProject
+
+allprojects {
+    repositories {
+        if ('remote' != project.properties['repoType']) {
+            mavenLocal()
+        } else {
+            maven { url project.properties['privateRepo'] }
+        }
+        google()
+        jcenter()
+    }
+}
+
+def javaModules = ['card-api', 'annotation', 'annotation-processor']
+def applicationModules = ['app']
+def ndkBuildModules = ['inspector']
+def runtimeModule = 'runtime'
+
+if (project.properties['useSpecifiedNdk'] == 'true') {
+    exec {
+        File rootPathFile = file('../../../../')
+        File v8ToolsFile = file('../../../external/v8/third_party/android_tools')
+        workingDir '../../../external/public'
+
+        commandLine 'python', 'ndk_build.py', '--root-path', rootPathFile.absolutePath,
+                '--v8-tools-path', v8ToolsFile.absolutePath
+    }
+}
+
+// setting ndk build abi filters
+def setNdkAbiFilters(project) {
+    project.android {
+        buildTypes {
+            def debugAbi = '', releaseAbi = ''
+            if (project.hasProperty('PROP_APP_ABI_DEBUG')) {
+                debugAbi = project.getProperty('PROP_APP_ABI_DEBUG')
+            }
+            if (project.hasProperty('PROP_APP_ABI_RELEASE')) {
+                releaseAbi = project.getProperty('PROP_APP_ABI_RELEASE')
+            }
+            if (debugAbi == '') {
+                debugAbi = releaseAbi
+            }
+            // must setting release ndk build
+            if (releaseAbi == '') {
+                debugAbi = ''
+            }
+            // set default ndk build
+            if (releaseAbi == '' && debugAbi == '') {
+                releaseAbi = debugAbi = 'armeabi-v7a:arm64-v8a'
+            }
+            def isChecked = true
+            if (project.name == 'runtime' && project.properties['useInfrasJsSnapshot'] != 'true') {
+                isChecked = false
+            }
+            if (debugAbi != '' && isChecked) {
+                debug {
+                    ndk {
+                        String[] abis = debugAbi.split(':')
+                        for (def abi : abis) {
+                            abiFilters abi
+                        }
+                    }
+                }
+            }
+            if (releaseAbi != '' && isChecked) {
+                release {
+                    ndk {
+                        String[] abis = releaseAbi.split(':')
+                        for (def abi : abis) {
+                            abiFilters abi
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// optimized externalNativeBuild task
+def optimizedExternalNativeBuildTask(project) {
+    project.afterEvaluate {
+        // optimized build
+        project.android.libraryVariants.all { variant ->
+            def buildType = variant.name
+            def capitalizeBuildType = buildType.capitalize()
+            def nativeBuildTask = project.tasks.findByName("externalNativeBuild${capitalizeBuildType}")
+            def destDir = project.buildDir.absolutePath + '/intermediates/ndkBuild/' + buildType + '/obj/local/'
+            def useSoCache = rootProject.properties['ENABLE_SO_CACHE_MODE'] == 'true'
+            File destFile = new File(destDir)
+            def enableNativeBuild = true
+            if (useSoCache && destFile?.listFiles()?.size() > 0) {
+                enableNativeBuild = false
+            }
+            // optimized externalNativeBuildXX task
+            if (nativeBuildTask) {
+                nativeBuildTask.enabled = enableNativeBuild
+            }
+            // optimized externalNativeBuildCleanXX task
+            def nativeBuildCleanTask = project.tasks.findByName("externalNativeBuildClean${capitalizeBuildType}")
+            def enableNativeBuildCleanCacheMode = project.properties['ENABLE_NATIVE_BUILD_CLEAN_CACHE'] == 'true'
+            if (nativeBuildCleanTask) {
+                nativeBuildCleanTask.enabled = !enableNativeBuildCleanCacheMode
+            }
+        }
+    }
+}
+
+// ignore runtime:copyInfrasJS task
+static boolean isIgnoreCopyInfrasJSTask(project) {
+    def enableInfrasJsCache = project.properties['ENABLE_INFRAS_JS_CACHE'] == 'true'
+    if (enableInfrasJsCache) {
+        def srcDir = project.getProjectDir().path + "/src/main/assets/js/"
+        File srcFile = new File(srcDir)
+        def ignoreCopyInfrasJSTask = srcFile?.listFiles()?.size() > 0 && enableInfrasJsCache
+        return ignoreCopyInfrasJSTask
+    }
+    return false
+}
+
+subprojects {
+    switch (project.name) {
+        case javaModules:
+            apply plugin: 'java'
+            group "org.hapjs"
+            version rootProject.appVersionName
+            return
+        case applicationModules:
+            apply plugin: 'com.android.application'
+            break
+        case runtimeModule:
+            apply plugin: 'com.android.library'
+            // setting ndk build abi filters
+            setNdkAbiFilters(project)
+            // optimized externalNativeBuild task
+            optimizedExternalNativeBuildTask(project)
+            // optimized runtime:copyInfrasJS task
+            project.afterEvaluate {
+                if (!isIgnoreCopyInfrasJSTask(project)) {
+                    preBuild.dependsOn copyInfrasJS
+                }
+            }
+            break
+        case ndkBuildModules:
+            apply plugin: 'com.android.library'
+            // setting ndk build abi filters
+            setNdkAbiFilters(project)
+            // optimized externalNativeBuild task
+            optimizedExternalNativeBuildTask(project)
+            break
+        default:
+            apply plugin: 'com.android.library'
+            break
+    }
+
+    apply plugin: 'kotlin-android'
+    apply plugin: 'kotlin-android-extensions'
+    apply plugin: 'kotlin-kapt'
+    apply plugin: 'org.hapjs.gradle.plugin.annotation.executor'
+    apply plugin: 'org.hapjs.gradle.plugin.annotation.generator'
+    apply plugin: "com.github.spotbugs"
+
+    android {
+        compileSdkVersion rootProject.compileSdkVersion
+        group "org.hapjs"
+        version rootProject.appVersionName
+        defaultConfig {
+            minSdkVersion 19
+            targetSdkVersion 24
+            versionCode rootProject.appVersionCode
+            versionName rootProject.appVersionName
+            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        }
+        signingConfigs {
+            core {
+                storeFile file('debug.keystore')
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+            release {
+                if ('true' == project.properties['signMode']) {
+                    storeFile file(project.properties['storeFile'])
+                    storePassword project.properties['storePassword']
+                    keyAlias project.properties['keyAlias']
+                    keyPassword project.properties['keyPassword']
+                }
+            }
+        }
+        lintOptions {
+            checkReleaseBuilds false
+            abortOnError false
+            lintConfig rootProject.file('static-analysis-filters/lint-rules.xml')
+            xmlOutput file("${project.rootDir}/build/reports/lint-results_${project.name}.xml")
+        }
+        buildTypes {
+            debug {
+                if (!project.hasProperty("useSysSig")) {
+                    println 'use default sig'
+                    signingConfig signingConfigs.core
+                } else {
+                    println 'use system sig'
+                }
+            }
+            release {
+                if ('true' == project.properties['signMode']) {
+                    signingConfig signingConfigs.release
+                } else {
+                    signingConfig signingConfigs.core
+                }
+                if (project.name in applicationModules) {
+                    minifyEnabled 'true' != project.properties['debugMode']
+                    proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                }
+            }
+        }
+        flavorDimensions "platform"
+        productFlavors {
+            phone {
+                dimension "platform"
+            }
+            tv {
+                dimension "platform"
+            }
+        }
+        sourceSets {
+            main.kotlin.srcDirs += 'src/main/kotlin'
+        }
+    }
+
+    dependencies {
+        api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+        implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+        kapt project(':annotation-processor')
+        androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
+            exclude group: 'com.android.support', module: 'support-annotations'
+            exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        })
+        androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
+        testImplementation 'junit:junit:4.12'
+        spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.9.0'
+        spotbugsPlugins 'com.mebigfatguy.fb-contrib:fb-contrib:7.4.5'
+    }
+
+    // add static code scanning plugin
+    spotbugs {
+        toolVersion = '3.1.12'
+    }
+
+    sourceSets {
+        // define `main` sourceSet here, so SpotBugs Gradle Plugin generates `spotbugsMain` task
+        main {
+            java.srcDirs = ['src/main/java']
+        }
+    }
+
+    tasks.withType(SpotBugsTask) {
+        ignoreFailures = true
+        // analysis level  Minimal/default/Maximal
+        effort = "default"
+        // report level  low/medium/high
+        reportLevel = "medium"
+        classes = files("${project.buildDir}/intermediates/javac/")
+        classpath = files()
+        reports.xml.enabled = true
+        reports.html.enabled = !reports.xml.enabled
+        excludeFilter rootProject.file('static-analysis-filters/spotbugs-excludes.xml')
+        reports {
+            xml {
+                destination file("${project.rootDir}/build/reports/spotbugs_${project.name}.xml")
+            }
+        }
+    }
+}
+
+subprojects {
+    if (!applicationModules.contains(project.name)) {
+        apply plugin: 'maven'
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    if ('remote' == project.properties['repoType']) {
+                        snapshotRepository(url: project.properties['snapshotRepo']) {
+                            authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                        }
+                        repository(url: project.properties['releaseRepo']) {
+                            authentication(userName: project.properties['repoUser'], password: project.properties['repoPassword'])
+                        }
+                    } else {
+                        repository(url: mavenLocal().url)
+                    }
+                }
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,37 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+<import src="./part2"></import>
+<import src="./part3"></import>
+
+<template>
+  <div>
+    <part1 id="vm1Id"></part1>
+
+    <part2 id="vm2Id" if="renderPart2" obj="{{person}}"></part2>
+
+    <part3 id="vm3Id" onclick="callParentClick3"></part3>
+    <part3 id="vm4Id" onclick="callParentClick4('val0')"></part3>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+      renderPart2: true,
+      person: {
+        name: 'jack'
+      }
+    },
+    callParentClick3 (evt) {
+      this.detail = evt.detail
+    },
+    callParentClick4 (arg0, evt) {
+      this.arg0 = arg0
+      this.detail = evt.detail
+    }
+  }
+</script>

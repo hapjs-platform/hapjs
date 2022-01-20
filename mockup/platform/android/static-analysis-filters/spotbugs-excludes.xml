@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<FindBugsFilter>
+    <Match>
+        <Or>
+            <Class name="~.*\.R\$.*" />
+            <Class name="~.*Test" />
+            <Class name="~.*Test\$.*" />
+            <Class name="~.*\.Manifest\$.*" />
+        </Or>
+    </Match>
+    <!-- android-support-v4.jar：包过滤 -->
+    <Match>
+        <Package name="~android\.support\.v4.*" />
+    </Match>
+
+    <!-- All bugs in test classes, except for JUnit-specific bugs -->
+    <Match>
+        <Class name="~.*\.*Test" />
+        <Not>
+            <Bug code="IJU" />
+        </Not>
+    </Match>
+    <Match>
+        <Or>
+            <Bug pattern="CC_CYCLOMATIC_COMPLEXITY" />
+        </Or>
+    </Match>
+
+    <!-- 过滤ReflectUtils的createCardView方法-->
+    <Match>
+        <Class name="org.hapjs.card.support.impl.utils.ReflectUtils" />
+        <Method name="createCardView" />
+        <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" />
+    </Match>
+
+    <!-- 过滤ApplicationContext的getSharedPreferences方法-->
+    <Match>
+        <Class name="org.hapjs.bridge.ApplicationContext" />
+        <Method name="getSharedPreferences" />
+        <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS" />
+    </Match>
+</FindBugsFilter>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/loading_failed_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/error_message"
+        style="@style/AppTextAppearance.Medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableTop="@drawable/ic_no_network"
+        android:drawablePadding="15.33dp"
+        android:gravity="center_horizontal"
+        android:textColor="#000"
+        android:textSize="12.67sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/back_btn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="26.67dp"
+            android:layout_marginRight="26.67dp"
+            android:layout_marginBottom="16.67dp"
+            android:background="@drawable/loading_error_btn_bg1"
+            android:gravity="center"
+            android:stateListAnimator="@null"
+            android:text="@string/loading_fail_back"
+            android:textColor="#0099ff"
+            android:textSize="13.33sp" />
+
+        <Button
+            android:id="@+id/refresh_btn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="26.67dp"
+            android:layout_marginRight="26.67dp"
+            android:background="@drawable/loading_error_btn_bg2"
+            android:gravity="center"
+            android:stateListAnimator="@null"
+            android:text="@string/loading_fail_refresh"
+            android:textColor="#ffffff"
+            android:textSize="13.33sp" />
+    </LinearLayout>
+</LinearLayout>

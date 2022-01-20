@@ -1,0 +1,24 @@
+{
+  "extends": ["standard", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "mocha": true
+  },
+  "globals": {
+    "ENV_PLATFORM": false,
+    "profiler": false
+  },
+  "rules": {
+    "no-new-func": 0,
+    "standard/computed-property-even-spacing": 0,
+    "standard/no-callback-literal": 0,
+    "promise/param-names": 0,
+    "no-case-declarations": 0,
+    "no-prototype-builtins": 0
+  }
+}

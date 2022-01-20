@@ -1,0 +1,27 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>part2</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    props: ['d1', 'd2', 'd3', 'd4'],
+    data: function () {
+      return {
+        d1: 'part2-d1',
+        d2: {
+          name: this.d1 + '-d2'
+        },
+        d3: {
+          name: this.d2.name + '-d3'
+        }
+      }
+    }
+  }
+</script>

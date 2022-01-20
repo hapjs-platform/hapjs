@@ -1,0 +1,20 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>part2</text>
+    <input id="ip1" type="text" value="{{$attrs.v2}}"></input>
+    <input id="ip2" type="text" value="{{$attrs.d3}}"></input>
+    <input id="ip3" type="text" value="{{$attrs.d5}}"></input>
+    <input id="ip4" type="text" value="{{d6}}"></input>
+  </div>
+</template>
+
+<script>
+  export default {
+    props:['v1', 'd6']
+  }
+</script>

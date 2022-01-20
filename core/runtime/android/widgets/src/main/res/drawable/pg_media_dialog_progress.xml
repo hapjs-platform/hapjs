@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape>
+            <solid android:color="@color/video_secondary_color" />
+            <corners android:radius="@dimen/video_dialog_progress_radius" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <solid android:color="@color/video_primary_color" />
+                <corners android:radius="@dimen/video_dialog_progress_radius" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

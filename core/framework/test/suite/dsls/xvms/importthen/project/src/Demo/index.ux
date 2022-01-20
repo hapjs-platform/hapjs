@@ -1,0 +1,26 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <!-- template里只能有一个根节点 -->
+  <div class="demo-page">
+    <text class="title">{{count}}</text>
+    <input class="btn" type="button" value="点击引入动态JS" onclick="dynamicImportJs" />
+  </div>
+</template>
+
+<script>
+
+  export default {
+    private: {
+      count: 100
+    },
+    async dynamicImportJs() {
+      const res = await import('./dynamic-js')
+      this.count = res.calculate(this.count)
+      return this.count
+    }
+  }
+</script>

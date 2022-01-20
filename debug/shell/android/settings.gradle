@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+include 'app'
+if ('repo' != System.properties['moduleDepsType']) {
+    include ':card-common', ':android-stub', ':android-hack', ':card-sdk', ':card-api', ':debug-log', ':app-impl'
+    //card sdk
+    project(':android-stub').projectDir = new File("../../../core/runtime/android/android-stub")
+    project(':android-hack').projectDir = new File("../../../core/runtime/android/android-hack")
+    project(':card-common').projectDir = new File("../../../core/runtime/android/card-common")
+    project(':card-sdk').projectDir = new File("../../../core/runtime/android/card-sdk")
+    project(':card-api').projectDir = new File("../../../core/runtime/android/card-api")
+    project(':debug-log').projectDir = new File("../../../core/runtime/android/debug-log")
+}

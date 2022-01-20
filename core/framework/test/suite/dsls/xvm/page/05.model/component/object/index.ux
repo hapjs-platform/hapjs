@@ -1,0 +1,30 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import src="./part1"></import>
+<import src="./part2"></import>
+<import src="./part3"></import>
+
+<template>
+  <div>
+    <part1 id="vmInst1" d1="{{d1}}" d2="{{d2}}"></part1>
+    <part2 id="vmInst2" d1="{{d1}}" d2="{{d2}}" d6 d7></part2>
+    <part3 id="vmInst3" d1="{{d1}}" d2="{{d2}}" d4="{{d4}}"></part3>
+  </div>
+</template>
+
+<script>
+  export default {
+    private: {
+      d1: 'page-d1',
+      d2: {
+        name: 'page-d2'
+      },
+      d4: {
+        name: 'page-d4'
+      }
+    }
+  }
+</script>

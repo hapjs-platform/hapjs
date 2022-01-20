@@ -1,0 +1,20 @@
+{
+  "name": "importhen-demo",
+  "version": "1.0.0",
+  "description": "",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "build": "hap build --split-chunks-mode=smart --devtool=none"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^6.8.0",
+    "eslint-plugin-ux": "^0.0.4",
+    "hap-toolkit": "^0.7.1"
+  },
+  "browserslist": [
+    "chrome 65"
+  ]
+}

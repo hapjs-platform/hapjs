@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--  
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+          name="viewport"/>
+    <script type="text/javascript">
+        var elementText = {
+            zh: {
+                errorCodeTips: "您访问的网页无法打开（{0}）",
+                errorMsgTips: "错误原因：{0}",
+                btnText: "返回",
+                errorMap: {
+                    // 4xx error
+                    400: "服务器不理解请求的语法。",
+                    401: "请求要求身份验证。",
+                    403: "服务器拒绝请求。",
+                    404: "服务器找不到请求的网页。",
+                    405: "禁用请求中指定的方法。",
+                    406: "无法使用请求的内容特性响应请求的网页。",
+                    407: "请求需要授权使用代理。",
+                    408: "服务器等候请求时发生超时。",
+                    409: "服务器在完成请求时发生冲突。",
+                    410: "请求的资源已永久删除。",
+                    411: "服务器不接受不含有效内容长度标头字段的请求。",
+                    412: "服务器未满足请求中设置的前提条件。",
+                    413: "服务器无法处理请求，因为请求实体过大，超出服务器的处理能力。",
+                    414: "请求的URI过长，服务器无法处理。",
+                    415: "请求的格式不受请求页面的支持。",
+                    416: "页面无法提供请求的范围。",
+                    417: "服务器未满足\"期望\"请求标头字段的要求。",
+                    // 5xx error
+                    500: "服务器遇到错误，无法完成请求。",
+                    501: "服务器不具备完成请求的功能。",
+                    502: "服务器作为网关或代理，从上游服务器收到无效响应。",
+                    503: "服务器目前无法使用。",
+                    504: "服务器作为网关或代理，没有及时从上游服务器收到请求。",
+                    505: "服务器不支持请求中所用的HTTP协议版本。",
+                    // default
+                    0: "其他原因。"
+                }
+            },
+            en: {
+                errorCodeTips: "The page you visited could not be opened({0})",
+                errorMsgTips: "Wrong reason:{0}",
+                btnText: "Return",
+                errorMap: {
+                    // 4xx error
+                    400: "The server does not understand the syntax of the request.",
+                    401: "The request requires authentication.",
+                    403: "The server rejected the request.",
+                    404: "The server could not find the requested web page.",
+                    405: "Disable the method specified in the request.",
+                    406: "The requested content page could not be used to respond to the requested web page.",
+                    407: "The request requires authorization to use the agent.",
+                    408: "A timeout occurred while the server was waiting for a request.",
+                    409: "The server has a conflict when it completes the request.",
+                    410: "The requested resource has been permanently deleted.",
+                    411: "The server does not accept requests without a valid content length header field.",
+                    412: "The server did not meet the prerequisites set in the request.",
+                    413: "The server was unable to process the request because the request entity was too large and exceeded the server's processing power.",
+                    414: "The requested URI is too long for the server to process.",
+                    415: "The format of the request is not supported by the request page.",
+                    416: "The page could not provide the scope of the request.",
+                    417: "The server did not meet the requirements of the \'expected\' request header field.",
+                    // 5xx error
+                    500: "The server encountered an error and could not complete the request.",
+                    501: "The server does not have the ability to complete the request.",
+                    502: "The server acts as a gateway or proxy and receives an invalid response from the upstream server.",
+                    503: "The server is currently unavailable.",
+                    504: "The server acts as a gateway or proxy and does not receive requests from the upstream server in a timely manner.",
+                    505: "The server does not support the HTTP protocol version used in the request.",
+                    // default
+                    0: "Other reasons."
+                }
+            }
+        }
+        function webGoBack() {
+            // go back
+            window.system.webGoBack();
+        }
+
+        function onLoad() {
+            var url = document.location.toString();
+            var arrUrl = url.split("?");
+            var urlParamsArray = arrUrl[1];
+            var errorCode = 0;
+            var language = (navigator.language || navigator.browserLanguage);
+            // get type and language
+            if (urlParamsArray) {
+                var params = urlParamsArray.split("&");
+                if (Array.isArray(params)) {
+                    var errorCodeParams;
+                    params.some(function (element) {
+                        if (element.indexOf("errorCode") !== -1) {
+                            errorCodeParams = element;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (errorCodeParams) {
+                        errorCode = errorCodeParams.split("=")[1];
+                    }
+                    var languageParams;
+                    params.some(function (element) {
+                        if (element.indexOf("lang") !== -1) {
+                            languageParams = element;
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (languageParams) {
+                        language = languageParams.split("=")[1];
+                    }
+                }
+            }
+            // multi language
+            initElementText(language, errorCode);
+        }
+
+        function initElementText(lang, errorCode) {
+            if (lang) {
+                var item = lang.indexOf("zh") !== -1 ? elementText.zh : elementText.en;
+                var errorMsg = item.errorMap[errorCode];
+                document.getElementById("txt_error_code_tips").textContent = item.errorCodeTips.format(errorCode);
+                document.getElementById("txt_error_msg_tips").textContent = item.errorMsgTips.format(decodeURI(errorMsg));
+                document.getElementById("btn_go_back").value = item.btnText;
+            }
+        }
+
+        function init() {
+            var width = window.innerWidth || document.documentElement.clientWidth;
+            var rem = width / 10.80;
+            document.documentElement.style.fontSize = rem + 'px';
+        }
+
+        String.prototype.format = function (args) {
+            var result = this;
+            if (arguments.length > 0) {
+                if (arguments.length == 1 && typeof (args) == "object") {
+                    for (var key in args) {
+                        if (args[key] != undefined) {
+                            var reg = new RegExp("({" + key + "})", "g");
+                            result = result.replace(reg, args[key]);
+                        }
+                    }
+                }
+                else {
+                    for (var i = 0; i < arguments.length; i++) {
+                        if (arguments[i] != undefined) {
+                            //var reg = new RegExp("({[" + i + "]})", "g");//这个在索引大于9时会有问题
+                            var reg = new RegExp("({)" + i + "(})", "g");
+                            result = result.replace(reg, arguments[i]);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        init();
+
+
+    </script>
+    <style type="text/css">
+        .body {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0rem;
+            overflow: hidden;
+            background-color: #ffffff
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .warning-icon {
+            width: 1.667rem;
+            margin-top: 7.007rem
+        }
+
+        .warning-code-text {
+            font-size: 0.45rem;
+            color: rgba(0, 0, 0, 0.50);
+            text-align: center;
+            margin-top: 0.346rem;
+            margin-left: 0.85rem;
+            margin-right: 0.85rem;
+            margin-bottom: 0rem
+        }
+
+        .warning-msg-text {
+            font-size: 0.45rem;
+            color: rgba(0, 0, 0, 0.50);
+            text-align: center;
+            margin-top: 0rem;
+            margin-left: 0.85rem;
+            margin-right: 0.85rem;
+            margin-bottom: 0rem
+        }
+
+        .btn-go-back {
+            width: 3.96rem;
+            height: 1.02rem;
+            background-color: #0086FF;
+            border-radius: 0.51rem;
+            font-size: 0.45rem;
+            color: #ffffff;
+            text-align: center;
+            margin-top: 0.66rem;
+            border: 0rem;
+            outline: none;
+        }
+
+
+    </style>
+</head>
+
+<body class="body" id="body" onload="onLoad()">
+<div class="content" id="content">
+    <img alt="http_error_icon" class="warning-icon" src="images/http_error_icon.webp"/>
+    <p class="warning-code-text" id="txt_error_code_tips">您访问的网页无法打开</p>
+    <p class="warning-msg-text" id="txt_error_msg_tips">错误原因：</p>
+    <input class="btn-go-back" id="btn_go_back" onclick="webGoBack()" type="button" value="返回"/>
+</div>
+</body>
+
+</html>

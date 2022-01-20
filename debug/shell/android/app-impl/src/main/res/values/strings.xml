@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Quick App Debugger</string>
+    <string name="action_settings">Settings</string>
+    <string name="activity_settings_label" translatable="false">@string/action_settings</string>
+
+    <string name="btn_scan_install">install by barcode</string>
+    <string name="btn_local_install">install with file</string>
+    <string name="btn_update_online">update online</string>
+    <string name="btn_start_debug">start debugging</string>
+
+    <string name="btn_scan_installing">installing by barcode...</string>
+    <string name="btn_local_installing">installing with file...</string>
+    <string name="btn_updating_online">updating online...</string>
+
+    <string name="hint_fail_to_bind_service">Can not start [Quick App Preview],please grant the permission of [Startup]/[Autostart] to [Quick App Preview] on the relevant settings page of system permission management, or open it Manual.</string>
+    <string name="hint_no_response">if [START DEBUGGING] button has no response, please grant the permissions of [Startup]/[Autostart] and [Backupgroud pop-ups] to [Quick Apps Preview] on the relevant settings page of system permission management.</string>
+
+    <string name="dlg_uninstall_title">Uninstall</string>
+    <string name="dlg_uninstall_msg">You\'ve installed a higher version of Platform Preview. Please uninstall and then download and install.</string>
+
+    <string name="toast_no_barcode_scanner">Can\'t find barcode scanner</string>
+    <string name="toast_barcode_scanner_fail">Fail to scan barcode.</string>
+    <string name="toast_no_server">No server found, please install app by barcode or setup server in settings</string>
+    <string name="toast_install_fail">Install fail <xliff:g id="error_code">%1$d</xliff:g></string>
+    <string name="toast_permission_fail">Fail to request permission</string>
+    <string name="toast_no_debuggable_package">No debuggable package</string>
+    <string name="toast_platform_not_choose">No runtime platform choose, please choose a platform</string>
+    <string name="toast_start_download">Start downloading platform now, please wait</string>
+    <string name="toast_uninstall_success">Uninstall success</string>
+    <string name="toast_uninstall_fail">Uninstall fail</string>
+    <string name="toast_serial_number_user_denied">USB connection needs serial number to specify your phone</string>
+    <string name="toast_debug_core_launch_success">Launch debug core success</string>
+    <string name="toast_debug_core_download_success">Download debug core success, please install</string>
+    <string name="toast_no_compatible_core_error">No compatible debug core installed, please check your network and retry</string>
+    <string name="toast_no_card">No card found</string>
+    <string name="toast_platform_not_support_debug">The platform not support debug</string>
+    <string name="toast_debug_error">Debug error</string>
+    <string name="toast_platform_incompatible">The platform version is <xliff:g id="cur_version">%1$d</xliff:g>, which is lower than <xliff:g id="min_version">%3$d</xliff:g> (required by <xliff:g id="app">%2$s</xliff:g>).Please update the platform.</string>
+    <string name="toast_view_card_in">Please view card in \"<xliff:g id="host">%1$s</xliff:g>\"</string>
+
+    <string name="dlg_pick_package">Pick a package</string>
+    <string name="dlg_package_cert_changed_title">Install failed</string>
+    <string name="dlg_package_cert_changed_desc">Package signatures do not match the previously installed version,
+        please uninstall it. <b>Warning: uninstalling will remove all the app data.</b>
+        \n\nUninstall previous package and install current one?
+    </string>
+    <string name="toast_no_wifi_connected">No wifi connected, debugger need a wifi environment</string>
+    <string name="toast_please_choose_rpk_file">Please select .rpk format file</string>
+
+    <string name="dlg_network_error_title">Network error</string>
+    <string name="dlg_network_error_desc">Obtain rpk file failed, please check:
+        \n\n1. whether your phone and computer in the same LAN
+        \n\n2. whether \"npm run server\" command has been executed
+        \n\n3. whether can get a valid rpk from the link : %s </string>
+    <string name="dlg_usb_error_title">USB connection error</string>
+    <string name="dlg_usb_error_desc">Obtain rpk file failed, please check:
+        \n\n1. whether your phone is connected to the PC with a USB
+        \n\n2. whether \"npm run server\" command has been executed
+        \n\n3. whether the hap-toolkit supports USB debugging
+        \n\n4. whether the USB debugging in developer options is checked</string>
+    <string name="dlg_hint_downloading">Downloading...</string>
+    <string name="dlg_universal_scan_confirm_title">Do you want to enable Instant Apps?</string>
+
+    <string name="text_mode">Runtime Mode: </string>
+    <string name="text_mode_application">Application</string>
+    <string name="text_mode_card">Card</string>
+
+    <string name="hint_choose_platform">Choose runtime platform</string>
+    <string name="hint_choose_card">Choose card</string>
+    <string name="text_platform">Runtime platform: </string>
+    <string name="text_platform_version_code_download">Platform Version code: %s</string>
+    <string name="text_platform_version_code">Platform Version code: %s(%s)</string>
+    <string name="text_platform_version_name">Platform Version name: %s</string>
+    <string name="text_platform_version_beta">beta</string>
+    <string name="text_enable_usb_debug">Enable USB debug</string>
+    <string name="text_framework">Runtime framework: </string>
+    <string name="text_version_not_support_card">The version is too low to support card: %s</string>
+    <string name="text_platform_hint_app">Please install Quick AppsPreview</string>
+    <string name="text_platform_hint_card">Please install Quick AppsPreview and allow Debugger
+        automatic starting</string>
+
+    <string name="setting_category_general">General</string>
+    <string name="setting_item_server_title">Server</string>
+    <string name="setting_category_inspect">Inspect</string>
+    <string name="setting_item_unset_summary">Unset</string>
+    <string name="setting_item_reload_strategy">App update strategy</string>
+    <string name="setting_item_reload_strategy_app">Reload app</string>
+    <string name="setting_item_reload_strategy_page">Reload pages</string>
+    <string name="setting_item_reload_app_value" translatable="false">1</string>
+    <string name="setting_item_reload_page_value" translatable="false">2</string>
+    <string name="setting_item_wait_devtools_title">Wait for DevTools to connect</string>
+    <string name="setting_item_wait_devtools_summary">Turn this on when debugging home page</string>
+    <string name="setting_item_web_debug_title">Enable web component debug</string>
+    <string name="setting_item_web_debug_summary">Turn this on when debugging web component</string>
+    <string name="setting_item_set_params_title">Launch params</string>
+    <string name="setting_category_others">Others</string>
+    <string name="setting_item_signature_title">Get app\'s signature</string>
+    <string name="setting_item_set_params_hint">Example: /pageName?key=value or key=value</string>
+    <string name="toast_params_illegal">Params cannot contain \"__DEBUG_PARAMS__\"</string>
+
+    <string name="hint_launch_package">Quick app package name</string>
+    <string name="hint_launch_path">Quick app page path</string>
+    <string name="hint_launch_deeplink">Quick app deeplink</string>
+    <string name="btn_launch_app">Launch</string>
+    <string name="menu_label_launch_app_test">Launch App Test</string>
+    <string name="text_keyword_title">Page path launch test</string>
+    <string name="text_keyword_desc">This function supports test page redirecting, such as keyword redirecting.
+        Please enter package name and page name of your quick app\n(example: com.test.app and /pageName?key=value)</string>
+    <string name="text_deeplink_title">Deeplink launch test</string>
+    <string name="text_deeplink_desc">Please enter deeplink url\n(example: http://hapjs.org/app/com.test.app)</string>
+    <string name="toast_no_package">Please enter package name! </string>
+    <string name="toast_no_deeplink">Please enter deeplink url! </string>
+    <string name="toast_wrong_deeplink">Deeplink format is invalid!</string>
+    <string name="toast_card_mode_added">Card mode is added</string>
+
+    <string name="btn_close">Close</string>
+    <string name="btn_get_sign">Get sign</string>
+    <string name="btn_choose_native_app">Choose native app</string>
+    <string name="btn_choose_apk_file">Choose apk</string>
+    <string name="btn_choose_rpk_file">Choose rpk/rpks</string>
+    <string name="btn_choose_pem_file">Choose PEM</string>
+    <string name="btn_copy_md5">Copy MD5</string>
+    <string name="btn_copy_sha256">Copy SHA-256</string>
+    <string name="btn_copy_sign">Copy sign</string>
+    <string name="btn_copy_sms_hash">Copy SMS Hash</string>
+    <string name="title_get_native_app_sign">Get native app\'s sign</string>
+    <string name="title_get_rpk_sign">Get quick app\'s sign</string>
+    <string name="title_get_pem_sign">Get sign from PEM</string>
+    <string name="title_md5">Sign MD5</string>
+    <string name="title_sha256">Sign SHA-256</string>
+    <string name="title_sign">Sign</string>
+    <string name="title_sms_hash">SMS Hash</string>
+    <string name="hint_enter_pkg">Enter native app\'s package name</string>
+    <string name="get_signature_label">Get signature</string>
+    <string name="choose_app_label">Choose an app</string>
+    <string name="toast_pkg_name_null">Please enter package name</string>
+    <string name="toast_pkg_not_found">App not found</string>
+    <string name="toast_copy_to_clipboard_succ">Copy to clipboard successfully</string>
+    <string name="toast_get_signature_fail">Failed to get signature</string>
+    <string name="toast_app_not_install">The App is not installed</string>
+</resources>

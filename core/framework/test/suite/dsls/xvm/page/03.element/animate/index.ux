@@ -1,0 +1,17 @@
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div id="test-animation">
+    <text class="text-desc">Test Animation Api</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data: {
+    }
+  }
+</script>

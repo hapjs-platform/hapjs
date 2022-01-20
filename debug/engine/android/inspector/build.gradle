@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+android {
+    sourceSets {
+        main {
+            jni.srcDirs = []
+            jniLibs.srcDirs = ['src/main/libs']
+        }
+    }
+
+    packagingOptions {
+        exclude 'lib/arm64-v8a/libc++_shared.so'
+        exclude 'lib/armeabi-v7a/libc++_shared.so'
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            /* to build ndk, we need add the local.properties in platform/loader and add:
+             * ndk.dir=<you ndk dir>
+             */
+            path 'src/main/jni/Android.mk'
+        }
+    }
+}
+
+dependencies {
+    implementation 'commons-cli:commons-cli:1.2'
+    implementation 'com.google.code.findbugs:jsr305:3.0.1'
+
+    if ('repo' != System.properties['moduleDepsType']) {
+        compileOnly project(':runtime')
+    } else {
+        compileOnly 'org.hapjs:runtime:' + rootProject.appVersionName
+    }
+    compileOnly project(':widgets')
+    implementation project(':debug-log')
+    implementation "androidx.recyclerview:recyclerview:${rootProject.androidXVersion}"
+}

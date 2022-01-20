@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2021, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.hapjs.features.service.exchange">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+
+        <provider
+            android:name="org.hapjs.features.service.exchange.provider.ExchangeProvider"
+            android:authorities="${applicationId}.exchange"
+            android:exported="true"></provider>
+
+        <receiver
+            android:name=".receiver.PackageRemoveReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
+                <data android:scheme="package"></data>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="org.hapjs.action.PACKAGE_REMOVED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
