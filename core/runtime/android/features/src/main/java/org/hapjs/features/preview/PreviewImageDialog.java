@@ -329,9 +329,9 @@ public class PreviewImageDialog extends Dialog {
                 return new Uri.Builder().path(path).scheme(UriUtil.LOCAL_FILE_SCHEME).build();
 
             } else {
-                File file = mAppContext.getUnderlyingFile(path);
-                if (null != file) {
-                    return Uri.fromFile(file);
+                Uri uri = mAppContext.getUnderlyingUri(path);
+                if (null != uri) {
+                    return uri;
                 } else {
                     return Uri.parse(path);
                 }
