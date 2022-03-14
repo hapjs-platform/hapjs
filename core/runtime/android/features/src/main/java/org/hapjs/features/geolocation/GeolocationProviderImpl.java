@@ -202,7 +202,7 @@ public class GeolocationProviderImpl implements GeolocationProvider {
                                 + TYPE_GCJ02
                                 + "&mode="
                                 + "driving"
-                                + "&src"
+                                + "&src="
                                 + "com.quick.app"));
         activity.startActivity(intent);
     }
