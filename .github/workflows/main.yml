@@ -59,7 +59,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
       - run: |
-          cd /hapjs/mockup/platform/android
+          cd ./mockup/platform/android
           ./gradlew assembleDebug/Release
       - uses: marvinpinto/action-automatic-releases@latest
         with:
