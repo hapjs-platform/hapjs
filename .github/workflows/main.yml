@@ -63,6 +63,7 @@ jobs:
           cd ./mockup/platform/android
           ./gradlew assembleDebug
       - run: |
+          cd ./mockup/platform/android
           ls
           cd build
           ls
@@ -79,4 +80,4 @@ jobs:
           prerelease: false
           title: "Development release"
           files: |
-            app/build/outputs/apk/phone/debug/phone/debug/*.apk
+            ./mockup/platform/android/app/build/outputs/apk/phone/debug/phone/debug/*.apk
