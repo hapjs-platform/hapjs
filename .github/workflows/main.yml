@@ -66,16 +66,13 @@ jobs:
           ./gradlew assembleDebug
       - run: |
           cd ./mockup/platform/android
-          cd app/build/outputs
-          ls
-          cd apk
+          cd app/build/outputs/apk
           ls
           cd phone
           ls
           cd debug
           ls
           cd phone
-          
           cd debug
         # 上传 apk 后续可以从github直接下载到手机
         # 版本号可以指定
