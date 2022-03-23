@@ -56,6 +56,8 @@ jobs:
           # see https://developer.android.com/studio/projects/install-ndk
           # Installed when the version is specified
           ndk-version: '23.1.7779620'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
       - run: |
           cd /hapjs/mockup/platform/android
           ./gradlew assembleDebug/Release
