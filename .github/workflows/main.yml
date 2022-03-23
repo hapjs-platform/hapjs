@@ -20,12 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      #下载java sdk版本使用 java8
       - name: Setup JDK 8
         uses: actions/setup-java@v2
         with:
           java-version: 8
           distribution: adopt
-
+        # 这个貌似用不到
 #      - name: Setup Android SDK
 #        uses: amyu/setup-android@v1.1
 #        with:
@@ -56,24 +57,28 @@ jobs:
 #          # see https://developer.android.com/studio/projects/install-ndk
 #          # Installed when the version is specified
 #          ndk-version: '23.1.7779620'
+       # 下载安卓sdk 自动同意所有license
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
-
+        # 构建程序 打包
       - run: |
           cd ./mockup/platform/android
           ./gradlew assembleDebug
       - run: |
           cd ./mockup/platform/android
+          cd app/build/outputs
           ls
-          cd app
+          cd apk
           ls
-          cd build
-          ls
-          cd outputs
-          ls
-          cd apk/phone/debug/phone
+          cd phone
           ls
           cd debug
+          ls
+          cd phone
+          
+          cd debug
+        # 上传 apk 后续可以从github直接下载到手机
+        # 版本号可以指定
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
