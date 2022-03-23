@@ -63,7 +63,8 @@ jobs:
           cd ./mockup/platform/android
           ./gradlew assembleDebug
       - run: |
-          cd app/build
+          ls
+          cd build
           ls
           cd outputs
           ls
