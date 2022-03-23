@@ -26,37 +26,7 @@ jobs:
         with:
           java-version: 8
           distribution: adopt
-        # 这个貌似用不到
-#      - name: Setup Android SDK
-#        uses: amyu/setup-android@v1.1
-#        with:
-#          # default: true
-#          # Whether to use the cache
-#          is-use-cache: true
-#
-#          # default: '30'
-#          # sdk version
-#          # see https://developer.android.com/studio/releases/platforms
-#          # It will always be installed.
-#          sdk-version: '30'
-#
-#          # default: '30.0.3'
-#          # build tools version
-#          # see https://developer.android.com/studio/releases/build-tools
-#          # It will always be installed.
-#          build-tools-version: '30.0.3'
-#
-#          # default: ''
-#          # cmake version
-#          # see https://developer.android.com/studio/projects/install-ndk
-#          # Installed when the version is specified
-#          cmake-version: '3.10.2.4988404'
-#
-#          # default: ''
-#          # cmake version
-#          # see https://developer.android.com/studio/projects/install-ndk
-#          # Installed when the version is specified
-#          ndk-version: '23.1.7779620'
+
        # 下载安卓sdk 自动同意所有license
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
@@ -64,16 +34,7 @@ jobs:
       - run: |
           cd ./mockup/platform/android
           ./gradlew assembleDebug
-      - run: |
-          cd ./mockup/platform/android
-          cd app/build/outputs/apk
-          ls
-          cd phone
-          ls
-          cd debug
-          ls
-          cd phone
-          cd debug
+
         # 上传 apk 后续可以从github直接下载到手机
         # 版本号可以指定
       - uses: marvinpinto/action-automatic-releases@latest
@@ -84,4 +45,13 @@ jobs:
           prerelease: false
           title: "Development release"
           files: |
-            ./mockup/platform/android/app/build/outputs/apk/phone/debug/phone/debug/*.apk
+            ./mockup/platform/android/app/build/outputs/apk/*.apk
+      - run: |
+          cd ./mockup/platform/android
+          cd app/build/outputs/apk
+          ls -l
+
+          cd debug
+          ls
+          cd phone
+          cd debug
