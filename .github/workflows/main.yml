@@ -65,6 +65,8 @@ jobs:
       - run: |
           cd ./mockup/platform/android
           ls
+          cd app
+          ls
           cd build
           ls
           cd outputs
