@@ -58,9 +58,10 @@ jobs:
           ndk-version: '23.1.7779620'
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
+
       - run: |
           cd ./mockup/platform/android
-          ./gradlew assembleDebug/Release
+          ./gradlew assembleDebug
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
