@@ -45,13 +45,11 @@ jobs:
           prerelease: false
           title: "Development release"
           files: |
-            ./mockup/platform/android/app/build/outputs/apk/*.apk
+            ./mockup/platform/android/app/build/outputs/apk/phone/debug/*.apk
       - run: |
           cd ./mockup/platform/android
           cd app/build/outputs/apk
-          ls -l
-
+          cd phone
+          ls
           cd debug
           ls
-          cd phone
-          cd debug
