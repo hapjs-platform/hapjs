@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      #下载java sdk版本使用 java8
+      #下载java sdk版本使用： java8
       - name: Setup JDK 8
         uses: actions/setup-java@v2
         with:
