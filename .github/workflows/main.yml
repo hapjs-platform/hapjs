@@ -39,7 +39,7 @@ jobs:
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          # 自定义从环境获取tag 或者到github编辑
+          # 自定义从环境获取tag 或到github编辑
           automatic_release_tag: "v1.0.0"
           prerelease: false
           title: "Development release"
