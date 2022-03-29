@@ -1,14 +1,16 @@
-/* Copyright (c) 2022, the hapjs-platform Project Contributors
+/* Copyright (c) 2022-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.features.screenshot;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.os.Handler;
@@ -86,34 +88,7 @@ public class ScreenshotObserver {
                 mExternalObserver
         );
 
-        // 安卓10的ContentObserver失效, 使用FileObserver辅助监视
-        // 如果ContentObserver生效, 连续的相同检测会被去重, 不会触发多次回调
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            File dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            if (dcimDir != null && dcimDir.exists()) {
-                String path = null;
-                File[] files = dcimDir.listFiles();
-                if (files != null) {
-                    for (File file : files) {
-                        for (String keyWork : mKeyWords) {
-                            if (file.getPath().toLowerCase().contains(keyWork)) {
-                                path = file.getPath();
-                                break;
-                            }
-                        }
-                        if (path != null) {
-                            break;
-                        }
-                    }
-                }
-                if (path != null) {
-                    mFileObserver = new ScreenshotFileObserver(path);
-                    mFileObserver.startWatching();
-                }
-            }
-        }
-
-        // android 5部分机器的ContentObserver失效, 使用FileObserver辅助监视
+        // vivo android 5部分机器的ContentObserver失效, 使用FileObserver辅助监视
         // 如果ContentObserver生效, 连续的相同检测会被去重, 不会触发多次回调
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             File dcimDir = new File(Environment.getExternalStorageDirectory() +
@@ -159,14 +134,22 @@ public class ScreenshotObserver {
     private void handleMediaContentChange(Uri contentUri) {
         Cursor cursor = null;
         try {
-            // 数据改变时查询数据库中最后加入的一条数据
-            cursor = mContext.getContentResolver().query(
-                    contentUri,
-                    MEDIA_PROJECTIONS,
-                    null,
-                    null,
-                    MediaStore.Images.ImageColumns.DATE_ADDED + " desc limit 4"
-            );
+            //数据改变时查询数据库中最后加入的一条数据
+            if (Build.VERSION.SDK_INT >= 30) {
+                final Bundle bundle = new Bundle();
+                bundle.putStringArray(ContentResolver.QUERY_ARG_SORT_COLUMNS, new String[]{MediaStore.Images.ImageColumns.DATE_ADDED});
+                bundle.putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, ContentResolver.QUERY_SORT_DIRECTION_DESCENDING);
+                bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, 4);
+                cursor = mContext.getContentResolver().query(contentUri, MEDIA_PROJECTIONS, bundle, null);
+            } else {
+                cursor = mContext.getContentResolver().query(
+                        contentUri,
+                        MEDIA_PROJECTIONS,
+                        null,
+                        null,
+                        MediaStore.Images.ImageColumns.DATE_ADDED + " desc limit 4"
+                );
+            }
 
             if (cursor == null) {
                 Log.i(TAG, "ScreenSize cursor null");
