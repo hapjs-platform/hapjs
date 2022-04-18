@@ -135,7 +135,7 @@ public class FullscreenHelper implements ConfigurationManager.ConfigurationListe
     }
 
     public boolean exitFullscreen(Context context) {
-        if (mComponent == null || mComponent.getHostView() == null) {
+         if (mComponent == null || mComponent.getHostView() == null || mComponent.getParent() == null) {
             return false;
         }
 
