@@ -41,16 +41,18 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           # 自定义从环境获取tag 或到github编辑
-          automatic_release_tag: "v1.0.0"
+          automatic_release_tag: "v1.0.0-debug"
           prerelease: false
           title: "Development release"
           files: |
             ./mockup/platform/android/app/build/outputs/apk/phone/debug/*.apk
-      - run: |
-          cd ./mockup/platform/android
-          cd app/build/outputs/apk
-          cd phone
-          ls
-          cd debug
-          ls
-
+   
+      - uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          # 自定义从环境获取tag 或到github编辑
+          automatic_release_tag: "v1.0.0-release"
+          prerelease: false
+          title: "Development release"
+          files: |
+            ./mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
