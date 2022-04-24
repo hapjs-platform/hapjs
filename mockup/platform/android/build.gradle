@@ -301,6 +301,7 @@ subprojects {
             }
         }
     }
+    configurations { all*.exclude group: 'com.facebook.soloader', module: 'annotation' }
 }
 
 subprojects {

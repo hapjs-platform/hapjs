@@ -57,13 +57,17 @@ android {
 dependencies {
     api "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
     api 'com.squareup.okhttp3:okhttp:3.12.3'
-    api 'com.facebook.fresco:fresco:2.3.0'
+    api ('com.facebook.fresco:fresco:2.3.0') {
+        exclude group: 'com.facebook.soloader', module: 'soloader'
+        exclude group: 'com.facebook.fresco', module: 'soloader'
+    }
     api 'com.facebook.fresco:animated-gif:2.3.0'
     api 'com.facebook.fresco:animated-webp:2.3.0'
     api 'com.facebook.fresco:animated-drawable:2.3.0'
-    api fileTree(dir: 'libs', include: ["yoga-1.5.0.aar"])
-    api 'com.google.code.findbugs:jsr305:3.0.1'
-    api 'com.facebook.soloader:soloader:0.9.0'
+    api 'com.facebook.yoga:yoga:1.5.0'
+    api ('com.facebook.soloader:soloader:0.3.0') {
+        force = true
+    }
     api 'com.caverock:androidsvg:1.4'
     api 'org.greenrobot:eventbus:3.1.1'
     api 'com.tencent:mmkv:1.2.1'
