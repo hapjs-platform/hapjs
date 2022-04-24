@@ -108,10 +108,10 @@ public class FullscreenHelper implements ConfigurationManager.ConfigurationListe
             Container grandParent = parent.getParent();
             int index = grandParent.getChildren().indexOf(parent);
             // 在祖父中移除视频的父view
-            if (index > 0) {
+            if (index >= 0) {
                 int offsetIndex = grandParent.offsetIndex(index);
-                ((ViewGroup) grandParent.getHostView()).removeView(parent.getHostView());
-                ((ViewGroup) grandParent.getHostView()).addView(mPlaceHolderView, offsetIndex);
+                grandParent.removeView(parent.getHostView());
+                grandParent.addView(mPlaceHolderView, offsetIndex);
                 mDecorLayout.addView(parent.getHostView(), mDecorLayout.getLayoutParams());
             } else {
                 return false;
