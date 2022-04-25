@@ -34,7 +34,7 @@ jobs:
           cd ./mockup/platform/android
           ./gradlew assembleRelease
           ./gradlew assembleDebug
-            - name: run testResult
+  
       - name: run testResult
       - run: |
          echo "本次Build执行成功"
