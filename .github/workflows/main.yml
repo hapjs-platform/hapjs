@@ -34,16 +34,3 @@ jobs:
           cd ./mockup/platform/android
           ./gradlew assembleRelease
           ./gradlew assembleDebug
-
-        # 上传 apk 后续可以从github直接下载到手机上
-        # 版本号可以指定
-      - uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          # 自定义从环境获取tag 或到github编辑
-          automatic_release_tag: "v1.0.0-debug"
-          prerelease: false
-          title: "Development release"
-          files: |
-            ./mockup/platform/android/app/build/outputs/apk/phone/debug/*.apk
-            ./mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
