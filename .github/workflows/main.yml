@@ -36,5 +36,5 @@ jobs:
           ./gradlew assembleDebug
             - name: run testResult
       - name: run testResult
-        run:
+      - run: |
          echo "本次Build执行成功"
