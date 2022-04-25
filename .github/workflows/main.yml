@@ -35,7 +35,7 @@ jobs:
           ./gradlew assembleRelease
           ./gradlew assembleDebug
 
-        # 上传 apk 后续可以从github直接下载到手机
+        # 上传 apk 后续可以从github直接下载到手机上
         # 版本号可以指定
       - uses: marvinpinto/action-automatic-releases@latest
         with:
