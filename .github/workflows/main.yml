@@ -37,4 +37,4 @@ jobs:
             - name: run testResult
       - name: run testResult
         run:
-         echo "本次Build检查执行成功"
+         echo "本次Build执行成功"
