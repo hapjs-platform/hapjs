@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -28,7 +28,7 @@ def getPlatformVersionName() {
 
 String PLATFORM_VERSION_TEXT = getPlatformVersionCode()
 String PLATFORM_VERSION_NAME = getPlatformVersionName()
-def JSENV_VERSION = "1.2.6"
+def JSENV_VERSION = "1.2.8"
 
 // add version file
 task addVersionFile(type: Exec) {
