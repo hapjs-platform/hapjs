@@ -1,0 +1,34 @@
+# This is a basic workflow to help you get started with Actions
+name: CI
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      #下载java sdk版本使用： java8
+      - name: Setup JDK 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: adopt
+       # 下载安卓sdk 自动同意所有license
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        # 构建程序 打包
+      - run: |
+          cd ./mockup/platform/android
+          ./gradlew assembleRelease
+          ./gradlew assembleDebug
+  
+      - name: run testResult
+      - run: |
+         echo "本次Build执行成功"
