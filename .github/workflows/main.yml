@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
       - uses: actions/checkout@v2
       #下载java sdk版本使用： java8
@@ -20,7 +21,7 @@ jobs:
         with:
           java-version: 8
           distribution: adopt
-       # 下载安卓sdk 自动同意所有license
+      # 下载安卓sdk 自动同意所有license
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
         # 构建程序 打包
