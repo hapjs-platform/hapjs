@@ -1,0 +1,22 @@
+name: gengjiawen/android-ndk:qa-2020-07-31
+
+on:
+  page_build:
+    branches: [ "main" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: exec checkstyle
+      run: |
+        cd mockup/platform/android
+        ./gradlew checkstyle
+        cd ../../../
+        sh scan_build.sh
+        cd mockup/platform/android
+        echo "haha running........"
+        ./gradlew --no-daemon clean assembleRelease
+    - name: upload artifact
+      with:
+        path: mockup/platform/android/app/build/reports/checkstyle/checkstyle.html
+    
