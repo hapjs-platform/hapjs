@@ -12,11 +12,12 @@ jobs:
         cd mockup/platform/android
         ./gradlew checkstyle
         cd ../../../
-    - name: upload artifact
         sh scan_build.sh
         cd mockup/platform/android
         echo "haha running........"
         ./gradlew --no-daemon clean assembleRelease
+    - name: upload artifact
+      uses: actions/upload-artifact@v3
       with:
         path: mockup/platform/android/app/build/reports/checkstyle/checkstyle.html
     
