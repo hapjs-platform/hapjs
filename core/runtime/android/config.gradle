@@ -7,5 +7,17 @@ project.ext {
     compileSdkVersion = 29
     buildToolsVersion = "29.0.2"
     supportLibraryVersion = "28.0.0"
-    androidXVersion = '1.0.0'
+    androidXVersion = '1.2.1'
+    appcompatVersion = '1.1.0'
+    recyclerviewVersion = '1.1.0'
+    exoplayerVersion = '2.8.2'
+    androidCoreVersion = '1.2.0'
+    exifVersion = '1.0.0'
+    mediaVersion = '1.0.0'
+    legacyVersion = '1.0.0'
+    localbroadcastmanagerVersion = '1.0.0'
+    annotationVersion = '1.1.0'
+    swiperefreshlayoutVersion = '1.0.0'
+    collectionVersion = '1.1.0'
+    lifecycleVersion = '2.2.0'
 }

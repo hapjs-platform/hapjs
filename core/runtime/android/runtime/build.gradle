@@ -55,7 +55,8 @@ android {
 }
 
 dependencies {
-    api "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
+    api "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
+    api "androidx.collection:collection:${rootProject.collectionVersion}"
     api 'com.squareup.okhttp3:okhttp:3.12.3'
     api ('com.facebook.fresco:fresco:2.3.0') {
         exclude group: 'com.facebook.soloader', module: 'soloader'
@@ -85,7 +86,7 @@ dependencies {
 
     api fileTree(dir: 'jsenv-libs', include: [jsenv])
     // api fileTree(include: ['*.aar'], dir: '/yourproject/build/outputs/aar')
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
 }
 
 apply plugin: 'com.moowork.node'

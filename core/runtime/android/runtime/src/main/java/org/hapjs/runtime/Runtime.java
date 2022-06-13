@@ -26,6 +26,8 @@ import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.common.utils.ProcessUtils;
 import org.hapjs.common.utils.SoLoaderHelper;
 import org.hapjs.common.utils.StatusBarSizeProvider;
+import org.hapjs.component.constants.DefaultFontSizeProvider;
+import org.hapjs.component.constants.FontSizeProvider;
 import org.hapjs.pm.DefaultNativePackageProviderImpl;
 import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.jsruntime.Profiler;
@@ -159,6 +161,7 @@ public class Runtime {
                         new DefaultInstallInterceptProviderImpl());
         pm.addProvider(HybridDialogProvider.NAME, new DefaultHybridDialogProviderImpl());
         pm.addProvider(StatusBarSizeProvider.NAME, new DefaultStatusBarSizeProvider());
+        pm.addProvider(FontSizeProvider.NAME, new DefaultFontSizeProvider());
         if (!mLazyLoad) {
             load();
         }
