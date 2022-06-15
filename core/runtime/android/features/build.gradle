@@ -26,16 +26,16 @@ android {
 
 dependencies {
     api project(':runtime')
-    api "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
-    api "androidx.media:media:${rootProject.androidXVersion}"
+    api "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
+    api "androidx.media:media:${rootProject.mediaVersion}"
     api 'com.google.zxing:core:3.1.0'
     api('com.theartofdev.edmodo:android-image-cropper:2.7.0', {
         exclude group: 'com.android.support', module: 'appcompat-v7'
         exclude group: 'com.android.support', module: 'exifinterface'
     })
-    api "androidx.exifinterface:exifinterface:${rootProject.androidXVersion}"
+    api "androidx.exifinterface:exifinterface:${rootProject.exifVersion}"
     api 'me.relex:photodraweeview:2.0.0'
-    api "androidx.recyclerview:recyclerview:${rootProject.androidXVersion}"
+    api "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
     api project(':widgets')
     api project(':platform')
 
