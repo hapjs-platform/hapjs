@@ -79,6 +79,7 @@ import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
+import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.view.ComponentHost;
@@ -1245,7 +1246,11 @@ public class NestedWebView extends WebView
                                     result = WebChromeClient.FileChooserParams
                                             .parseResult(resultCode, data);
                                 }
-                                if (null == data || (null != data && data.getData() == null)) {
+                                if (result == null) {
+                                    result = WebViewUtils.getFileUriList(data);
+                                }
+                                if (result == null) {
+                                    // take phone or video {
                                     if (null != getComponent()
                                             && getComponent().getCallback() != null) {
                                         if (null != mCachePhotoFile
