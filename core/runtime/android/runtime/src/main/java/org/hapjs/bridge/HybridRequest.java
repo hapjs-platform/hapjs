@@ -37,20 +37,21 @@ public class HybridRequest {
     protected final boolean mIsDeepLink;
     protected final boolean mFromExternal;
     protected final List<String> mLaunchFlags;
-    protected boolean mAllowThirdPartyCookies;
-    protected boolean mShowLoadingDialog;
+    protected final boolean mAllowThirdPartyCookies;
+    protected final boolean mShowLoadingDialog;
+    protected final String mUserAgent;
 
-    protected HybridRequest(
-            String action,
-            String uriWithoutParams,
-            String pkg,
-            Map<String, String> params,
-            String fragment,
-            boolean isDeepLink,
-            boolean fromExternal,
-            boolean allowThirdPartCookies,
-            boolean showLoadingDialog,
-            List<String> launchFlags) {
+    protected HybridRequest(String action,
+                            String uriWithoutParams,
+                            String pkg,
+                            Map<String, String> params,
+                            String fragment,
+                            boolean isDeepLink,
+                            boolean fromExternal,
+                            boolean allowThirdPartCookies,
+                            boolean showLoadingDialog,
+                            String userAgent,
+                            List<String> launchFlags) {
         mAction = action;
         mUriWithoutParams = uriWithoutParams;
         mPackage = pkg;
@@ -59,8 +60,9 @@ public class HybridRequest {
         mIsDeepLink = isDeepLink;
         mFromExternal = fromExternal;
         mAllowThirdPartyCookies = allowThirdPartCookies;
-        mLaunchFlags = launchFlags;
         mShowLoadingDialog = showLoadingDialog;
+        mUserAgent = userAgent;
+        mLaunchFlags = launchFlags;
     }
 
     protected HybridRequest(Builder builder) {
@@ -74,6 +76,7 @@ public class HybridRequest {
                 builder.fromExternal,
                 builder.allowThirdPartyCookies,
                 builder.showLoadingDialog,
+                builder.userAgent,
                 builder.launchFlags);
     }
 
@@ -156,6 +159,10 @@ public class HybridRequest {
         return mShowLoadingDialog;
     }
 
+    public String getUserAgent() {
+        return mUserAgent;
+    }
+
     public List<String> getLaunchFlags() {
         return mLaunchFlags;
     }
@@ -177,30 +184,21 @@ public class HybridRequest {
         private final String mPageName;
         private final boolean mIsCard;
 
-        protected HapRequest(
-                String action,
-                String uriWithoutParams,
-                String pkg,
-                Map<String, String> params,
-                String fragment,
-                boolean isDeepLink,
-                boolean fromExternal,
-                String pageName,
-                boolean allowThirdPartyCookies,
-                boolean showLoadingDialog,
-                boolean isCard,
-                List<String> launchFlags) {
-            super(
-                    action,
-                    uriWithoutParams,
-                    pkg,
-                    params,
-                    fragment,
-                    isDeepLink,
-                    fromExternal,
-                    allowThirdPartyCookies,
-                    showLoadingDialog,
-                    launchFlags);
+        protected HapRequest(String action,
+                             String uriWithoutParams,
+                             String pkg,
+                             Map<String, String> params,
+                             String fragment,
+                             boolean isDeepLink,
+                             boolean fromExternal,
+                             String pageName,
+                             boolean allowThirdPartyCookies,
+                             boolean showLoadingDialog,
+                             String userAgent,
+                             boolean isCard,
+                             List<String> launchFlags) {
+            super(action, uriWithoutParams, pkg, params, fragment, isDeepLink, fromExternal,
+                    allowThirdPartyCookies, showLoadingDialog, userAgent, launchFlags);
             mPageName = uniformPageName(pageName);
             mIsCard = isCard;
         }
@@ -256,6 +254,7 @@ public class HybridRequest {
                     pageName,
                     false,
                     false,
+                    "",
                     fullUri.startsWith(CARD_URI_PREFIX),
                     Builder.parseLaunchParams(params));
         }
@@ -318,6 +317,7 @@ public class HybridRequest {
         private boolean allowThirdPartyCookies;
         private boolean showLoadingDialog;
         private List<String> launchFlags;
+        private String userAgent;
 
         @Nullable
         private static List<String> parseLaunchParams(Map<String, String> params) {
@@ -382,6 +382,11 @@ public class HybridRequest {
 
         public Builder showLoadingDialog(boolean showLoadingDialog) {
             this.showLoadingDialog = showLoadingDialog;
+            return this;
+        }
+
+        public Builder userAgent(String userAgent) {
+            this.userAgent = userAgent;
             return this;
         }
 
