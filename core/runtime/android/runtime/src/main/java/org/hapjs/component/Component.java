@@ -185,13 +185,12 @@ public abstract class Component<T extends View>
     private ComponentPreDrawListener mUnReadyPreDrawListener;
     private boolean mRegisterClickEvent;
 
-    public Component(
-            HapEngine hapEngine,
-            Context context,
-            Container parent,
-            int ref,
-            RenderEventCallback callback,
-            Map<String, Object> savedState) {
+    protected boolean mIsAdMaterial = false;
+
+    private View mFullScreenView;
+
+    public Component(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback,
+                     Map<String, Object> savedState) {
         mHapEngine = hapEngine;
         mContext = context;
         mParent = parent;
@@ -286,6 +285,7 @@ public abstract class Component<T extends View>
         invalidBackground();
         configBubbleEventAbove1040(true);
         initYogaNodeFromHost();
+        setFullScreenView(mHost);
     }
 
     public int getMinPlatformVersion() {
@@ -4148,5 +4148,16 @@ public abstract class Component<T extends View>
         public void unregisterAllEvents() {
             registeredEventsSet.clear();
         }
+    }
+
+    public View getFullScreenView() {
+        if (mFullScreenView == null) {
+            return mHost;
+        }
+        return mFullScreenView;
+    }
+
+    public void setFullScreenView(View view) {
+        mFullScreenView = view;
     }
 }
