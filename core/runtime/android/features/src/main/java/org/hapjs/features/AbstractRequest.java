@@ -397,7 +397,7 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
                 result.put(RESULT_KEY_HEADERS, RequestHelper.parseHeaders(response.headers()));
                 parseData(result, response, responseType);
                 request.getCallback().callback(new Response(result));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Failed to parse data: ", e);
                 Response errorResponse = new Response(CODE_PARSE_DATA_ERROR, e.getMessage());
                 request.getCallback().callback(errorResponse);

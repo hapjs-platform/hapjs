@@ -52,6 +52,9 @@ public class OpacityTransition extends Transition {
     @Override
     public Animator createAnimator(
             ViewGroup sceneRoot, TransitionValues startValues, TransitionValues endValues) {
+        if (startValues == null || endValues == null) {
+            return null;
+        }
         return createAnimation(startValues.view, getAlpha(startValues), getAlpha(endValues));
     }
 

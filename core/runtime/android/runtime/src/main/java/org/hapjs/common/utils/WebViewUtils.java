@@ -5,12 +5,16 @@
 
 package org.hapjs.common.utils;
 
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.WebView;
 import androidx.annotation.RequiresApi;
 import java.io.File;
+import java.util.ArrayList;
 
 public class WebViewUtils {
 
@@ -53,5 +57,36 @@ public class WebViewUtils {
     @RequiresApi(Build.VERSION_CODES.P)
     public static File getWebViewCache(Context context, String pkg) {
         return new File(context.getCacheDir(), "webview_" + pkg);
+    }
+
+    public static Uri[] getFileUriList(Intent data) {
+        if (data == null) {
+            return null;
+        }
+        Uri[] resultFileList = null;
+
+        // from stream
+        ArrayList<Uri> uris = data.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        if (uris != null && uris.size() != 0) {
+            resultFileList = new Uri[uris.size()];
+            uris.toArray(resultFileList);
+            return resultFileList;
+        }
+
+        // from files
+        ClipData clipData = data.getClipData();
+        if (clipData != null) {
+            resultFileList = new Uri[clipData.getItemCount()];
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                ClipData.Item item = clipData.getItemAt(i);
+                if (item == null) {
+                    continue;
+                }
+                resultFileList[i] = item.getUri();
+            }
+        } else if (data.getData() != null) {
+            resultFileList = new Uri[]{data.getData()};
+        }
+        return resultFileList;
     }
 }

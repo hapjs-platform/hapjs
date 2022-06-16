@@ -160,7 +160,7 @@ public class UserAgentHelper {
         return sApplicationUserAgent;
     }
 
-    private static String getWebkitUserAgentSegment() {
+    public static String getWebkitUserAgentSegment() {
         if (sWebkitUserAgentSegment == null) {
             sWebkitUserAgentSegment = getWebkitUserAgentSegmentFromSettings();
             if (sWebkitUserAgentSegment == null) {

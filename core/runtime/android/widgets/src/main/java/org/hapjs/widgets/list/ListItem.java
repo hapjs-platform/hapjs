@@ -63,6 +63,25 @@ public class ListItem extends Container<PercentFlexboxLayout> {
         return flexboxLayout;
     }
 
+    @Override
+    protected boolean setAttribute(String key, Object attribute) {
+        switch (key){
+            case Attributes.EventDispatch.DISALLOW_INTERCEPT:
+                boolean isDisallow = Attributes.getBoolean(attribute, false);
+                disallowIntercept(isDisallow);
+                return true;
+            default:
+                break;
+        }
+        return super.setAttribute(key, attribute);
+    }
+
+    private void disallowIntercept(boolean disallow) {
+        if (mHost != null) {
+            mHost.setDisallowIntercept(disallow);
+        }
+    }
+
     public static class RecyclerItem extends Container.RecyclerItem {
         private int mAttrType = -1;
 

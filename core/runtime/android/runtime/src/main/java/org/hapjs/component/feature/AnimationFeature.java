@@ -21,6 +21,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.animation.Animation;
 import org.hapjs.component.animation.AnimationParser;
 import org.hapjs.render.RootView;
+import org.hapjs.render.vdom.VDocument;
 import org.hapjs.render.vdom.VElement;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -183,7 +184,12 @@ public class AnimationFeature extends CallbackHybridFeature {
             Log.w(TAG, "rootView is null");
             return;
         }
-        VElement vElement = rootView.getDocument().getElementById(ref);
+        VDocument document = rootView.getDocument();
+        if (document == null) {
+            Log.w(TAG, "document is null");
+            return;
+        }
+        VElement vElement = document.getElementById(ref);
         if (vElement == null) {
             Log.w(TAG, "vElement is null");
             return;
