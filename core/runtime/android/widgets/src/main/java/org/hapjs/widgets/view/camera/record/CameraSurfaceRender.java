@@ -69,6 +69,9 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
     private int mCurrentSurfaceHeight = 0;
     private float[] mFullRectangleTexCoords = null;
     private boolean mIsFrameAvailable = false;
+    private volatile boolean mIsBindCamera = false;
+    private boolean mIsLastError = false;
+    private boolean mIsGlError = false;
 
     public CameraSurfaceRender(
             VideoRecordMode.CameraHandler cameraHandler, TextureMovieEncoder movieEncoder) {
@@ -228,6 +231,10 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
         }
     }
 
+    public void refreshSurfaceTextureStatus(boolean isBindcamera) {
+        mIsBindCamera = isBindcamera;
+    }
+
     private void initFrameTexture() {
         if (mSurfaceTexture == null && null != mCameraHandler) {
             mFullScreen =
@@ -350,10 +357,49 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
 
         // Latch the latest frame.  If there isn't anything new, we'll just re-use whatever
         // was there before.
-        if (null != mSurfaceTexture) {
-            mSurfaceTexture.updateTexImage();
-        }
+        if (null != mVideoEncoder) {
+            if (mVideoEncoder.mIsEGLvalid) {
+                boolean isCameraValid = (null != mCameraView && mCameraView.mIsCamervalid);
+                if (!isCameraValid) {
+                    Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame isCameraValid false.");
+                    return;
+                }
+                if (!mIsBindCamera || mIsLastError || mIsGlError) {
+                    boolean isCrash = false;
+                    try {
+                        Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame updateTexImage mIsBindCamera false.");
+                        mSurfaceTexture.updateTexImage();
+                    } catch (Exception e) {
+                        isCrash = true;
+                        mIsLastError = true;
+                        Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame mIsBindCamera false error : " + e.getMessage());
+                    }
+                    if (!isCrash) {
+                        mIsLastError = false;
+                    }
+                } else {
+                    if (mRecordingEnabled) {
+                        boolean isContextSurfaceAttached = mVideoEncoder.isContextSurfaceAttached();
+                        if (isContextSurfaceAttached) {
+                            mSurfaceTexture.updateTexImage();
+                        } else {
+                            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame isContextSurfaceAttached false.");
+                            try {
+                                mSurfaceTexture.updateTexImage();
+                            } catch (Exception e) {
+                                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame isContextSurfaceAttached false error : " + e.getMessage());
+                            }
+                        }
+                    } else {
+                        mSurfaceTexture.updateTexImage();
+                    }
+                }
 
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame mIsEGLvalid  is false.");
+                return;
+            }
+        }
         // If the recording state is changing, take care of it here.  Ideally we wouldn't
         // be doing all this in onDrawFrame(), but the EGLContext sharing with GLSurfaceView
         // makes it hard to do elsewhere.
@@ -390,11 +436,12 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
         // current implementation it has to happen after the video encoder is started, so
         // we just do it here.
         //
-        mVideoEncoder.setTextureId(mTextureId);
-
-        // Tell the video encoder thread that a new frame is available.
-        // This will be ignored if we're not actually recording.
-        mVideoEncoder.frameAvailable(mSurfaceTexture);
+        if (mIsBindCamera) {
+            mVideoEncoder.setTextureId(mTextureId);
+            // Tell the video encoder thread that a new frame is available.
+            // This will be ignored if we're not actually recording.
+            mVideoEncoder.frameAvailable(mSurfaceTexture);
+        }
 
         if (!mIsFrameAvailable) {
             mIsFrameAvailable = true;
@@ -417,6 +464,10 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
         // Draw the video frame.
         mSurfaceTexture.getTransformMatrix(mSTMatrix);
         mFullScreen.drawCameraFrame(mGlPosMatrix, mTextureId, mSTMatrix);
+        mIsGlError = mFullScreen.mIsCurrentError;
+        if (mIsGlError) {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onDrawFrame mIsGlError true.");
+        }
         // Draw a flashing box if we're recording.  This only appears on screen.
         showBox = (mRecordingStatus == RECORDING_ON);
         if (showBox && (++mFrameCount & 0x04) == 0) {
@@ -440,7 +491,6 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
                         compressed,
                         EGL14.eglGetCurrentContext()),
                 mFullScreen);
-        mRecordingStatus = RECORDING_ON;
         try {
             final MediaMuxerController mMuxer =
                     MediaMuxerController.getInstance(mOutputFile.toString());
@@ -476,6 +526,7 @@ public class CameraSurfaceRender implements GLSurfaceView.Renderer {
                             + "startVideoRecord mCameraView or outPutFile is null.");
             return;
         }
+        mRecordingStatus = RECORDING_ON;
         final MediaMuxerController mMuxer =
                 MediaMuxerController.getInstance(mOutputFile.toString());
         if (null != mMuxer) {

@@ -40,6 +40,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.view.camera.record.CameraSurfaceRender;
+import org.hapjs.widgets.view.camera.record.MediaMuxerController;
 import org.hapjs.widgets.view.camera.record.TextureMovieEncoder;
 
 public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
@@ -59,6 +60,12 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     private SurfaceTexture mSurfaceTexture = null;
     private int mMaxVideoDuration = VIDEO_MAX_DURATION;
     private boolean mIsRecordTimeout;
+    private Runnable mStopDelayVideoRunnable = null;
+    private int DELAY_STOP_TIME = 2;
+    private boolean mCurrentStarted = false;
+    private boolean mInitFrameAvailable = false;
+    private boolean mIsPaused = false;
+    private boolean mIsDelayStop;
 
     public VideoRecordMode(CameraView cameraView, Component component) {
         super(cameraView, component);
@@ -93,6 +100,9 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     public void onBackAttachCameraMode() {
         super.onBackAttachCameraMode();
         initListener();
+        if (null != sVideoEncoder) {
+            sVideoEncoder.resetStatus();
+        }
         if (null != mCameraHandler) {
             mCameraHandler.resetWeakRefVideoRecord(this);
         } else {
@@ -104,6 +114,9 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
 
     private void prepareVideoRecord() {
         mCameraHandler = new CameraHandler(this);
+        if (null != sVideoEncoder) {
+            sVideoEncoder.resetStatus();
+        }
         mRecordingEnabled = sVideoEncoder.isRecording();
         mMainHandler = new Handler(Looper.getMainLooper());
         // Configure the GLSurfaceView.  This will start the Renderer thread, with an
@@ -142,6 +155,10 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     public void setUpPreview(boolean isShowingPreview) {
         super.setUpPreview(isShowingPreview);
         if (null == mSurfaceView || null == mSurfaceTexture || null == mCameraView) {
+            mInitFrameAvailable = false;
+            if (null != mRenderer) {
+                mRenderer.refreshSurfaceTextureStatus(false);
+            }
             Log.e(
                     TAG,
                     CameraBaseMode.VIDEO_RECORD_TAG
@@ -185,6 +202,10 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         if (null != mSurfaceView) {
             mSurfaceView.requestRender();
+            if (!mInitFrameAvailable && !mIsPaused) {
+                mInitFrameAvailable = true;
+                mRenderer.refreshSurfaceTextureStatus(true);
+            }
         }
     }
 
@@ -205,6 +226,7 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
             }
             return;
         }
+        Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "startRecording .");
         mIsRecordTimeout = false;
         mMaxVideoDuration = maxDuration;
         mRecordingEnabled = true;
@@ -250,6 +272,7 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                     new CameraSurfaceRender.OnVideoStatusListener() {
                         @Override
                         public void onVideoStarted() {
+                            Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "startRecording onVideoStarted.");
                             if (mMaxVideoDuration > VIDEO_MAX_DURATION || mMaxVideoDuration < 0) {
                                 mMaxVideoDuration = VIDEO_MAX_DURATION;
                             }
@@ -274,6 +297,7 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                                         CameraBaseMode.VIDEO_RECORD_TAG
                                                 + "onVideoStarted onVideoRecordListener  is null.");
                             }
+                            mCurrentStarted = true;
                         }
 
                         @Override
@@ -332,6 +356,7 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                             if (null == mOnVideoStopListener) {
                                 cleanVideoMode();
                             }
+                            mCurrentStarted = false;
                         }
                     });
         } else {
@@ -366,9 +391,9 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                                             } else {
                                                 if (null != mRenderer) {
                                                     mIsRecordTimeout = true;
-                                                    mRecordingEnabled = false;
                                                     mOnVideoStopListener = null;
-                                                    mRenderer.stopRecording(false, false);
+                                                    Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "startRecording queueEvent stopRecording mRecordingEnabled true.");
+                                                    stopRecording(null);
                                                 } else {
                                                     Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG
                                                             + "startRecording queueEvent stopRecording  mRenderer is null.");
@@ -376,14 +401,14 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                                             }
                                         }
                                     };
-                            if (null != mRenderer) {
+                            if (null != mRenderer && mRecordingEnabled) {
                                 mRenderer.startRecording(mRecordingEnabled, mTmpFile, compressed);
                             } else {
                                 Log.w(
                                         TAG,
                                         CameraBaseMode.VIDEO_RECORD_TAG
                                                 +
-                                                "startRecording queueEvent startRecording  mRenderer is null.");
+                                                "startRecording queueEvent startRecording  mRenderer is null, mRecordingEnabled  : " + mRecordingEnabled);
                             }
                         }
                     });
@@ -413,7 +438,11 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
         }
         String filePath = file.getAbsolutePath();
         MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-        mediaMetadataRetriever.setDataSource(filePath);
+        try {
+            mediaMetadataRetriever.setDataSource(filePath);
+        } catch (Exception e) {
+            Log.w(TAG, "getVideoThumbnailUrl setDataSource error : " + e.getMessage());
+        }
         final Bitmap bitmap = mediaMetadataRetriever.getFrameAtTime();
         if (null != bitmap) {
             Executors.io()
@@ -543,11 +572,61 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
                             + "stopRecording mRecordingEnabled : "
                             + mRecordingEnabled);
             if (null == onVideoRecordListener) {
+                if (mIsDestroy && null != mSurfaceView) {
+                    mSurfaceView.onPause();
+                }
                 cleanVideoMode();
             }
             return;
         }
+        if (!mCurrentStarted) {
+            if (null != mStopDelayVideoRunnable && mIsDelayStop) {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mIsDelayStop true mStopDelayVideoRunnable not null.");
+                return;
+            }
+            if (null != mStopDelayVideoRunnable && null != mMainHandler) {
+                mMainHandler.removeCallbacks(mStopDelayVideoRunnable);
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mStopDelayVideoRunnable or mMainHandler is null.");
+            }
+            mStopDelayVideoRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    mIsDelayStop = false;
+                    if (null != mRenderer) {
+                        mRecordingEnabled = false;
+                        mCurrentStarted = false;
+                        mOnVideoStopListener = null;
+                        Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mStopDelayVideoRunnable run.");
+                        mRenderer.stopRecording(false, false);
+                    } else {
+                        Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mStopDelayVideoRunnable run, mRenderer is null.");
+                    }
+                }
+            };
+            if (null != mMainHandler && null != mStopDelayVideoRunnable) {
+                mIsDelayStop = true;
+                mMainHandler.postDelayed(mStopDelayVideoRunnable, DELAY_STOP_TIME * 1000);
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording postDelayed mMainHandler  or mStopDelayVideoRunnable  is null.");
+            }
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mCurrentStarted false.");
+            if (null != onVideoRecordListener) {
+                CameraData cameraData = new CameraData();
+                cameraData.setRetCode(CAMERA_ERROR);
+                cameraData.setMsg(CAMERA_ERROR_MESSAGE + " video startRecording is not ready,stop error.");
+                onVideoRecordListener.onVideoRecordCallback(cameraData);
+            }
+            return;
+        }
+        if (null != mStopDelayVideoRunnable && null != mMainHandler) {
+            mIsDelayStop = false;
+            mMainHandler.removeCallbacks(mStopDelayVideoRunnable);
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording removeCallbacks mStopDelayVideoRunnable or mMainHandler is null.");
+        }
         mRecordingEnabled = false;
+        mCurrentStarted = false;
         mOnVideoStopListener = onVideoRecordListener;
         if (null != mRenderer) {
             mRenderer
@@ -585,10 +664,19 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     @Override
     public void onActivityPause() {
         super.onActivityPause();
+        mIsPaused = true;
+        mInitFrameAvailable = false;
+        if (null != mRenderer) {
+            mRenderer.refreshSurfaceTextureStatus(false);
+        }
+        if (null != sVideoEncoder) {
+            sVideoEncoder.resetStatus();
+        }
         onRecordPause();
     }
 
     protected void onRecordResume(int cameraPreviewWidth, int cameraPreviewHeight) {
+        mIsPaused = false;
         if (null == mCameraView || (null != mCameraView && !mCameraView.mIsHasPermission)) {
             Log.w(
                     TAG,
@@ -609,15 +697,28 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
     }
 
     protected void onRecordPause() {
+        if (null != mStopVideoRunnable && null != mMainHandler) {
+            mMainHandler.removeCallbacks(mStopVideoRunnable);
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onRecordPause mStopVideoRunnable or mMainHandler is null.");
+        }
         if (null != mSurfaceView) {
-            // Tell the renderer that it's about to be paused so it can clean up.
+            mSurfaceView.onPause();
             if (null != mRenderer) {
                 mRenderer.notifyPausing();
             } else {
                 Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onRecordPause mRenderer is null.");
             }
-            mSurfaceView.onPause();
+            Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " onRecordPause stopRecord .");
             stopRecording(null);
+            MediaMuxerController mMuxer = MediaMuxerController.getInstance("");
+            if (null != mMuxer) {
+                mMuxer.stopMuxer();
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onRecordPause mMuxer null or mCurrentStarted false.");
+            }
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onRecordPause mSurfaceView is null.");
         }
         if (null != mCameraView) {
             mCameraView.releaseCamera();
@@ -634,6 +735,16 @@ public class VideoRecordMode extends CameraBaseMode<GLSurfaceView>
 
     public void onCameraDestroy() {
         mIsDestroy = true;
+        if (mRecordingEnabled) {
+            mRecordingEnabled = false;
+            mCurrentStarted = false;
+            mOnVideoStopListener = null;
+            if (null != mRenderer) {
+                mRenderer.stopRecording(mRecordingEnabled, true);
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "onCameraDestroy error mRenderer is null.");
+            }
+        }
     }
 
     private void cleanVideoMode() {
