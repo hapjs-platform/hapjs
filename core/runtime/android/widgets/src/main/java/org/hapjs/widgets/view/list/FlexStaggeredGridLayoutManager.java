@@ -207,7 +207,7 @@ public class FlexStaggeredGridLayoutManager extends HapStaggeredGridLayoutManage
         if (getOrientation() == HORIZONTAL
                 || mRecycler == null
                 || mFlexRecyclerView == null
-                || getItemCount() == 0) {
+                || getStateItemCount() == 0) {
             return;
         }
         if (mParent == null) {
@@ -227,7 +227,7 @@ public class FlexStaggeredGridLayoutManager extends HapStaggeredGridLayoutManage
                 mItemCount = 0;
                 mMaxHeight = maxHeight;
             }
-            mItemCount = getItemCount();
+            mItemCount = getStateItemCount();
             int tempSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
             mHeight = measureScrollPageHeight(mRecycler, mItemCount, tempSpec, tempSpec, maxHeight);
             setYogaHeight(mHeight);
@@ -396,6 +396,14 @@ public class FlexStaggeredGridLayoutManager extends HapStaggeredGridLayoutManage
     @Override
     public int getFlexItemCount() {
         return getItemCount();
+    }
+
+    @Override
+    public int getStateItemCount() {
+        if (mFlexRecyclerView != null) {
+            return mFlexRecyclerView.getState().getItemCount();
+        }
+        return 0;
     }
 
     @Override

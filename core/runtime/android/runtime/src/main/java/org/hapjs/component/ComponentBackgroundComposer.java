@@ -8,6 +8,7 @@ package org.hapjs.component;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -67,7 +68,7 @@ public class ComponentBackgroundComposer {
     }
 
     public void setBackgroundColor(String color) {
-        int c = ColorUtil.getColor(color);
+        int c = ColorUtil.getColor(color, Color.TRANSPARENT);
         setBackgroundColor(c);
     }
 
@@ -285,7 +286,11 @@ public class ComponentBackgroundComposer {
         }
 
         hostView.setBackground(mBackgroundDrawable);
-        mDirty = false;
+        if (!mBackgroundHolder.mIsViewAttached || !mBackgroundHolder.mIsVisible) {
+            // 此情况下不将 mDirty 设为 false，否则无法刷新背景
+        } else {
+            mDirty = false;
+        }
 
         if (mImageDrawable != null && mImageDrawable instanceof NinePatchDrawable) {
             mComponent.refreshPaddingFromBackground((NinePatchDrawable) mImageDrawable);

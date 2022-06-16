@@ -9,5 +9,5 @@ dependencies {
     } else {
         compileOnly 'org.hapjs:runtime:' + rootProject.appVersionName
     }
-    implementation "androidx.appcompat:appcompat:${rootProject.androidXVersion}"
+    implementation "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
 }

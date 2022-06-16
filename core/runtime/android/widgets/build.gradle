@@ -6,12 +6,16 @@
 dependencies {
     api project(':runtime')
 
-    api "com.google.android.material:material:1.0.0"
-    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.1.0'
+    implementation "com.google.android.material:material:${rootProject.androidXVersion}"
+    implementation "androidx.appcompat:appcompat:${rootProject.appcompatVersion}"
+    implementation "androidx.core:core:${rootProject.androidCoreVersion}"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:${rootProject.swiperefreshlayoutVersion}"
 
-    api 'com.google.android.exoplayer:exoplayer-core:2.8.2'
-    api 'com.google.android.exoplayer:exoplayer-dash:2.8.2'
-    api 'com.google.android.exoplayer:exoplayer-hls:2.8.2'
+    api "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
+    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.1.0'
+    api "com.google.android.exoplayer:exoplayer-core:${rootProject.exoplayerVersion}"
+    api "com.google.android.exoplayer:exoplayer-dash:${rootProject.exoplayerVersion}"
+    api "com.google.android.exoplayer:exoplayer-hls:${rootProject.exoplayerVersion}"
 
     androidTestImplementation project(':runtime')
 }

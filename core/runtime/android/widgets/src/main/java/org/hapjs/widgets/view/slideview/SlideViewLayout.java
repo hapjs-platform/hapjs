@@ -12,7 +12,6 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -24,14 +23,16 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
+
 import com.facebook.drawee.drawable.ScalingUtils;
 import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.view.SimpleDraweeView;
-import java.util.List;
+
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.view.ComponentHost;
@@ -40,46 +41,62 @@ import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.widgets.R;
 
+import java.util.List;
+
 public class SlideViewLayout extends ViewGroup implements ComponentHost, GestureHost {
 
-    public static final int UNDEFINE = Integer.MIN_VALUE;
-    public static final String SLIDE_EDGE_LEFT = "left";
-    public static final String SLIDE_EDGE_RIGHT = "right";
-    public static final int DRAG_EDGE_LEFT = 0x1;
-    public static final int DRAG_EDGE_RIGHT = 0x1 << 1;
-    public static final String LAYER_ABOVE = "above";
-    public static final String LAYER_SAME = "same";
-    // mainLayout覆盖在secondaryLayout之上
-    public static final int LAYER_MODE_ABOVE = 0;
-    // mainLayout与secondaryLayout处于同一层
-    public static final int LAYER_MODE_SAME = 1;
+    private static final String TAG = "SlideViewLayout";
+
     protected static final int STATE_CLOSE = 0;
     protected static final int STATE_CLOSING = 1;
     protected static final int STATE_OPEN = 2;
     protected static final int STATE_OPENING = 3;
     protected static final int STATE_DRAGGING = 4;
-    private static final String TAG = "SlideViewLayout";
+
     private static final int MIN_FLING_VELOCITY = 300; // px
     // 滑动距离超过这个值，就阻止父控件拦截touchEvent
     private static final int MIN_DIST_REQUEST_DISALLOW_PARENT = 24; // px
+
     private static final float MAX_SECONDARY_LAYOUT_PROPORTION = 2f / 3;
     private static final float MAX_SLIDING_PROPORTION = 4f / 5;
+
+    public static final int UNDEFINE = Integer.MIN_VALUE;
     private static final int MAX_BUTTON_NUM = 3;
     private static final int DIVIDER_WIDTH = 1; // px
+
     private static final String BACKGROUND_TYPE_FILL = "fill";
     private static final String BACKGROUND_TYPE_ICON = "icon";
+
     private static final int TAG_KEY_SEC_CONF = "secondary_confirm_text".hashCode();
+
     private static final int DEFAULT_ICON_WIDTH = 75;
     private static final int DEFAULT_ICON_HEIGHT = 75;
     private static final int DEFAULT_BACKGROUND_COLOR = ColorUtil.getColor("#f2f2f2");
     private static final int TYPE_ICON_DEFAULT_BACKGROUND_COLOR = ColorUtil.getColor("#ffffff");
     private static final int DEFAULT_TEXT_COLOR = ColorUtil.getColor("#000000");
     private static final int DEFAULT_TEXT_SIZE = 15;
+
+    public static final String SLIDE_EDGE_LEFT = "left";
+    public static final String SLIDE_EDGE_RIGHT = "right";
+
+    public static final int DRAG_EDGE_LEFT = 0x1;
+    public static final int DRAG_EDGE_RIGHT = 0x1 << 1;
+
+    public static final String LAYER_ABOVE = "above";
+    public static final String LAYER_SAME = "same";
+
+    // mainLayout覆盖在secondaryLayout之上
+    public static final int LAYER_MODE_ABOVE = 0;
+    // mainLayout与secondaryLayout处于同一层
+    public static final int LAYER_MODE_SAME = 1;
+
     private Component mComponent;
     private IGesture mGesture;
 
     private YogaLayout mMainLayout;
     private FrameLayout mSecondaryLayout;
+
+    private boolean mIsRectInit = false;
 
     // 分别用于记录mainLayout处于关闭、打开、最大可滑动状态时的位置值
     private Rect mRectMainClose = new Rect();
@@ -97,6 +114,7 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
     private boolean mIsSecondaryConfirmShow = true;
     private boolean mIsSecConfExpandAnimPlaying = false;
 
+    private boolean mIsOpened = false;
     private int mState = STATE_CLOSE;
     private int mLayerMode = LAYER_MODE_SAME;
 
@@ -106,291 +124,20 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
     private int mEdge = DRAG_EDGE_RIGHT;
 
     private boolean mIsFlexibleScrolling = false;
-    private final GestureDetector.OnGestureListener mGestureListener =
-            new GestureDetector.SimpleOnGestureListener() {
-                boolean hasDisallowed = false;
 
-                @Override
-                public boolean onDown(MotionEvent e) {
-                    mIsScrolling = false;
-                    hasDisallowed = false;
-                    return true;
-                }
-
-                @Override
-                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-                                       float velocityY) {
-                    mIsScrolling = true;
-                    return false;
-                }
-
-                @Override
-                public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
-                                        float distanceY) {
-                    mIsScrolling = true;
-
-                    if (getParent() != null) {
-                        boolean shouldDisallow;
-
-                        if (!hasDisallowed) {
-                            shouldDisallow =
-                                    getDistToClosestEdge() >= MIN_DIST_REQUEST_DISALLOW_PARENT
-                                            || mIsFlexibleScrolling;
-                            if (shouldDisallow) {
-                                hasDisallowed = true;
-                            }
-                        } else {
-                            shouldDisallow = true;
-                        }
-
-                        getParent().requestDisallowInterceptTouchEvent(shouldDisallow);
-                    }
-
-                    return false;
-                }
-            };
-    private int mFlexibleScrollingDistance;
     private float mDragDist = 0;
     private float mPrevX = -1;
     private float mPrevY = -1;
+
     private ViewDragHelper mDragHelper;
     private GestureDetectorCompat mGestureDetector;
+
     private SlideListener mSwipeListener;
-    private final ViewDragHelper.Callback mDragHelperCallback =
-            new ViewDragHelper.Callback() {
-                @Override
-                public boolean tryCaptureView(View child, int pointerId) {
-
-                    if (!isEnableSlide()) {
-                        return false;
-                    }
-
-                    mDragHelper.captureChildView(mMainLayout, pointerId);
-                    return false;
-                }
-
-                @Override
-                public int clampViewPositionHorizontal(View child, int left, int dx) {
-                    int validSlideLeft;
-                    switch (mEdge) {
-                        case DRAG_EDGE_LEFT:
-                            validSlideLeft =
-                                    Math.min(Math.max(left, mRectMainClose.left),
-                                            mRectMainMaxSlide.left);
-                            mIsFlexibleScrolling = validSlideLeft > mRectMainOpen.left;
-                            mFlexibleScrollingDistance =
-                                    Math.max(validSlideLeft - mRectMainOpen.left, 0);
-                            return validSlideLeft;
-
-                        case DRAG_EDGE_RIGHT:
-                            validSlideLeft =
-                                    Math.max(Math.min(left, mRectMainClose.left),
-                                            mRectMainMaxSlide.left);
-                            mIsFlexibleScrolling = validSlideLeft < mRectMainOpen.left;
-                            mFlexibleScrollingDistance =
-                                    Math.max(mRectMainOpen.left - validSlideLeft, 0);
-                            return validSlideLeft;
-
-                        default:
-                            return child.getLeft();
-                    }
-                }
-
-                @Override
-                public int getViewHorizontalDragRange(@NonNull View child) {
-                    switch (mEdge) {
-                        case DRAG_EDGE_LEFT:
-                        case DRAG_EDGE_RIGHT:
-                            return getHorizontalMaxSlideOffset();
-                        default:
-                            return super.getViewHorizontalDragRange(child);
-                    }
-                }
-
-                @Override
-                public void onViewReleased(View releasedChild, float xvel, float yvel) {
-                    final boolean velRightExceeded = xvel >= MIN_FLING_VELOCITY;
-                    final boolean velLeftExceeded = xvel <= -MIN_FLING_VELOCITY;
-
-                    final int pivotHorizontal = getHalfwayPivotHorizontal();
-
-                    switch (mEdge) {
-                        case DRAG_EDGE_LEFT:
-                            if (velRightExceeded) {
-                                open(true);
-                            } else if (velLeftExceeded) {
-                                close(true);
-                            } else {
-                                if (mMainLayout.getLeft() < pivotHorizontal) {
-                                    close(true);
-                                } else {
-                                    open(true);
-                                }
-                            }
-                            break;
-
-                        case DRAG_EDGE_RIGHT:
-                            if (velRightExceeded) {
-                                close(true);
-                            } else if (velLeftExceeded) {
-                                open(true);
-                            } else {
-                                if (mMainLayout.getRight() < pivotHorizontal) {
-                                    open(true);
-                                } else {
-                                    close(true);
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                @Override
-                public boolean onEdgeLock(int edgeFlags) {
-                    return !isEnableSlide();
-                }
-
-                @Override
-                public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-                    if (!isEnableSlide()) {
-                        return;
-                    }
-
-                    boolean edgeStartLeft =
-                            (mEdge == DRAG_EDGE_RIGHT) && edgeFlags == ViewDragHelper.EDGE_LEFT;
-
-                    boolean edgeStartRight =
-                            (mEdge == DRAG_EDGE_LEFT) && edgeFlags == ViewDragHelper.EDGE_RIGHT;
-
-                    if (edgeStartLeft || edgeStartRight) {
-                        mDragHelper.captureChildView(mMainLayout, pointerId);
-                    }
-                }
-
-                @Override
-                public void onViewPositionChanged(View changedView, int left, int top, int dx,
-                                                  int dy) {
-                    super.onViewPositionChanged(changedView, left, top, dx, dy);
-
-                    if (mLayerMode == LAYER_MODE_SAME || mIsFlexibleScrolling) {
-                        int l;
-                        int t;
-                        int r;
-                        int b;
-                        switch (mEdge) {
-                            case DRAG_EDGE_LEFT:
-                                l = left - mRectSecOpen.width();
-                                t = mRectSecOpen.top;
-                                r = left;
-                                b = mRectSecOpen.bottom;
-                                break;
-                            case DRAG_EDGE_RIGHT:
-                                l = left + mRectMainOpen.width();
-                                t = mRectSecOpen.top;
-                                r = left + mRectMainOpen.width() + mRectSecOpen.width();
-                                b = mRectSecOpen.bottom;
-                                break;
-                            default:
-                                Log.e(TAG, String.format("getSecOpenLeft: mEdge: %s is invalid.",
-                                        mEdge));
-                                l = t = r = b = 0;
-                                break;
-                        }
-                        mSecondaryLayout.layout(l, t, r, b);
-                    }
-
-                    boolean isMoved =
-                            (mMainLayout.getLeft() != mLastMainLeft)
-                                    || (mMainLayout.getTop() != mLastMainTop);
-                    if (isMoved) {
-                        if (mMainLayout.getLeft() == mRectMainClose.left
-                                && mMainLayout.getTop() == mRectMainClose.top) {
-                            if (mSwipeListener != null) {
-                                mSwipeListener.onClosed(SlideViewLayout.this);
-                            }
-                            if (mIsSecondaryConfirmShow) {
-                                hideSecondaryConfirm();
-                            }
-                        } else if (mMainLayout.getLeft() == mRectMainOpen.left
-                                && mMainLayout.getTop() == mRectMainOpen.top) {
-                            if (mSwipeListener != null) {
-                                mSwipeListener.onOpened(SlideViewLayout.this);
-                            }
-                        } else {
-                            if (mSwipeListener != null) {
-                                mSwipeListener.onSlide(SlideViewLayout.this, getSlideOffset());
-                            }
-                        }
-                    }
-
-                    mLastMainLeft = mMainLayout.getLeft();
-                    mLastMainTop = mMainLayout.getTop();
-                    ViewCompat.postInvalidateOnAnimation(SlideViewLayout.this);
-                }
-
-                private float getSlideOffset() {
-                    switch (mEdge) {
-                        case DRAG_EDGE_LEFT:
-                            return (float) (mMainLayout.getLeft() - mRectMainClose.left)
-                                    / mSecondaryLayout.getWidth();
-
-                        case DRAG_EDGE_RIGHT:
-                            return (float) (mRectMainClose.left - mMainLayout.getLeft())
-                                    / mSecondaryLayout.getWidth();
-
-                        default:
-                            Log.e(TAG,
-                                    String.format("getSecOpenLeft: mEdge: %s is invalid.", mEdge));
-                            return 0;
-                    }
-                }
-
-                @Override
-                public void onViewDragStateChanged(int state) {
-                    super.onViewDragStateChanged(state);
-
-                    switch (state) {
-                        case ViewDragHelper.STATE_DRAGGING:
-                            mState = STATE_DRAGGING;
-                            break;
-
-                        case ViewDragHelper.STATE_IDLE:
-                            if (mEdge == DRAG_EDGE_LEFT || mEdge == DRAG_EDGE_RIGHT) {
-                                if (mMainLayout.getLeft() == mRectMainClose.left) {
-                                    mState = STATE_CLOSE;
-                                } else {
-                                    mState = STATE_OPEN;
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            };
     private ButtonsClickListener mButtonsClickListener;
 
-    public SlideViewLayout(Context context) {
-        super(context);
-
-        mMainLayout = new YogaLayout(context);
-        ViewGroup.MarginLayoutParams mainLayoutLp =
-                new ViewGroup.MarginLayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        addView(mMainLayout, mainLayoutLp);
-
-        mSecondaryLayout = new FrameLayout(context);
-        ViewGroup.MarginLayoutParams secondaryLayoutLp =
-                new ViewGroup.MarginLayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        addView(mSecondaryLayout, 0, secondaryLayoutLp);
-
-        mDragHelper = ViewDragHelper.create(this, 1.0f, mDragHelperCallback);
-        mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_ALL);
-
-        mGestureDetector = new GestureDetectorCompat(context, mGestureListener);
+    @Override
+    public void setComponent(Component component) {
+        mComponent = component;
     }
 
     @Override
@@ -399,8 +146,8 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
     }
 
     @Override
-    public void setComponent(Component component) {
-        mComponent = component;
+    public void setGesture(IGesture gestureDelegate) {
+        mGesture = gestureDelegate;
     }
 
     @Override
@@ -408,9 +155,39 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         return mGesture;
     }
 
-    @Override
-    public void setGesture(IGesture gestureDelegate) {
-        mGesture = gestureDelegate;
+    public interface SlideListener {
+        void onClosed(SlideViewLayout view);
+
+        void onOpened(SlideViewLayout view);
+
+        void onSlide(SlideViewLayout view, float slideOffset);
+    }
+
+    public interface ButtonsClickListener {
+        void onButtonClick(SlideViewLayout view, String id, boolean isSecondaryConfirm);
+    }
+
+    public SlideViewLayout(Context context) {
+        super(context);
+
+        mMainLayout = new YogaLayout(context);
+        ViewGroup.MarginLayoutParams mainLayoutLp = new ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        addView(mMainLayout, mainLayoutLp);
+
+        mSecondaryLayout = new FrameLayout(context);
+        ViewGroup.MarginLayoutParams secondaryLayoutLp = new ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        addView(mSecondaryLayout, 0, secondaryLayoutLp);
+
+        ViewDragHelper.Callback callback = new SlideViewDragHelperCallback();
+        mDragHelper = ViewDragHelper.create(this, 1.0f, callback);
+        mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_ALL);
+
+        GestureDetector.OnGestureListener onGestureListener = new SlideViewGestureListener();
+        mGestureDetector = new GestureDetectorCompat(context, onGestureListener);
     }
 
     @Override
@@ -436,8 +213,8 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
 
         boolean couldBecomeClick = couldBecomeClick(ev);
         boolean settling = mDragHelper.getViewDragState() == ViewDragHelper.STATE_SETTLING;
-        boolean idleAfterScrolled =
-                mDragHelper.getViewDragState() == ViewDragHelper.STATE_IDLE && mIsScrolling;
+        boolean idleAfterScrolled = mDragHelper.getViewDragState() == ViewDragHelper.STATE_IDLE
+                && mIsScrolling;
 
         mPrevX = ev.getX();
         mPrevY = ev.getY();
@@ -460,35 +237,26 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         if (mSecondaryLayout == null) {
             return;
         }
-        LayoutInflater layoutInflater =
-                (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         if (layoutInflater == null) {
-            Log.e(TAG,
-                    "fillSecondaryLayout: layoutInflater is null, can not inflate secondary layout.");
+            Log.e(TAG, "fillSecondaryLayout: layoutInflater is null, can not inflate secondary layout.");
             return;
         }
         mSecondaryLayout.removeAllViews();
         LinearLayout buttonsAreaLayout = new LinearLayout(getContext());
         buttonsAreaLayout.setOrientation(LinearLayout.HORIZONTAL);
-        mSecondaryLayout.addView(
-                buttonsAreaLayout,
-                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        mSecondaryLayout.addView(buttonsAreaLayout, new LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.MATCH_PARENT));
         int buttonsCount = Math.min(buttonInfoList.size(), MAX_BUTTON_NUM);
         for (int i = 0; i < buttonsCount; i++) {
             SlideButtonInfo buttonInfo = buttonInfoList.get(i);
-            View buttonLayout =
-                    layoutInflater.inflate(R.layout.slide_view_item_button, this, false);
+            View buttonLayout = layoutInflater.inflate(R.layout.slide_view_item_button, this, false);
             SimpleDraweeView icon = buttonLayout.findViewById(R.id.button_icon);
             TextView text = buttonLayout.findViewById(R.id.button_text);
-            boolean isBackgroundTypeIcon =
-                    TextUtils.equals(buttonInfo.backgroundType, BACKGROUND_TYPE_ICON);
-            int defaultBackgroundColor =
-                    isBackgroundTypeIcon ? TYPE_ICON_DEFAULT_BACKGROUND_COLOR :
-                            DEFAULT_BACKGROUND_COLOR;
-            buttonLayout.setBackgroundColor(
-                    buttonInfo.backgroundColor != UNDEFINE
-                            ? buttonInfo.backgroundColor
-                            : defaultBackgroundColor);
+            boolean isBackgroundTypeIcon = TextUtils.equals(buttonInfo.backgroundType, BACKGROUND_TYPE_ICON);
+            int defaultBackgroundColor = isBackgroundTypeIcon ? TYPE_ICON_DEFAULT_BACKGROUND_COLOR : DEFAULT_BACKGROUND_COLOR;
+            buttonLayout.setBackgroundColor(buttonInfo.backgroundColor != UNDEFINE ? buttonInfo.backgroundColor : defaultBackgroundColor);
             if (buttonInfo.icon == null) {
                 icon.setVisibility(GONE);
             } else {
@@ -496,22 +264,14 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
                 icon.setImageURI(buttonInfo.icon);
                 if (isBackgroundTypeIcon) {
                     RoundingParams roundingParams = RoundingParams.asCircle();
-                    icon.setBackgroundColor(
-                            buttonInfo.iconBackgroundColor != UNDEFINE
-                                    ? buttonInfo.iconBackgroundColor
-                                    : DEFAULT_BACKGROUND_COLOR);
-                    roundingParams.setOverlayColor(
-                            buttonInfo.backgroundColor != UNDEFINE
-                                    ? buttonInfo.backgroundColor
-                                    : defaultBackgroundColor);
+                    icon.setBackgroundColor(buttonInfo.iconBackgroundColor != UNDEFINE ? buttonInfo.iconBackgroundColor : DEFAULT_BACKGROUND_COLOR);
+                    roundingParams.setOverlayColor(buttonInfo.backgroundColor != UNDEFINE ? buttonInfo.backgroundColor : defaultBackgroundColor);
                     icon.getHierarchy().setRoundingParams(roundingParams);
                     icon.getHierarchy().setActualImageScaleType(ScalingUtils.ScaleType.CENTER_CROP);
                 }
                 ViewGroup.LayoutParams lp = icon.getLayoutParams();
-                lp.width = buttonInfo.iconWidth != UNDEFINE ? buttonInfo.iconWidth :
-                        DEFAULT_ICON_WIDTH;
-                lp.height = buttonInfo.iconHeight != UNDEFINE ? buttonInfo.iconHeight :
-                        DEFAULT_ICON_HEIGHT;
+                lp.width = buttonInfo.iconWidth != UNDEFINE ? buttonInfo.iconWidth : DEFAULT_ICON_WIDTH;
+                lp.height = buttonInfo.iconHeight != UNDEFINE ? buttonInfo.iconHeight : DEFAULT_ICON_HEIGHT;
                 icon.setLayoutParams(lp);
             }
 
@@ -520,65 +280,42 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             } else {
                 text.setVisibility(VISIBLE);
                 text.setText(buttonInfo.text);
-                text.setTextSize(
-                        buttonInfo.textSize != UNDEFINE ? buttonInfo.textSize : DEFAULT_TEXT_SIZE);
-                text.setTextColor(
-                        buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor :
-                                DEFAULT_TEXT_COLOR);
+                text.setTextSize(buttonInfo.textSize != UNDEFINE ? buttonInfo.textSize : DEFAULT_TEXT_SIZE);
+                text.setTextColor(buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor : DEFAULT_TEXT_COLOR);
             }
-            buttonLayout.setOnClickListener(
-                    v -> {
-                        if (mButtonsClickListener != null) {
-                            mButtonsClickListener
-                                    .onButtonClick(SlideViewLayout.this, buttonInfo.id, false);
-                        }
-                        if (v.getTag(TAG_KEY_SEC_CONF) != null) {
-                            showSecondaryConfirm(v);
-                        }
-                    });
+            buttonLayout.setOnClickListener(v -> {
+                if (mButtonsClickListener != null) {
+                    mButtonsClickListener.onButtonClick(SlideViewLayout.this, buttonInfo.id, false);
+                }
+                if (v.getTag(TAG_KEY_SEC_CONF) != null) {
+                    showSecondaryConfirm(v);
+                }
+            });
 
-            int layoutWidth =
-                    buttonInfo.buttonWidth != UNDEFINE
-                            ? buttonInfo.buttonWidth
-                            : LinearLayout.LayoutParams.WRAP_CONTENT;
-            MarginLayoutParams lp =
-                    new MarginLayoutParams(layoutWidth, LinearLayout.LayoutParams.MATCH_PARENT);
+            int layoutWidth = buttonInfo.buttonWidth != UNDEFINE ? buttonInfo.buttonWidth : LinearLayout.LayoutParams.WRAP_CONTENT;
+            MarginLayoutParams lp = new MarginLayoutParams(layoutWidth, LinearLayout.LayoutParams.MATCH_PARENT);
             if (i != buttonsCount - 1) {
                 lp.rightMargin = DIVIDER_WIDTH;
             }
             buttonsAreaLayout.addView(buttonLayout, lp);
 
-            if (buttonInfo.secondaryConfirmInfo != null
-                    && buttonInfo.secondaryConfirmInfo.isValid()) {
+            if (buttonInfo.secondaryConfirmInfo != null && buttonInfo.secondaryConfirmInfo.isValid()) {
                 SecondaryConfirmInfo secConfHolder = buttonInfo.secondaryConfirmInfo;
                 TextView secConfText = new TextView(getContext());
                 secConfText.setGravity(Gravity.CENTER);
                 secConfText.setVisibility(INVISIBLE);
                 secConfText.setText(secConfHolder.text);
-                secConfText.setTextSize(
-                        secConfHolder.textSize != UNDEFINE ? secConfHolder.textSize :
-                                DEFAULT_TEXT_SIZE);
-                int holderTextColor =
-                        buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor :
-                                DEFAULT_TEXT_COLOR;
-                secConfText.setTextColor(
-                        secConfHolder.textColor != UNDEFINE ? secConfHolder.textColor :
-                                holderTextColor);
-                secConfText.setBackgroundColor(
-                        buttonInfo.backgroundColor != UNDEFINE
-                                ? buttonInfo.backgroundColor
-                                : DEFAULT_BACKGROUND_COLOR);
+                secConfText.setTextSize(secConfHolder.textSize != UNDEFINE ? secConfHolder.textSize : DEFAULT_TEXT_SIZE);
+                int holderTextColor = buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor : DEFAULT_TEXT_COLOR;
+                secConfText.setTextColor(secConfHolder.textColor != UNDEFINE ? secConfHolder.textColor : holderTextColor);
+                secConfText.setBackgroundColor(buttonInfo.backgroundColor != UNDEFINE ? buttonInfo.backgroundColor : DEFAULT_BACKGROUND_COLOR);
                 buttonLayout.setTag(TAG_KEY_SEC_CONF, secConfText);
-                secConfText.setOnClickListener(
-                        v -> {
-                            if (mButtonsClickListener != null) {
-                                mButtonsClickListener
-                                        .onButtonClick(SlideViewLayout.this, buttonInfo.id, true);
-                            }
-                        });
-                mSecondaryLayout.addView(
-                        secConfText,
-                        new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+                secConfText.setOnClickListener(v -> {
+                    if (mButtonsClickListener != null) {
+                        mButtonsClickListener.onButtonClick(SlideViewLayout.this, buttonInfo.id, true);
+                    }
+                });
+                mSecondaryLayout.addView(secConfText, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             }
         }
     }
@@ -628,11 +365,10 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
                         buttonLayout.setLayoutParams(buttonLp);
                     }
                 }
+
             }
 
-            secondaryLayoutLp.width =
-                    Math.min(buttonsAreaLayoutMaxWidth + dividerTotalWidth,
-                            buttonsAreaLayoutMeasuredWidth);
+            secondaryLayoutLp.width = Math.min(buttonsAreaLayoutMaxWidth + dividerTotalWidth, buttonsAreaLayoutMeasuredWidth);
             secondaryLayoutLp.height = desiredHeight;
             mSecondaryLayout.setLayoutParams(secondaryLayoutLp);
         }
@@ -659,10 +395,8 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             int measuredChildHeight = child.getMeasuredHeight();
             int measuredChildWidth = child.getMeasuredWidth();
 
-            int left = 0;
-            int right = 0;
-            int top = 0;
-            int bottom = 0;
+            int left, right, top, bottom;
+            left = right = top = bottom = 0;
 
             switch (mEdge) {
                 case DRAG_EDGE_LEFT:
@@ -678,8 +412,7 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
                     right = Math.max(r - getPaddingRight() - l, minLeft);
                     bottom = Math.min(measuredChildHeight + getPaddingTop(), maxBottom);
                     break;
-                default:
-                    break;
+
             }
 
             child.layout(left, top, right, bottom);
@@ -693,8 +426,6 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
 
                 case DRAG_EDGE_RIGHT:
                     mSecondaryLayout.offsetLeftAndRight(mSecondaryLayout.getWidth());
-                    break;
-                default:
                     break;
             }
         }
@@ -730,15 +461,23 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             mDragHelper.smoothSlideViewTo(mMainLayout, mRectMainOpen.left, mRectMainOpen.top);
         } else {
             mState = STATE_OPEN;
+            mIsOpened = true;
             mDragHelper.abort();
 
             // 不会触发SlideListener回调
             mMainLayout.layout(
-                    mRectMainOpen.left, mRectMainOpen.top, mRectMainOpen.right,
-                    mRectMainOpen.bottom);
+                    mRectMainOpen.left,
+                    mRectMainOpen.top,
+                    mRectMainOpen.right,
+                    mRectMainOpen.bottom
+            );
 
             mSecondaryLayout.layout(
-                    mRectSecOpen.left, mRectSecOpen.top, mRectSecOpen.right, mRectSecOpen.bottom);
+                    mRectSecOpen.left,
+                    mRectSecOpen.top,
+                    mRectSecOpen.right,
+                    mRectSecOpen.bottom
+            );
         }
 
         ViewCompat.postInvalidateOnAnimation(SlideViewLayout.this);
@@ -756,16 +495,23 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             mDragHelper.smoothSlideViewTo(mMainLayout, mRectMainClose.left, mRectMainClose.top);
         } else {
             mState = STATE_CLOSE;
+            mIsOpened = false;
             mDragHelper.abort();
 
             // 不会触发SlideListener回调
             mMainLayout.layout(
-                    mRectMainClose.left, mRectMainClose.top, mRectMainClose.right,
-                    mRectMainClose.bottom);
+                    mRectMainClose.left,
+                    mRectMainClose.top,
+                    mRectMainClose.right,
+                    mRectMainClose.bottom
+            );
 
             mSecondaryLayout.layout(
-                    mRectSecClose.left, mRectSecClose.top, mRectSecClose.right,
-                    mRectSecClose.bottom);
+                    mRectSecClose.left,
+                    mRectSecClose.top,
+                    mRectSecClose.right,
+                    mRectSecClose.bottom
+            );
         }
 
         ViewCompat.postInvalidateOnAnimation(SlideViewLayout.this);
@@ -781,22 +527,18 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         secConfText.setLeft(buttonLayout.getLeft());
         secConfText.setRight(buttonLayout.getRight());
 
-        ValueAnimator secConfExpandLeftAnim =
-                ObjectAnimator.ofInt(secConfText, "left", buttonLayout.getLeft(), 0);
-        ValueAnimator secConfExpandRightAnim =
-                ObjectAnimator
-                        .ofInt(secConfText, "right", buttonLayout.getRight(), mRectSecOpen.width());
+        ValueAnimator secConfExpandLeftAnim = ObjectAnimator.ofInt(secConfText, "left", buttonLayout.getLeft(), 0);
+        ValueAnimator secConfExpandRightAnim = ObjectAnimator.ofInt(secConfText, "right", buttonLayout.getRight(), mRectSecOpen.width());
         AnimatorSet secConfExpandAnimSet = new AnimatorSet();
         secConfExpandAnimSet.playTogether(secConfExpandLeftAnim, secConfExpandRightAnim);
         secConfExpandAnimSet.setDuration(100);
-        secConfExpandAnimSet.addListener(
-                new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        mIsSecondaryConfirmShow = true;
-                        mIsSecConfExpandAnimPlaying = false;
-                    }
-                });
+        secConfExpandAnimSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mIsSecondaryConfirmShow = true;
+                mIsSecConfExpandAnimPlaying = false;
+            }
+        });
         secConfText.setVisibility(VISIBLE);
         mIsSecondaryConfirmShow = true;
         secConfExpandAnimSet.start();
@@ -814,10 +556,6 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         mIsSecondaryConfirmShow = false;
     }
 
-    public int getEdge() {
-        return mEdge;
-    }
-
     public void setEdge(String edge) {
         switch (edge) {
             case SLIDE_EDGE_LEFT:
@@ -832,6 +570,10 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         }
     }
 
+    public int getEdge() {
+        return mEdge;
+    }
+
     public void setSwipeListener(SlideListener listener) {
         mSwipeListener = listener;
     }
@@ -840,14 +582,13 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         mButtonsClickListener = listener;
     }
 
-    public boolean isEnableSlide() {
-        boolean isButtonsAreaLayoutEmpty =
-                mSecondaryLayout == null || mSecondaryLayout.getChildCount() == 0;
-        return mEnableSlide && !isButtonsAreaLayoutEmpty;
-    }
-
     public void setEnableSlide(boolean enableSlide) {
         mEnableSlide = enableSlide;
+    }
+
+    public boolean isEnableSlide() {
+        boolean isButtonsAreaLayoutEmpty = mSecondaryLayout == null || mSecondaryLayout.getChildCount() == 0;
+        return mEnableSlide && !isButtonsAreaLayoutEmpty;
     }
 
     public void setIsOpen(boolean isOpen) {
@@ -963,38 +704,53 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
     }
 
     private void initRects() {
+        if (mIsRectInit) {
+            return;
+        }
+
         mRectMainClose.set(
                 mMainLayout.getLeft(),
                 mMainLayout.getTop(),
                 mMainLayout.getRight(),
-                mMainLayout.getBottom());
+                mMainLayout.getBottom()
+        );
 
         mRectSecClose.set(
                 mSecondaryLayout.getLeft(),
                 mSecondaryLayout.getTop(),
                 mSecondaryLayout.getRight(),
-                mSecondaryLayout.getBottom());
+                mSecondaryLayout.getBottom()
+        );
 
         mRectMainOpen.set(
                 getMainOpenLeft(),
                 mRectMainClose.top,
                 getMainOpenLeft() + mMainLayout.getWidth(),
-                mRectMainClose.top + mMainLayout.getHeight());
+                mRectMainClose.top + mMainLayout.getHeight()
+        );
 
         mRectSecOpen.set(
                 getSecOpenLeft(),
                 mRectSecClose.top,
                 getSecOpenLeft() + mSecondaryLayout.getWidth(),
-                mRectSecClose.top + mSecondaryLayout.getHeight());
+                mRectSecClose.top + mSecondaryLayout.getHeight()
+        );
 
         mRectMainMaxSlide.set(
                 getMainMaxSlideLeft(),
                 mRectMainClose.top,
                 getMainMaxSlideLeft() + mMainLayout.getWidth(),
-                mRectMainClose.top + mMainLayout.getHeight());
+                mRectMainClose.top + mMainLayout.getHeight()
+        );
 
         mRectSecMaxSlide.set(
-                getSecMaxSlideLeft(), mRectSecOpen.top, getSecMaxSlideRight(), mRectSecOpen.bottom);
+                getSecMaxSlideLeft(),
+                mRectSecOpen.top,
+                getSecMaxSlideRight(),
+                mRectSecOpen.bottom
+        );
+
+        mIsRectInit = true;
     }
 
     private boolean couldBecomeClick(MotionEvent ev) {
@@ -1023,7 +779,8 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             return;
         }
 
-        boolean dragHorizontally = getEdge() == DRAG_EDGE_LEFT || getEdge() == DRAG_EDGE_RIGHT;
+        boolean dragHorizontally = getEdge() == DRAG_EDGE_LEFT ||
+                getEdge() == DRAG_EDGE_RIGHT;
 
         float dragged;
         if (dragHorizontally) {
@@ -1035,23 +792,62 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         mDragDist += dragged;
     }
 
+    private class SlideViewGestureListener extends GestureDetector.SimpleOnGestureListener {
+        boolean hasDisallowed = false;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            mIsScrolling = false;
+            hasDisallowed = false;
+            return true;
+        }
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            mIsScrolling = true;
+            return false;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            mIsScrolling = true;
+
+            if (getParent() != null) {
+                boolean shouldDisallow;
+
+                if (!hasDisallowed) {
+                    shouldDisallow = getDistToClosestEdge() >= MIN_DIST_REQUEST_DISALLOW_PARENT || mIsFlexibleScrolling;
+                    if (shouldDisallow) {
+                        hasDisallowed = true;
+                    }
+                } else {
+                    shouldDisallow = true;
+                }
+
+                getParent().requestDisallowInterceptTouchEvent(shouldDisallow);
+            }
+
+            return false;
+        }
+    }
+
     private int getDistToClosestEdge() {
         switch (mEdge) {
             case DRAG_EDGE_LEFT:
                 final int pivotRight = mRectMainClose.left + mSecondaryLayout.getWidth();
 
                 return Math.min(
-                        Math.min(mMainLayout.getLeft() - mRectMainClose.left,
-                                mSecondaryLayout.getWidth()),
-                        Math.max(0, pivotRight - mMainLayout.getLeft()));
+                        Math.min(mMainLayout.getLeft() - mRectMainClose.left, mSecondaryLayout.getWidth()),
+                        Math.max(0, pivotRight - mMainLayout.getLeft())
+                );
 
             case DRAG_EDGE_RIGHT:
                 final int pivotLeft = mRectMainClose.right - mSecondaryLayout.getWidth();
 
                 return Math.min(
                         Math.max(0, mMainLayout.getRight() - pivotLeft),
-                        Math.min(mRectMainClose.right - mMainLayout.getRight(),
-                                mSecondaryLayout.getWidth()));
+                        Math.min(mRectMainClose.right - mMainLayout.getRight(), mSecondaryLayout.getWidth())
+                );
 
             default:
                 Log.e(TAG, String.format("getSecOpenLeft: mEdge: %s is invalid.", mEdge));
@@ -1067,91 +863,197 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         }
     }
 
-    public interface SlideListener {
-        void onClosed(SlideViewLayout view);
+    private class SlideViewDragHelperCallback extends ViewDragHelper.Callback {
+        @Override
+        public boolean tryCaptureView(View child, int pointerId) {
 
-        void onOpened(SlideViewLayout view);
+            if (!isEnableSlide()) {
+                return false;
+            }
 
-        void onSlide(SlideViewLayout view, float slideOffset);
-    }
-
-    public interface ButtonsClickListener {
-        void onButtonClick(SlideViewLayout view, String id, boolean isSecondaryConfirm);
-    }
-
-    public static class SlideButtonInfo {
-        public String id;
-        public int buttonWidth;
-        public Uri icon;
-        public String text;
-        public int iconWidth;
-        public int iconHeight;
-        public int iconBackgroundColor;
-        public int textSize;
-        public int textColor;
-        public int backgroundColor;
-        public String backgroundType;
-        public SecondaryConfirmInfo secondaryConfirmInfo;
-
-        public SlideButtonInfo() {
-            this.id = null;
-            this.buttonWidth = UNDEFINE;
-            this.icon = null;
-            this.text = null;
-            this.iconWidth = UNDEFINE;
-            this.iconHeight = UNDEFINE;
-            this.iconBackgroundColor = UNDEFINE;
-            this.textSize = UNDEFINE;
-            this.textColor = UNDEFINE;
-            this.backgroundColor = UNDEFINE;
-            this.backgroundType = null;
-            this.secondaryConfirmInfo = null;
+            mDragHelper.captureChildView(mMainLayout, pointerId);
+            return false;
         }
 
         @Override
-        public String toString() {
-            return String.format(
-                    "[index:%s, buttonWidth:%s, icon:%s, iconWidth:%s, iconHeight:%s, iconBackgroundColor:%s, text:%s,"
-                            + " textSize:%s, textColor:%s, backgroundColor:%s, backgroundType:%s, secondaryConfirmDataHolder:%s]",
-                    id,
-                    buttonWidth == UNDEFINE ? "undefine" : buttonWidth,
-                    icon == null ? "undefine" : icon,
-                    iconWidth == UNDEFINE ? "undefine" : iconWidth,
-                    iconHeight == UNDEFINE ? "undefine" : iconHeight,
-                    iconBackgroundColor == UNDEFINE ? "undefine" :
-                            ColorUtil.getColorStr(iconBackgroundColor),
-                    text == null ? "undefine" : text,
-                    textSize == UNDEFINE ? "undefine" : textSize,
-                    textColor == UNDEFINE ? "undefine" : ColorUtil.getColorStr(textColor),
-                    backgroundColor == UNDEFINE ? "undefine" :
-                            ColorUtil.getColorStr(backgroundColor),
-                    backgroundType == null ? "undefine" : backgroundType,
-                    secondaryConfirmInfo == null ? "undefine" : secondaryConfirmInfo);
-        }
-    }
+        public int clampViewPositionHorizontal(View child, int left, int dx) {
+            int validSlideLeft;
+            switch (mEdge) {
+                case DRAG_EDGE_LEFT:
+                    validSlideLeft = Math.min(Math.max(left, mRectMainClose.left), mRectMainMaxSlide.left);
+                    mIsFlexibleScrolling = validSlideLeft > mRectMainOpen.left;
+                    return validSlideLeft;
 
-    public static class SecondaryConfirmInfo {
-        public String text;
-        public int textSize;
-        public int textColor;
+                case DRAG_EDGE_RIGHT:
+                    validSlideLeft = Math.max(Math.min(left, mRectMainClose.left), mRectMainMaxSlide.left);
+                    mIsFlexibleScrolling = validSlideLeft < mRectMainOpen.left;
+                    return validSlideLeft;
 
-        public SecondaryConfirmInfo() {
-            this.text = null;
-            this.textSize = UNDEFINE;
-            this.textColor = UNDEFINE;
+                default:
+                    return child.getLeft();
+            }
         }
 
         @Override
-        public String toString() {
-            return String.format(
-                    "[text:%s, textSize:%s, textColor:%s]",
-                    text == null ? "undefine" : text,
-                    textSize == UNDEFINE ? "undefine" : textSize,
-                    textColor == UNDEFINE ? "undefine" : ColorUtil.getColorStr(textColor));
+        public int getViewHorizontalDragRange(@NonNull View child) {
+            switch (mEdge) {
+                case DRAG_EDGE_LEFT:
+                case DRAG_EDGE_RIGHT:
+                    return getHorizontalMaxSlideOffset();
+                default:
+                    return super.getViewHorizontalDragRange(child);
+            }
         }
 
-        public boolean isValid() {
-            return !TextUtils.isEmpty(this.text);
+        @Override
+        public void onViewReleased(View releasedChild, float xvel, float yvel) {
+            final boolean velRightExceeded = xvel >= MIN_FLING_VELOCITY;
+            final boolean velLeftExceeded = xvel <= -MIN_FLING_VELOCITY;
+
+            final int pivotHorizontal = getHalfwayPivotHorizontal();
+
+            switch (mEdge) {
+                case DRAG_EDGE_LEFT:
+                    if (velRightExceeded) {
+                        open(true);
+                    } else if (velLeftExceeded) {
+                        close(true);
+                    } else {
+                        if (mMainLayout.getLeft() < pivotHorizontal) {
+                            close(true);
+                        } else {
+                            open(true);
+                        }
+                    }
+                    break;
+
+                case DRAG_EDGE_RIGHT:
+                    if (velRightExceeded) {
+                        close(true);
+                    } else if (velLeftExceeded) {
+                        open(true);
+                    } else {
+                        if (mMainLayout.getRight() < pivotHorizontal) {
+                            open(true);
+                        } else {
+                            close(true);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        @Override
+        public boolean onEdgeLock(int edgeFlags) {
+            return !isEnableSlide();
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            if (!isEnableSlide()) {
+                return;
+            }
+
+            boolean edgeStartLeft = (mEdge == DRAG_EDGE_RIGHT)
+                    && edgeFlags == ViewDragHelper.EDGE_LEFT;
+
+            boolean edgeStartRight = (mEdge == DRAG_EDGE_LEFT)
+                    && edgeFlags == ViewDragHelper.EDGE_RIGHT;
+
+            if (edgeStartLeft || edgeStartRight) {
+                mDragHelper.captureChildView(mMainLayout, pointerId);
+            }
+        }
+
+        @Override
+        public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy) {
+            super.onViewPositionChanged(changedView, left, top, dx, dy);
+
+            if (mLayerMode == LAYER_MODE_SAME || mIsFlexibleScrolling) {
+                int l, t, r, b;
+                switch (mEdge) {
+                    case DRAG_EDGE_LEFT:
+                        l = left - mRectSecOpen.width();
+                        t = mRectSecOpen.top;
+                        r = left;
+                        b = mRectSecOpen.bottom;
+                        break;
+                    case DRAG_EDGE_RIGHT:
+                        l = left + mRectMainOpen.width();
+                        t = mRectSecOpen.top;
+                        r = left + mRectMainOpen.width() + mRectSecOpen.width();
+                        b = mRectSecOpen.bottom;
+                        break;
+                    default:
+                        Log.e(TAG, String.format("getSecOpenLeft: mEdge: %s is invalid.", mEdge));
+                        l = t = r = b = 0;
+                        break;
+                }
+                mSecondaryLayout.layout(l, t, r, b);
+            }
+
+            boolean isMoved = (mMainLayout.getLeft() != mLastMainLeft) || (mMainLayout.getTop() != mLastMainTop);
+            if (isMoved) {
+                if (mMainLayout.getLeft() == mRectMainClose.left && mMainLayout.getTop() == mRectMainClose.top
+                        && mIsOpened) {
+                    if (mSwipeListener != null) {
+                        mSwipeListener.onClosed(SlideViewLayout.this);
+                    }
+                    if (mIsSecondaryConfirmShow) {
+                        hideSecondaryConfirm();
+                    }
+                } else if (mMainLayout.getLeft() == mRectMainOpen.left && mMainLayout.getTop() == mRectMainOpen.top
+                        && !mIsOpened && mState != STATE_DRAGGING) {
+                    if (mSwipeListener != null) {
+                        mSwipeListener.onOpened(SlideViewLayout.this);
+                    }
+                }
+                if (mSwipeListener != null) {
+                    mSwipeListener.onSlide(SlideViewLayout.this, getSlideOffset());
+                }
+            }
+
+            mLastMainLeft = mMainLayout.getLeft();
+            mLastMainTop = mMainLayout.getTop();
+            ViewCompat.postInvalidateOnAnimation(SlideViewLayout.this);
+        }
+
+        private float getSlideOffset() {
+            switch (mEdge) {
+                case DRAG_EDGE_LEFT:
+                    return (float) (mMainLayout.getLeft() - mRectMainClose.left) / mSecondaryLayout.getWidth();
+
+                case DRAG_EDGE_RIGHT:
+                    return (float) (mRectMainClose.left - mMainLayout.getLeft()) / mSecondaryLayout.getWidth();
+
+                default:
+                    Log.e(TAG, String.format("getSecOpenLeft: mEdge: %s is invalid.", mEdge));
+                    return 0;
+            }
+        }
+
+        @Override
+        public void onViewDragStateChanged(int state) {
+            super.onViewDragStateChanged(state);
+
+            switch (state) {
+                case ViewDragHelper.STATE_DRAGGING:
+                    mState = STATE_DRAGGING;
+                    break;
+
+                case ViewDragHelper.STATE_IDLE:
+                    if (mEdge == DRAG_EDGE_LEFT || mEdge == DRAG_EDGE_RIGHT) {
+                        if (mMainLayout.getLeft() == mRectMainClose.left) {
+                            mState = STATE_CLOSE;
+                            mIsOpened = false;
+                        } else {
+                            mState = STATE_OPEN;
+                            mIsOpened = true;
+                        }
+                    }
+                    break;
+            }
         }
     }
+
 }

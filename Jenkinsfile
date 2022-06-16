@@ -13,6 +13,7 @@ pipeline {
             steps {
                 sh 'npx envinfo'
                 sh 'git clean -xdf'
+                sh 'git tag -d $(git tag)'
                 sh 'git log -6 --oneline'
                 sh 'cd $WORKSPACE/mockup/platform/android && ./gradlew --no-daemon clean assembleDebug assembleRelease'
                 archiveArtifacts 'mockup/platform/android/app/build/outputs/apk/**'

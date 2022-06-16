@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.Floating;
@@ -140,6 +142,15 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
     public void registerEvent(String eventType) {
         if (TextUtils.isEmpty(eventType)) {
             return;
+        }
+
+        if (!BuildPlatform.isTV()) {
+            if (Attributes.Event.CLICK.equals(eventType)) {
+                View hostView = mComponent.getHostView();
+                if (hostView != null) {
+                    hostView.setClickable(true);
+                }
+            }
         }
 
         mGestureTypes.add(eventType);

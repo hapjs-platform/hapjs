@@ -15,6 +15,7 @@ import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.render.Page;
 import org.hapjs.render.vdom.DocAnimator;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.ProviderManager;
 import org.json.JSONException;
 
 public class Attributes {
@@ -318,7 +319,8 @@ public class Attributes {
         if (hapEngine == null || page == null) {
             return defValue;
         }
-        float size = getFloat(hapEngine, value, defValue);
+        FontSizeProvider provider = ProviderManager.getDefault().getProvider(FontSizeProvider.NAME);
+        float size = provider.getBestFontSize(hapEngine.getContext(), getFloat(hapEngine, value, defValue));
         if (page.isTextSizeAdjustAuto()) {
             Configuration configuration = hapEngine.getContext().getResources().getConfiguration();
             size *= configuration.fontScale;
@@ -544,6 +546,12 @@ public class Attributes {
     public interface ProgressType {
         String HORIZONTAL = "horizontal";
         String CIRCULAR = "circular";
+    }
+
+    public interface EventDispatch {
+        // control the dispatch of touch events
+        // 不允许组件和父组件拦截点击事件
+        String DISALLOW_INTERCEPT = "disallowintercept";
     }
 
     public interface Event {

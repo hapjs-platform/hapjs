@@ -52,6 +52,7 @@ public class Clipboard extends FeatureExtension {
             } else {
                 get(request);
             }
+            recordClipboardFeature(request);
         }
         return Response.SUCCESS;
     }
@@ -79,6 +80,9 @@ public class Clipboard extends FeatureExtension {
         JSONObject result = new JSONObject();
         result.put(PARAM_KEY_TEXT, text);
         request.getCallback().callback(new Response(result));
+    }
+
+    protected void recordClipboardFeature(Request request) {
     }
 
     @Override

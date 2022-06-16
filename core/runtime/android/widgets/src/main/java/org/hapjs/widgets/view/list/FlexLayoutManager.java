@@ -30,6 +30,8 @@ public interface FlexLayoutManager {
 
     int getFlexItemCount();
 
+    int getStateItemCount();
+
     int getOverScrolledY();
 
     int getFlexOrientation();

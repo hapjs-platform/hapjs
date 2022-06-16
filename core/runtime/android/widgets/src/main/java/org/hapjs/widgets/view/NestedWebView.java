@@ -79,6 +79,7 @@ import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
+import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.view.ComponentHost;
@@ -163,6 +164,9 @@ public class NestedWebView extends WebView
 
     private CheckableAlertDialog mLocationDialog;
     private CheckableAlertDialog mWebRtcDialog;
+
+    public static final String KEY_SYSTEM = "system";
+    public static final String KEY_DEFAULT = "default";
 
     public NestedWebView(Context context) {
         super(context);
@@ -709,39 +713,27 @@ public class NestedWebView extends WebView
                     @Override
                     public void onShowCustomView(View view, CustomViewCallback callback) {
                         view.setBackgroundColor(getResources().getColor(android.R.color.black));
-                        mComponent.getRootComponent().getInnerView().addView(view);
                         mFullScreenView = view;
-                        enterFullScreen();
+                        if (mComponent != null) {
+                            mComponent.setFullScreenView(mFullScreenView);
+                            if (mComponent.getRootComponent() != null
+                                    && mComponent.getRootComponent().getDecorLayout() != null) {
+                                mComponent.getRootComponent().getDecorLayout().enterFullscreen(mComponent, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, false, false);
+                            }
+                        }
                     }
 
                     @Override
                     public void onHideCustomView() {
                         if (mFullScreenView != null) {
-                            mComponent.getRootComponent().getInnerView()
-                                    .removeView(mFullScreenView);
+                            if (mComponent != null) {
+                                if (mComponent.getRootComponent() != null && mComponent.getRootComponent().getDecorLayout() != null) {
+                                    mComponent.getRootComponent().getDecorLayout().exitFullscreen();
+                                }
+                                mComponent.setFullScreenView(null);
+                            }
                             mFullScreenView = null;
-                            exitFullScreen();
                         }
-                    }
-
-                    private void enterFullScreen() {
-                        refreshMenubarStatus(Display.MENUBAR_ENTER_FULLSCREEN_TAG);
-                        mSavedScreenOrientation =
-                                ((Activity) getContext()).getRequestedOrientation();
-                        mSavedSystemUiVisibility = getSystemUiVisibility();
-                        ((Activity) getContext())
-                                .setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                        setSystemUiVisibility(
-                                getSystemUiVisibility()
-                                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-                    }
-
-                    private void exitFullScreen() {
-                        ((Activity) getContext()).setRequestedOrientation(mSavedScreenOrientation);
-                        setSystemUiVisibility(mSavedSystemUiVisibility);
-                        refreshMenubarStatus(Display.MENUBAR_EXIT_FULLSCREEN_TAG);
                     }
 
                     @Override
@@ -941,27 +933,6 @@ public class NestedWebView extends WebView
         // Keep 'miui' package for compatible with api level 100
         addJavascriptInterface(nativeApi, "miui");
         addJavascriptInterface(nativeApi, "system");
-    }
-
-    private void refreshMenubarStatus(int tag) {
-        DocComponent docComponent = null;
-        ViewGroup innerView = null;
-        if (null != mComponent) {
-            docComponent = mComponent.getRootComponent();
-        }
-        if (null != docComponent) {
-            innerView = docComponent.getInnerView();
-        }
-        if (innerView instanceof DecorLayout) {
-            Display display = ((DecorLayout) innerView).getDecorLayoutDisPlay();
-            if (null != display) {
-                display.changeMenuBarStatus(tag);
-            } else {
-                Log.e(TAG, "refreshMenubarStatus error display null.");
-            }
-        } else {
-            Log.e(TAG, "refreshMenubarStatus error innerView class.");
-        }
     }
 
     private boolean isDomainInWhitelist(String domain) {
@@ -1245,7 +1216,11 @@ public class NestedWebView extends WebView
                                     result = WebChromeClient.FileChooserParams
                                             .parseResult(resultCode, data);
                                 }
-                                if (null == data || (null != data && data.getData() == null)) {
+                                if (result == null) {
+                                    result = WebViewUtils.getFileUriList(data);
+                                }
+                                if (result == null) {
+                                    // take phone or video {
                                     if (null != getComponent()
                                             && getComponent().getCallback() != null) {
                                         if (null != mCachePhotoFile
@@ -1479,7 +1454,7 @@ public class NestedWebView extends WebView
     @Override
     public void setComponent(Component component) {
         mComponent = component;
-        mSettings.setUserAgentString(UserAgentHelper.getFullWebkitUserAgent(getAppPkg()));
+        setUserAgent(KEY_DEFAULT);
     }
 
     @Override
@@ -1806,6 +1781,22 @@ public class NestedWebView extends WebView
 
         public int getValue() {
             return value;
+        }
+    }
+
+    public void setUserAgent(String userAgent) {
+        if (mSettings == null) {
+            mSettings = getSettings();
+        }
+        if (TextUtils.isEmpty(userAgent) || KEY_DEFAULT.equalsIgnoreCase(userAgent)) {
+            // hap userAgent
+            mSettings.setUserAgentString(UserAgentHelper.getFullWebkitUserAgent(getAppPkg()));
+        } else if (KEY_SYSTEM.equalsIgnoreCase(userAgent)) {
+            // system userAgent
+            mSettings.setUserAgentString(UserAgentHelper.getWebkitUserAgentSegment());
+        } else {
+            // custom userAgent
+            mSettings.setUserAgentString(userAgent);
         }
     }
 

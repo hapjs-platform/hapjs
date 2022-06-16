@@ -65,6 +65,10 @@ public class FlexRecyclerView extends RecyclerView
         return mMoveableView;
     }
 
+    public State getState() {
+        return mState;
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
