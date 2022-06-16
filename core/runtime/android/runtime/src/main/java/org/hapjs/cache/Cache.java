@@ -224,12 +224,22 @@ public class Cache {
 
     public synchronized AppInfo getAppInfo(boolean useCache) {
         if (mAppInfo == null || !useCache) {
-            return getAppInfo();
+            return getAppInfoInner(useCache);
         }
         return mAppInfo;
     }
 
-    public synchronized AppInfo getAppInfo() {
+    public AppInfo getAppInfo() {
+        return getAppInfoInner(true);
+    }
+
+    /**
+     * Get latest AppInfo from file or network.
+     *
+     * @param useCache
+     *      If <code>true</code>, use cache when manifest file do not exist.
+     */
+    private synchronized AppInfo getAppInfoInner(boolean useCache) {
         File file = getManifestFile();
         if (file.exists()) {
             long lastManifestUpdateTime = file.lastModified();
@@ -243,7 +253,7 @@ public class Cache {
                 }
             }
         } else {
-            if (mAppInfo == null) {
+            if (mAppInfo == null || !useCache) {
                 mAppInfo = AppInfoProviderHolder.get().create(mContext, mPackageName);
             }
         }

@@ -819,6 +819,7 @@ public class RootView extends FrameLayout
                             protected LoadResult doInBackground() {
                                 RuntimeLogManager.getDefault()
                                         .logAsyncThreadTaskStart(mPackage, "loadAppInfo");
+                                Log.i(TAG, "loadAppInfo " + String.valueOf(request.getPackage()));
                                 ApplicationContext appContext =
                                         HapEngine.getInstance(request.getPackage())
                                                 .getApplicationContext();
