@@ -24,6 +24,7 @@ public class WebPage extends Page {
     private static final String PARAM_SHOW_LOADING_DIALOG = "showloadingdialog";
     private static final String PARAM_TITLE_BAR_TEXT_COLOR = "titleBarTextColor";
     private static final String PARAM_TITLE_BAR_BACKGROUND_COLOR = "titleBarBackgroundColor";
+    private static final String PARAM_USER_AGENT = "useragent";
 
     private WebPage(
             AppInfo appInfo,
@@ -49,6 +50,7 @@ public class WebPage extends Page {
         params.put(PARAM_URL, request.getUri());
         params.put(PARAM_ALLOW_THIRD_PARTY_COOKIES, request.isAllowThirdPartyCookies());
         params.put(PARAM_SHOW_LOADING_DIALOG, request.isShowLoadingDialog());
+        params.put(PARAM_USER_AGENT, request.getUserAgent());
         Page page = pageManager.getCurrPage();
         if (page != null) {
             int titleBarTextColor = page.getTitleBarTextColor();

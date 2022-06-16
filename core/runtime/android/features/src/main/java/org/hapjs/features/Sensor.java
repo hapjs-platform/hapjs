@@ -507,23 +507,26 @@ public class Sensor extends CallbackHybridFeature {
             super.onCreate();
             Activity activity = mRequest.getNativeInterface().getActivity();
             SensorManager sm = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
-            android.hardware.Sensor accelerometer =
-                    sm.getDefaultSensor(android.hardware.Sensor.TYPE_PROXIMITY);
-            proximityListener =
-                    new SensorEventListener() {
-                        @Override
-                        public void onSensorChanged(SensorEvent event) {
-                            if (!isPause) {
-                                callback(0, event);
-                            }
+            android.hardware.Sensor accelerometer = sm.getDefaultSensor(android.hardware.Sensor.TYPE_PROXIMITY);
+            if (accelerometer != null) {
+                proximityListener = new SensorEventListener() {
+                    @Override
+                    public void onSensorChanged(SensorEvent event) {
+                        if (!isPause) {
+                            callback(0, event);
                         }
+                    }
 
-                        @Override
-                        public void onAccuracyChanged(android.hardware.Sensor sensor,
-                                                      int accuracy) {
-                        }
-                    };
-            sm.registerListener(proximityListener, accelerometer, EVENT_INTERVAL_NORMAL);
+                    @Override
+                    public void onAccuracyChanged(android.hardware.Sensor sensor, int accuracy) {
+                    }
+                };
+                sm.registerListener(proximityListener, accelerometer, EVENT_INTERVAL_NORMAL);
+            } else {
+                Log.e(TAG, "subscribeProximity fail,device has no proximity sensor");
+                mRequest.getCallback().callback(new Response(Response.CODE_SERVICE_UNAVAILABLE,
+                        "devices has no proximity sensor"));
+            }
         }
 
         @Override

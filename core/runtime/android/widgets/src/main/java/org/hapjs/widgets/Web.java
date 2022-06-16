@@ -78,6 +78,9 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private static final String ALLOW_THIRDPARTY_COOKIES = "allowthirdpartycookies";
     private static final String SUPPORT_ZOOM = "supportzoom";
     private static final String SHOW_LOADING_DIALOG = "showloadingdialog";
+
+    private static final String USER_AGENT = "useragent";
+
     private static final String KEY_STATE = "state";
 
     private ArraySet<String> mTrustedUrls = new ArraySet<>();
@@ -92,6 +95,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private boolean mRegisterPageFinishEvent = false;
     private boolean mPageLoadStart = false;
     private LinkedList<String> mPendingMessages = new LinkedList<>();
+    private String mUserAgent;
 
     public Web(
             HapEngine hapEngine,
@@ -311,6 +315,17 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                     String colorStr = Attributes.getString(attribute, "white");
                     int color = ColorUtil.getColor(colorStr, Color.WHITE);
                     mHost.setBackgroundColor(color);
+                    return true;
+                } else {
+                    return false;
+                }
+            case USER_AGENT:
+                if (mHost != null) {
+                    String userAgent = Attributes.getString(attribute, NestedWebView.KEY_DEFAULT);
+                    if (TextUtils.isEmpty(mUserAgent) || !mUserAgent.equalsIgnoreCase(userAgent)) {
+                        mUserAgent = userAgent;
+                        mHost.setUserAgent(mUserAgent);
+                    }
                     return true;
                 } else {
                     return false;
@@ -583,8 +598,12 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         if (TextUtils.isEmpty(url) || mHost == null) {
             return;
         }
-
-        Map<String, String> headers = new HashMap<>();
+        if (TextUtils.isEmpty(mUserAgent)) {
+            // update userAgent before load url
+            mUserAgent = Attributes.getString(mAttrsDomData.get(USER_AGENT), NestedWebView.KEY_DEFAULT);
+            mHost.setUserAgent(mUserAgent);
+        }
+        Map<String, String> headers = new HashMap<>(2);
         String acceptLanguage = AcceptLanguageUtils.getAcceptLanguage();
         headers.put("Accept-Language", acceptLanguage);
         mHost.loadUrl(url, headers);

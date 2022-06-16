@@ -669,7 +669,9 @@ public class RootView extends FrameLayout
         Context context = getContext();
         if (context instanceof Activity) {
             if (!((Activity) context).isDestroyed()) {
-                for (ActivityStateListener listener : mActivityStateListeners) {
+                Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+                for (; iterator.hasNext(); ) {
+                    ActivityStateListener listener = iterator.next();
                     listener.onActivityDestroy();
                 }
             }
@@ -818,6 +820,7 @@ public class RootView extends FrameLayout
                             protected LoadResult doInBackground() {
                                 RuntimeLogManager.getDefault()
                                         .logAsyncThreadTaskStart(mPackage, "loadAppInfo");
+                                Log.i(TAG, "loadAppInfo " + String.valueOf(request.getPackage()));
                                 ApplicationContext appContext =
                                         HapEngine.getInstance(request.getPackage())
                                                 .getApplicationContext();
@@ -1426,7 +1429,9 @@ public class RootView extends FrameLayout
     }
 
     public void onActivityCreate() {
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityCreate();
         }
     }
@@ -1444,28 +1449,36 @@ public class RootView extends FrameLayout
     }
 
     public void onActivityStart() {
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityStart();
         }
         start();
     }
 
     public void onActivityResume() {
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityResume();
         }
         resume();
     }
 
     public void onActivityPause() {
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityPause();
         }
         pause();
     }
 
     public void onActivityStop() {
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityStop();
         }
         stop();
@@ -1476,7 +1489,9 @@ public class RootView extends FrameLayout
             getPageManager().clearCachePage();
         }
         dismissDialog();
-        for (ActivityStateListener listener : mActivityStateListeners) {
+        Iterator<ActivityStateListener> iterator = mActivityStateListeners.iterator();
+        for (; iterator.hasNext(); ) {
+            ActivityStateListener listener = iterator.next();
             listener.onActivityDestroy();
         }
         BrightnessUtils.unregisterAllObervers(getContext());

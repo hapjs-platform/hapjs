@@ -548,6 +548,12 @@ public class Attributes {
         String CIRCULAR = "circular";
     }
 
+    public interface EventDispatch {
+        // control the dispatch of touch events
+        // 不允许组件和父组件拦截点击事件
+        String DISALLOW_INTERCEPT = "disallowintercept";
+    }
+
     public interface Event {
         // common
         String CLICK = "click";

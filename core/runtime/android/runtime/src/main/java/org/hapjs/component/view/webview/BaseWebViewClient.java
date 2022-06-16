@@ -24,27 +24,21 @@ public class BaseWebViewClient extends WebViewClient {
 
     @Override
     public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+        if (view == null) {
+            Log.e(TAG, "onRenderProcessGone view is null");
+            return true;
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             Log.e(TAG, "onRenderProcessGone low api, mSourceType:" + mSourceType.name());
             return false;
         }
-        if (!detail.didCrash()) {
-            if (view != null) {
-                ViewParent parent = view.getParent();
-                if (parent != null && parent instanceof ViewGroup) {
-                    ((ViewGroup) parent).removeView(view);
-                    view.destroy();
-                }
-            }
-            Log.e(
-                    TAG, "onRenderProcessGone detail did crash is false, mSourceType:"
-                            + mSourceType.name());
-            return true;
-        } else {
-            Log.e(TAG, "onRenderProcessGone detail did crash is true, mSourceType:"
-                    + mSourceType.name());
-            return false;
+        ViewParent parent = view.getParent();
+        if (parent != null && parent instanceof ViewGroup) {
+            ((ViewGroup) parent).removeView(view);
         }
+        view.destroy();
+        Log.e(TAG, "onRenderProcessGone detail did crash is " + detail.didCrash() + ", mSourceType:" + mSourceType.name());
+        return true;
     }
 
     public enum WebSourceType {

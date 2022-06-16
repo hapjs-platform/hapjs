@@ -185,13 +185,11 @@ public abstract class Component<T extends View>
     private ComponentPreDrawListener mUnReadyPreDrawListener;
     private boolean mRegisterClickEvent;
 
-    public Component(
-            HapEngine hapEngine,
-            Context context,
-            Container parent,
-            int ref,
-            RenderEventCallback callback,
-            Map<String, Object> savedState) {
+
+    private View mFullScreenView;
+
+    public Component(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback,
+                     Map<String, Object> savedState) {
         mHapEngine = hapEngine;
         mContext = context;
         mParent = parent;
@@ -286,6 +284,7 @@ public abstract class Component<T extends View>
         invalidBackground();
         configBubbleEventAbove1040(true);
         initYogaNodeFromHost();
+        setFullScreenView(mHost);
     }
 
     public int getMinPlatformVersion() {
@@ -1389,9 +1388,9 @@ public abstract class Component<T extends View>
             return true;
         }
 
-        if (Attributes.Event.FOCUS.equals(event)
-                || Attributes.Event.BLUR.equals(event)
-                || Attributes.Event.CLICK.equals(event)) {
+        if (Attributes.Event.FOCUS.equals(event) ||
+                Attributes.Event.BLUR.equals(event) ||
+                Attributes.Event.CLICK.equals(event)) {
             mHost.setFocusable(true);
         }
 
@@ -3229,22 +3228,13 @@ public abstract class Component<T extends View>
         if (TextUtils.isEmpty(keyframes)) {
             return null;
         }
-
         Animation animation = mAnimations.get(animId);
-        CSSAnimatorSet animatorSet;
-        if (animation != null) {
-            Log.i(TAG, "Animation ID " + animId + ", duplicate for reuse.");
-            animatorSet =
-                    AnimationParser.parse(mHapEngine, animation.getAnimatorSet(), keyframes, this);
-            if (animatorSet != null) {
-                animatorSet.setAnimation(animation);
-                animation.setAnimatorSet(animatorSet);
-            }
+        CSSAnimatorSet tempAnimatorSet, animatorSet;
+
+        if (animation != null && animation.getAnimatorSet() != null) {
+            tempAnimatorSet = animation.getAnimatorSet();
         } else {
-            animatorSet = AnimationParser.parse(mHapEngine, null, keyframes, this);
-            if (animatorSet != null) {
-                animation = new Animation(animatorSet);
-            }
+            tempAnimatorSet = new CSSAnimatorSet(mHapEngine, this);
         }
 
         try {
@@ -3254,28 +3244,40 @@ public abstract class Component<T extends View>
                 Object attribute = optionsObj.get(key);
                 if ("duration".equals(key)) {
                     int duration = AnimationParser.getTime(Attributes.getString(attribute));
-                    animation.getAnimatorSet().setDuration(duration);
+                    tempAnimatorSet.setDuration(duration);
                 } else if ("easing".equals(key)) {
                     String timing = Attributes.getString(attribute, "linear");
-                    animation.getAnimatorSet().setInterpolator(TimingFactory.getTiming(timing));
+                    tempAnimatorSet.setKeyFrameInterpolator(TimingFactory.getTiming(timing));
                 } else if ("delay".equals(key)) {
                     int delay = AnimationParser.getTime(Attributes.getString(attribute));
-                    animation.getAnimatorSet().setDelay(delay);
+                    tempAnimatorSet.setDelay(delay);
                 } else if ("iterations".equals(key)) {
                     int repeatCount = Attributes.getInt(mHapEngine, attribute, 0);
-                    animation.getAnimatorSet().setRepeatCount(repeatCount);
+                    tempAnimatorSet.setRepeatCount(repeatCount);
                 } else if ("fill".equals(key)) {
                     String fillMode = Attributes.getString(attribute, CSSAnimatorSet.FillMode.NONE);
-                    animation.getAnimatorSet().setFillMode(fillMode);
+                    tempAnimatorSet.setFillMode(fillMode);
                 } else if ("direction".equals(key)) {
                     String direction =
                             Attributes.getString(attribute, CSSAnimatorSet.Direction.NORMAL);
-                    animation.getAnimatorSet().setDirection(direction);
+                    tempAnimatorSet.setDirection(direction);
                 }
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        animatorSet = AnimationParser.parse(mHapEngine, tempAnimatorSet, keyframes, this);
+        if (animatorSet != null) {
+            if (animation != null) {
+                Log.i(TAG, "Animation ID " + animId + ", duplicate for reuse.");
+                animatorSet.setAnimation(animation);
+                animation.setAnimatorSet(animatorSet);
+            } else {
+                animation = new Animation(animatorSet);
+            }
+        }
+
         mAnimations.put(animId, animation);
         return animation;
     }
@@ -4148,5 +4150,16 @@ public abstract class Component<T extends View>
         public void unregisterAllEvents() {
             registeredEventsSet.clear();
         }
+    }
+
+    public View getFullScreenView() {
+        if (mFullScreenView == null) {
+            return mHost;
+        }
+        return mFullScreenView;
+    }
+
+    public void setFullScreenView(View view) {
+        mFullScreenView = view;
     }
 }
