@@ -65,4 +65,6 @@
     <string name="menubar_share_default_description">Open quick apps without downloading, click to use</string>
     <string name="menubar_tips">If there is occlusion, you can drag me away!</string>
     <string name="quick_app_open_native">Opening app "%s",confirm to open?</string>
+    <string name="quick_app_open_quick_app_with_target">%1$s is about to open %2$s</string>
+    <string name="quick_app_open_quick_app">You are about to leave %s and open other quick apps</string>
 </resources>
