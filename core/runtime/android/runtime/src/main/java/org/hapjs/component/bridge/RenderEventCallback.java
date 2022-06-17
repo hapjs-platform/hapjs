@@ -40,7 +40,7 @@ public interface RenderEventCallback {
 
     void loadUrl(String url);
 
-    boolean shouldOverrideUrlLoading(String url, int pageId);
+    boolean shouldOverrideUrlLoading(String url, String sourceH5, int pageId);
 
     File createFileOnCache(String prefix, String suffix) throws IOException;
 
