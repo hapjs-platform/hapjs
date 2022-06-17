@@ -261,6 +261,11 @@ public class ComponentBackgroundComposer {
         if (isLayerDrawableValid()) {
             List<Drawable> drawables = new ArrayList<>();
 
+            // Avoid default background of some component not work, e.g button.
+            if (getDefaultBgDrawable() != null) {
+                drawables.add(getDefaultBgDrawable());
+            }
+
             if (mImageDrawable != null) {
                 tryDelayedBgTransition();
                 drawables.add(transformDrawable(mImageDrawable));
@@ -269,13 +274,6 @@ public class ComponentBackgroundComposer {
             if (mGradientDrawable != null) {
                 tryDelayedBgTransition();
                 drawables.add(transformDrawable(mGradientDrawable));
-            }
-            // Avoid default background of some component not work, e.g button.
-            if (mParameter.mBackgroundColor == 0 && mImageDrawable == null
-                    && mGradientDrawable == null) {
-                if (getDefaultBgDrawable() != null) {
-                    drawables.add(0, getDefaultBgDrawable());
-                }
             }
 
             Drawable[] tmp = new Drawable[drawables.size()];
