@@ -95,12 +95,29 @@ public class PageModule extends ModuleExtension {
         if (null != menubarView) {
             menubarView.getGlobalVisibleRect(rect);
         }
-        result.put(RESULT_MENU_BAR_WIDTH, null != menubarView ? menubarView.getWidth() : -1);
-        result.put(RESULT_MENU_BAR_HEIGHT, null != menubarView ? menubarView.getHeight() : -1);
-        result.put(RESULT_MENU_BAR_LEFT, rect.left);
-        result.put(RESULT_MENU_BAR_TOP, rect.top);
-        result.put(RESULT_MENU_BAR_RIGHT, rect.right);
-        result.put(RESULT_MENU_BAR_BOTTOM, rect.bottom);
+        int designWidth = -1;
+        HapEngine hapEngine = null;
+        if (null != request) {
+            hapEngine = request.getHapEngine();
+        }
+        if (null != hapEngine) {
+            designWidth = hapEngine.getDesignWidth();
+        }
+        if (null != menubarView && designWidth > 0) {
+            result.put(RESULT_MENU_BAR_WIDTH, DisplayUtil.getDesignPxByWidth(menubarView.getWidth(), designWidth));
+            result.put(RESULT_MENU_BAR_HEIGHT, DisplayUtil.getDesignPxByWidth(menubarView.getHeight(), designWidth));
+            result.put(RESULT_MENU_BAR_LEFT, DisplayUtil.getDesignPxByWidth(rect.left, designWidth));
+            result.put(RESULT_MENU_BAR_TOP, DisplayUtil.getDesignPxByWidth(rect.top, designWidth));
+            result.put(RESULT_MENU_BAR_RIGHT, DisplayUtil.getDesignPxByWidth(rect.right, designWidth));
+            result.put(RESULT_MENU_BAR_BOTTOM, DisplayUtil.getDesignPxByWidth(rect.bottom, designWidth));
+        } else {
+            result.put(RESULT_MENU_BAR_WIDTH, null != menubarView ? menubarView.getWidth() : -1);
+            result.put(RESULT_MENU_BAR_HEIGHT, null != menubarView ? menubarView.getHeight() : -1);
+            result.put(RESULT_MENU_BAR_LEFT, rect.left);
+            result.put(RESULT_MENU_BAR_TOP, rect.top);
+            result.put(RESULT_MENU_BAR_RIGHT, rect.right);
+            result.put(RESULT_MENU_BAR_BOTTOM, rect.bottom);
+        }
         return new Response(result);
     }
 
