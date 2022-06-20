@@ -21,4 +21,6 @@ public interface NativePackageProvider {
     boolean triggeredByGestureEvent(Context context, String pkg);
 
     void recordFireEvent(String eventType);
+
+    boolean inAlipayForbiddenList(Context context, String url);
 }
