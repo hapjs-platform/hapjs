@@ -66,13 +66,15 @@ import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.render.Page;
+import org.hapjs.runtime.ConfigurationManager;
+import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.widgets.view.camera.googlecameraview.AspectRatio;
 import org.hapjs.widgets.view.camera.googlecameraview.Constants;
 import org.hapjs.widgets.view.camera.googlecameraview.Size;
 import org.hapjs.widgets.view.camera.googlecameraview.SizeMap;
 import org.json.JSONException;
 
-public class CameraView extends FrameLayout implements ComponentHost {
+public class CameraView extends FrameLayout implements ComponentHost, ConfigurationManager.ConfigurationListener  {
     public static final int CAMERA_OK = 200;
     public static final int CAMERA_ERROR = 201;
     public static final int CAMERA_TAKEPHOTO_ERROR = 202;
@@ -295,10 +297,15 @@ public class CameraView extends FrameLayout implements ComponentHost {
         mSurfaceView = mCameraBaseMode.getModeView(mContext, this);
         if (!mIsInit) {
             mCameraBaseMode.initCameraMode();
-            initOrientation();
+            initListener();
             mIsInit = true;
         }
         checkCameraPermission();
+    }
+
+    private void initListener() {
+        initOrientation();
+        ConfigurationManager.getInstance().addListener(this);
     }
 
     public void takePhoto(OnPhotoTakeListener onPhotoTakeListener) {
@@ -1257,7 +1264,7 @@ public class CameraView extends FrameLayout implements ComponentHost {
         if (null != mCameraBaseMode) {
             mCameraBaseMode.onBackAttachCameraMode();
         }
-        initOrientation();
+        initListener();
     }
 
     @Override
@@ -1267,6 +1274,7 @@ public class CameraView extends FrameLayout implements ComponentHost {
         onActivityPause();
         // stopRecord(null);
         disableOrientationListener();
+        ConfigurationManager.getInstance().removeListener(this);
         mIsInit = false;
         mIsNeedClose = true;
         setFlashLightMode(mFlash);
@@ -1955,6 +1963,13 @@ public class CameraView extends FrameLayout implements ComponentHost {
          * Called when camera init done
          */
         void onCameraInitDone(HashMap<String, Object> datas);
+    }
+
+    @Override
+    public void onConfigurationChanged(HapConfiguration newConfig) {
+        if (mIsHasPermission && mDisplayOrientation != getDisplayOrientation(false)) {
+            refreshDisplayOrientation();
+        }
     }
 
     private final class TakePictureCallback implements Camera.PictureCallback {
