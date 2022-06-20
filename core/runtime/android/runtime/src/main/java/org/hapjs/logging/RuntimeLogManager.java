@@ -131,6 +131,12 @@ public class RuntimeLogManager {
     public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
     public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
 
+    public static final String PARAM_ROUTER_RPK_FROM = "routerRpkFrom";
+    public static final String PARAM_ROUTER_RPK_RESULT = "routerRpkResult";
+    public static final String PARAM_ROUTER_RPK_TARGET = "target_pkg";
+    public static final String KEY_RPK_ROUTER_RPK = "routerRpk";
+    public static final String KEY_APP_ROUTER_RPK_DIALOG_SHOW = "routerRpkDialogShow";
+    public static final String KEY_APP_ROUTER_RPK_DIALOG_CLICK = "routerRpkDialogClick";
     private Map<Object, Object> mStates;
     private Object mStateLock;
 
@@ -279,6 +285,40 @@ public class RuntimeLogManager {
         params.put(PARAM_DIALOG_CLICK_TYPE, result ? VALUE_SUCCESS : VALUE_FAIL);
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_DIALOG_CLICK, params);
     }
+
+    public void logRouterQuickApp(String pkg, String targetPkg, String routerFrom, boolean result, String failureMsg) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_ROUTER_RPK_TARGET, targetPkg);
+        params.put(PARAM_ROUTER_RPK_FROM, routerFrom);
+        params.put(PARAM_ROUTER_RPK_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
+        if (!TextUtils.isEmpty(failureMsg)) {
+            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
+        }
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_RPK_ROUTER_RPK, params);
+    }
+
+    public void logRouterRpkDialogShow(String pkg, String targetRpk) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_ROUTER_RPK_TARGET, targetRpk);
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_RPK_DIALOG_SHOW, params);
+    }
+
+    public void logRouterRpkDialogClick(String pkg, String targetRpk, boolean result) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_ROUTER_RPK_TARGET, targetRpk);
+        params.put(PARAM_DIALOG_CLICK_TYPE, result ? VALUE_SUCCESS : VALUE_FAIL);
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_RPK_DIALOG_CLICK, params);
+    }
+
 
     public void logPageViewStart(String pkg, String pageName, String referPageName) {
         if (mProvider == null) {

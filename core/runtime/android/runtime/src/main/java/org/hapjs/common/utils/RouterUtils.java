@@ -5,12 +5,11 @@
 
 package org.hapjs.common.utils;
 
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
-
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.cache.CacheStorage;
@@ -23,6 +22,8 @@ import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
 import org.hapjs.runtime.HapEngine;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
 
 public class RouterUtils {
     public static final String EXTRA_HAP_NAME = "HAP_NAME";
@@ -115,10 +116,10 @@ public class RouterUtils {
             }
             HybridRequest.HapRequest hapRequest = (HybridRequest.HapRequest) request;
             // Allowed to open hap package only
-            return PackageUtils.openHapPackage(context, pkg, pageManager, hapRequest, extras);
+            return PackageUtils.openHapPackage(context, pkg, pageManager, hapRequest, extras, routerAppFrom);
         } else {
             if (UriUtils.isHybridUri(request.getUri())) {
-                PackageUtils.openHapPackage(context, pkg, pageManager, request, extras);
+                PackageUtils.openHapPackage(context, pkg, pageManager, request, extras, routerAppFrom);
                 return true;
             }
             if (!request.isDeepLink()) {
