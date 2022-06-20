@@ -251,17 +251,18 @@ public class FlexVideoView extends FrameLayout
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         if (null != mControlsManager) {
-
-            FlexImageView postView = mControlsManager.createPosterView();
-            if (mPosterUri == null) {
-                postView.setVisibility(GONE);
-            } else {
-                postView.setSource(mPosterUri);
-                if (mPlayer == null || !mPlayer.isPlaying()) {
-                    postView.setVisibility(VISIBLE);
+            boolean isControlsVisible = mControlsManager.isControlsLayoutVisible();
+            if (!isControlsVisible) {
+                FlexImageView postView = mControlsManager.createPosterView();
+                if (mPosterUri == null) {
+                    postView.setVisibility(GONE);
+                } else {
+                    postView.setSource(mPosterUri);
+                    if (mPlayer == null || !mPlayer.isPlaying()) {
+                        postView.setVisibility(VISIBLE);
+                    }
                 }
             }
-            mControlsManager.switchControlsVisibility(mControlsVisible);
             if (null != mPlayer) {
                 mControlsManager.attachPlayer(mPlayer);
             }
@@ -1390,6 +1391,14 @@ public class FlexVideoView extends FrameLayout
                 createLoadingProgressView();
             }
             createVideoLayout();
+        }
+
+        public boolean isControlsLayoutVisible() {
+            boolean isVisible = false;
+            if (null != mControlsLayout && mControlsLayout.getVisibility() == View.VISIBLE) {
+                isVisible = true;
+            }
+            return isVisible;
         }
 
         void attachPlayer(IMediaPlayer player) {
