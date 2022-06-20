@@ -8,8 +8,7 @@ package org.hapjs.logging;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
-import java.util.HashMap;
-import java.util.Map;
+
 import org.hapjs.bridge.Request;
 import org.hapjs.cache.CacheStorage;
 import org.hapjs.common.executors.Executors;
@@ -21,6 +20,9 @@ import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.RuntimeActivity;
 import org.json.JSONException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RuntimeLogManager {
     public static final String CATEGORY_SERVER_ERROR = "serverError";
@@ -126,6 +128,9 @@ public class RuntimeLogManager {
     private static final String KEY_APP_ROUTER_DIALOG_SHOW = "routerDialogShow";
     private static final String KEY_APP_ROUTER_DIALOG_CLICK = "routerDialogClick";
     private LogProvider mProvider;
+    public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
+    public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
+
     private Map<Object, Object> mStates;
     private Object mStateLock;
 
@@ -144,7 +149,7 @@ public class RuntimeLogManager {
             return;
         }
 
-        Object[] data = new Object[] {pkg, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_APP_LOAD, data);
         }
@@ -235,7 +240,9 @@ public class RuntimeLogManager {
             String nativeApp,
             String nativeActivity,
             String routerAppFrom,
-            boolean result) {
+            boolean result,
+            String failureMsg,
+            String sourceH5) {
         if (mProvider == null) {
             return;
         }
@@ -245,6 +252,12 @@ public class RuntimeLogManager {
         params.put(PARAM_NATIVE_ACTIVITY, nativeActivity);
         params.put(PARAM_ROUTER_NATIVE_FROM, routerAppFrom);
         params.put(PARAM_ROUTER_NATIVE_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
+        if (!TextUtils.isEmpty(failureMsg)) {
+            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
+        }
+        if (!TextUtils.isEmpty(sourceH5)) {
+            params.put(PARAM_OUTER_APP_SOURCE_H5, sourceH5);
+        }
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_NATIVE_APP, params);
     }
 
@@ -272,7 +285,7 @@ public class RuntimeLogManager {
             return;
         }
 
-        Object[] data = new Object[] {pkg, pageName, referPageName, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, pageName, referPageName, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_PAGE_VIEW, data);
         }
@@ -329,7 +342,7 @@ public class RuntimeLogManager {
             return;
         }
 
-        Object[] data = new Object[] {pkg, pageName, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, pageName, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_PAGE_LOAD, data);
         }
@@ -396,7 +409,7 @@ public class RuntimeLogManager {
             return;
         }
 
-        Object[] data = new Object[] {pkg, pageName, type, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, pageName, type, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_PAGE_RENDER, data);
         }
@@ -522,7 +535,7 @@ public class RuntimeLogManager {
         if (mProvider == null) {
             return;
         }
-        Object[] data = new Object[] {System.currentTimeMillis(), phoneCount};
+        Object[] data = new Object[]{System.currentTimeMillis(), phoneCount};
         synchronized (mStateLock) {
             mStates.remove(STATE_PHONE_PROMPT_START);
             mStates.remove(STATE_PHONE_PROMPT_CLICK);
@@ -543,7 +556,7 @@ public class RuntimeLogManager {
             data[0] = phoneNumber;
             System.arraycopy(oldData, 0, data, 1, oldData.length);
         } else {
-            data = new Object[] {phoneNumber};
+            data = new Object[]{phoneNumber};
         }
         synchronized (mStateLock) {
             mStates.put(STATE_PHONE_PROMPT_CLICK, data);
@@ -562,7 +575,7 @@ public class RuntimeLogManager {
             data[0] = phoneNumber;
             System.arraycopy(oldData, 0, data, 1, oldData.length);
         } else {
-            data = new Object[] {phoneNumber};
+            data = new Object[]{phoneNumber};
         }
         synchronized (mStateLock) {
             mStates.put(STATE_PHONE_PROMPT_DELETE, data);
@@ -753,7 +766,7 @@ public class RuntimeLogManager {
         if (mProvider == null) {
             return;
         }
-        Object[] data = new Object[] {pkg, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(taskName, data);
         }
@@ -788,7 +801,7 @@ public class RuntimeLogManager {
         if (mProvider == null) {
             return;
         }
-        Object[] data = new Object[] {pkg, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_LAUNCHER_ACTIVITY_CREATE, data);
         }
@@ -840,7 +853,7 @@ public class RuntimeLogManager {
         if (mProvider == null) {
             return;
         }
-        Object[] data = new Object[] {pkg, System.currentTimeMillis()};
+        Object[] data = new Object[]{pkg, System.currentTimeMillis()};
         synchronized (mStateLock) {
             mStates.put(STATE_APP_JS_LOAD, data);
         }

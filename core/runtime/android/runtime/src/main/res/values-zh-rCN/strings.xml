@@ -63,4 +63,6 @@
     <string name="menubar_share_default_description">打开快应用，无需下载，即点即用！</string>
     <string name="menubar_tips">如有遮挡，可以拖动把我移开哦！</string>
     <string name="quick_app_open_native">正在打开“%s”APP，确认打开？</string>
+    <string name="quick_app_open_quick_app_with_target">%1$s即将打开%2$s</string>
+    <string name="quick_app_open_quick_app">即将离开%s，打开其他快应用</string>
 </resources>

@@ -13,6 +13,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -84,6 +85,7 @@ import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.NetworkConfig;
 import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.ScreenOrientation;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.component.CallingComponent;
 import org.hapjs.render.jsruntime.JsBridge;
 import org.hapjs.render.jsruntime.JsThread;
@@ -321,12 +323,12 @@ public class RootView extends FrameLayout
                 }
 
                 @Override
-                public boolean shouldOverrideUrlLoading(String url, int pageId) {
+                public boolean shouldOverrideUrlLoading(String url, String sourceH5,int pageId) {
                     HybridRequest request =
                             new HybridRequest.Builder().uri(url).isDeepLink(true).pkg(mPackage)
                                     .build();
                     return RouterUtils.router(
-                            getContext(), mPageManager, pageId, request, VALUE_ROUTER_APP_FROM_WEB);
+                            getContext(), mPageManager, pageId, request, VALUE_ROUTER_APP_FROM_WEB, sourceH5);
                 }
 
                 @Override
@@ -611,6 +613,10 @@ public class RootView extends FrameLayout
                     };
         }
         mDisplayManager.registerDisplayListener(mDisplayListener, null);
+
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            onVisibilityChanged(this, getVisibility());
+        }
     }
 
     @Override
@@ -819,6 +825,7 @@ public class RootView extends FrameLayout
                             protected LoadResult doInBackground() {
                                 RuntimeLogManager.getDefault()
                                         .logAsyncThreadTaskStart(mPackage, "loadAppInfo");
+                                Log.i(TAG, "loadAppInfo " + String.valueOf(request.getPackage()));
                                 ApplicationContext appContext =
                                         HapEngine.getInstance(request.getPackage())
                                                 .getApplicationContext();
@@ -1269,6 +1276,7 @@ public class RootView extends FrameLayout
         if (page != null && !page.shouldCache()) {
             onPageRemoved(page.pageId);
             page.clearCache();
+            VideoCacheManager.getInstance().clearVideoData(page.pageId);
             mJsThread.postDestroyPage(page);
         }
         InspectorManager.getInspector().onPageRemoved(index, page);

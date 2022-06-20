@@ -59,6 +59,7 @@ public class VideoHandlerThread extends HandlerThread {
 
                             switch (what) {
                                 case MSG_PREPARE_RECORDING:
+                                    Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "handleMessage handlePrepareRecording .");
                                     mIsHandleMessage = true;
                                     encoder.handlePrepareRecording(
                                             (TextureMovieEncoder.EncoderConfig) obj);
@@ -67,7 +68,11 @@ public class VideoHandlerThread extends HandlerThread {
                                     Log.d(
                                             TAG, CameraBaseMode.VIDEO_RECORD_TAG
                                                     + "handleMessage handleStopRecording .");
-                                    encoder.handleStopRecording();
+                                    try {
+                                        encoder.handleStopRecording();
+                                    } catch (Exception e) {
+                                        Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "handleMessage handleStopRecording error : " + e.getMessage());
+                                    }
                                     break;
                                 case MSG_FRAME_AVAILABLE:
                                     long timestamp =
@@ -79,10 +84,12 @@ public class VideoHandlerThread extends HandlerThread {
                                     encoder.handleSetTexture(inputMessage.arg1);
                                     break;
                                 case MSG_UPDATE_SHARED_CONTEXT:
+                                    Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "handleMessage handleUpdateSharedContext .");
                                     encoder.handleUpdateSharedContext(
                                             (EGLContext) inputMessage.obj);
                                     break;
                                 case MSG_QUIT:
+                                    Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "handleMessage handleVideoStop .");
                                     mIsHandleMessage = false;
                                     encoder.handleVideoStop();
                                     if (null != mHandler) {
