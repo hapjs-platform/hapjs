@@ -23,10 +23,11 @@ import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import org.hapjs.bridge.HybridRequest;
+import org.hapjs.cache.CacheStorage;
 import org.hapjs.logging.RuntimeLogManager;
-import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.R;
+import org.hapjs.runtime.RouterManageProvider;
 import org.hapjs.system.SysOpProvider;
 
 import java.lang.ref.WeakReference;
@@ -217,28 +218,25 @@ public class NavigationUtils {
             packageManager = activity.getPackageManager();
         }
         String packageName = info.activityInfo.packageName;
-
-        NativePackageProvider provider =
-                ProviderManager.getDefault().getProvider(NativePackageProvider.NAME);
-        if (provider.inRouterForbiddenList(activity, rpkPkg, packageName)
-                || !provider.triggeredByGestureEvent(activity, rpkPkg)) {
-            Log.d(TAG,
-                    "Fail to launch app: match router blacklist or open app without user input.");
+        RouterManageProvider routerProvider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
+        if (routerProvider.inRouterForbiddenList(activity, rpkPkg, packageName) || !routerProvider.triggeredByGestureEvent(activity, rpkPkg)) {
+            Log.d(TAG, "Fail to launch app: match router blacklist or open app without user input.");
             statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, false, "match router blacklist or open app without user input", sourceH5);
             return false;
         }
 
-        if (!provider.inRouterDialogList(activity, rpkPkg, packageName)) {
+        if (!routerProvider.inRouterDialogList(activity, rpkPkg, packageName)) {
             activity.startActivity(intent);
             statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, true, null, sourceH5);
         } else {
-            showOpenAppDialog(activity, intent, rpkPkg, url, routerAppFrom, info, packageManager, sourceH5);
+            Log.d(TAG, "show open app dialog");
+            showRouterConfirmDialog(activity, intent, rpkPkg, url, routerAppFrom, info, packageManager, sourceH5, false, null);
         }
 
         return true;
     }
 
-    private static void showOpenAppDialog(
+    public static void showRouterConfirmDialog(
             Activity activity,
             Intent intent,
             String rpkPkg,
@@ -246,12 +244,14 @@ public class NavigationUtils {
             String routerAppFrom,
             ResolveInfo info,
             PackageManager packageManager,
-            String sourceH5) {
+            String sourceH5, boolean startRpk, String targetRpk) {
         if (info == null) {
             return;
         }
-        String appName = info.loadLabel(packageManager).toString();
-        String message = activity.getString(R.string.quick_app_open_native, appName);
+        String message = getDialogMsg(activity, rpkPkg, info, packageManager, startRpk, targetRpk);
+        if (TextUtils.isEmpty(message)) {
+            return;
+        }
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(
                         new ContextThemeWrapper(activity, ThemeUtils.getAlertDialogTheme()));
@@ -263,10 +263,12 @@ public class NavigationUtils {
                     @Override
                     public void run() {
                         if (activity.isFinishing() || activity.isDestroyed()) {
+                            Log.d(TAG, "activity is finishing");
                             return;
                         }
                         AlertDialog tempDialog = sDialogRef == null ? null : sDialogRef.get();
                         if (tempDialog != null && tempDialog.isShowing()) {
+                            Log.d(TAG, "dialog already exists");
                             return;
                         }
                         Application.ActivityLifecycleCallbacks activityLifecycle =
@@ -322,15 +324,16 @@ public class NavigationUtils {
                                             Log.d(TAG, "Fail to open native package: " + rpkPkg
                                                     + ", user denied");
                                         }
-                                        statRouterNativeApp(activity, rpkPkg, url, intent,
-                                                routerAppFrom, tempResult, tempResult ? null : "dialog user denied", sourceH5);
-                                        RuntimeLogManager.getDefault()
-                                                .logRouterDialogClick(rpkPkg,
-                                                        info.activityInfo.packageName, tempResult);
                                         activity
                                                 .getApplication()
                                                 .unregisterActivityLifecycleCallbacks(
                                                         activityLifecycle);
+                                        if (!startRpk) {
+                                            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, tempResult, tempResult ? null : "dialog user denied", sourceH5);
+                                            RuntimeLogManager.getDefault()
+                                                    .logRouterDialogClick(rpkPkg,
+                                                            info.activityInfo.packageName, tempResult);
+                                        }
                                     }
                                 };
                         builder.setNegativeButton(android.R.string.cancel, listener);
@@ -342,11 +345,13 @@ public class NavigationUtils {
                                         Log.d(TAG, "Fail to open native package: " + rpkPkg
                                                 + ", canceled");
                                         sDialogRef = null;
-                                        statRouterNativeApp(activity, rpkPkg, url, intent,
-                                                routerAppFrom, false, "dialog user canceled", sourceH5);
-                                        RuntimeLogManager.getDefault()
-                                                .logRouterDialogClick(rpkPkg,
-                                                        info.activityInfo.packageName, false);
+                                        if (!startRpk) {
+                                            statRouterNativeApp(activity, rpkPkg, url, intent,
+                                                    routerAppFrom, false, "dialog user canceled", sourceH5);
+                                            RuntimeLogManager.getDefault()
+                                                    .logRouterDialogClick(rpkPkg,
+                                                            info.activityInfo.packageName, false);
+                                        }
                                         activity
                                                 .getApplication()
                                                 .unregisterActivityLifecycleCallbacks(
@@ -358,10 +363,49 @@ public class NavigationUtils {
                         activity.getApplication()
                                 .registerActivityLifecycleCallbacks(activityLifecycle);
                         dialog.show();
-                        RuntimeLogManager.getDefault()
-                                .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
+                        if (!startRpk) {
+                            RuntimeLogManager.getDefault()
+                                    .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
+                        }
                     }
                 });
+    }
+
+    public static String getDialogMsg(Activity activity,
+            String rpkPkg,
+            ResolveInfo info,
+            PackageManager packageManager,
+            boolean isStartRpk,
+            String targetRpk) {
+        String message;
+        if (isStartRpk) {
+            if (TextUtils.isEmpty(targetRpk)) {
+                return "";
+            }
+            String currentName;
+            CacheStorage cacheStorage = CacheStorage.getInstance(activity);
+            if (!cacheStorage.hasCache(rpkPkg)) {
+                Log.d(TAG, "current rpk cache is null");
+                return "";
+            } else {
+                currentName = cacheStorage.getCache(rpkPkg).getAppInfo().getName();
+            }
+
+            if (cacheStorage.hasCache(targetRpk)) {
+                message = activity.getString(R.string.quick_app_open_quick_app_with_target, currentName, cacheStorage.getCache(targetRpk).getAppInfo().getName());
+            } else {
+                Log.d(TAG, "target rpk cache is null");
+                message = activity.getString(R.string.quick_app_open_quick_app, currentName);
+            }
+        } else {
+            if (info == null) {
+                Log.d(TAG, "target app info is null");
+                return "";
+            }
+            String appName = info.loadLabel(packageManager).toString();
+            message = activity.getString(R.string.quick_app_open_native, appName);
+        }
+        return message;
     }
 
     public static void statRouterNativeApp(

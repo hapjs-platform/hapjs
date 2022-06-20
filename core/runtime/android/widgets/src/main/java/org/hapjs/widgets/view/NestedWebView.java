@@ -85,11 +85,11 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.component.view.webview.BaseWebViewClient;
 import org.hapjs.model.AppInfo;
-import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.ProviderManager;
+import org.hapjs.runtime.RouterManageProvider;
 import org.hapjs.system.SysOpProvider;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.Web;
@@ -387,7 +387,7 @@ public class NestedWebView extends WebView
                         if (isWeixinPay(url) || isAlipay || isQQLogin(url)) {
                             if (isAlipay) {
                                 //不允许跳转到支付宝支付以外的页面
-                                NativePackageProvider provider = ProviderManager.getDefault().getProvider(NativePackageProvider.NAME);
+                                RouterManageProvider provider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
                                 if (provider.inAlipayForbiddenList(getContext(), url)) {
                                     Log.d(TAG, "in alipay forbidden list");
                                     NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "in alipay forbidden list", mSourceH5);
