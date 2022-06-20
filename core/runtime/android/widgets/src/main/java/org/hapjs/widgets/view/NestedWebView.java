@@ -56,20 +56,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.MotionEventCompat;
 import androidx.core.view.NestedScrollingChildHelper;
 import androidx.core.view.VelocityTrackerCompat;
 import androidx.core.view.ViewCompat;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.LifecycleListener;
@@ -77,6 +71,7 @@ import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FileUtils;
+import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
 import org.hapjs.common.utils.WebViewUtils;
@@ -90,10 +85,8 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.component.view.webview.BaseWebViewClient;
 import org.hapjs.model.AppInfo;
-import org.hapjs.render.DecorLayout;
-import org.hapjs.render.Display;
+import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.RootView;
-import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.ProviderManager;
@@ -101,6 +94,17 @@ import org.hapjs.system.SysOpProvider;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.Web;
 import org.hapjs.widgets.animation.WebProgressBar;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
 
 public class NestedWebView extends WebView
         implements ComponentHost, NestedScrollingView, GestureHost {
@@ -167,6 +171,7 @@ public class NestedWebView extends WebView
 
     public static final String KEY_SYSTEM = "system";
     public static final String KEY_DEFAULT = "default";
+    private String mSourceH5 = ""; //记录哪个网页调起的app
 
     public NestedWebView(Context context) {
         super(context);
@@ -378,9 +383,20 @@ public class NestedWebView extends WebView
                         intent.setData(Uri.parse(url));
                         intent.addCategory(Intent.CATEGORY_BROWSABLE);
 
-                        if (isWeixinPay(url) || isAlipay(url) || isQQLogin(url)) {
+                        boolean isAlipay = isAlipay(url);
+                        if (isWeixinPay(url) || isAlipay || isQQLogin(url)) {
+                            if (isAlipay) {
+                                //不允许跳转到支付宝支付以外的页面
+                                NativePackageProvider provider = ProviderManager.getDefault().getProvider(NativePackageProvider.NAME);
+                                if (provider.inAlipayForbiddenList(getContext(), url)) {
+                                    Log.d(TAG, "in alipay forbidden list");
+                                    NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "in alipay forbidden list", mSourceH5);
+                                    return true;
+                                }
+                            }
                             try {
                                 mContext.startActivity(intent);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, null, mSourceH5);
                             } catch (ActivityNotFoundException e) {
                                 Log.d(TAG, "Fail to launch deeplink", e);
                             }
@@ -389,12 +405,17 @@ public class NestedWebView extends WebView
 
                         if (mComponent == null) {
                             Log.e(TAG, "shouldOverrideUrlLoading error: component is null");
+                            mSourceH5 = url;
                             return false;
                         }
                         RenderEventCallback callback = mComponent.getCallback();
-                        return (callback != null
-                                && callback.shouldOverrideUrlLoading(url, mComponent.getPageId()))
+                        boolean result = (callback != null
+                                && callback.shouldOverrideUrlLoading(url, mSourceH5, mComponent.getPageId()))
                                 || !UriUtils.isWebUri(url);
+                        if (!result) {
+                            mSourceH5 = url;
+                        }
+                        return result;
                     }
 
                     @Override
@@ -610,7 +631,7 @@ public class NestedWebView extends WebView
                                     public void onClick(DialogInterface dialog, int which) {
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                             String[] permissions =
-                                                    new String[] {
+                                                    new String[]{
                                                             Manifest.permission.ACCESS_COARSE_LOCATION,
                                                             Manifest.permission.ACCESS_FINE_LOCATION
                                                     };
@@ -1099,28 +1120,28 @@ public class NestedWebView extends WebView
                     chooserIntent = Intent.createChooser(fileIntent, null);
                     chooserIntent.putExtra(
                             Intent.EXTRA_INITIAL_INTENTS,
-                            new Intent[] {takePhoto, captureVideo, audioIntent});
+                            new Intent[]{takePhoto, captureVideo, audioIntent});
                 } else if (chooseMode == CHOOSE_MODE_SPECIAL) {
                     chooserIntent = Intent.createChooser(fileIntent, null);
                     chooserIntent.putExtra(
                             Intent.EXTRA_INITIAL_INTENTS,
-                            new Intent[] {takePhoto, captureVideo, audioIntent});
+                            new Intent[]{takePhoto, captureVideo, audioIntent});
                 } else if (chooseMode == CHOOSE_MODE_DEFAULT) {
                     if (!TextUtils.isEmpty(curMimeType)) {
                         if (curMimeType.contains("image")) {
                             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
-                                    new Intent[] {takePhoto});
+                                    new Intent[]{takePhoto});
                         } else if (curMimeType.contains("video")) {
                             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
-                                    new Intent[] {captureVideo});
+                                    new Intent[]{captureVideo});
                         } else if (curMimeType.contains("audio")
                                 && !"audio/*".equals(curMimeType)) {
                             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
-                                    new Intent[] {audioIntent});
+                                    new Intent[]{audioIntent});
                         } else if ("audio/*".equals(curMimeType)) {
                             chooserIntent = Intent.createChooser(fileIntent, null);
                             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS,
-                                    new Intent[] {audioIntent});
+                                    new Intent[]{audioIntent});
                         } else {
                             Log.w(TAG, "initChooseFile: curMimeType do not fit any case");
                         }
@@ -1158,7 +1179,7 @@ public class NestedWebView extends WebView
         HapPermissionManager.getDefault()
                 .requestPermissions(
                         hybridManager,
-                        new String[] {Manifest.permission.CAMERA},
+                        new String[]{Manifest.permission.CAMERA},
                         new PermissionCallback() {
                             @Override
                             public void onPermissionAccept() {
@@ -1389,7 +1410,7 @@ public class NestedWebView extends WebView
             } else {
                 ActivityCompat.requestPermissions(
                         act,
-                        new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_WRITE_PERMISSION);
 
                 final HybridManager hybridManager = hybridView.getHybridManager();

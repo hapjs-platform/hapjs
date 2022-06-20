@@ -13,6 +13,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import java.io.File;
 import java.io.IOException;
+
+import org.hapjs.common.executors.Executors;
 import org.hapjs.widgets.view.camera.CameraBaseMode;
 import org.hapjs.widgets.view.camera.record.common.VideoHandlerThread;
 import org.hapjs.widgets.view.camera.record.gles.EglCore;
@@ -37,6 +39,7 @@ public class TextureMovieEncoder {
     private WindowSurface mInputWindowSurface;
     private EglCore mEglCore;
     private FullFrameRect mFullScreen;
+    private FullFrameRect mFullRecordScreen;
     private int mTextureId;
     private int mFrameNum;
     private VideoEncoderCore mVideoEncoder;
@@ -49,6 +52,8 @@ public class TextureMovieEncoder {
     private float mCalWidth = 0.0f;
     private float mCalHeight = 0.0f;
     private int mBitRate = -1;
+    public volatile boolean mIsEGLvalid = true;
+    private volatile boolean mIsprepare = false;
 
     /**
      * Adds a bit of extra stuff to the display just to give it flavor.
@@ -75,6 +80,13 @@ public class TextureMovieEncoder {
         GLES20.glScissor(xpos, 0, width / 32, height / 32);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+    }
+
+    public boolean isContextSurfaceAttached() {
+        if (null == mInputWindowSurface) {
+            return !mIsprepare;
+        }
+        return mIsprepare;
     }
 
     public void prepareRecording(EncoderConfig config, FullFrameRect fullFrameRect) {
@@ -126,18 +138,48 @@ public class TextureMovieEncoder {
         mIsStarted = true;
     }
 
+    public void resetStatus() {
+        synchronized (mReadyFence) {
+            mReady = mRunning = false;
+        }
+        mIsStarted = false;
+        mStartTime = -1;
+        mIsEGLvalid = true;
+        mIsprepare = false;
+    }
+
     public void stopRecording(boolean isDetachStop) {
         mIsStarted = false;
         synchronized (mReadyFence) {
             mReady = mRunning = false;
         }
-        getHandler().sendMessage(getHandler().obtainMessage(VideoHandlerThread.MSG_STOP_RECORDING));
-        getHandler().sendMessage(getHandler().obtainMessage(VideoHandlerThread.MSG_QUIT));
+        if (null != mHandler) {
+            Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mHandler is not null.");
+            mHandler.sendMessage(mHandler.obtainMessage(VideoHandlerThread.MSG_STOP_RECORDING));
+            mHandler.sendMessage(mHandler.obtainMessage(VideoHandlerThread.MSG_QUIT));
+        } else {
+            Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording mHandler is null.");
+            Executors.io().execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        handleStopRecording();
+                    } catch (Exception e) {
+                        Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "stopRecording handleStopRecording error : " + e.getMessage());
+                    }
+                    handleVideoStop();
+                    if (null != mHandler) {
+                        mHandler.removeCallbacksAndMessages(null);
+                    }
+                }
+            });
+        }
         mStartTime = -1;
     }
 
     public Handler getHandler() {
         if (null == mHandler) {
+            Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " getHandler mHandler is null.");
             mHandler = VideoHandlerThread.getInstance().getHandler(this);
         }
         return mHandler;
@@ -191,14 +233,12 @@ public class TextureMovieEncoder {
             return;
         }
 
-        getHandler()
-                .sendMessage(
-                        getHandler()
-                                .obtainMessage(
-                                        VideoHandlerThread.MSG_FRAME_AVAILABLE,
-                                        (int) (timestamp >> 32),
-                                        (int) timestamp,
-                                        transform));
+        if (null != mHandler) {
+            mHandler.sendMessage(mHandler.obtainMessage(VideoHandlerThread.MSG_FRAME_AVAILABLE,
+                    (int) (timestamp >> 32), (int) timestamp, transform));
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG_TIMESTAMP + "frameAvailable MSG_FRAME_AVAILABLE mHandler null.");
+        }
     }
 
     public void setTextureId(int id) {
@@ -207,10 +247,11 @@ public class TextureMovieEncoder {
                 return;
             }
         }
-        getHandler()
-                .sendMessage(
-                        getHandler()
-                                .obtainMessage(VideoHandlerThread.MSG_SET_TEXTURE_ID, id, 0, null));
+        if (null != mHandler) {
+            mHandler.sendMessage(mHandler.obtainMessage(VideoHandlerThread.MSG_SET_TEXTURE_ID, id, 0, null));
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG_TIMESTAMP + "setTextureId MSG_SET_TEXTURE_ID mHandler null.");
+        }
     }
 
     public void handleLooperReady() {
@@ -254,8 +295,9 @@ public class TextureMovieEncoder {
         // video queue start
         mVideoEncoder.drainEncoder(false);
         // video queue end
-        mFullScreen.drawFrame(mTextureId, transform);
-        drawBox(mFrameNum++);
+        if (null != mFullRecordScreen) {
+            mFullRecordScreen.drawFrame(mTextureId, transform);
+        }
         // video queue start
         if (MediaMuxerController.DEBUG) {
             Log.d(
@@ -273,8 +315,12 @@ public class TextureMovieEncoder {
      * Handles a request to stop encoding.
      */
     public void handleStopRecording() {
-        mVideoEncoder.drainEncoder(true);
-        releaseEncoder();
+        if (null != mVideoEncoder) {
+            mVideoEncoder.drainEncoder(true);
+            releaseEncoder();
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "handleStopRecording mVideoEncoder is null.");
+        }
     }
 
     /**
@@ -293,7 +339,7 @@ public class TextureMovieEncoder {
      */
     public void handleUpdateSharedContext(EGLContext newSharedContext) {
         Log.d(TAG, "handleUpdatedSharedContext " + newSharedContext);
-
+        mIsEGLvalid = false;
         // Release the EGLSurface and EGLContext.
         mInputWindowSurface.releaseEglSurface();
         mFullScreen.release(false);
@@ -307,6 +353,7 @@ public class TextureMovieEncoder {
         // Create new programs and such for the new context.
         mFullScreen =
                 new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+        mIsEGLvalid = true;
     }
 
     private void prepareEncoder(
@@ -365,8 +412,13 @@ public class TextureMovieEncoder {
         mEglCore = new EglCore(sharedContext, EglCore.FLAG_RECORDABLE);
         mInputWindowSurface = new WindowSurface(mEglCore, mVideoEncoder.getInputSurface(), true);
         mInputWindowSurface.makeCurrent();
-        mFullScreen =
-                new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+        if (null == mFullRecordScreen) {
+            mFullRecordScreen = new FullFrameRect(
+                    new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT));
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "mFullRecordScreen is null.");
+        }
+
+        mIsprepare = true;
     }
 
     /**
@@ -404,14 +456,15 @@ public class TextureMovieEncoder {
     }
 
     private void releaseEncoder() {
+        mIsprepare = false;
         mVideoEncoder.release();
         if (mInputWindowSurface != null) {
             mInputWindowSurface.release();
             mInputWindowSurface = null;
         }
-        if (mFullScreen != null) {
-            mFullScreen.release(false);
-            mFullScreen = null;
+        if (mFullRecordScreen != null) {
+            mFullRecordScreen.release(false);
+            mFullRecordScreen = null;
         }
         if (mEglCore != null) {
             mEglCore.release();

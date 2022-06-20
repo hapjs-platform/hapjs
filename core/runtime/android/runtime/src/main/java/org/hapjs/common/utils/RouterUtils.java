@@ -33,7 +33,7 @@ public class RouterUtils {
     public static final String EXTRA_SESSION = "SESSION";
 
     public static boolean router(Context context, PageManager pageManager, HybridRequest request) {
-        return router(context, pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER);
+        return router(context, pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER, null);
     }
 
     public static boolean router(
@@ -41,7 +41,8 @@ public class RouterUtils {
             PageManager pageManager,
             int pageId,
             HybridRequest request,
-            String routerAppFrom) {
+            String routerAppFrom,
+            String sourceH5) {
         if (pageManager == null) {
             return false;
         }
@@ -49,7 +50,7 @@ public class RouterUtils {
         try {
             return pushPage(pageManager, pageId, request);
         } catch (PageNotFoundException e) {
-            return pushExternal(context, pageManager, request, routerAppFrom);
+            return pushExternal(context, pageManager, request, routerAppFrom, sourceH5);
         }
     }
 
@@ -98,7 +99,7 @@ public class RouterUtils {
     }
 
     private static boolean pushExternal(
-            Context context, PageManager pageManager, HybridRequest request, String routerAppFrom) {
+            Context context, PageManager pageManager, HybridRequest request, String routerAppFrom, String sourceH5) {
         String pkg = pageManager.getAppInfo().getPackage();
         Bundle extras = getAppInfoExtras(context, pageManager.getAppInfo());
         if (request instanceof HybridRequest.HapRequest) {
@@ -122,11 +123,11 @@ public class RouterUtils {
             }
             if (!request.isDeepLink()) {
                 ApplicationContext appContext = HapEngine.getInstance(pkg).getApplicationContext();
-                if (DocumentUtils.open(appContext, request.getUri(), extras, routerAppFrom)) {
+                if (DocumentUtils.open(appContext, request.getUri(), extras, routerAppFrom, sourceH5)) {
                     return true;
                 }
             }
-            return NavigationUtils.navigate(context, pkg, request, extras, routerAppFrom);
+            return NavigationUtils.navigate(context, pkg, request, extras, routerAppFrom, sourceH5);
         }
     }
 
