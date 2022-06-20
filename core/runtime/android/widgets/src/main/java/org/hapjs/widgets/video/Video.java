@@ -113,6 +113,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                     Log.w(TAG, "createViewImpl onPrepared mHost null or !mHost.isAttachedToWindow.");
                     return;
                 }
+                VideoCacheManager.getInstance().putPageObtainPlayer(getPageId(), true);
                 if (mOnPreparedRegistered) {
                     Map<String, Object> params = new HashMap();
                     params.put("duration", mp.getDuration() / 1000f);

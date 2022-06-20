@@ -1164,13 +1164,20 @@ public class FlexVideoView extends FrameLayout
 
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
-        if (autoPlay && mUri != null) {
-            initPlayer();
-            if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
-                Log.w(TAG, "setAutoPlay mUri is not fullscreen Uri ,setAutoPlay invalid");
-                return;
+        if (null != mComponent) {
+            boolean isPageObtainPlayer = false;
+            Boolean isPageObtainPlayerObj = VideoCacheManager.getInstance().getPageObtainPlayer(mComponent.getPageId());
+            if (null != isPageObtainPlayerObj) {
+                isPageObtainPlayer = isPageObtainPlayerObj.booleanValue();
             }
-            makeEffectVideoURI(false);
+            if (mAutoPlay && null != mUri && null == mPlayer && !isPageObtainPlayer) {
+                initPlayer();
+                if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
+                    Log.w(TAG, "setAutoPlay mUri is not fullscreen Uri ,setAutoPlay invalid");
+                    return;
+                }
+                makeEffectVideoURI(false);
+            }
         }
     }
 
