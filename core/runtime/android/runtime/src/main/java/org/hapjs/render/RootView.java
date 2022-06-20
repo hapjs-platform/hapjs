@@ -85,6 +85,7 @@ import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.NetworkConfig;
 import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.ScreenOrientation;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.component.CallingComponent;
 import org.hapjs.render.jsruntime.JsBridge;
 import org.hapjs.render.jsruntime.JsThread;
@@ -1275,6 +1276,7 @@ public class RootView extends FrameLayout
         if (page != null && !page.shouldCache()) {
             onPageRemoved(page.pageId);
             page.clearCache();
+            VideoCacheManager.getInstance().clearVideoData(page.pageId);
             mJsThread.postDestroyPage(page);
         }
         InspectorManager.getInspector().onPageRemoved(index, page);

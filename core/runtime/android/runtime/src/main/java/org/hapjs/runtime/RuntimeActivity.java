@@ -26,6 +26,7 @@ import org.hapjs.common.utils.IntentUtils;
 import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.logging.LogHelper;
 import org.hapjs.logging.Source;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.JsThread;
 
@@ -447,6 +448,7 @@ public class RuntimeActivity extends AppCompatActivity {
         if (mHybridView != null) {
             mHybridView.getHybridManager().onDestroy();
         }
+        VideoCacheManager.getInstance().clearAllVideoData();
     }
 
     @Override
