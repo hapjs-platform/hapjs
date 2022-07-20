@@ -20,9 +20,9 @@ buildscript {
     }
 }
 
-apply from: 'version.gradle', to: rootProject
 apply from: '../../../core/runtime/android/version.gradle', to: rootProject
 apply from: '../../../core/runtime/android/config.gradle', to: rootProject
+apply from: 'version.gradle', to: rootProject
 
 allprojects {
     repositories {
