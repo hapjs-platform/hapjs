@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,8 +36,7 @@ public class WebPage extends Page {
         super(appInfo, pageInfo, params, intent, pageId, launchFlags);
     }
 
-    public static WebPage create(PageManager pageManager, HybridRequest request) {
-        AppInfo appInfo = pageManager.getAppInfo();
+    public static WebPage create(AppInfo appInfo, Page currPage, HybridRequest request) {
         PageInfo webInfo =
                 new PageInfo(
                         PAGE_NAME,
@@ -51,10 +50,9 @@ public class WebPage extends Page {
         params.put(PARAM_ALLOW_THIRD_PARTY_COOKIES, request.isAllowThirdPartyCookies());
         params.put(PARAM_SHOW_LOADING_DIALOG, request.isShowLoadingDialog());
         params.put(PARAM_USER_AGENT, request.getUserAgent());
-        Page page = pageManager.getCurrPage();
-        if (page != null) {
-            int titleBarTextColor = page.getTitleBarTextColor();
-            int titleBarBackgroundColor = page.getTitleBarBackgroundColor();
+        if (currPage != null) {
+            int titleBarTextColor = currPage.getTitleBarTextColor();
+            int titleBarBackgroundColor = currPage.getTitleBarBackgroundColor();
             params.put(PARAM_TITLE_BAR_TEXT_COLOR, ColorUtil.getColorText(titleBarTextColor));
             params.put(PARAM_TITLE_BAR_BACKGROUND_COLOR,
                     ColorUtil.getColorText(titleBarBackgroundColor));

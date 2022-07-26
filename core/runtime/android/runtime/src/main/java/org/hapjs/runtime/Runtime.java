@@ -174,7 +174,6 @@ public class Runtime {
     private void load() {
         UserAgentHelper.preLoad();
         FrescoUtils.initializeAsync(mContext);
-        SoLoaderHelper.initialize(mContext);
         mContext.registerComponentCallbacks(
                 new ComponentCallbacks2() {
                     @Override

@@ -73,6 +73,7 @@ import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
 import org.hapjs.platform.R;
+import org.hapjs.render.AppResourcesLoader;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
@@ -258,6 +259,9 @@ public class LauncherActivity extends RuntimeActivity {
         unregisterInstallListener(getPackage());
         if (DistributionManager.CODE_APPLY_UPDATE_DELAYED == mCurrentStatusCode) {
             DistributionManager.getInstance().applyUpdate(getPackage());
+        }
+        if (!TextUtils.isEmpty(getPackage())) {
+            AppResourcesLoader.clearPreloadedResources(getPackage());
         }
     }
 
@@ -643,6 +647,8 @@ public class LauncherActivity extends RuntimeActivity {
     }
 
     private void launchApp(HybridRequest.HapRequest request) {
+        AppResourcesLoader.preload(getApplicationContext(), getHybridRequest());
+
         clearFailView();
         configNotch(true);
         String pkg = request.getPackage();
