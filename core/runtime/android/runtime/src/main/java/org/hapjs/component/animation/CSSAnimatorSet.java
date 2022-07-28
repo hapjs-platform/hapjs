@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Objects;
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
+import org.hapjs.component.bridge.SimpleActivityStateListener;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.runtime.HapEngine;
 
@@ -57,6 +58,7 @@ public class CSSAnimatorSet {
     private boolean mIsPercent = false;
     private boolean mIsCanceled = false;
     private boolean mIsFinished = false;
+    private boolean mActivityListenerInstalled = false;
 
     private long mStartTime = 0;
     private long mDelay = 0;
@@ -113,6 +115,27 @@ public class CSSAnimatorSet {
                     }
                 }
             };
+
+    private final SimpleActivityStateListener mActivityStateListener = new SimpleActivityStateListener() {
+        private boolean mSuspended;
+
+        @Override
+        public void onActivityResume() {
+            if (mSuspended) {
+                mWrapped.resume();
+                mSuspended = false;
+            }
+        }
+
+        @Override
+        public void onActivityPause() {
+            boolean previouslyStarted = mWrapped.isStarted() && !mWrapped.isPaused();
+            if (previouslyStarted && !mSuspended) {
+                mWrapped.pause();
+                mSuspended = mWrapped.isPaused();
+            }
+        }
+    };
 
     public CSSAnimatorSet(HapEngine hapEngine, Component component) {
         mHapEngine = hapEngine;
@@ -227,6 +250,9 @@ public class CSSAnimatorSet {
 
         // 百分比参数动画在自身尺寸发生变化时，需要进行自适应
         installLayoutChangeListener(animatedView);
+
+        // 根据activity可见性暂停或重启动画
+        installActivityListener(mComponent);
     }
 
     public void finish() {
@@ -252,6 +278,20 @@ public class CSSAnimatorSet {
         if (view != null && isPercent()) {
             view.removeOnLayoutChangeListener(mLayoutChangeListener);
             view.addOnLayoutChangeListener(mLayoutChangeListener);
+        }
+    }
+
+    private void installActivityListener(Component component) {
+        if (!mActivityListenerInstalled && component != null && component.getCallback() != null) {
+            component.getCallback().addActivityStateListener(mActivityStateListener);
+            mActivityListenerInstalled = true;
+        }
+    }
+
+    private void uninstallActivityListener(Component component) {
+        if (mActivityListenerInstalled && component != null && component.getCallback() != null) {
+            component.getCallback().removeActivityStateListener(mActivityStateListener);
+            mActivityListenerInstalled = false;
         }
     }
 
@@ -336,6 +376,7 @@ public class CSSAnimatorSet {
                 hostView.removeOnAttachStateChangeListener(mOnAttachStateChangeListener);
                 hostView.removeOnLayoutChangeListener(mLayoutChangeListener);
             }
+            uninstallActivityListener(component);
         }
         if (mWrapped != null) {
             mWrapped.end();
