@@ -147,7 +147,7 @@ public class AppResourcesLoader {
         String chunks;
         AppResources appResources = sAppResources.get(pkg);
         if (appResources != null && appResources.chunksMap.containsKey(path)) {
-            chunks = appResources.chunksMap.get(pkg);
+            chunks = appResources.chunksMap.get(path);
         } else {
             chunks = loadJsChunks(pkg, path);
         }
