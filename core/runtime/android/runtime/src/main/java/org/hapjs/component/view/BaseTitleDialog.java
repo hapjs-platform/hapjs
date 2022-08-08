@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -37,6 +37,7 @@ import java.util.List;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.LifecycleListener;
+import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.model.MenubarItemData;
 import org.hapjs.render.Display;
 import org.hapjs.runtime.ConfigurationManager;
@@ -76,22 +77,23 @@ public class BaseTitleDialog extends Dialog implements ConfigurationManager.Conf
 
     public BaseTitleDialog(@NonNull Context context) {
         super(context, R.style.HapTheme_Dialog);
-        initView();
+        initView(context);
     }
 
     public BaseTitleDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
-        initView();
+        initView(context);
     }
 
     protected BaseTitleDialog(
             @NonNull Context context, boolean cancelable,
             @Nullable OnCancelListener cancelListener) {
         super(context, cancelable, cancelListener);
-        initView();
+        initView(context);
     }
 
-    private void initView() {
+    private void initView(Context context) {
+        FrescoUtils.initialize(context.getApplicationContext());
         setContentView(R.layout.titlebar_dialog_view);
         mLocationStr = getContext().getResources().getString(R.string.menubar_dlg_using_location);
         mRecordingStr = getContext().getResources().getString(R.string.menubar_dlg_using_record);
