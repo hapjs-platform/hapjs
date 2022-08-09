@@ -411,7 +411,8 @@ public class ComponentBackgroundComposer {
                 || mComponent.getHostView().getBackground() instanceof CSSBackgroundDrawable) {
             return null;
         }
-        return mComponent.getHostView().getBackground();
+        mOriginalDrawable = mComponent.getHostView().getBackground();
+        return mOriginalDrawable;
     }
 
     private static class BackgroundHolder
