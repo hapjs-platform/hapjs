@@ -51,6 +51,7 @@ public class ComponentBackgroundComposer {
 
     private Drawable mGradientDrawable;
     private Drawable mImageDrawable;
+    private Drawable mOriginalDrawable;
 
     public ComponentBackgroundComposer(@NonNull Component component) {
         mComponent = component;
@@ -279,6 +280,14 @@ public class ComponentBackgroundComposer {
             Drawable[] tmp = new Drawable[drawables.size()];
             LayerDrawable layerDrawable = new LayerDrawable(drawables.toArray(tmp));
             mBackgroundDrawable.setLayerDrawable(layerDrawable);
+        } else if (mOriginalDrawable != null) {
+            LayerDrawable layerDrawable = mBackgroundDrawable.getLayerDrawable();
+            if (layerDrawable != null && layerDrawable.getNumberOfLayers() == 1
+                    && layerDrawable.getDrawable(0) == mOriginalDrawable) {
+                // 正常情况，只有一层且该层是初始背景，无须处理
+            } else {
+                mBackgroundDrawable.setLayerDrawable(new LayerDrawable(new Drawable[]{mOriginalDrawable}));
+            }
         } else {
             mBackgroundDrawable.setLayerDrawable(null);
         }
@@ -401,7 +410,8 @@ public class ComponentBackgroundComposer {
                 || mComponent.getHostView().getBackground() instanceof CSSBackgroundDrawable) {
             return null;
         }
-        return mComponent.getHostView().getBackground();
+        mOriginalDrawable = mComponent.getHostView().getBackground();
+        return mOriginalDrawable;
     }
 
     private static class BackgroundHolder
