@@ -264,8 +264,7 @@ public class ComponentBackgroundComposer {
 
             // Avoid default background of some component not work, e.g button.
             if (getDefaultBgDrawable() != null) {
-                mOriginalDrawable = getDefaultBgDrawable();
-                drawables.add(mOriginalDrawable);
+                drawables.add(getDefaultBgDrawable());
             }
 
             if (mImageDrawable != null) {
