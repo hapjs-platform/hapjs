@@ -164,6 +164,10 @@ public class CSSBackgroundDrawable extends Drawable {
         invalidateSelf();
     }
 
+    public LayerDrawable getLayerDrawable() {
+        return mLayerDrawable;
+    }
+
     public void setRadiusPercent(float radiusPercent) {
         if (!FloatUtil.floatsEqual(mBorderRadiusPercent, radiusPercent)) {
             mBorderRadiusPercent = radiusPercent;

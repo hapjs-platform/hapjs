@@ -51,6 +51,7 @@ public class ComponentBackgroundComposer {
 
     private Drawable mGradientDrawable;
     private Drawable mImageDrawable;
+    private Drawable mOriginalDrawable;
 
     public ComponentBackgroundComposer(@NonNull Component component) {
         mComponent = component;
@@ -263,7 +264,8 @@ public class ComponentBackgroundComposer {
 
             // Avoid default background of some component not work, e.g button.
             if (getDefaultBgDrawable() != null) {
-                drawables.add(getDefaultBgDrawable());
+                mOriginalDrawable = getDefaultBgDrawable();
+                drawables.add(mOriginalDrawable);
             }
 
             if (mImageDrawable != null) {
@@ -279,13 +281,21 @@ public class ComponentBackgroundComposer {
             Drawable[] tmp = new Drawable[drawables.size()];
             LayerDrawable layerDrawable = new LayerDrawable(drawables.toArray(tmp));
             mBackgroundDrawable.setLayerDrawable(layerDrawable);
+        } else if (mOriginalDrawable != null) {
+            LayerDrawable layerDrawable = mBackgroundDrawable.getLayerDrawable();
+            if (layerDrawable != null && layerDrawable.getNumberOfLayers() == 1
+                    && layerDrawable.getDrawable(0) == mOriginalDrawable) {
+                // 正常情况，只有一层且该层是初始背景，无须处理
+            } else {
+                mBackgroundDrawable.setLayerDrawable(new LayerDrawable(new Drawable[]{mOriginalDrawable}));
+            }
         } else {
             mBackgroundDrawable.setLayerDrawable(null);
         }
 
         hostView.setBackground(mBackgroundDrawable);
-        if (!mBackgroundHolder.mIsViewAttached || !mBackgroundHolder.mIsVisible) {
-            // 此情况下不将 mDirty 设为 false，否则无法刷新背景
+        if (mComponent.isUseInList() && (!mBackgroundHolder.mIsViewAttached || !mBackgroundHolder.mIsVisible)) {
+            // 列表复用场景部分情况下不将 mDirty 设为 false，否则可能无法刷新背景
         } else {
             mDirty = false;
         }
