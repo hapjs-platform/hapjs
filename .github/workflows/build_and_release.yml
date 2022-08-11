@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+
+name: quickapp and debugger build and release
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      versionTag:
+        required: true
+        type: string
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      #下载java sdk版本使用： java8
+      - name: Setup JDK 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: 8
+          distribution: adopt
+
+       # 下载安卓sdk 自动同意所有license
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        # 构建程序 打包
+      - run: |
+          cd ./mockup/platform/android
+          ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
+        # 上传 apk 后续可以从github直接下载到手机
+        # 版本号可以指定
+      - uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          # 自定义从环境获取tag 或到github编辑
+          automatic_release_tag: "'v' + ${{ inputs.versionTag }}"
+          prerelease: false
+          title: "Development release"
+          files: |
+            ./mockup/platform/android/app/build/outputs/apk/phone/debug/*.apk
