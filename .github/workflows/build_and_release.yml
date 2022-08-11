@@ -26,7 +26,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           # 自定义从环境获取tag 或到github编辑
-          automatic_release_tag: "'v' + ${{ inputs.versionTag }}"
+          automatic_release_tag: v${{ inputs.versionTag }}
           prerelease: false
           title: "Development release"
           files: |
