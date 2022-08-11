@@ -1,4 +1,4 @@
-# This is a basic workflow to help you get started with Actions
+# This is a workflow for building and releasing quickapp and debugger android application.
 
 name: quickapp and debugger build and release
 
@@ -16,18 +16,23 @@ jobs:
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
       - uses: actions/checkout@v2
-      # 构建程序 打包
+      # build quickapp mockup application
       - run: |
           cd ./mockup/platform/android
           ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
-        # 上传 apk 后续可以从github直接下载到手机
-        # 版本号可以指定
+          mv ./mockup/platform/android/app/build/outputs/apk/phone/release/app-phone-release.apk ./mockup/platform/android/app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
+      # build debugger
+      - run: |
+          cd ./debug/shell/android
+          ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
+          mv ./debug/shell/android/app/build/outputs/apk/release/app-release.apk ./debug/shell/android/app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
+      
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          # 自定义从环境获取tag 或到github编辑
           automatic_release_tag: v${{ inputs.versionTag }}
           prerelease: false
           title: "Development release"
           files: |
-            ./mockup/platform/android/app/build/outputs/apk/phone/debug/*.apk
+            ./mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
+            ./debug/shell/android/app/build/outputs/apk/release/*.apk
