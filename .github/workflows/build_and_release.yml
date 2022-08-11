@@ -20,19 +20,21 @@ jobs:
       - run: |
           cd ./mockup/platform/android
           ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
-          mv ./mockup/platform/android/app/build/outputs/apk/phone/release/app-phone-release.apk ./mockup/platform/android/app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
+          mv app/build/outputs/apk/phone/release/app-phone-release.apk app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
       # build debugger
       - run: |
+          cd $GITHUB_WORKSPACE
           cd ./debug/shell/android
           ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
-          mv ./debug/shell/android/app/build/outputs/apk/release/app-release.apk ./debug/shell/android/app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
       
       - uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          # 自定义从环境获取tag 或到github编辑
           automatic_release_tag: v${{ inputs.versionTag }}
           prerelease: false
           title: "Development release"
           files: |
-            ./mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
-            ./debug/shell/android/app/build/outputs/apk/release/*.apk
+            $GITHUB_WORKSPACE/mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
+            $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release/*.apk
