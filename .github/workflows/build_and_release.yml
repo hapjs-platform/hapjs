@@ -29,7 +29,6 @@ jobs:
           echo `pwd`
           echo "rename apk"
           echo $GITHUB_WORKSPACE
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
       
       - uses: marvinpinto/action-automatic-releases@latest
         with:
@@ -39,5 +38,4 @@ jobs:
           prerelease: false
           title: "Development release"
           files: |
-            $GITHUB_WORKSPACE/mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
             $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release/*.apk
