@@ -28,6 +28,7 @@ jobs:
           ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
           echo `pwd`
           echo "rename apk"
+          echo $GITHUB_WORKSPACE
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
       
       - uses: marvinpinto/action-automatic-releases@latest
