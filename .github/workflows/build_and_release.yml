@@ -29,6 +29,7 @@ jobs:
           echo `pwd`
           echo "rename apk"
           echo $GITHUB_WORKSPACE
+          echo `ls app/build/outputs/apk/release`
       
       - uses: marvinpinto/action-automatic-releases@latest
         with:
