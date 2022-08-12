@@ -18,9 +18,9 @@ jobs:
       - uses: actions/checkout@v2
       # build quickapp mockup application
       # - run: |
-      #    cd ./mockup/platform/android
-      #    ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
-      #    mv app/build/outputs/apk/phone/release/app-phone-release.apk app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
+      #     cd ./mockup/platform/android
+      #     ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
+      #     mv app/build/outputs/apk/phone/release/app-phone-release.apk app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
       # build debugger
       - run: |
           cd $GITHUB_WORKSPACE
@@ -28,15 +28,27 @@ jobs:
           ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
           echo `pwd`
           echo "rename apk"
-          echo $GITHUB_WORKSPACE
-          echo `ls app/build/outputs/apk/release`
+          echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
+      # mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
       
-      - uses: marvinpinto/action-automatic-releases@latest
+      # - uses: marvinpinto/action-automatic-releases@latest
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     # 自定义从环境获取tag 或到github编辑
+      #     automatic_release_tag: v${{ inputs.versionTag }}
+      #     prerelease: false
+      #     title: "Development release"
+      #     files: |
+      #       $GITHUB_WORKSPACE/mockup/platform/android/app/build/outputs/apk/phone/release/*.apk
+      #       $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release/*.apk
+      #       /__w/hapjs_tempProject/hapjs_tempProject
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          # 自定义从环境获取tag 或到github编辑
-          automatic_release_tag: v${{ inputs.versionTag }}
-          prerelease: false
-          title: "Development release"
-          files: |
-            $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release/*.apk
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # 上传网址，无需改动
+          asset_path: $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release/app-release.apk # 上传路径
+          asset_name: quickapp_debugger_${GITHUB_REF#refs/*/}.apk # 资源名
+          asset_content_type: application/vnd.android.package-archiv #资源类型
