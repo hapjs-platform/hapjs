@@ -1,4 +1,4 @@
-name: Android CI
+name: quickApp CI
 
 # 触发器
 on:
