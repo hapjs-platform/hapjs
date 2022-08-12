@@ -37,8 +37,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ inputs.versionTag }}
+          release_name: Release ${{ inputs.versionTag }}
           draft: false
           prerelease: false
       # 获取apk版本号
