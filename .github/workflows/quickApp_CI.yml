@@ -1,4 +1,4 @@
-name: quickApp CI
+name: Android CI
 
 # 触发器
 on:
@@ -15,6 +15,12 @@ jobs:
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
       - uses: actions/checkout@v2
+      # build quickapp mockup application
+      # - run: |
+      #     cd ./mockup/platform/android
+      #     ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
+      #     mv app/build/outputs/apk/phone/release/app-phone-release.apk app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
+      # 打包调试器
       - name: Build debugger
         id: build_debugger
         run: |
@@ -23,6 +29,8 @@ jobs:
           ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
           echo `pwd`
           echo "rename apk"
+          echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
+        # mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
           echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
       # 创建release
       - name: Create Release
