@@ -15,12 +15,6 @@ jobs:
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
       - uses: actions/checkout@v2
-      # build quickapp mockup application
-      # - run: |
-      #     cd ./mockup/platform/android
-      #     ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
-      #     mv app/build/outputs/apk/phone/release/app-phone-release.apk app/build/outputs/apk/phone/release/quickapp_platform_preview_release_${GITHUB_REF#refs/*/}.apk
-      # 打包调试器
       - name: Build debugger
         id: build_debugger
         run: |
