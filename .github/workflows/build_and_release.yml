@@ -59,8 +59,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # 上传网址，无需改动
-          asset_path: app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk # 上传路径
-          asset_name: quickapp_debugger_${GITHUB_REF#refs/*/}.apk # 资源名
+          asset_path: app/build/outputs/apk/release/quickapp_debugger_${{ GITHUB_REF#refs/*/ }}.apk # 上传路径
+          asset_name: quickapp_debugger_${{ GITHUB_REF#refs/*/ }}.apk # 资源名
           asset_content_type: application/vnd.android.package-archiv #资源类型
       # 存档打包的文件
       - name: Archive production artifacts
