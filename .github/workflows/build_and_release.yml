@@ -30,8 +30,6 @@ jobs:
           echo `pwd`
           echo "rename apk"
           echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
-        # mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
-          echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
       # 创建release
       - name: Create Release
         id: create_release
