@@ -30,8 +30,6 @@ jobs:
           echo `pwd`
           echo "rename apk"
           echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/quickapp_debugger_${GITHUB_REF#refs/*/}.apk
-          echo `ls $GITHUB_WORKSPACE/debug/shell/android/app/build/outputs/apk/release`
       # 创建release
       - name: Create Release
         id: create_release
@@ -43,20 +41,16 @@ jobs:
           release_name: Release ${{ inputs.versionTag }}
           draft: false
           prerelease: false
-      # 获取apk版本号
+
+        # 获取apk版本号
       - name: Get Version Name
-        id: get-version
         uses: actions/github-script@v3
+        id: get-version
         with:
           script: |
-            # const str=${GITHUB_REF#refs/*/};
-            # return str.substring(str.indexOf("v"));
-            echo ${GITHUB_REF#refs/*/}
-            return ${GITHUB_REF#refs/*/}
+            const str=process.env.GITHUB_REF;
+            return str.substring(str.indexOf("v"));
           result-encoding: string
-      - name: get current path
-        run:
-          echo `pwd`
       # 上传至release的资源
       - name: Upload Release Asset
         id: upload-release-asset 
@@ -65,10 +59,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # 上传网址，无需改动
-          asset_path: app/build/outputs/apk/release/quickapp_debugger_${{ steps.get-version.outputs }}.apk # 上传路径
-          asset_name: quickapp_debugger_${{ steps.get-version.outputs }}.apk # 资源名
+          asset_path: app/build/outputs/apk/release/app-release.apk # 上传路径
+          asset_name: quickapp_debugger_${{steps.get-version.outputs.result}}.apk # 资源名
           asset_content_type: application/vnd.android.package-archiv #资源类型
-      # 存档打包的文件
+     # 存档打包的文件
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
         with:
