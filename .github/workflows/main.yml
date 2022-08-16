@@ -14,15 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
-      - name: perform build
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         # 构建程序 打包
-        run: |
+      - run: |
           cd ./mockup/platform/android
           ./gradlew assembleRelease
           ./gradlew assembleDebug
       - name: exec checkstyle
-        uses: actions/checkout@v2
         run: |
           cd mockup/platform/android
           ./gradlew checkstyle
