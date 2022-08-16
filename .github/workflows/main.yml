@@ -14,9 +14,21 @@ jobs:
     runs-on: ubuntu-latest
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
+      - name: perform build
       - uses: actions/checkout@v2
       # 构建程序 打包
       - run: |
           cd ./mockup/platform/android
           ./gradlew assembleRelease
           ./gradlew assembleDebug
+      - name: exec checkstyle
+      - uses: actions/checkout@v2
+      - run: |
+          cd mockup/platform/android
+          ./gradlew checkstyle
+          cd ../../../
+          sh scan_build.sh
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: mockup/platform/android/app/build/reports/checkstyle/checkstyle.html
