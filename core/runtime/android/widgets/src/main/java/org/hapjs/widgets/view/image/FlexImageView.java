@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -322,6 +322,13 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
         mSourceChanged = true;
 
         maybeUpdateView(true);
+    }
+
+    public String getSource() {
+        if (mSource != null) {
+            return mSource.toString();
+        }
+        return null;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.DynamicDrawableSpan;
 import android.text.style.ImageSpan;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatDelegate;
 import java.lang.ref.WeakReference;
@@ -93,6 +94,9 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
     private Text mParentText;
     private SpannableString mSpannable;
     private boolean mIsImageSpan = false;
+    private boolean mSetImageBlur = false;
+
+    private static final int DEFAULT_ADAPTIVE_BANNER_PADDING = 400;
 
     private String mSrcStr;
     private String mAltStr;
@@ -173,6 +177,7 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
                 mIsSrcInit = true;
                 String src = Attributes.getString(attribute);
                 setSrc(src);
+                setImageBlur();
                 return true;
             case Attributes.Style.RESIZE_MODE:
             case Attributes.Style.OBJECT_FIT:
@@ -267,6 +272,44 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
         }
         mAltStr = altStr;
         applySpannable();
+    }
+
+    @Override
+    public void setWidth(String widthStr) {
+        super.setWidth(widthStr);
+        //折叠屏自适应模式下banner图增加高斯模糊背景
+        //父布局直接为swiper时需要通过设置padding来缩小图片尺寸
+        if (isComponentAdaptiveEnable() && getParentSwiper() != null) {
+            if (mAdaptiveBeforeWidth > 0 || getWidth() == ViewGroup.LayoutParams.MATCH_PARENT) {
+                Swiper swiper = getParentSwiper();
+                swiper.setPadding(Attributes.Style.PADDING_LEFT, DEFAULT_ADAPTIVE_BANNER_PADDING);
+                swiper.setPadding(Attributes.Style.PADDING_RIGHT, DEFAULT_ADAPTIVE_BANNER_PADDING);
+                swiper.setRealPadding();
+                mSetImageBlur = true;
+                setImageBlur();
+            }
+        }
+    }
+
+    private void setImageBlur() {
+        if (isComponentAdaptiveEnable() && getParentSwiper() != null) {
+            if (mHost.getSource() != null && mSetImageBlur) {
+                getParentSwiper().setBackgroundImage(mHost.getSource(), true);
+                getParentSwiper().applyBackground();
+            }
+        }
+    }
+
+    private Swiper getParentSwiper(){
+        if (mParent instanceof Swiper) {
+            return (Swiper) mParent;
+        } else if (mParent != null) {
+            Container parentParent = mParent.getParent();
+            if (parentParent instanceof Swiper) {
+                return (Swiper) parentParent;
+            }
+        }
+        return null;
     }
 
     private void setImageSpanWidth(String widthStr) {

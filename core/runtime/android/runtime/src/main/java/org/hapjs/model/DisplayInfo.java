@@ -27,6 +27,7 @@ public class DisplayInfo {
     public static final String MODE_ORIGINAL = "original";
     public static final String MODE_FIT_SCREEN = "fitScreen";
     public static final String MODE_FILL_SCREEN = "fillScreen";
+    public static final String MODE_ADAPTIVE_SCREEN = "adaptiveScreen";
 
     private static final String KEY_PAGE_ANIMATION = "pageAnimation";
 
