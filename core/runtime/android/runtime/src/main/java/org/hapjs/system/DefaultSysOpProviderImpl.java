@@ -498,4 +498,26 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
         }
         return screenOrientation;
     }
+
+    @Override
+    public boolean isFoldableDevice(Context context) {
+        return false;
+    }
+
+    @Override
+    public boolean isFoldStatusByDisplay(Context context) {
+        return false;
+    }
+
+    @Override
+    public int getFoldDisplayWidth(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return displayMetrics.widthPixels;
+    }
+
+    @Override
+    public int getSafeAreaWidth(Context context) {
+        return 0;
+    }
+
 }

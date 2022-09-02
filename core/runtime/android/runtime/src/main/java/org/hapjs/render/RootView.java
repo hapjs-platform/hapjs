@@ -62,6 +62,7 @@ import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.resident.ResidentManager;
 import org.hapjs.common.utils.BrightnessUtils;
 import org.hapjs.common.utils.DisplayUtil;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.MediaUtils;
 import org.hapjs.common.utils.RouterUtils;
 import org.hapjs.common.utils.ThreadUtils;
@@ -892,6 +893,10 @@ public class RootView extends FrameLayout
                                             }
                                         }
                                     });
+                        }
+                        if (displayInfo != null) {
+                            String fitMode = displayInfo.getFitMode();
+                            FoldingUtils.setRpkWideScreenFitMode(fitMode);
                         }
 
                         EventManager.getInstance()

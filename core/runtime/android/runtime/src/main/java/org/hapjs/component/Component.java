@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.ArrayMap;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
@@ -53,6 +54,7 @@ import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.IntegerUtil;
 import org.hapjs.common.utils.SnapshotUtils;
 import org.hapjs.common.utils.UriUtils;
@@ -95,7 +97,9 @@ import org.hapjs.render.css.Node;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.RuntimeActivity;
+import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -126,6 +130,7 @@ public abstract class Component<T extends View>
     private static final String CALLBACK_KEY_FAIL = "fail";
     private static final String CALLBACK_KEY_COMPLETE = "complete";
     private static final int MIN_DISPLAY_SHOW_PLATFORM_VERSION = 1080;
+    private static SysOpProvider sSysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
     protected Context mContext;
     protected Container mParent;
     protected int mRef;
@@ -146,6 +151,7 @@ public abstract class Component<T extends View>
     protected ComponentBackgroundComposer mBackgroundComposer;
     protected int mMinPlatformVersion;
     protected Canvas mSnapshotCanvas;
+    protected int mAdaptiveBeforeWidth;
     protected boolean mShow = true;
     protected boolean mShowAttrInitialized = false;
     private boolean mIsFixPositionDisabled = false;
@@ -1707,6 +1713,14 @@ public abstract class Component<T extends View>
         savedState.clear();
     }
 
+    public boolean isComponentAdaptiveEnable() {
+        if (mContext == null || sSysOpProvider == null) {
+            return false;
+        }
+        return sSysOpProvider.isFoldableDevice(mContext)
+                && !sSysOpProvider.isFoldStatusByDisplay(mContext) && FoldingUtils.isAdaptiveScreenMode();
+    }
+
     public int getWidth() {
         if (mHost == null || mHost.getLayoutParams() == null) {
             return IntegerUtil.UNDEFINED;
@@ -1758,12 +1772,31 @@ public abstract class Component<T extends View>
             mPercentWidth = -1;
             int width =
                     Attributes.getInt(mHapEngine, widthStr, ViewGroup.LayoutParams.WRAP_CONTENT);
+            if (isComponentAdaptiveEnable()) {
+                mAdaptiveBeforeWidth = width;
+                width = getAdapterWidth(width);
+            }
             lp.width = width;
             if (mNode != null) {
                 mNode.setWidth(width);
             }
         }
         mWidthDefined = true;
+    }
+
+    private int getAdapterWidth(int width) {
+        int foldWidth = sSysOpProvider.getFoldDisplayWidth(mContext.getApplicationContext());
+        DisplayMetrics displayMetrics = mContext.getResources().getDisplayMetrics();
+        if (width > (foldWidth / 2)) {
+            int adapterMargin = foldWidth - width;
+            boolean isLandscapeMode = DisplayUtil.isLandscapeMode(mContext);
+            if (isLandscapeMode) {
+                return displayMetrics.widthPixels + sSysOpProvider.getSafeAreaWidth(mContext) - adapterMargin;
+            } else {
+                return displayMetrics.widthPixels - adapterMargin;
+            }
+        }
+        return width;
     }
 
     public int getHeight() {
@@ -2272,7 +2305,11 @@ public abstract class Component<T extends View>
     }
 
     public void setBackgroundImage(String backgroundImage) {
-        getOrCreateBackgroundComposer().setBackgroundImage(backgroundImage);
+        setBackgroundImage(backgroundImage, false);
+    }
+
+    public void setBackgroundImage(String backgroundImage, boolean setBlur) {
+        getOrCreateBackgroundComposer().setBackgroundImage(backgroundImage, setBlur);
     }
 
     public void setBackgroundSize(String backgroundSize) {
