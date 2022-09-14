@@ -10,6 +10,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+
 import com.facebook.yoga.YogaConstants;
 import com.facebook.yoga.YogaFlexDirection;
 import com.facebook.yoga.YogaNode;
@@ -35,6 +37,7 @@ public class PercentFlexboxLayout extends YogaLayout implements ComponentHost, G
     private KeyEventDelegate mKeyEventDelegate;
 
     private List<Integer> mPositionArray;
+    private boolean mDisallowIntercept = false;
 
     public PercentFlexboxLayout(Context context) {
         super(context);
@@ -158,6 +161,21 @@ public class PercentFlexboxLayout extends YogaLayout implements ComponentHost, G
             node.setFlexDirection(YogaFlexDirection.ROW);
             node.setFlexShrink(1f);
         }
+    }
+
+    public void setDisallowIntercept(boolean disallowIntercept) {
+        mDisallowIntercept = disallowIntercept;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (mDisallowIntercept && ev.getAction() == MotionEvent.ACTION_DOWN) {
+            ViewParent viewParent = getParent();
+            if (viewParent != null) {
+                viewParent.requestDisallowInterceptTouchEvent(mDisallowIntercept);
+            }
+        }
+        return super.onInterceptTouchEvent(ev);
     }
 
     @Override

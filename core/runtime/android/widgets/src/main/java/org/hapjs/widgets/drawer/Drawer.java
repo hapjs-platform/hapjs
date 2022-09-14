@@ -45,13 +45,6 @@ public class Drawer extends Container<FlexDrawerLayout> {
     private static final String TAG = "Drawer";
     private static final String METHOD_PARAM_DIRECTION = "direction";
     private static final int SHADOW_COLOR = 0x99000000;
-    private static final int STATE_IDLE = 0;
-    private static final int STATE_DRAGGING = 1;
-    private static final int STATE_SETTLING = 2;
-    private static final int SLIDE_END = 1;
-    private static final int SLIDE_START = 0;
-    private static final int STATE_OPEN = 1;
-    private static final int STATE_CLOSE = 0;
     private final Set<Integer> mGravitySet = new HashSet<>();
     private DrawerSlideListener mDrawerSlideListener;
     private DrawerStateChangedListener mDrawerStateChangedListener;
@@ -61,13 +54,19 @@ public class Drawer extends Container<FlexDrawerLayout> {
     private int mDrawerState;
     private boolean mEnableSwipe = true;
 
-    public Drawer(
-            HapEngine hapEngine,
-            Context context,
-            Container parent,
-            int ref,
-            RenderEventCallback callback,
-            Map<String, Object> savedState) {
+    private static final int STATE_IDLE = 0;
+    private static final int STATE_DRAGGING = 1;
+    private static final int STATE_SETTLING = 2;
+
+    private static final int SLIDE_END = 1;
+    private static final int SLIDE_START = 0;
+
+    private static final int STATE_OPEN = 1;
+    private static final int STATE_CLOSE = 0;
+    private View mDrawerView;
+    private float mSlideOffset = 0f;
+
+    public Drawer(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback, Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
     }
 
@@ -84,79 +83,81 @@ public class Drawer extends Container<FlexDrawerLayout> {
         }
         drawerLayout.setScrimColor(SHADOW_COLOR);
         drawerLayout.setLayoutParams(lp);
-        mSimpleDrawerListener =
-                new DrawerLayout.SimpleDrawerListener() {
-                    @Override
-                    public void onDrawerSlide(View drawerView, float slideOffset) {
-                        super.onDrawerSlide(drawerView, slideOffset);
+        mSimpleDrawerListener = new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+                mDrawerView = drawerView;
+                mSlideOffset = slideOffset;
+                if (mDrawerSlideListener != null) {
+                    mDrawerSlideListener.onDrawerSlide(drawerView, slideOffset, mDrawerState);
+                }
+            }
 
-                        if (mDrawerSlideListener != null) {
-                            mDrawerSlideListener
-                                    .onDrawerSlide(drawerView, slideOffset, mDrawerState);
-                        }
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (drawerView.getLayoutParams() != null) {
+                    int gravity = ((DrawerLayout.LayoutParams) drawerView
+                            .getLayoutParams()).gravity;
+                    if (gravity == Gravity.START) {
+                        mIsLeftOpen = true;
+                    } else {
+                        mIsRightOpen = true;
+                    }
+                    if (mDrawerStateChangedListener != null) {
+                        mDrawerStateChangedListener.onDrawerStateChanged(
+                                mIsLeftOpen ? mIsLeftOpen : mIsRightOpen, gravity);
                     }
 
-                    @Override
-                    public void onDrawerOpened(View drawerView) {
-                        super.onDrawerOpened(drawerView);
-                        if (drawerView.getLayoutParams() != null) {
-                            int gravity = ((DrawerLayout.LayoutParams) drawerView
-                                    .getLayoutParams()).gravity;
-                            if (gravity == Gravity.START) {
-                                mIsLeftOpen = true;
-                            } else {
-                                mIsRightOpen = true;
-                            }
-                            if (mDrawerStateChangedListener != null) {
-                                mDrawerStateChangedListener.onDrawerStateChanged(
-                                        mIsLeftOpen ? mIsLeftOpen : mIsRightOpen, gravity);
-                            }
+                    // 打开状态再次调用onDrawerSlide，让state置为IDLE
+                    if (mDrawerSlideListener != null) {
+                        mDrawerSlideListener
+                                .onDrawerSlide(drawerView, SLIDE_END, STATE_IDLE);
+                    }
+                }
+            }
 
-                            // 打开状态再次调用onDrawerSlide，让state置为IDLE
-                            if (mDrawerSlideListener != null) {
-                                mDrawerSlideListener
-                                        .onDrawerSlide(drawerView, SLIDE_END, STATE_IDLE);
-                            }
-                        }
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                if (drawerView.getLayoutParams() != null) {
+                    int gravity = ((DrawerLayout.LayoutParams) drawerView
+                            .getLayoutParams()).gravity;
+                    if (gravity == Gravity.START) {
+                        mIsLeftOpen = false;
+                    } else {
+                        mIsRightOpen = false;
+                    }
+                    if (mDrawerStateChangedListener != null) {
+                        mDrawerStateChangedListener.onDrawerStateChanged(
+                                !mIsLeftOpen ? mIsLeftOpen : mIsRightOpen, gravity);
                     }
 
-                    @Override
-                    public void onDrawerClosed(View drawerView) {
-                        super.onDrawerClosed(drawerView);
-                        if (drawerView.getLayoutParams() != null) {
-                            int gravity = ((DrawerLayout.LayoutParams) drawerView
-                                    .getLayoutParams()).gravity;
-                            if (gravity == Gravity.START) {
-                                mIsLeftOpen = false;
-                            } else {
-                                mIsRightOpen = false;
-                            }
-                            if (mDrawerStateChangedListener != null) {
-                                mDrawerStateChangedListener.onDrawerStateChanged(
-                                        !mIsLeftOpen ? mIsLeftOpen : mIsRightOpen, gravity);
-                            }
-
-                            // 关闭状态再次调用onDrawerSlide，使得state置为IDLE
-                            if (mDrawerSlideListener != null) {
-                                mDrawerSlideListener
-                                        .onDrawerSlide(drawerView, SLIDE_START, STATE_IDLE);
-                            }
-                        }
+                    // 关闭状态再次调用onDrawerSlide，使得state置为IDLE
+                    if (mDrawerSlideListener != null) {
+                        mDrawerSlideListener
+                                .onDrawerSlide(drawerView, SLIDE_START, STATE_IDLE);
                     }
+                }
+            }
 
-                    // state为IDLE时，onDrawerStateChanged会在onDrawerSlide调用完之后才调用
-                    @Override
-                    public void onDrawerStateChanged(int newState) {
-                        super.onDrawerStateChanged(newState);
-                        if (newState == DrawerLayout.STATE_IDLE) {
-                            mDrawerState = STATE_IDLE;
-                        } else if (newState == DrawerLayout.STATE_DRAGGING) {
-                            mDrawerState = STATE_DRAGGING;
-                        } else if (newState == DrawerLayout.STATE_SETTLING) {
-                            mDrawerState = STATE_SETTLING;
-                        }
-                    }
-                };
+            // state为IDLE时，onDrawerStateChanged会在onDrawerSlide调用完之后才调用
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                super.onDrawerStateChanged(newState);
+                if (newState == DrawerLayout.STATE_IDLE) {
+                    mDrawerState = STATE_IDLE;
+                } else if (newState == DrawerLayout.STATE_DRAGGING) {
+                    mDrawerState = STATE_DRAGGING;
+                } else if (newState == DrawerLayout.STATE_SETTLING) {
+                    mDrawerState = STATE_SETTLING;
+                }
+                if (mDrawerSlideListener != null && mDrawerView != null) {
+                    mDrawerSlideListener.onDrawerSlide(mDrawerView, mSlideOffset, mDrawerState);
+                }
+            }
+        };
         drawerLayout.addDrawerListener(mSimpleDrawerListener);
         return drawerLayout;
     }

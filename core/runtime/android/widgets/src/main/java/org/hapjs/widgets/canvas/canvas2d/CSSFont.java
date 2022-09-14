@@ -145,11 +145,9 @@ public class CSSFont {
                         } catch (NumberFormatException e) {
                             Log.e(TAG, "parse fontSize error:" + e);
                         }
-
-                        // font-family在font-size后面
-                        if (i + 1 < size) {
-                            fontFamily = fonts[i + 1];
-                        }
+                    }
+                    if (i + 1 == size) {
+                        fontFamily = fonts[i];
                     }
                     break;
             }

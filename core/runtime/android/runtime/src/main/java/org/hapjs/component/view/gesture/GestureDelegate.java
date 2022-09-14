@@ -19,20 +19,16 @@ import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
+
 import androidx.annotation.NonNull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.Floating;
 import org.hapjs.component.FloatingHelper;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.ScrollView;
-import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.DecorLayout;
 import org.hapjs.render.RootView;
 import org.hapjs.render.vdom.DocComponent;
@@ -40,6 +36,14 @@ import org.hapjs.render.vdom.VDocument;
 import org.hapjs.render.vdom.VElement;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
+import org.hapjs.runtime.RouterManageProvider;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class GestureDelegate implements IGesture, GestureDetector.OnGestureListener {
 
@@ -62,7 +66,7 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
 
     private boolean mIsWatchingLongPress;
     private boolean mIsWatchingClick;
-    private NativePackageProvider mNativePackageProvider;
+    private RouterManageProvider mRouterManageProvider;
 
     public GestureDelegate(HapEngine hapEngine, Component component, Context context) {
         mHapEngine = hapEngine;
@@ -127,8 +131,7 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
         }
         mMinAppPlatformVersion = mHapEngine.getMinPlatformVersion();
         mGestureDispatcher.setMinPlatformVersion(mMinAppPlatformVersion);
-        mNativePackageProvider =
-                ProviderManager.getDefault().getProvider(NativePackageProvider.NAME);
+        mRouterManageProvider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
     }
 
     /**
@@ -140,6 +143,15 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
     public void registerEvent(String eventType) {
         if (TextUtils.isEmpty(eventType)) {
             return;
+        }
+
+        if (!BuildPlatform.isTV()) {
+            if (Attributes.Event.CLICK.equals(eventType)) {
+                View hostView = mComponent.getHostView();
+                if (hostView != null) {
+                    hostView.setClickable(true);
+                }
+            }
         }
 
         mGestureTypes.add(eventType);
@@ -622,8 +634,8 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
     }
 
     private void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
-        if (mNativePackageProvider != null) {
-            mNativePackageProvider.recordFireEvent(eventName);
+        if (mRouterManageProvider != null) {
+            mRouterManageProvider.recordFireEvent(eventName);
         }
         // longpress通过handler的delaytime检查判断，不会向上传递，这里需要立即传递
         if (immediately) {

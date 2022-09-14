@@ -8,6 +8,7 @@ package org.hapjs.widgets.view.video;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -24,7 +25,11 @@ import android.widget.TextView;
 import androidx.viewpager.widget.ViewPager;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.DisplayUtil;
+import org.hapjs.component.Component;
+import org.hapjs.model.videodata.VideoCacheData;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.widgets.R;
+import org.hapjs.widgets.video.ExoPlayer;
 import org.hapjs.widgets.video.IMediaPlayer;
 import org.hapjs.widgets.video.MediaUtils;
 import org.hapjs.widgets.video.Player;
@@ -58,6 +63,10 @@ public class MediaController extends RelativeLayout {
                             hide();
                             break;
                         case SHOW_PROGRESS:
+                            if (null == mPlayer) {
+                                Log.w(TAG, "handleMessage SHOW_PROGRESS mPlayer is null.");
+                                return;
+                            }
                             pos = setProgress();
                             if (mPlayer != null && mPlayer.isPlaying() && !mDragging
                                     && isShowing()) {
@@ -87,6 +96,10 @@ public class MediaController extends RelativeLayout {
                 @Override
                 public void onClick(View v) {
                     doPauseResume();
+                    if (null == mPlayer) {
+                        Log.w(TAG, "mPauseListener onClick mPlayer is null.");
+                        return;
+                    }
                     if (mPlayer.isPlaying()) {
                         show(sDefaultTimeout);
                     } else {
@@ -98,6 +111,7 @@ public class MediaController extends RelativeLayout {
     private View mTitleBarContainer;
     private TextView mTitle;
     private int mTitleHeight;
+    private final String TAG = "MediaController";
     private FullscreenChangeListener mFullScreenChangeListener;
     private OnSeekBarChangeListener mOnSeekBarChangeListener;
     // There are two scenarios that can trigger the seekbar listener to trigger:
@@ -134,7 +148,10 @@ public class MediaController extends RelativeLayout {
                         // the progress bar's position.
                         return;
                     }
-
+                    if (null == mPlayer) {
+                        Log.w(TAG, "onProgressChanged  mPlayer is null.");
+                        return;
+                    }
                     long duration = mPlayer.getDuration();
                     // avoid overflow
                     long newPosition = (duration / 1000) * progress;
@@ -148,6 +165,10 @@ public class MediaController extends RelativeLayout {
 
                 @Override
                 public void onStopTrackingTouch(SeekBar bar) {
+                    if (null == mPlayer) {
+                        Log.w(TAG, "onStopTrackingTouch  mPlayer is null.");
+                        return;
+                    }
                     mDragging = false;
                     // avoid overflow
                     long duration = mPlayer.getDuration();
@@ -196,6 +217,10 @@ public class MediaController extends RelativeLayout {
         if (player != null) {
             updatePausePlay();
         }
+    }
+
+    public void clearMediaController() {
+        mPlayer = null;
     }
 
     /**
@@ -257,7 +282,8 @@ public class MediaController extends RelativeLayout {
     }
 
     private void applyButtonVisibility() {
-        if (mPlayer == null) {
+        if (null == mPlayer) {
+            Log.w(TAG, "applyButtonVisibility  mPlayer is null.");
             return;
         }
         boolean canSeek = mPlayer.isSeekable();
@@ -359,6 +385,31 @@ public class MediaController extends RelativeLayout {
         }
         long position = mPlayer.getCurrentPosition();
         long duration = mPlayer.getDuration();
+        VideoCacheData videoCacheData = null;
+        if (position <= 0 || duration == ExoPlayer.DURATION_NONE) {
+            if (null != mVideoView) {
+                Component tmpComponent = mVideoView.getComponent();
+                String videoUriStr = "";
+                int pageId = -1;
+                if (null != tmpComponent) {
+                    pageId = tmpComponent.getPageId();
+                }
+                if (null != mVideoView.mUri) {
+                    videoUriStr = mVideoView.mUri.toString();
+                }
+                if (pageId != -1 && !TextUtils.isEmpty(videoUriStr)) {
+                    videoCacheData = VideoCacheManager.getInstance().getVideoData(pageId, videoUriStr);
+                }
+            }
+            if (null != videoCacheData) {
+                if (videoCacheData.lastPosition >= 0) {
+                    position = videoCacheData.lastPosition;
+                }
+                if (videoCacheData.duration > 0) {
+                    duration = videoCacheData.duration;
+                }
+            }
+        }
         if (mProgress != null) {
             if (duration > 0) {
                 // use long to avoid overflow
@@ -458,6 +509,10 @@ public class MediaController extends RelativeLayout {
             }
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+            if (null == mPlayer) {
+                Log.w(TAG, "dispatchKeyEvent KEYCODE_MEDIA_PLAY mPlayer is null.");
+                return true;
+            }
             if (uniqueDown && !mPlayer.isPlaying()) {
                 mPlayer.start();
                 updatePausePlay();
@@ -466,6 +521,10 @@ public class MediaController extends RelativeLayout {
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
                 || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+            if (null == mPlayer) {
+                Log.w(TAG, "dispatchKeyEvent KEYCODE_MEDIA_STOP or  KEYCODE_MEDIA_PAUSE mPlayer is null.");
+                return true;
+            }
             if (uniqueDown && mPlayer.isPlaying()) {
                 mPlayer.pause();
                 updatePausePlay();
@@ -488,6 +547,10 @@ public class MediaController extends RelativeLayout {
                 || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
                 || keyCode == KeyEvent.KEYCODE_PLUS
                 || keyCode == KeyEvent.KEYCODE_EQUALS) {
+            if (null == mPlayer) {
+                Log.w("MediaController", "dispatchKeyEvent while mPlayer is null");
+                return true;
+            }
             long increment = mPlayer.getDuration() / 20;
             long position = mPlayer.getCurrentPosition();
             switch (keyCode) {
@@ -497,26 +560,21 @@ public class MediaController extends RelativeLayout {
                         mPlayer.setCurrentState(Player.STATE_PREPARED);
                     }
                     position = Math.max(position - increment, 0);
-                    if (mPlayer != null) {
-                        mPlayer.seek(position);
-                        if (!mPlayer.isPlaying() && position != 0) {
-                            mPlayer.start();
-                        }
-                        show(sDefaultTimeout);
+                    mPlayer.seek(position);
+                    if (!mPlayer.isPlaying() && position != 0) {
+                        mPlayer.start();
                     }
+                    show(sDefaultTimeout);
                     return true;
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
                 case KeyEvent.KEYCODE_PLUS:
                 case KeyEvent.KEYCODE_EQUALS:
                     position = Math.min(position + increment, mPlayer.getDuration());
-                    if (mPlayer != null) {
-                        mPlayer.seek(position);
-                        if (!mPlayer.isPlaying() && position != mPlayer.getDuration()) {
-                            mPlayer.start();
-                        }
-                        show(sDefaultTimeout);
+                    mPlayer.seek(position);
+                    if (!mPlayer.isPlaying() && position != mPlayer.getDuration()) {
+                        mPlayer.start();
                     }
-
+                    show(sDefaultTimeout);
                     return true;
                 default:
                     return false;
@@ -539,6 +597,10 @@ public class MediaController extends RelativeLayout {
     }
 
     private void doPauseResume() {
+        if (null == mPlayer) {
+            Log.w(TAG, "doPauseResume  mPlayer is null.");
+            return;
+        }
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
         } else {

@@ -5,12 +5,11 @@
 
 package org.hapjs.common.utils;
 
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
-
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.cache.CacheStorage;
@@ -24,6 +23,8 @@ import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
 import org.hapjs.runtime.HapEngine;
 
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
+
 public class RouterUtils {
     public static final String EXTRA_HAP_NAME = "HAP_NAME";
     public static final String EXTRA_HAP_PACKAGE = "HAP_PACKAGE";
@@ -33,7 +34,7 @@ public class RouterUtils {
     public static final String EXTRA_SESSION = "SESSION";
 
     public static boolean router(Context context, PageManager pageManager, HybridRequest request) {
-        return router(context, pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER);
+        return router(context, pageManager, -1, request, VALUE_ROUTER_APP_FROM_ROUTER, null);
     }
 
     public static boolean router(
@@ -41,7 +42,8 @@ public class RouterUtils {
             PageManager pageManager,
             int pageId,
             HybridRequest request,
-            String routerAppFrom) {
+            String routerAppFrom,
+            String sourceH5) {
         if (pageManager == null) {
             return false;
         }
@@ -49,7 +51,7 @@ public class RouterUtils {
         try {
             return pushPage(pageManager, pageId, request);
         } catch (PageNotFoundException e) {
-            return pushExternal(context, pageManager, request, routerAppFrom);
+            return pushExternal(context, pageManager, request, routerAppFrom, sourceH5);
         }
     }
 
@@ -98,7 +100,7 @@ public class RouterUtils {
     }
 
     private static boolean pushExternal(
-            Context context, PageManager pageManager, HybridRequest request, String routerAppFrom) {
+            Context context, PageManager pageManager, HybridRequest request, String routerAppFrom, String sourceH5) {
         String pkg = pageManager.getAppInfo().getPackage();
         Bundle extras = getAppInfoExtras(context, pageManager.getAppInfo());
         if (request instanceof HybridRequest.HapRequest) {
@@ -114,19 +116,19 @@ public class RouterUtils {
             }
             HybridRequest.HapRequest hapRequest = (HybridRequest.HapRequest) request;
             // Allowed to open hap package only
-            return PackageUtils.openHapPackage(context, pkg, pageManager, hapRequest, extras);
+            return PackageUtils.openHapPackage(context, pkg, pageManager, hapRequest, extras, routerAppFrom);
         } else {
             if (UriUtils.isHybridUri(request.getUri())) {
-                PackageUtils.openHapPackage(context, pkg, pageManager, request, extras);
+                PackageUtils.openHapPackage(context, pkg, pageManager, request, extras, routerAppFrom);
                 return true;
             }
             if (!request.isDeepLink()) {
                 ApplicationContext appContext = HapEngine.getInstance(pkg).getApplicationContext();
-                if (DocumentUtils.open(appContext, request.getUri(), extras, routerAppFrom)) {
+                if (DocumentUtils.open(appContext, request.getUri(), extras, routerAppFrom, sourceH5)) {
                     return true;
                 }
             }
-            return NavigationUtils.navigate(context, pkg, request, extras, routerAppFrom);
+            return NavigationUtils.navigate(context, pkg, request, extras, routerAppFrom, sourceH5);
         }
     }
 

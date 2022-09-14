@@ -324,7 +324,7 @@ function mergeAttrs(attrs, props, vm, subVm) {
     if (!props || (!props.hasOwnProperty(key) && reservedAttr.indexOf(key) === -1)) {
       // targetVm 和 targetFunction 用来确保响应式数据更新正确
       let targetFunction
-      if (attrs[key].targetFunction) {
+      if (attrs[key] && attrs[key].targetFunction) {
         targetFunction =
           typeof attrs[key].targetFunction === 'function'
             ? attrs[key].targetFunction.bind(attrs[key].targetVm)

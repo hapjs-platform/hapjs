@@ -13,12 +13,4 @@ public interface NativePackageProvider {
     boolean hasPackageInstalled(Context context, String pkg);
 
     boolean installPackage(Context context, String pkg, String callingPkg);
-
-    boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg);
-
-    boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg);
-
-    boolean triggeredByGestureEvent(Context context, String pkg);
-
-    void recordFireEvent(String eventType);
 }

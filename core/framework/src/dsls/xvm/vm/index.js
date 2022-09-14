@@ -584,6 +584,15 @@ export default class XVm {
             return pageModule.getMenuBarRect(page.id)
           }
         },
+        getMenuBarBoundingRect: function() {
+          // 调用native侧提供的接口，获取menubar转换为设计尺寸位置对象
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.getMenuBarBoundingRect(page.id)
+          }
+        },
         setMenubarData: function(attr) {
           // 调用native侧提供的接口，设置menubardata数据
           if (page && page.doc) {

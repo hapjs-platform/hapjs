@@ -35,6 +35,8 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     private ViewGroup mParent;
 
     private int mOverScrolledY;
+    private boolean mIsUseCacheItem = false;
+    private boolean mIsSelfReset = true;
 
     public FlexGridLayoutManager(Context context) {
         super(context, DEFAULT_COLUMN_COUNT);
@@ -152,6 +154,9 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
                 mIndex = i;
             }
         }
+        if (mIsSelfReset) {
+            mIsUseCacheItem = false;
+        }
         setMeasuredDimension(widthSize, height);
         setYogaHeight(height);
         if (node != null) {
@@ -163,13 +168,15 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         mItemCount = state.getItemCount();
     }
 
-    private void measureScrapChild(
-            RecyclerView.Recycler recycler,
-            int position,
-            int widthSpec,
-            int heightSpec,
-            int[] measuredDimension) {
-        View view = recycler.getViewForPosition(position);
+    private void measureScrapChild(RecyclerView.Recycler recycler, int position, int widthSpec,
+                                   int heightSpec, int[] measuredDimension) {
+        View view = null;
+        if (mIsUseCacheItem) {
+            view = findViewByPosition(position);
+        }
+        if (null == view) {
+            view = recycler.getViewForPosition(position);
+        }
         if (view != null) {
             RecyclerView.LayoutParams p = (RecyclerView.LayoutParams) view.getLayoutParams();
             int childWidthSpec =
@@ -188,7 +195,7 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         if (getOrientation() == HORIZONTAL
                 || mRecycler == null
                 || mFlexRecyclerView == null
-                || getItemCount() == 0) {
+                || getStateItemCount() == 0) {
             return;
         }
 
@@ -213,16 +220,15 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
 
             int height = 0;
             int rowHeight = 0;
+            mIsUseCacheItem = false;
             for (int i = 0; i < getItemCount(); i++) {
-                measureScrapChild(
-                        mRecycler,
-                        i,
+                measureScrapChild(mRecycler, i,
                         View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                         View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                         mMeasuredDimension);
 
                 rowHeight = Math.max(rowHeight, mMeasuredDimension[1]);
-                if (i % getSpanCount() == getSpanCount() - 1 || i == (getItemCount() - 1)) {
+                if (i % getSpanCount() == getSpanCount() - 1 || i == (getStateItemCount() - 1)) {
                     height += rowHeight;
                     rowHeight = 0;
                 }
@@ -233,13 +239,13 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
                     break;
                 }
 
-                if (i == (getItemCount() - 1)) {
+                if (i == (getStateItemCount() - 1)) {
                     mIndex = i;
                 }
             }
 
             mHeight = height;
-            mItemCount = getItemCount();
+            mItemCount = getStateItemCount();
 
             setYogaHeight(height);
         } else {
@@ -383,6 +389,14 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
     }
 
     @Override
+    public int getStateItemCount() {
+        if (mFlexRecyclerView != null) {
+            return mFlexRecyclerView.getState().getItemCount();
+        }
+        return 0;
+    }
+
+    @Override
     public void scrollToFlexPositionWithOffset(int position, int offset) {
         scrollToPositionWithOffset(position, offset);
     }
@@ -433,5 +447,10 @@ public class FlexGridLayoutManager extends GridLayoutManager implements FlexLayo
         // parent == null,the view is dettach from window
         // parent == ViewRootImpl, the top parent is ViewRootImpl
         return parent != null;
+    }
+
+    public void setIsUseCacheItem(boolean isUseCacheItem, boolean isSelfReset) {
+        mIsUseCacheItem = isUseCacheItem;
+        mIsSelfReset = isSelfReset;
     }
 }

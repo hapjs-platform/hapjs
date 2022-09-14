@@ -24,14 +24,16 @@ import org.hapjs.logging.RuntimeLogManager;
 public class DocumentUtils {
     private static final String TAG = "DocumentUtils";
     private static String sRouterAppFrom = "";
+    private static String sSourceH5 = "";
 
-    public static boolean open(
-            ApplicationContext appContext, String uri, Bundle extras, String routerAppFrom) {
+    public static boolean open(ApplicationContext appContext, String uri, Bundle extras, String routerAppFrom, String sourceH5) {
         sRouterAppFrom = "";
+        sSourceH5 = "";
         if (!InternalUriUtils.isInternalPath(uri)) {
             return false;
         }
         sRouterAppFrom = routerAppFrom;
+        sSourceH5 = sourceH5;
         File underlyingFile = appContext.getUnderlyingFile(uri);
         if (underlyingFile == null) {
             Uri underlyingUri = appContext.getUnderlyingUri(uri);
@@ -123,7 +125,9 @@ public class DocumentUtils {
                                 info.activityInfo.packageName,
                                 info.activityInfo.name,
                                 sRouterAppFrom,
-                                true);
+                                true,
+                                null,
+                                sSourceH5);
             }
             return true;
         } catch (ActivityNotFoundException e) {
@@ -131,7 +135,7 @@ public class DocumentUtils {
         }
         RuntimeLogManager.getDefault()
                 .logAppRouterNativeApp(
-                        appContext.getPackage(), uri.toString(), "", "", sRouterAppFrom, false);
+                        appContext.getPackage(), uri.toString(), "", "", sRouterAppFrom, false, "no compatible activity found", sSourceH5);
         return false;
     }
 }

@@ -17,6 +17,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,12 +32,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.FlexRecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.facebook.yoga.YogaNode;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.annotation.Nonnull;
+
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.BrightnessUtils;
 import org.hapjs.common.utils.FloatUtil;
@@ -48,16 +56,21 @@ import org.hapjs.component.view.ScrollView;
 import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
+import org.hapjs.model.videodata.VideoCacheData;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.DecorLayout;
 import org.hapjs.render.Display;
 import org.hapjs.render.Page;
 import org.hapjs.widgets.Div;
 import org.hapjs.widgets.R;
+import org.hapjs.widgets.list.List;
 import org.hapjs.widgets.video.IMediaPlayer;
 import org.hapjs.widgets.video.Player;
 import org.hapjs.widgets.video.PlayerInstanceManager;
+import org.hapjs.widgets.video.PlayerProxy;
 import org.hapjs.widgets.video.Video;
 import org.hapjs.widgets.view.image.FlexImageView;
+import org.hapjs.widgets.view.list.FlexGridLayoutManager;
 
 public class FlexVideoView extends FrameLayout
         implements ComponentHost,
@@ -77,9 +90,10 @@ public class FlexVideoView extends FrameLayout
     private static final int STATE_ENTERING_FULLSCREEN = 2;
     private static final int STATE_EXITING_FULLSCREEN = 3;
     private final ControlsManager mControlsManager;
+    private boolean mControlsVisible = true;
     @Nullable
     private IMediaPlayer mPlayer;
-    private Uri mUri;
+    public Uri mUri;
     private Uri mPosterUri;
     private Boolean mMuted;
     private String mPlayCount;
@@ -100,7 +114,7 @@ public class FlexVideoView extends FrameLayout
                         mOnTimeUpdateListener.onTimeUpdate();
                     }
                     removeMessages(MSG_TIME_UPDATE);
-                    if (mPlayer.getCurrentState() == Player.STATE_PLAYING) {
+                    if (null != mPlayer && mPlayer.getCurrentState() == Player.STATE_PLAYING) {
                         msg = obtainMessage(MSG_TIME_UPDATE);
                         sendMessageDelayed(msg, TIME_UPDATE_INTERVAL);
                     }
@@ -130,6 +144,10 @@ public class FlexVideoView extends FrameLayout
     private boolean mRegisterBrightnessObserver;
     private IGesture mGesture;
     private boolean mVisible;
+    private boolean mIsFirstExitFullScreenAttach = false;
+    public static Uri mCacheFullScreenUri = null;
+    public static boolean mIsFullScreen = false;
+    public boolean mIsEverCacheVideo = false;
 
     public FlexVideoView(final Context context) {
         this(context, true);
@@ -137,6 +155,7 @@ public class FlexVideoView extends FrameLayout
 
     public FlexVideoView(final Context context, boolean controlsVisibility) {
         super(context);
+        mControlsVisible = controlsVisibility;
         mControlsManager = new ControlsManager(controlsVisibility);
         mVisible = true;
         setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
@@ -158,6 +177,7 @@ public class FlexVideoView extends FrameLayout
     protected void onDraw(Canvas canvas) {
         if (isRoundedBorders()) {
             mRoundRectF.set(0, 0, getWidth(), getHeight());
+            mClipPath.reset();
             mClipPath.addRoundRect(mRoundRectF, mRadiusArray, Path.Direction.CW);
             canvas.clipPath(mClipPath);
         }
@@ -202,11 +222,25 @@ public class FlexVideoView extends FrameLayout
         if (mUri == null) {
             return;
         }
+        if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
+            Log.w(TAG, "start mUri is not fullscreen Uri ,start invalid");
+            return;
+        }
+        if (null != mPlayer && mUri.equals(mPlayer.getDataSource())) {
+            if (mPlayer.isPlaying()) {
+                Log.w(TAG, "start mPlayer  isPlaying  getCurrentState : " + mPlayer.getCurrentState());
+                return;
+            } else if (mPlayer.getCurrentState() == IMediaPlayer.STATE_PREPARED) {
+                Log.w(TAG, "start mPlayer  STATE_PREPARED  getCurrentState : " + mPlayer.getCurrentState());
+                mPlayer.start();
+                return;
+            }
+        }
         initPlayer();
         if (mPlayer.getTargetState() != IMediaPlayer.STATE_PLAYING && mOnStartListener != null) {
             mOnStartListener.onStart();
         }
-        makeEffectVideoURI();
+        makeEffectVideoURI(true);
         mPlayer.start();
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -216,6 +250,37 @@ public class FlexVideoView extends FrameLayout
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (null != mControlsManager) {
+            boolean isControlsVisible = mControlsManager.isControlsLayoutVisible();
+            if (!isControlsVisible) {
+                FlexImageView postView = mControlsManager.createPosterView();
+                if (mPosterUri == null) {
+                    postView.setVisibility(GONE);
+                } else {
+                    postView.setSource(mPosterUri);
+                    if (mPlayer == null || !mPlayer.isPlaying()) {
+                        postView.setVisibility(VISIBLE);
+                    }
+                }
+            }
+            if (null != mPlayer) {
+                mControlsManager.attachPlayer(mPlayer);
+            }
+        } else {
+            Log.w(TAG, "onAttachedToWindow mControlsManager is null.");
+        }
+        if (mFullscreenState == STATE_ENTERING_FULLSCREEN ||
+                mIsFirstExitFullScreenAttach) {
+            if (mAutoPlay && null != mUri && null == mPlayer) {
+                initPlayer();
+                makeEffectVideoURI(false);
+            }
+            if (null != mPlayer && (mPlayer.getCurrentState() == Player.STATE_PREPARED
+                    || mPlayer.getCurrentState() == Player.STATE_PLAYING) && mAutoPlay && mUri != null) {
+                mPlayer.start();
+            }
+        }
+        mIsFirstExitFullScreenAttach = false;
         onAttach();
     }
 
@@ -244,12 +309,59 @@ public class FlexVideoView extends FrameLayout
         if (mFullscreenState != STATE_ENTERING_FULLSCREEN
                 && mFullscreenState != STATE_EXITING_FULLSCREEN) {
             if (mPlayer != null) {
-                mPlayer.stop();
+                cacheCurrentVideoData();
+                releasePlayer();
+                mControlsVisible = true;
+            } else {
+                cacheCurrentVideoData();
             }
         }
         if (mOnTimeUpdateListener != null) {
             mTimeUpdateHandler.removeMessages(MSG_TIME_UPDATE);
         }
+    }
+
+    private void cacheCurrentVideoData() {
+        if (mPlayer != null) {
+            long position = mPlayer.getCurrentPosition();
+            long duration = mPlayer.getDuration();
+            if (position <= 0) {
+                if (mPlayer instanceof PlayerProxy) {
+                    position = ((PlayerProxy) mPlayer).mCachedPosition;
+                }
+            }
+            if (position > 0 && null != mUri && null != mComponent && !mComponent.mIsDestroy) {
+                mIsEverCacheVideo = true;
+                VideoCacheData videoCacheData = new VideoCacheData();
+                videoCacheData.lastPosition = position;
+                videoCacheData.uri = mUri.toString();
+                videoCacheData.duration = duration;
+                VideoCacheManager.getInstance().putVideoData(mComponent.getPageId(), videoCacheData.uri, videoCacheData);
+            }
+        } else {
+            Log.w(TAG, "cacheCurrentVideoData mPlayer is null.");
+        }
+    }
+
+    protected void releasePlayer() {
+        if (null != mPlayer) {
+            mPlayer.pause();
+            mPlayer.stop();
+            mPlayer.setEventListener(null);
+            mPlayer.setVideoTextureView(null);
+            mPlayer.setMuted(false);
+            mPlayer.autoPlay(false);
+            mPlayer.setPlayCount(Attributes.PlayCount.ONCE);
+            mPlayer.setSuspendBuffer(false);
+            mPlayer.release();
+            if (null != mControlsManager) {
+                mControlsManager.detachPlayer();
+            }
+            mPlayer = null;
+        } else {
+            Log.w(TAG, "releasePlayer mPlayer is null.");
+        }
+
     }
 
     protected void onIdle() {
@@ -472,6 +584,7 @@ public class FlexVideoView extends FrameLayout
     }
 
     public void switchControlsVisibility(boolean visible) {
+        mControlsVisible = visible;
         mControlsManager.switchControlsVisibility(visible);
     }
 
@@ -510,35 +623,49 @@ public class FlexVideoView extends FrameLayout
             return;
         }
 
-        if (uri == null && mUri != null) {
+        if (uri == null) {
             if (mPlayer != null && mControlsManager.mVideoView != null) {
                 mPlayer.stop();
             }
         }
         mUri = uri;
 
+        if (mIsFullScreen && null != mCacheFullScreenUri && !mCacheFullScreenUri.equals(mUri)) {
+            Log.w(TAG, "setVideoURI mUri is not fullscreen Uri ,start invalid");
+            return;
+        }
         if (mAutoPlay && mUri != null) {
             initPlayer();
-            makeEffectVideoURI();
+            makeEffectVideoURI(false);
             mPlayer.start();
         }
     }
 
-    private void makeEffectVideoURI() {
+    private void makeEffectVideoURI(boolean isNeedStart) {
         if (mUri == null || mPlayer == null) {
+            Log.w(TAG, "makeEffectVideoURI mUri  or mPlayer is null.");
             return;
         }
         mControlsManager.createVideoLayout();
         if (mUri.equals(mPlayer.getDataSource())) {
-            // when at error state or idle state,can start again.
+            //when at error state or idle state,can start again.
             if (mPlayer.getCurrentState() == Player.STATE_ERROR
                     || mPlayer.getCurrentState() == Player.STATE_IDLE) {
                 mPlayer.prepare();
+
+            } else if (mPlayer.getCurrentState() == Player.STATE_PAUSED) {
+                if (isNeedStart) {
+                    mPlayer.prepare();
+                } else {
+                    Log.w(TAG, "makeEffectVideoURI same uri, mPlayer.getCurrentState()  : " + (null != mPlayer ? mPlayer.getCurrentState() : " null mPlayer")
+                            + " isNeedStart false ");
+                }
+            } else {
+                Log.w(TAG, "makeEffectVideoURI same uri, mPlayer.getCurrentState()  : " + (null != mPlayer ? mPlayer.getCurrentState() : " null mPlayer"));
             }
-            // Avoid open video repeat,return
+            //Avoid open video repeat,return
             return;
         }
-
         Uri uri = mUri;
         if (!mComponent.isPaused()) {
             mPlayer.setDataSource(uri);
@@ -875,10 +1002,56 @@ public class FlexVideoView extends FrameLayout
         return mFullscreenState == STATE_FULLSCREEN;
     }
 
+    /**
+     * getParentList components
+     */
+    public Component getParentList() {
+        Component component = mComponent;
+        if (component == null) {
+            return null;
+        }
+        Component container;
+        for (; ; ) {
+            container = component.getParent();
+            if (container == null) {
+                return null;
+            }
+            if (container instanceof List) {
+                return container;
+            }
+            component = container;
+        }
+    }
+
+    private void initUseCacheItem(boolean isSelfReset) {
+        Component tmpList = getParentList();
+        if (tmpList instanceof List) {
+            View tmpHostView = tmpList.getHostView();
+            FlexRecyclerView flexRecyclerView = null;
+            RecyclerView.LayoutManager layoutManager = null;
+            FlexGridLayoutManager flexGridLayoutManager = null;
+            if (tmpHostView instanceof FlexRecyclerView) {
+                flexRecyclerView = ((FlexRecyclerView) tmpHostView);
+                layoutManager = flexRecyclerView.getLayoutManager();
+            }
+            if (layoutManager instanceof FlexGridLayoutManager) {
+                flexGridLayoutManager = ((FlexGridLayoutManager) layoutManager);
+            }
+            if (null != flexGridLayoutManager) {
+                flexGridLayoutManager.setIsUseCacheItem(true, isSelfReset);
+            } else {
+                Log.w(TAG, "initUseCacheItem flexGridLayoutManager is null.");
+            }
+        } else {
+            Log.w(TAG, "initUseCacheItem tmpList is not List.");
+        }
+    }
+
     private void enterFullscreen(int screenOrientation) {
         if (isFullscreen()) {
             return;
         }
+        initUseCacheItem(false);
         mFullscreenState = STATE_ENTERING_FULLSCREEN;
         final TextureVideoView video = mControlsManager.createVideoLayout();
         video.setShouldReleaseSurface(false);
@@ -917,6 +1090,8 @@ public class FlexVideoView extends FrameLayout
             mOnFullscreenChangeListener.onFullscreenChange(true);
         }
         mFullscreenState = STATE_FULLSCREEN;
+        mCacheFullScreenUri = mUri;
+        mIsFullScreen = true;
     }
 
     public void requestFullscreen(int screenOrientation) {
@@ -929,7 +1104,11 @@ public class FlexVideoView extends FrameLayout
         if (!isFullscreen()) {
             return;
         }
+        mCacheFullScreenUri = null;
+        mIsFullScreen = false;
         mFullscreenState = STATE_EXITING_FULLSCREEN;
+        mIsFirstExitFullScreenAttach = true;
+        initUseCacheItem(true);
         final TextureVideoView video = mControlsManager.createVideoLayout();
         video.setShouldReleaseSurface(false);
 
@@ -986,10 +1165,20 @@ public class FlexVideoView extends FrameLayout
 
     public void setAutoPlay(boolean autoPlay) {
         mAutoPlay = autoPlay;
-        if (autoPlay && mUri != null) {
-            initPlayer();
-            makeEffectVideoURI();
-            mPlayer.start();
+        if (null != mComponent) {
+            boolean isPageObtainPlayer = false;
+            Boolean isPageObtainPlayerObj = VideoCacheManager.getInstance().getPageObtainPlayer(mComponent.getPageId());
+            if (null != isPageObtainPlayerObj) {
+                isPageObtainPlayer = isPageObtainPlayerObj.booleanValue();
+            }
+            if (mAutoPlay && null != mUri && null == mPlayer && !isPageObtainPlayer) {
+                initPlayer();
+                if (mIsFullScreen && null != mCacheFullScreenUri && !mUri.equals(mCacheFullScreenUri)) {
+                    Log.w(TAG, "setAutoPlay mUri is not fullscreen Uri ,setAutoPlay invalid");
+                    return;
+                }
+                makeEffectVideoURI(false);
+            }
         }
     }
 
@@ -1010,6 +1199,8 @@ public class FlexVideoView extends FrameLayout
             initPlayer();
             mPlayer.start();
             mComponent.setPreIsInPlayingState(false);
+        } else {
+            Log.w(TAG, "onSurfaceTextureAvailable  mPlayer.getCurrentState()  : " + (null != mPlayer ? mPlayer.getCurrentState() : " null mPlayer"));
         }
     }
 
@@ -1209,6 +1400,14 @@ public class FlexVideoView extends FrameLayout
             createVideoLayout();
         }
 
+        public boolean isControlsLayoutVisible() {
+            boolean isVisible = false;
+            if (null != mControlsLayout && mControlsLayout.getVisibility() == View.VISIBLE) {
+                isVisible = true;
+            }
+            return isVisible;
+        }
+
         void attachPlayer(IMediaPlayer player) {
             if (mVideoView != null) {
                 mVideoView.attachPlayer(player);
@@ -1235,6 +1434,8 @@ public class FlexVideoView extends FrameLayout
             if (mBtnPlay != null) {
                 mBtnPlay.setImageResource(R.drawable.ic_media_star_video);
                 mBtnPlay.setVisibility(VISIBLE);
+            } else {
+                Log.w(TAG, "initializeControlsView mBtnPlay is null.");
             }
             if (mProgressBar != null) {
                 mProgressBar.setVisibility(GONE);
@@ -1249,6 +1450,17 @@ public class FlexVideoView extends FrameLayout
                 mPosterView.setVisibility(VISIBLE);
             }
             hideMediaController();
+        }
+
+        void detachPlayer() {
+            if (mVideoView != null) {
+                mVideoView.detachPlayer();
+            }
+
+            if (mMediaController != null) {
+                mMediaController.clearMediaController();
+            }
+            onIdle();
         }
 
         private boolean isMediaControllerShowing() {

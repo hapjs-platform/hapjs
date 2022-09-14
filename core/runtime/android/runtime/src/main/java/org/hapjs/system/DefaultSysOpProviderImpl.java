@@ -394,7 +394,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public <T extends ImageView> boolean handleImageForceDark(T hostView, boolean forceDark) {
+    public boolean handleImageForceDark(ImageView imageView, boolean forceDark) {
         return false;
     }
 

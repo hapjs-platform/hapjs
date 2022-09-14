@@ -162,6 +162,13 @@ public class TextureVideoView extends TextureView {
         }
     }
 
+    public void detachPlayer() {
+        if (mPlayer != null) {
+            mPlayer.setVideoTextureView(null);
+        }
+        mPlayer = null;
+    }
+
     private void clearSurface() {
         if (mSurfaceTexture == null) {
             return;
@@ -229,14 +236,15 @@ public class TextureVideoView extends TextureView {
         mSurfaceListener = null;
     }
 
-    public void setObjectFit(String objectFit) {
-        mObjectFit = objectFit;
-        requestLayout();
-    }
-
     public interface SurfaceTextureListener {
         void onSurfaceTextureAvailable();
 
         void onSurfaceTextureDestroyed();
     }
+
+    public void setObjectFit(String objectFit) {
+        mObjectFit = objectFit;
+        requestLayout();
+    }
+
 }

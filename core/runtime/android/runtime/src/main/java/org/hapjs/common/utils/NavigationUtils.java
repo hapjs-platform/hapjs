@@ -21,18 +21,21 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+
+import org.hapjs.bridge.HybridRequest;
+import org.hapjs.cache.CacheStorage;
+import org.hapjs.logging.RuntimeLogManager;
+import org.hapjs.runtime.ProviderManager;
+import org.hapjs.runtime.R;
+import org.hapjs.runtime.RouterManageProvider;
+import org.hapjs.system.SysOpProvider;
+
 import java.lang.ref.WeakReference;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.hapjs.bridge.HybridRequest;
-import org.hapjs.logging.RuntimeLogManager;
-import org.hapjs.pm.NativePackageProvider;
-import org.hapjs.runtime.ProviderManager;
-import org.hapjs.runtime.R;
-import org.hapjs.system.SysOpProvider;
 
 public class NavigationUtils {
     public static final String EXTRA_SMS_BODY = "sms_body";
@@ -59,9 +62,7 @@ public class NavigationUtils {
         SETTING_MAP.put(PATH_BLUETOOTH_MANAGER, Settings.ACTION_BLUETOOTH_SETTINGS);
     }
 
-    public static boolean navigate(
-            Context context, String pkg, HybridRequest request, Bundle extras,
-            String routerAppFrom) {
+    public static boolean navigate(Context context, String pkg, HybridRequest request, Bundle extras, String routerAppFrom, String sourceH5) {
         if (request == null) {
             return false;
         }
@@ -82,12 +83,12 @@ public class NavigationUtils {
 
         try {
             if (SCHEMA_TEL.equals(schema)) {
-                dial(context, pkg, uri, extras, routerAppFrom);
+                dial(context, pkg, uri, extras, routerAppFrom, sourceH5);
             } else if (SCHEMA_SMS.equals(schema) || SCHEMA_MAILTO.equals(schema)) {
-                sendto(context, pkg, uri, request, extras, routerAppFrom);
+                sendto(context, pkg, uri, request, extras, routerAppFrom, sourceH5);
             } else {
                 boolean isDeeplink = request.isDeepLink();
-                return view(context, pkg, url, isDeeplink, extras, routerAppFrom);
+                return view(context, pkg, url, isDeeplink, extras, routerAppFrom, sourceH5);
             }
             return true;
         } catch (ActivityNotFoundException e) {
@@ -131,14 +132,13 @@ public class NavigationUtils {
         return false;
     }
 
-    private static void dial(
-            Context context, String pkg, Uri uri, Bundle extras, String routerAppFrom) {
+    private static void dial(Context context, String pkg, Uri uri, Bundle extras, String routerAppFrom, String sourceH5) {
         Intent intent = new Intent(Intent.ACTION_DIAL);
         intent.setData(uri);
         intent.putExtras(extras);
         context.startActivity(intent);
 
-        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true);
+        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, null, sourceH5);
     }
 
     private static void sendto(
@@ -147,7 +147,8 @@ public class NavigationUtils {
             Uri uri,
             HybridRequest request,
             Bundle extras,
-            String routerAppFrom) {
+            String routerAppFrom,
+            String sourceH5) {
         if (request != null && request.getParams() != null) {
             for (Map.Entry<String, String> entry : request.getParams().entrySet()) {
                 if ("body".equals(entry.getKey())) {
@@ -162,7 +163,7 @@ public class NavigationUtils {
         intent.putExtras(extras);
         context.startActivity(intent);
 
-        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true);
+        statRouterNativeApp(context, pkg, uri.toString(), intent, routerAppFrom, true, null, sourceH5);
     }
 
     private static boolean view(
@@ -171,19 +172,21 @@ public class NavigationUtils {
             String url,
             boolean isDeepLink,
             Bundle extras,
-            String routerAppFrom) {
+            String routerAppFrom,
+            String sourceH5) {
         try {
             Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
             PackageManager packageManager = context.getPackageManager();
             ResolveInfo info = packageManager.resolveActivity(intent, 0);
             if (info == null) {
+                statRouterNativeApp(context, pkg, url, intent, routerAppFrom, false, "no compatible activity found", sourceH5);
                 return false;
             }
             String packageName = info.activityInfo.packageName;
             if (isDeepLink) {
                 if (!isInWhiteList(packageName)
                         && !PackageUtils.isSystemPackage(context, packageName)) {
-                    statRouterNativeApp(context, pkg, url, intent, routerAppFrom, false);
+                    statRouterNativeApp(context, pkg, url, intent, routerAppFrom, false, "not in whitelist and not system app", sourceH5);
                     return false;
                 }
             }
@@ -195,8 +198,7 @@ public class NavigationUtils {
             if (extras != null) {
                 intent.putExtras(extras);
             }
-            return openNativeApp(
-                    (Activity) context, packageManager, pkg, intent, info, routerAppFrom, url);
+            return openNativeApp((Activity) context, packageManager, pkg, intent, info, routerAppFrom, url, sourceH5);
         } catch (URISyntaxException e) {
             // ignore
         }
@@ -210,45 +212,46 @@ public class NavigationUtils {
             Intent intent,
             ResolveInfo info,
             String routerAppFrom,
-            String url) {
+            String url,
+            String sourceH5) {
         if (packageManager == null) {
             packageManager = activity.getPackageManager();
         }
         String packageName = info.activityInfo.packageName;
-
-        NativePackageProvider provider =
-                ProviderManager.getDefault().getProvider(NativePackageProvider.NAME);
-        if (provider.inRouterForbiddenList(activity, rpkPkg, packageName)
-                || !provider.triggeredByGestureEvent(activity, rpkPkg)) {
-            Log.d(TAG,
-                    "Fail to launch app: match router blacklist or open app without user input.");
-            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, false);
+        RouterManageProvider routerProvider = ProviderManager.getDefault().getProvider(RouterManageProvider.NAME);
+        if (routerProvider.inRouterForbiddenList(activity, rpkPkg, packageName) || !routerProvider.triggeredByGestureEvent(activity, rpkPkg)) {
+            Log.d(TAG, "Fail to launch app: match router blacklist or open app without user input.");
+            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, false, "match router blacklist or open app without user input", sourceH5);
             return false;
         }
 
-        if (!provider.inRouterDialogList(activity, rpkPkg, packageName)) {
+        if (!routerProvider.inRouterDialogList(activity, rpkPkg, packageName)) {
             activity.startActivity(intent);
-            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, true);
+            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, true, null, sourceH5);
         } else {
-            showOpenAppDialog(activity, intent, rpkPkg, url, routerAppFrom, info, packageManager);
+            Log.d(TAG, "show open app dialog");
+            showRouterConfirmDialog(activity, intent, rpkPkg, url, routerAppFrom, info, packageManager, sourceH5, false, null);
         }
 
         return true;
     }
 
-    private static void showOpenAppDialog(
+    public static void showRouterConfirmDialog(
             Activity activity,
             Intent intent,
             String rpkPkg,
             String url,
             String routerAppFrom,
             ResolveInfo info,
-            PackageManager packageManager) {
+            PackageManager packageManager,
+            String sourceH5, boolean startRpk, String targetRpk) {
         if (info == null) {
             return;
         }
-        String appName = info.loadLabel(packageManager).toString();
-        String message = activity.getString(R.string.quick_app_open_native, appName);
+        String message = getDialogMsg(activity, rpkPkg, info, packageManager, startRpk, targetRpk);
+        if (TextUtils.isEmpty(message)) {
+            return;
+        }
         AlertDialog.Builder builder =
                 new AlertDialog.Builder(
                         new ContextThemeWrapper(activity, ThemeUtils.getAlertDialogTheme()));
@@ -260,10 +263,12 @@ public class NavigationUtils {
                     @Override
                     public void run() {
                         if (activity.isFinishing() || activity.isDestroyed()) {
+                            Log.d(TAG, "activity is finishing");
                             return;
                         }
                         AlertDialog tempDialog = sDialogRef == null ? null : sDialogRef.get();
                         if (tempDialog != null && tempDialog.isShowing()) {
+                            Log.d(TAG, "dialog already exists");
                             return;
                         }
                         Application.ActivityLifecycleCallbacks activityLifecycle =
@@ -319,15 +324,19 @@ public class NavigationUtils {
                                             Log.d(TAG, "Fail to open native package: " + rpkPkg
                                                     + ", user denied");
                                         }
-                                        statRouterNativeApp(activity, rpkPkg, url, intent,
-                                                routerAppFrom, tempResult);
-                                        RuntimeLogManager.getDefault()
-                                                .logRouterDialogClick(rpkPkg,
-                                                        info.activityInfo.packageName, tempResult);
                                         activity
                                                 .getApplication()
                                                 .unregisterActivityLifecycleCallbacks(
                                                         activityLifecycle);
+                                        if (!startRpk) {
+                                            statRouterNativeApp(activity, rpkPkg, url, intent, routerAppFrom, tempResult, tempResult ? null : "dialog user denied", sourceH5);
+                                            RuntimeLogManager.getDefault()
+                                                    .logRouterDialogClick(rpkPkg,
+                                                            info.activityInfo.packageName, tempResult);
+                                        }else {
+                                            RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, tempResult, tempResult ? "" : "dialog user denied");
+                                            RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, info.activityInfo.packageName, tempResult);
+                                        }
                                     }
                                 };
                         builder.setNegativeButton(android.R.string.cancel, listener);
@@ -339,11 +348,16 @@ public class NavigationUtils {
                                         Log.d(TAG, "Fail to open native package: " + rpkPkg
                                                 + ", canceled");
                                         sDialogRef = null;
-                                        statRouterNativeApp(activity, rpkPkg, url, intent,
-                                                routerAppFrom, false);
-                                        RuntimeLogManager.getDefault()
-                                                .logRouterDialogClick(rpkPkg,
-                                                        info.activityInfo.packageName, false);
+                                        if (!startRpk) {
+                                            statRouterNativeApp(activity, rpkPkg, url, intent,
+                                                    routerAppFrom, false, "dialog user canceled", sourceH5);
+                                            RuntimeLogManager.getDefault()
+                                                    .logRouterDialogClick(rpkPkg,
+                                                            info.activityInfo.packageName, false);
+                                        }else {
+                                            RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, false, "dialog user canceled");
+                                            RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, targetRpk, false);
+                                        }
                                         activity
                                                 .getApplication()
                                                 .unregisterActivityLifecycleCallbacks(
@@ -355,10 +369,51 @@ public class NavigationUtils {
                         activity.getApplication()
                                 .registerActivityLifecycleCallbacks(activityLifecycle);
                         dialog.show();
-                        RuntimeLogManager.getDefault()
-                                .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
+                        if (!startRpk) {
+                            RuntimeLogManager.getDefault()
+                                    .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
+                        }else {
+                            RuntimeLogManager.getDefault().logRouterRpkDialogShow(rpkPkg, targetRpk);
+                        }
                     }
                 });
+    }
+
+    public static String getDialogMsg(Activity activity,
+            String rpkPkg,
+            ResolveInfo info,
+            PackageManager packageManager,
+            boolean isStartRpk,
+            String targetRpk) {
+        String message;
+        if (isStartRpk) {
+            if (TextUtils.isEmpty(targetRpk)) {
+                return "";
+            }
+            String currentName;
+            CacheStorage cacheStorage = CacheStorage.getInstance(activity);
+            if (!cacheStorage.hasCache(rpkPkg)) {
+                Log.d(TAG, "current rpk cache is null");
+                return "";
+            } else {
+                currentName = cacheStorage.getCache(rpkPkg).getAppInfo().getName();
+            }
+
+            if (cacheStorage.hasCache(targetRpk)) {
+                message = activity.getString(R.string.quick_app_open_quick_app_with_target, currentName, cacheStorage.getCache(targetRpk).getAppInfo().getName());
+            } else {
+                Log.d(TAG, "target rpk cache is null");
+                message = activity.getString(R.string.quick_app_open_quick_app, currentName);
+            }
+        } else {
+            if (info == null) {
+                Log.d(TAG, "target app info is null");
+                return "";
+            }
+            String appName = info.loadLabel(packageManager).toString();
+            message = activity.getString(R.string.quick_app_open_native, appName);
+        }
+        return message;
     }
 
     public static void statRouterNativeApp(
@@ -367,7 +422,9 @@ public class NavigationUtils {
             String uri,
             Intent intent,
             String routerAppFrom,
-            boolean result) {
+            boolean result,
+            String failureMsg,
+            String sourceH5) {
         ResolveInfo info = context.getPackageManager().resolveActivity(intent, 0);
         if (info != null) {
             RuntimeLogManager.getDefault()
@@ -377,7 +434,9 @@ public class NavigationUtils {
                             info.activityInfo.packageName,
                             info.activityInfo.name,
                             routerAppFrom,
-                            result);
+                            result,
+                            failureMsg,
+                            sourceH5);
         }
     }
 

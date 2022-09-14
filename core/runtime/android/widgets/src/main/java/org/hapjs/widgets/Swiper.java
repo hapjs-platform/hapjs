@@ -827,6 +827,11 @@ public class Swiper extends AbstractScrollable<SwiperView>
         if (mHost != null) {
             mHost.removeIndicatorPoint(index);
             mAdapter.notifyItemRemoved();
+            int currentItem = mHost.getViewPager().getCurrentItem();
+            if (index == currentItem && index != mHost.getIndicatorCount()) {
+                // 删除页是当前页且非最后一页时，不会回调 onPageSelected 方法更新指示器位置，须要直接更新
+                mHost.setSelectedIndicator(currentItem);
+            }
         }
     }
 

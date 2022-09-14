@@ -8,6 +8,7 @@ package org.hapjs.component;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
@@ -67,7 +68,7 @@ public class ComponentBackgroundComposer {
     }
 
     public void setBackgroundColor(String color) {
-        int c = ColorUtil.getColor(color);
+        int c = ColorUtil.getColor(color, Color.TRANSPARENT);
         setBackgroundColor(c);
     }
 
@@ -260,6 +261,11 @@ public class ComponentBackgroundComposer {
         if (isLayerDrawableValid()) {
             List<Drawable> drawables = new ArrayList<>();
 
+            // Avoid default background of some component not work, e.g button.
+            if (getDefaultBgDrawable() != null) {
+                drawables.add(getDefaultBgDrawable());
+            }
+
             if (mImageDrawable != null) {
                 tryDelayedBgTransition();
                 drawables.add(transformDrawable(mImageDrawable));
@@ -268,13 +274,6 @@ public class ComponentBackgroundComposer {
             if (mGradientDrawable != null) {
                 tryDelayedBgTransition();
                 drawables.add(transformDrawable(mGradientDrawable));
-            }
-            // Avoid default background of some component not work, e.g button.
-            if (mParameter.mBackgroundColor == 0 && mImageDrawable == null
-                    && mGradientDrawable == null) {
-                if (getDefaultBgDrawable() != null) {
-                    drawables.add(0, getDefaultBgDrawable());
-                }
             }
 
             Drawable[] tmp = new Drawable[drawables.size()];

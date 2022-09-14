@@ -8,6 +8,9 @@ package org.hapjs.common.utils;
 import android.net.Uri;
 import org.hapjs.bridge.HybridRequest;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class UriUtils {
     public static final String SCHEMA_CONTENT = "content";
     public static final String SCHEMA_FILE = "file";
@@ -95,5 +98,18 @@ public class UriUtils {
             return false;
         }
         return u1.equals(u2);
+    }
+
+    public static String getPkgFromHybridUri(Uri uri) {
+        String appId;
+        String regex = "(hap|http|https)://(hapjs\\.org/)?app/([^/?#]+)/?(.*)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(uri.toString());
+        if (matcher.find()) {
+            appId = matcher.group(3);
+        } else {
+            return null;
+        }
+        return appId;
     }
 }

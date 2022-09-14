@@ -13,7 +13,7 @@ public class FullFrameRect {
     private final Drawable2d mRectDrawable = new Drawable2d(Drawable2d.Prefab.FULL_RECTANGLE);
     private Texture2dProgram mProgram;
     private float[] mMvpMatrix = null;
-
+    public boolean mIsCurrentError = false;
     /**
      * Prepares the object.
      *
@@ -69,7 +69,7 @@ public class FullFrameRect {
      * Draws a viewport-filling rect, texturing it with the specified texture object.
      */
     public void drawFrame(int textureId, float[] texMatrix) {
-        if (null == mRectDrawable) {
+        if (null == mRectDrawable || null == mProgram) {
             return;
         }
         // Use the identity matrix for MVP so our 2x2 FULL_RECTANGLE covers the viewport.
@@ -100,16 +100,10 @@ public class FullFrameRect {
             return;
         }
         // Use the identity matrix for MVP so our 2x2 FULL_RECTANGLE covers the viewport.
-        mProgram.draw(
-                mMvpMatrix,
-                mRectDrawable.getVertexArray(),
-                0,
-                mRectDrawable.getVertexCount(),
-                mRectDrawable.getCoordsPerVertex(),
+        mIsCurrentError = mProgram.draw(mMvpMatrix, mRectDrawable.getVertexArray(), 0,
+                mRectDrawable.getVertexCount(), mRectDrawable.getCoordsPerVertex(),
                 mRectDrawable.getVertexStride(),
-                texMatrix,
-                mRectDrawable.getTexCoordArray(),
-                textureId,
+                texMatrix, mRectDrawable.getTexCoordArray(), textureId,
                 mRectDrawable.getTexCoordStride());
     }
 }

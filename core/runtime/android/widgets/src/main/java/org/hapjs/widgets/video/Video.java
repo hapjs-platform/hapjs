@@ -8,6 +8,7 @@ package org.hapjs.widgets.video;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Outline;
+import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
@@ -30,6 +31,8 @@ import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.constants.Corner;
 import org.hapjs.component.view.drawable.CSSBackgroundDrawable;
+import org.hapjs.model.videodata.VideoCacheData;
+import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.video.FlexVideoView;
@@ -77,12 +80,14 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     private static final String CURRENT_TIME = "currenttime";
 
     private String mUri;
+    private String mParseUriStr;
     private boolean mAutoPlay;
     private boolean mControlsVisible = true;
     private boolean mOnPreparedRegistered;
     private boolean mPreInPlayingState;
     private boolean mPaused;
     private long mLastPosition = -1;
+    public boolean mIsDestroy = false;
 
     public Video(
             HapEngine hapEngine,
@@ -101,30 +106,41 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         final FlexVideoView videoView = new FlexVideoView(mContext, visible);
         videoView.setComponent(this);
         videoView.setIsLazyCreate(mLazyCreate);
-        videoView.setOnPreparedListener(
-                new FlexVideoView.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(IMediaPlayer mp) {
-                        if (mHost == null || !mHost.isAttachedToWindow()) {
-                            return;
-                        }
-                        if (mOnPreparedRegistered) {
-                            Map<String, Object> params = new HashMap();
-                            params.put("duration", mp.getDuration() / 1000f);
-                            mCallback.onJsEventCallback(getPageId(), mRef, PREPARED, Video.this,
-                                    params, null);
-                        }
-                        setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
-                        long lastPosition = getLastPosition();
-                        if (lastPosition > 0) {
-                            mp.seek(lastPosition);
-                            setLastPosition(-1);
-                            videoView.start();
-                        } else if (mAutoPlay) {
-                            videoView.start();
-                        }
+        videoView.setOnPreparedListener(new FlexVideoView.OnPreparedListener() {
+            @Override
+            public void onPrepared(IMediaPlayer mp) {
+                if (mHost == null || !mHost.isAttachedToWindow()) {
+                    Log.w(TAG, "createViewImpl onPrepared mHost null or !mHost.isAttachedToWindow.");
+                    return;
+                }
+                VideoCacheManager.getInstance().putPageObtainPlayer(getPageId(), true);
+                if (mOnPreparedRegistered) {
+                    Map<String, Object> params = new HashMap();
+                    params.put("duration", mp.getDuration() / 1000f);
+                    mCallback.onJsEventCallback(getPageId(), mRef, PREPARED, Video.this, params,
+                            null);
+                }
+                setVideoSize(mp.getVideoWidth(), mp.getVideoHeight());
+                long lastPosition = getLastPosition();
+                if (lastPosition < 0) {
+                    VideoCacheData videoCacheData = VideoCacheManager.getInstance().getVideoData(getPageId(), mParseUriStr);
+                    if (null != videoCacheData) {
+                        lastPosition = videoCacheData.lastPosition;
                     }
-                });
+                }
+                if (lastPosition > 0) {
+                    mp.seek(lastPosition);
+                    setLastPosition(-1);
+                    videoView.start();
+                } else if (mAutoPlay) {
+                    videoView.start();
+                } else {
+                    Log.w(TAG, "createViewImpl onPrepared else  lastPosition : " + lastPosition);
+                }
+                Log.w(TAG, "createViewImpl onPrepared lastPosition  : " + lastPosition
+                        + " mAutoPlay : " + mAutoPlay);
+            }
+        });
 
         getOrCreateBackgroundComposer().setBackgroundColor(0xee000000);
 
@@ -195,6 +211,26 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
             case PLAY_COUNT:
                 String playCount = Attributes.getString(attribute, Attributes.PlayCount.ONCE);
                 setPlayCount(playCount);
+                return true;
+            case Attributes.Style.SHOW:
+                mShow = parseShowAttribute(attribute);
+                if (!mShow && mHost.mIsFullScreen) {
+                    boolean isSameUriStr = false;
+                    if (null != mHost && mHost.mIsFullScreen) {
+                        Uri cacheUri = mHost.mCacheFullScreenUri;
+                        String cacheUriStr = "";
+                        if (null != cacheUri) {
+                            cacheUriStr = cacheUri.toString();
+                        }
+                        if (!TextUtils.isEmpty(cacheUriStr)) {
+                            isSameUriStr = cacheUriStr.equals(mUri);
+                        }
+                    }
+                    if (isSameUriStr) {
+                        exitFullscreen();
+                    }
+                }
+                super.setAttribute(key, attribute);
                 return true;
             default:
                 break;
@@ -369,9 +405,14 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
             mHost.setVideoURI(null);
             return;
         }
-        mHost.setVideoURI(tryParseUri(uri));
-        NetworkReportManager.getInstance()
-                .reportNetwork(NetworkReportManager.KEY_VIDEO, uri.toString());
+        Uri tmpUri = tryParseUri(uri);
+        if (null != tmpUri) {
+            mParseUriStr = tmpUri.toString();
+        } else {
+            mParseUriStr = null;
+        }
+        mHost.setVideoURI(tmpUri);
+        NetworkReportManager.getInstance().reportNetwork(NetworkReportManager.KEY_VIDEO, uri.toString());
     }
 
     public void setAutoPlay(boolean autoPlay) {
@@ -502,11 +543,15 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     @Override
     public void destroy() {
         super.destroy();
+        mIsDestroy = true;
         mLastPosition = -1;
         mCallback.removeActivityStateListener(this);
         if (mHost != null) {
             mHost.exitFullscreen();
             mHost.release();
+            if (mHost.mIsEverCacheVideo) {
+                VideoCacheManager.getInstance().removeCacheVideoData(getPageId(), mParseUriStr);
+            }
         }
     }
 

@@ -159,7 +159,11 @@ public class MediaMuxerController {
         }
         mStatredCount++;
         if ((mEncoderCount > 0) && (mStatredCount == mEncoderCount)) {
-            mMediaMuxer.start();
+            try {
+                mMediaMuxer.start();
+            } catch (Exception e) {
+                Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " mMediaMuxer.start error : " + e.getMessage());
+            }
             mIsStarted = true;
             notifyAll();
             if (null != mOnVideoStatusListener) {
@@ -188,18 +192,28 @@ public class MediaMuxerController {
         if (DEBUG) {
             Log.v(TAG, "stop:mStatredCount=" + mStatredCount);
         }
+        Log.d(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "mEncoderCount : " + mEncoderCount
+                + " mStatredCount : " + mStatredCount);
         mStatredCount--;
         if ((mEncoderCount > 0) && (mStatredCount <= 0)) {
             // java.lang.IllegalStateException: Failed to stop the muxer
             // video queue start
-            packetDataConsumer.setRunning(false);
+            if (null != packetDataConsumer) {
+                packetDataConsumer.setRunning(false);
+            } else {
+                Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + "packetDataConsumer is null.");
+            }
             // 清空缓存队列数据
             VideoPacketPool.getInstance().abortVideoPacketList();
             VideoPacketPool.getInstance().abortAudioPacketList();
             VideoPacketPool.getInstance().cleanAudioVideoDatas();
             try {
-                mMediaMuxer.stop();
-                mMediaMuxer.release();
+                if (mIsStarted) {
+                    mMediaMuxer.stop();
+                    mMediaMuxer.release();
+                } else {
+                    Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " mMediaMuxer.stop mIsStarted false.");
+                }
             } catch (Exception e) {
                 Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " mMediaMuxer.stop error : "
                         + e.getMessage());
@@ -230,6 +244,19 @@ public class MediaMuxerController {
         }
     }
 
+    public synchronized void stopMuxer() {
+        if (mIsStarted && null != mMediaMuxer) {
+            try {
+                mMediaMuxer.stop();
+                mMediaMuxer.release();
+            } catch (Exception e) {
+                Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " stopMuxer error : " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " stopMuxer warning  mIsStarted false or mMediaMuxer null. ");
+        }
+    }
+
     /**
      * 编码数据添加到muxer
      */
@@ -243,7 +270,12 @@ public class MediaMuxerController {
                             + mIsStarted);
             return -1;
         }
-        final int trackIx = mMediaMuxer.addTrack(format);
+        int trackIx = -1;
+        try {
+            trackIx = mMediaMuxer.addTrack(format);
+        } catch (Exception e) {
+            Log.e(TAG, CameraBaseMode.VIDEO_RECORD_TAG + " mMediaMuxer.addTrack error : " + e.getMessage());
+        }
         if (DEBUG) {
             Log.i(TAG, "addTrack:trackNum=" + mEncoderCount + ",trackIx=" + trackIx + ",format="
                     + format);
