@@ -5,13 +5,12 @@
 
 package org.hapjs.common.utils;
 
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
-
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.cache.CacheStorage;
@@ -23,8 +22,10 @@ import org.hapjs.model.AppInfo;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
+import org.hapjs.render.RootView;
 import org.hapjs.runtime.HapEngine;
-import org.hapjs.runtime.RuntimeActivity;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_ROUTER;
 
 public class RouterUtils {
     public static final String EXTRA_HAP_NAME = "HAP_NAME";
@@ -61,19 +62,20 @@ public class RouterUtils {
         if (pageManager == null) {
             return false;
         }
-        RuntimeActivity runtimeActivity = null;
-        if (context instanceof RuntimeActivity) {
-            runtimeActivity = (RuntimeActivity) context;
+        RootView rootView = null;
+        PageManager.PageChangedListener pageChangedListener = pageManager.getPageChangedListener();
+        if (pageChangedListener instanceof RootView) {
+            rootView = ((RootView) pageChangedListener);
         }
-        if (null == runtimeActivity) {
-            Log.w(TAG, "switchTab runtimeActivity is null.");
+        if (null == rootView) {
+            Log.w(TAG, "switchTab rootView is null.");
             return false;
         }
         boolean isValid = false;
         if (null != request) {
             String path = request.getUriWithoutParams();
             if (!TextUtils.isEmpty(path)) {
-                isValid = runtimeActivity.notifyTabBarChange(path);
+                isValid = rootView.notifyTabBarChange(path);
             }
             if (isValid) {
                 request.setTabRequest(true);

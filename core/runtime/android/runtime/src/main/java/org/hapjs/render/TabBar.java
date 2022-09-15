@@ -3,7 +3,6 @@
  */
 package org.hapjs.render;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.TextUtils;
@@ -45,10 +44,15 @@ public class TabBar {
     private static Object LOCK_TABBAR_DATA = new Object();
     private View mTabBarView = null;
 
-    public void initTabBarView(Activity activity, RootView rootView) {
+    public void initTabBarView(RootView rootView) {
+        if (null == rootView) {
+            Log.w(TAG, "initTabBarView rootView is null.");
+            return;
+        }
         AppInfo appInfo = rootView.getAppInfo();
-        if (null == appInfo || null == activity) {
-            Log.w(TAG, "initTabBarView appInfo or activity is null.");
+        Context context = rootView.getContext();
+        if (null == appInfo || null == context) {
+            Log.w(TAG, "initTabBarView appInfo or context is null.");
             return;
         }
         String isValidTabBarStr = getDefaultStyle(appInfo, DisplayInfo.Style.KEY_TABBAR_DATA, null, null);
@@ -56,29 +60,23 @@ public class TabBar {
         if (!isValidTabBar) {
             return;
         }
-        mTabBarView = activity.findViewById(R.id.tabbar_container);
+        mTabBarView = rootView.findViewById(R.id.tabbar_container);
         if (null == mTabBarView) {
-            mTabBarView = LayoutInflater.from(rootView.getContext()).inflate(R.layout.tabbar_view, null);
+            mTabBarView = LayoutInflater.from(context).inflate(R.layout.tabbar_view, null);
             int tabbarHeight = (int) (DEFAULT_TABBAR_HEIGHT *
-                    activity.getResources().getDisplayMetrics().density);
+                    context.getResources().getDisplayMetrics().density);
             FrameLayout.LayoutParams tabbarParams =
                     new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, tabbarHeight);
             tabbarParams.gravity = Gravity.BOTTOM;
             rootView.addView(mTabBarView, tabbarParams);
         }
-        Context context = rootView.getContext();
         initTabBarList(context, rootView, mTabBarView, appInfo);
     }
 
-    public void updateTabBarData(Activity activity, JSONObject tabbarData) {
-        if (null == tabbarData || null == activity) {
-            Log.w(TAG, "updateTabBarData tabbarData or activity is null.");
+    public void updateTabBarData(RootView rootView, JSONObject tabbarData) {
+        if (null == tabbarData || null == rootView) {
+            Log.w(TAG, "updateTabBarData tabbarData or rootView is null.");
             return;
-        }
-        View hybridRoot = activity.findViewById(R.id.hybrid_view);
-        RootView rootView = null;
-        if (hybridRoot instanceof RootView) {
-            rootView = (RootView) hybridRoot;
         }
         int index = -1;
         String tabbarName = "";
@@ -168,7 +166,7 @@ public class TabBar {
             ThreadUtils.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    RecyclerView tabBarRecyclerView = activity.findViewById(R.id.tabbar_recyclerview);
+                    RecyclerView tabBarRecyclerView = rootView.findViewById(R.id.tabbar_recyclerview);
                     if (null != tabBarRecyclerView) {
                         RecyclerView.Adapter adapter = tabBarRecyclerView.getAdapter();
                         if (adapter instanceof TabBarItemAdapter && realIndex < adapter.getItemCount()) {
@@ -328,10 +326,10 @@ public class TabBar {
         });
     }
 
-    public boolean notifyTabBarChange(Activity activity, String routerPath) {
+    public boolean notifyTabBarChange(RootView rootView, String routerPath) {
         boolean isValid = false;
-        if (TextUtils.isEmpty(routerPath) || null == activity) {
-            Log.w(TAG, "notifyTabBarChange routerPath is empty or activity is null.");
+        if (TextUtils.isEmpty(routerPath) || null == rootView) {
+            Log.w(TAG, "notifyTabBarChange routerPath is empty or rootView is null.");
             return false;
         }
         int valideIndex = -1;
@@ -369,7 +367,7 @@ public class TabBar {
             Log.w(TAG, "notifyTabBarChange valideIndex -1 size 0.");
             return false;
         }
-        View tabBarRecyclerView = activity.findViewById(R.id.tabbar_recyclerview);
+        View tabBarRecyclerView = rootView.findViewById(R.id.tabbar_recyclerview);
         RecyclerView.Adapter adapter = null;
         TabBarItemAdapter tmpTabBarItemAdapter = null;
         RecyclerView recyclerView = null;

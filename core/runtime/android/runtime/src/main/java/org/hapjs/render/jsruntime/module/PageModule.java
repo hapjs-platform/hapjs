@@ -5,7 +5,6 @@
 
 package org.hapjs.render.jsruntime.module;
 
-import android.app.Activity;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
@@ -26,7 +25,6 @@ import org.hapjs.render.RootView;
 import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.HapEngine;
-import org.hapjs.runtime.RuntimeActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -165,17 +163,13 @@ public class PageModule extends ModuleExtension {
             return Response.ERROR;
         }
         NativeInterface nativeInterface = null;
-        RuntimeActivity runtimeActivity = null;
         if (null != request) {
             nativeInterface = request.getNativeInterface();
         }
         if (null != nativeInterface) {
-            Activity activity = nativeInterface.getActivity();
-            if (activity instanceof RuntimeActivity) {
-                runtimeActivity = (RuntimeActivity) activity;
-            }
-            if (null != runtimeActivity) {
-                runtimeActivity.updateTabBarData(params);
+            RootView rootView = nativeInterface.getRootView();
+            if (null != rootView) {
+                rootView.updateTabBarData(params);
                 return Response.SUCCESS;
             } else {
                 return Response.ERROR;

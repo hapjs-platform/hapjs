@@ -5,11 +5,6 @@
 
 package org.hapjs.render;
 
-import static org.hapjs.bridge.HybridRequest.INTENT_ACTION;
-import static org.hapjs.bridge.HybridRequest.INTENT_FROM_EXTERNAL;
-import static org.hapjs.bridge.HybridRequest.INTENT_URI;
-
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -17,11 +12,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.common.utils.ThreadUtils;
@@ -32,7 +22,15 @@ import org.hapjs.model.PageInfo;
 import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.RouterInfo;
 import org.hapjs.runtime.HapEngine;
-import org.hapjs.runtime.RuntimeActivity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hapjs.bridge.HybridRequest.INTENT_ACTION;
+import static org.hapjs.bridge.HybridRequest.INTENT_FROM_EXTERNAL;
+import static org.hapjs.bridge.HybridRequest.INTENT_URI;
 
 public class PageManager {
 
@@ -59,6 +57,10 @@ public class PageManager {
 
     public AppInfo getAppInfo() {
         return mAppInfo;
+    }
+
+    public PageChangedListener getPageChangedListener() {
+        return mPageChangedListener;
     }
 
     public void setAppInfo(AppInfo appInfo) {
@@ -559,25 +561,22 @@ public class PageManager {
             return false;
         }
         String path = page.getPath();
-        RuntimeActivity runtimeActivity = null;
+        RootView rootView = null;
         if (mPageChangedListener instanceof RootView) {
-            Context context = ((RootView) mPageChangedListener).getContext();
-            if (context instanceof RuntimeActivity) {
-                runtimeActivity = (RuntimeActivity) context;
-            }
+            rootView = ((RootView) mPageChangedListener);
         }
-        if (null != runtimeActivity) {
-            isTabBar = runtimeActivity.prepareTabBarPath(page.isTabPage(), path);
+        if (null != rootView) {
+            isTabBar = rootView.prepareTabBarPath(page.isTabPage(), path);
             if (isTabBar) {
                 if (isBack) {
-                    runtimeActivity.notifyTabBarChange(path);
+                    rootView.notifyTabBarChange(path);
                 } else if (mPageInfos.size() == 0) {
                     isTabBar = false;
-                    runtimeActivity.notifyTabBarChange(path);
+                    rootView.notifyTabBarChange(path);
                 }
             }
         } else {
-            Log.w(TAG, "prepareTabBar runtimeActivity null.");
+            Log.w(TAG, "prepareTabBar rootView null.");
         }
         return isTabBar;
     }

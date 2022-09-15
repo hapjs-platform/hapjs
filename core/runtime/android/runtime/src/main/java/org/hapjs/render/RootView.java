@@ -5,8 +5,6 @@
 
 package org.hapjs.render;
 
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
-
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -32,23 +30,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.FitWindowsViewGroup;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.greenrobot.eventbus.EventBus;
 import org.hapjs.bridge.ApplicationContext;
@@ -110,10 +91,28 @@ import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.LocaleResourcesParser;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.R;
-import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.runtime.inspect.InspectorManager;
 import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
 
 /**
  * It's a view like WebView, used to render a native app
@@ -180,12 +179,8 @@ public class RootView extends FrameLayout
     private ConfigurationManager.ConfigurationListener mConfigurationListener;
     private AutoplayManager mAutoplayManager;
     private OnDetachedListener mOnDetachedListener;
-    private RuntimeActivity.RootViewCallback mRootViewCallback;
     private CountDownLatch mEventCountDownLatch;
-
-    public void setRootViewCallback(RuntimeActivity.RootViewCallback mRootViewCallback) {
-        this.mRootViewCallback = mRootViewCallback;
-    }
+    private TabBar mTabBar = null;
 
     protected RenderEventCallback mRenderEventCallback =
             new RenderEventCallback() {
@@ -481,9 +476,7 @@ public class RootView extends FrameLayout
             if (!routerPage(request)) {
                 onRenderFailed(IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND, "Page not found");
             }
-            if (null != mRootViewCallback) {
-                mRootViewCallback.onAppInfoInit();
-            }
+            initTabBar();
         }
     }
 
@@ -640,6 +633,10 @@ public class RootView extends FrameLayout
         mDisplayManager.unregisterDisplayListener(mDisplayListener);
         if (mOnDetachedListener != null) {
             mOnDetachedListener.onDetached();
+        }
+        if (null != mTabBar) {
+            mTabBar.clearTabBar();
+            mTabBar = null;
         }
     }
 
@@ -953,9 +950,8 @@ public class RootView extends FrameLayout
                                 } finally {
                                     mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
                                 }
-                                if (null != mAppInfo &&
-                                        null != mRootViewCallback) {
-                                    mRootViewCallback.onAppInfoInit();
+                                if (null != mAppInfo) {
+                                    initTabBar();
                                 }
                                 return LoadResult.SUCCESS;
                             }
@@ -1246,6 +1242,48 @@ public class RootView extends FrameLayout
         InspectorManager.getInspector().onPagePreChange(oldIndex, newIndex, oldPage, newPage);
     }
     /* end implement JsBridgeCallback */
+
+
+    private void initTabBar() {
+        ThreadUtils.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (null == mTabBar) {
+                    mTabBar = new TabBar();
+                }
+                mTabBar.initTabBarView(RootView.this);
+            }
+        });
+
+    }
+
+    public void updateTabBarData(org.json.JSONObject tabbarData) {
+        if (null != mTabBar) {
+            mTabBar.updateTabBarData(this, tabbarData);
+        } else {
+            Log.w(TAG, "updateTabBarData mTabBar is null.");
+        }
+    }
+
+    public boolean notifyTabBarChange(String routerPath) {
+        boolean isValid = false;
+        if (null != mTabBar) {
+            isValid = mTabBar.notifyTabBarChange(this, routerPath);
+        } else {
+            Log.w(TAG, "notifyTabBarChange mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    public boolean prepareTabBarPath(boolean isTabBarPage, String path) {
+        boolean isValid = isTabBarPage;
+        if (null != mTabBar) {
+            isValid = mTabBar.prepareTabBarPath(isTabBarPage, path);
+        } else {
+            Log.w(TAG, "prepareTabBarPath mTabBar is null.");
+        }
+        return isValid;
+    }
 
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
