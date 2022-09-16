@@ -86,6 +86,8 @@ public class RuntimeLogManager {
     private static final String KEY_MENU_BAR_SHARE_RESULT = "menuBarShareResult";
     private static final String KEY_MENU_BAR_SHARE_ERROR = "menuBarShareError";
     private static final String KEY_MENU_BAR_SHARE_CANCEL = "menuBarShareCancel";
+    private static final String KEY_ILLEGAL_ACCESS_FILE = "illegalAccessFile";
+
     private static final String PARAM_TIME_START = "startTime";
     private static final String PARAM_TIME_END = "endTime";
     private static final String PARAM_ACTION = "action";
@@ -116,6 +118,8 @@ public class RuntimeLogManager {
     private static final String PARAM_TASK_NAME = "taskName";
     private static final String PARAM_TASK_COST = "taskCost";
     private static final String PARAM_MENU_BAR_SHARE_PLATFORM = "menuBarSharePlatform";
+    private static final String PARAM_FILE_PATH = "file_path";
+
     private static final String STATE_APP_LOAD = "appLoad";
     private static final String STATE_PAGE_VIEW = "pageView";
     private static final String STATE_PAGE_LOAD = "pageLoad";
@@ -1009,6 +1013,15 @@ public class RuntimeLogManager {
 
     private static class Holder {
         static final RuntimeLogManager INSTANCE = new RuntimeLogManager();
+    }
+
+    public void recordIllegalAccessFile(String pkg, String filePath) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_FILE_PATH, filePath);
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_ILLEGAL_ACCESS_FILE, params);
     }
 
     private static class DiskUsageTask implements Runnable {

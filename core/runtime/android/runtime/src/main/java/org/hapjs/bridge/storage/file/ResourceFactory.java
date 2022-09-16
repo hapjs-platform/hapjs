@@ -6,19 +6,26 @@
 package org.hapjs.bridge.storage.file;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.cache.Cache;
 import org.hapjs.cache.CacheStorage;
 import org.hapjs.common.utils.FileHelper;
 import org.hapjs.common.utils.UriUtils;
+import org.hapjs.logging.RuntimeLogManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ResourceFactory implements IResourceFactory {
     private static final String TAG = "ResourceFactory";
@@ -33,7 +40,10 @@ public class ResourceFactory implements IResourceFactory {
     private String mFilesRootCanonicalPath;
     private String mMassRootCanonicalPath;
     private String mPackageRootCanonicalPath;
+    private String mInternalDirCanonicalPath;
+    private String mExternalDirCanonicalPath;
     private boolean mInitialized;
+    private boolean mAppSpecificDirInitialized;
     private Map<String, Resource> mTmpResMap;
 
     public ResourceFactory(ApplicationContext applicationContext) {
@@ -112,6 +122,10 @@ public class ResourceFactory implements IResourceFactory {
             return new FileResource(mApplicationContext, internalUri, mMassRootFile,
                     underlyingFile);
         } else {
+            if (!isLegalAccessFile(canonicalPath)) {
+                RuntimeLogManager.getDefault().recordIllegalAccessFile(mApplicationContext.getPackage(), canonicalPath);
+                return null;
+            }
             String fileName = underlyingFile.getName();
             internalUri = createTmpInternalUri(fileName);
             FileTmpResource tmpResource = new FileTmpResource(internalUri, underlyingFile);
@@ -124,14 +138,13 @@ public class ResourceFactory implements IResourceFactory {
         if (underlyingUri == null) {
             return null;
         }
+        initialize();
         if (UriUtils.isFileUri(underlyingUri)) {
             return create(new File(underlyingUri.getPath()));
         } else if (UriUtils.isContentUri(underlyingUri)) {
             String fileName = null;
+            String filePath = FileHelper.getFileFromContentUri(mApplicationContext.getContext(), underlyingUri);
             if (needFileName) {
-                String filePath =
-                        FileHelper.getFileFromContentUri(mApplicationContext.getContext(),
-                                underlyingUri);
                 if (TextUtils.isEmpty(filePath)) {
                     fileName =
                             FileHelper.getDisplayNameFromContentUri(
@@ -139,6 +152,15 @@ public class ResourceFactory implements IResourceFactory {
                 } else {
                     fileName = new File(filePath).getName();
                 }
+            }
+            String contentUri = underlyingUri.toString();
+            if (!isLegalAccessFile(filePath)) {
+                RuntimeLogManager.getDefault().recordIllegalAccessFile(mApplicationContext.getPackage(), contentUri);
+                return null;
+            }
+            if (TextUtils.isEmpty(filePath)) {
+                // 通过埋点跟踪是否有获取不到contentUri对应filePath，但这个contentUri是非法访问的情况
+                RuntimeLogManager.getDefault().recordIllegalAccessFile(mApplicationContext.getPackage(), "empty filePath , " + contentUri);
             }
             String internalUri = createTmpInternalUri(fileName);
             UriTmpResource resource = new UriTmpResource(internalUri, underlyingUri);
@@ -185,6 +207,89 @@ public class ResourceFactory implements IResourceFactory {
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
+
+            // get app-specific directories path
+            if (!mAppSpecificDirInitialized) {
+                try {
+                    File appInternalCacheDir = mApplicationContext.getContext().getCacheDir();
+                    File appInternalDir = null;
+                    if (appInternalCacheDir != null) {
+                        appInternalDir = appInternalCacheDir.getParentFile();
+                    }
+                    mInternalDirCanonicalPath = appInternalDir == null ?
+                            "" : appInternalDir.getCanonicalPath() + "/";
+
+                    File appExternalCacheDir = mApplicationContext.getContext().getExternalCacheDir();
+                    File appExternalDir = null;
+                    if (appExternalCacheDir != null) {
+                        appExternalDir = appExternalCacheDir.getParentFile();
+                    }
+                    mExternalDirCanonicalPath = appExternalDir == null ?
+                            "" : appExternalDir.getCanonicalPath() + "/";
+
+                    mAppSpecificDirInitialized = true;
+                } catch (Exception e) {
+                    Log.e(TAG, "initialize App-Specific directories fail ", e);
+                }
+            }
         }
     }
+
+    /**
+     * if it is legal access
+     *
+     * @param filePath absolute path of file
+     * @return true if it is legal access
+     */
+
+    public boolean isLegalAccessFile(String filePath) {
+        // 合法情况1：文件路径为空
+        if (TextUtils.isEmpty(filePath)) {
+            return true;
+        }
+
+        // 合法情况2：文件不在【应用】专属目录下
+        if (!isSubWithinParent(mInternalDirCanonicalPath, filePath) && !isSubWithinParent(mExternalDirCanonicalPath, filePath)) {
+            return true;
+        }
+
+        // 合法情况3：文件在【快应用】专属目录下
+        if (isSubWithinParent(mPackageRootCanonicalPath, filePath) || isSubWithinParent(mCacheRootCanonicalPath, filePath) ||
+                isSubWithinParent(mFilesRootCanonicalPath, filePath) || isSubWithinParent(mMassRootCanonicalPath, filePath)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * if sub is whitin parent
+     *
+     * @param parentPath
+     * @param subPath
+     * @return true if sub is whitin parent
+     */
+    public static boolean isSubWithinParent(String parentPath, String subPath) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                Path parent = FileSystems.getDefault().getPath(parentPath);
+                Path sub = FileSystems.getDefault().getPath(subPath);
+                if (!Files.exists(parent) || !Files.isDirectory(parent)) {
+                    return false;
+                }
+                while (null != sub) {
+                    if (Files.exists(sub) && Files.isSameFile(parent, sub)) {
+                        return true;
+                    }
+                    sub = sub.getParent();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Files.isSameFile fail ", e);
+            }
+        } else {
+            return subPath.startsWith(parentPath);
+        }
+        return false;
+    }
+
 }
