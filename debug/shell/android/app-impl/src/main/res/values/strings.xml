@@ -80,6 +80,7 @@
     <string name="text_platform_version_name">Platform Version name: %s</string>
     <string name="text_platform_version_beta">beta</string>
     <string name="text_enable_usb_debug">Enable USB debug</string>
+    <string name="text_enable_analyzer">Enable Analyzer Panel</string>
     <string name="text_framework">Runtime framework: </string>
     <string name="text_version_not_support_card">The version is too low to support card: %s</string>
     <string name="text_platform_hint_app">Please install Quick AppsPreview</string>
