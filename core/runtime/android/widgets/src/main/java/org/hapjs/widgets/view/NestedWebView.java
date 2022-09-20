@@ -261,18 +261,22 @@ public class NestedWebView extends WebView
         return result;
     }
 
+    private View getAdjustKeyboardHostView() {
+        View hostView = null;
+        if (getComponent() != null && getComponent().getRootComponent() != null) {
+            hostView = getComponent().getRootComponent().getDecorLayout();
+        }
+        return hostView;
+    }
+
     private void adjustKeyboard(int keyboardHeight) {
         // same implementation with system's "adjustResize"
-        if (getComponent() != null && getComponent().getRootComponent() != null) {
-            RootView rootView = (RootView) getComponent().getRootComponent().getHostView();
-            if (rootView != null) {
-                rootView.fitSystemWindows(new Rect(0, 0, 0, keyboardHeight));
-            } else {
-                Log.e(TAG, "adjustKeyboard error: host view is null ");
-            }
-        } else {
-            Log.e(TAG, "adjustKeyboard error: current component or root component is null ");
+        View hostView = getAdjustKeyboardHostView();
+        if (hostView == null) {
+            Log.e(TAG, "adjustKeyboard error, host view is null");
+            return;
         }
+        hostView.setPadding(0, 0, 0, keyboardHeight);
     }
 
     public void setAllowThirdPartyCookies(Boolean allowThirdPartyCookies) {
