@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.webkit.ValueCallback;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.AcceptLanguageUtils;
@@ -109,8 +108,8 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private boolean mRegisterPageStartEvent = false;
     private boolean mRegisterPageFinishEvent = false;
     private boolean mPageLoadStart = false;
+    private LinkedList<String> mPendingMessages = new LinkedList<>();
     private String mUserAgent;
-    private LinkedList<WebPostMsg> mPendingMessages = new LinkedList<>();
 
     public Web(
             HapEngine hapEngine,
@@ -197,13 +196,14 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                     }
 
                     while (!mPendingMessages.isEmpty()) {
-                        final WebPostMsg webPostMsg = mPendingMessages.poll();
+                        String message = mPendingMessages.poll();
                         WebViewUtils.checkHandleMessage(mHost, mHost.getUrl(), mTrustedUrls, new WebViewUtils.UrlCheckListener() {
                             @Override
                             public void onTrusted() {
-                                if (null != mHost && webPostMsg != null) {
-                                    String onMessageJs = "system.onmessage(\'" + webPostMsg.getMessage() + "\')";
-                                    mHost.evaluateJavascript(onMessageJs, new WebPostValueCallback(getPageId(), mCallback, webPostMsg));
+                                String onMessageJs =
+                                        "system.onmessage(\'" + message + "\')";
+                                if (null != mHost) {
+                                    mHost.evaluateJavascript(onMessageJs, null);
                                 }
                             }
 
@@ -211,9 +211,6 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                             public void onUnTrusted() {
                                 Log.w(TAG,
                                         "post message failed, because current url not match trust url");
-                                if (mCallback != null && webPostMsg != null && !TextUtils.isEmpty(webPostMsg.getFailId())) {
-                                    mCallback.onJsMethodCallback(getPageId(), webPostMsg.getFailId(), "unTrusted");
-                                }
                             }
                         });
                     }
@@ -550,20 +547,17 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     public void postMessage(Map<String, Object> args) {
         Object messageObj = args.get("message");
         if (messageObj != null) {
-            String successId = (String) args.get(KEY_SUCCESS);
-            String failId = (String) args.get(KEY_FAIL);
             final String message = (String) messageObj;
-            final WebPostMsg webPostMsg = new WebPostMsg(message, successId, failId);
             WebViewUtils.checkHandleMessage(mHost, mHost.getUrl(), mTrustedUrls, new WebViewUtils.UrlCheckListener() {
                 @Override
                 public void onTrusted() {
                     if (mPageLoadStart) {
                         String onMessageJs = "system.onmessage(\'" + message + "\')";
                         if (null != mHost) {
-                            mHost.evaluateJavascript(onMessageJs, new WebPostValueCallback(getPageId(), mCallback, webPostMsg));
+                            mHost.evaluateJavascript(onMessageJs, null);
                         }
                     } else {
-                        mPendingMessages.offer(webPostMsg);
+                        mPendingMessages.offer(message);
                     }
                 }
 
@@ -571,9 +565,6 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                 public void onUnTrusted() {
                     Log.w(TAG,
                             "post message failed, because current url not match trusted url");
-                    if (!TextUtils.isEmpty(failId)) {
-                        mCallback.onJsMethodCallback(getPageId(), failId, "unTrusted");
-                    }
                 }
             });
         }
@@ -776,64 +767,5 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
 
     public ArraySet<String> getTrustedUlrs() {
         return mTrustedUrls;
-    }
-    private static class WebPostMsg {
-        private String mMessage;
-        private String mSuccessId;
-        private String mFailId;
-
-        public WebPostMsg(String message, String successId, String failId) {
-            this.mMessage = message;
-            this.mSuccessId = successId;
-            this.mFailId = failId;
-        }
-
-        public String getMessage() {
-            return mMessage;
-        }
-
-        public void setMessage(String message) {
-            mMessage = message;
-        }
-
-        public String getSuccessId() {
-            return mSuccessId;
-        }
-
-        public void setSuccessId(String successId) {
-            mSuccessId = successId;
-        }
-
-        public String getFailId() {
-            return mFailId;
-        }
-
-        public void setFailId(String failId) {
-            mFailId = failId;
-        }
-    }
-
-    private static class WebPostValueCallback implements ValueCallback<String> {
-        private RenderEventCallback mCallback;
-        private WebPostMsg mWebPostMsg;
-        private int mPageId;
-
-        public WebPostValueCallback(int pageId, RenderEventCallback callback, WebPostMsg webPostMsg) {
-            mPageId = pageId;
-            mCallback = callback;
-            mWebPostMsg = webPostMsg;
-        }
-
-        @Override
-        public void onReceiveValue(String value) {
-            if (mCallback != null && mWebPostMsg != null) {
-                // ignore return result
-                if (!TextUtils.isEmpty(mWebPostMsg.getSuccessId())) {
-                    mCallback.onJsMethodCallback(mPageId, mWebPostMsg.getSuccessId());
-                } else {
-                    Log.d(TAG, "post message success id is null");
-                }
-            }
-        }
     }
 }
