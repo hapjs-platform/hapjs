@@ -1,3 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -6,7 +13,8 @@
     android:layout_marginBottom="12dp"
     android:orientation="vertical"
     android:layout_marginStart="16dip"
-    android:layout_marginEnd="16dip">
+    android:layout_marginEnd="16dip"
+    android:clickable="false">
 
     <TextView
         android:id="@android:id/title"

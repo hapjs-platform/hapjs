@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -105,7 +105,7 @@
     <string name="setting_item_feedback">问题反馈</string>
     <string name="setting_item_instruction">使用说明</string>
     <string name="setting_item_faq">常见问题</string>
-    <string name="setting_item_dev_doc">开发文档</string>
+    <string name="setting_item_doc">开发文档</string>
 
     <string name="hint_launch_package">快应用包名</string>
     <string name="hint_launch_path">快应用页面路径</string>
