@@ -5,21 +5,22 @@
 
 package org.hapjs.debugger;
 
+import android.app.DialogFragment;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.EditTextPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
+import androidx.preference.EditTextPreference;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragment;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+import androidx.preference.SwitchPreference;
+
 import org.hapjs.debugger.app.impl.R;
-import org.hapjs.debugger.utils.EasterEggUtils;
 import org.hapjs.debugger.utils.PreferenceUtils;
+import org.hapjs.debugger.widget.CustomEditTextPreferenceDialogFragment;
+import org.hapjs.debugger.widget.CustomListPreference;
 
 public class SettingsActivity extends AppCompatActivity {
     private static final String TAG = "SettingsActivity";
@@ -29,17 +30,6 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_settings);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        EasterEggUtils.addEasterEgg(toolbar, new EasterEggUtils.EasterEggListener() {
-            @Override
-            public void onTrigger(View view) {
-                PreferenceUtils.setCardModeAdded(getApplicationContext(), true);
-                Toast.makeText(getApplicationContext(), R.string.toast_card_mode_added, Toast.LENGTH_SHORT).show();
-            }
-        });
 
         getFragmentManager().beginTransaction()
                 .replace(R.id.content, new SettingsFragment())
@@ -54,14 +44,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragment {
         private EditTextPreference serverPreference;
-        private ListPreference reloadPreference;
+        private CustomListPreference reloadPreference;
 
         @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             addPreferencesFromResource(R.xml.preferences);
-
             String server = PreferenceUtils.getServer(getActivity());
             String summary = getSummary(server);
             serverPreference = (EditTextPreference) findPreference("setting_item_server");
@@ -78,27 +65,20 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
-            reloadPreference = ((ListPreference) findPreference("setting_item_reload"));
-            final String reloadAppStrategyText = getResources().getString(R.string.setting_item_reload_strategy_app);
-            final String reloadPageStrategyText = getResources().getString(R.string.setting_item_reload_strategy_page);
-            reloadPreference.setSummary(PreferenceUtils.shouldReloadPackage(getActivity())
-                    ? reloadPageStrategyText
-                    : reloadAppStrategyText);
+            reloadPreference = ((CustomListPreference) findPreference("setting_item_reload"));
             reloadPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     if (getResources().getString(R.string.setting_item_reload_app_value).equals(newValue)) {
                         PreferenceUtils.setReloadPackage(getActivity(), false);
-                        reloadPreference.setSummary(reloadAppStrategyText);
                     } else if (getResources().getString(R.string.setting_item_reload_page_value).equals(newValue)) {
                         PreferenceUtils.setReloadPackage(getActivity(), true);
-                        reloadPreference.setSummary(reloadPageStrategyText);
                     }
                     return true;
                 }
             });
 
-            CheckBoxPreference checkBoxPreference = ((CheckBoxPreference) findPreference("setting_item_wait_connect"));
+            SwitchPreference checkBoxPreference = ((SwitchPreference) findPreference("setting_item_wait_connect"));
             checkBoxPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -107,7 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
 
-            CheckBoxPreference webDebugPreference = ((CheckBoxPreference) findPreference("setting_item_web_debug"));
+            SwitchPreference webDebugPreference = ((SwitchPreference) findPreference("setting_item_web_debug"));
             webDebugPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -136,6 +116,20 @@ public class SettingsActivity extends AppCompatActivity {
                     return true;
                 }
             });
+        }
+
+        @Override
+        public void onDisplayPreferenceDialog(Preference preference) {
+            if (preference instanceof EditTextPreference) {
+                if (getFragmentManager().findFragmentByTag("DIALOG_FRAGMENT_TAG") != null) {
+                    return;
+                }
+                DialogFragment f = CustomEditTextPreferenceDialogFragment.newInstance(preference.getKey());
+                f.setTargetFragment(this, 0);
+                f.show(getFragmentManager(), "DIALOG_FRAGMENT_TAG");
+            } else {
+                super.onDisplayPreferenceDialog(preference);
+            }
         }
 
         private String getSummary(String summary) {
