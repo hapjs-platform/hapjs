@@ -1,53 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <PreferenceCategory
-        android:key="setting_category_general"
         android:layout="@layout/preference_category"
         android:textColor="#323232"
         android:title="@string/setting_category_general"
         app:allowDividerAbove="false"
         app:allowDividerBelow="false">
-        <EditTextPreference
+        <org.hapjs.debugger.widget.CustomEditTextPreference
             android:icon="@mipmap/ic_forward"
-            android:key="setting_item_server"
+            android:key="@string/setting_item_server_key"
             android:layout="@layout/preference_edittext"
             android:title="@string/setting_item_server_title"
-            app:dialogLayout="@layout/preference_edit_text_dialog"/>
+            app:dialogLayout="@layout/preference_edit_text_dialog" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="setting_category_inspect"
         android:layout="@layout/preference_category"
         android:title="@string/setting_category_inspect"
         app:allowDividerAbove="false"
         app:allowDividerBelow="false">
-        <EditTextPreference
+        <org.hapjs.debugger.widget.CustomEditTextPreference
             android:hint="@string/setting_item_set_params_hint"
             android:icon="@mipmap/ic_forward"
-            android:key="setting_item_params"
+            android:key="@string/setting_item_params_key"
             android:layout="@layout/preference_edittext"
             android:title="@string/setting_item_set_params_title"
-            app:dialogLayout="@layout/preference_edit_text_dialog"/>
+            app:dialogLayout="@layout/preference_edit_text_dialog" />
         <SwitchPreference
-            android:key="setting_item_wait_connect"
+            android:key="@string/setting_item_wait_connect_key"
             android:layout="@layout/preference_switch"
             android:summary="@string/setting_item_wait_devtools_summary"
             android:title="@string/setting_item_wait_devtools_title" />
         <SwitchPreference
-            android:key="setting_item_web_debug"
+            android:key="@string/setting_item_web_debug_key"
             android:layout="@layout/preference_switch"
             android:summary="@string/setting_item_web_debug_summary"
             android:title="@string/setting_item_web_debug_title" />
         <org.hapjs.debugger.widget.CustomListPreference
             android:defaultValue="@string/setting_item_reload_app_value"
-            android:key="setting_item_reload"
+            android:key="@string/setting_item_reload_key"
             android:layout="@layout/preference_list"
             android:title="@string/setting_item_reload_strategy"
             app:entries="@array/strategies"
@@ -55,34 +54,29 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="setting_category_help"
         android:layout="@layout/preference_category"
         android:title="@string/setting_category_help"
         app:allowDividerAbove="false"
         app:allowDividerBelow="false">
-        <EditTextPreference
-            android:key="@string/setting_item_feedback"
+        <Preference
+            android:key="@string/setting_item_feedback_key"
             android:title="@string/setting_item_feedback"
             app:icon="@mipmap/ic_forward"
-            app:iconSpaceReserved="true"
-            app:layout="@layout/preference_edittext"
-            app:dialogLayout="@layout/preference_edit_text_dialog"/>
-        <EditTextPreference
+            app:layout="@layout/preference_edittext" />
+        <Preference
             android:icon="@mipmap/ic_forward"
-            android:key="setting_item_instruction"
+            android:key="@string/setting_item_instruction_key"
             android:layout="@layout/preference_edittext"
-            android:title="@string/setting_item_instruction"
-            app:dialogLayout="@layout/preference_edit_text_dialog"/>
-        <EditTextPreference
+            android:title="@string/setting_item_instruction" />
+        <Preference
             android:icon="@mipmap/ic_forward"
-            android:key="setting_item_faq"
+            android:key="@string/setting_item_faq_key"
             android:layout="@layout/preference_edittext"
             android:title="@string/setting_item_faq" />
-        <EditTextPreference
+        <Preference
             android:icon="@mipmap/ic_forward"
-            android:key="setting_item_dev_doc"
+            android:key="@string/setting_item_doc_key"
             android:layout="@layout/preference_edittext"
-            android:title="@string/setting_item_dev_doc"
-            app:dialogLayout="@layout/preference_edit_text_dialog"/>
+            android:title="@string/setting_item_doc" />
     </PreferenceCategory>
 </PreferenceScreen>

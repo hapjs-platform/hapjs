@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2022, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package org.hapjs.debugger.widget;
 
 import android.content.Context;
@@ -19,7 +24,6 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
 import org.hapjs.debugger.app.impl.R;
-
 
 public class CustomListPreference extends Preference {
 
@@ -58,6 +62,11 @@ public class CustomListPreference extends Preference {
             return attr;
         }
         return fallbackAttr;
+    }
+
+    @Override
+    public boolean isSelectable() {
+        return false;
     }
 
     public void setEntries(CharSequence[] entries) {
