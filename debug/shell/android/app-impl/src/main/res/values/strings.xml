@@ -105,6 +105,11 @@
     <string name="setting_item_signature_title">Get app\'s signature</string>
     <string name="setting_item_set_params_hint">Example: /pageName?key=value or key=value</string>
     <string name="toast_params_illegal">Params cannot contain \"__DEBUG_PARAMS__\"</string>
+    <string name="setting_category_help">Help</string>
+    <string name="setting_item_feedback">Feedback</string>
+    <string name="setting_item_instruction">Instructions</string>
+    <string name="setting_item_faq">FAQ</string>
+    <string name="setting_item_dev_doc">Document</string>
 
     <string name="hint_launch_package">Quick app package name</string>
     <string name="hint_launch_path">Quick app page path</string>
@@ -146,4 +151,5 @@
     <string name="toast_copy_to_clipboard_succ">Copy to clipboard successfully</string>
     <string name="toast_get_signature_fail">Failed to get signature</string>
     <string name="toast_app_not_install">The App is not installed</string>
+    <string name="str_save">Save</string>
 </resources>
