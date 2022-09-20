@@ -33,4 +33,26 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="dialog_style" parent="@style/AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:title">@null</item>
+        <item name="android:dialogTitle">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">#AD000000</item>
+        <item name="colorPrimary">@android:color/transparent</item>
+        <item name="colorPrimaryDark">@android:color/transparent</item>
+        <item name="colorAccent">#FF579CF8</item>
+        <item name="android:windowAnimationStyle">@style/animation</item>
+    </style>
+
+    <style name="preference_dialog_style" parent="@style/dialog_style">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="animation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/abc_grow_fade_in_from_bottom</item>
+        <item name="android:windowExitAnimation">@anim/abc_shrink_fade_out_from_bottom</item>
+    </style>
 </resources>

@@ -1,0 +1,13 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="29dp"
+    android:background="@drawable/setting_header_bg">
+
+    <ImageView
+        android:layout_width="52dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center"
+        android:src="@drawable/setting_header_ic" />
+
+</FrameLayout>
