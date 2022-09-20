@@ -77,6 +77,7 @@ import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
 import org.hapjs.common.net.UserAgentHelper;
+import org.hapjs.common.utils.FeatureInnerBridge;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.ThreadUtils;
@@ -2121,13 +2122,12 @@ public class NestedWebView extends WebView
                 responseResult = formatResultString(jsCallbackIds, new Response(CallbackError.PARAMS_ERROR, "params is wrong"));
             } else {
                 ExtensionManager extensionManager = rootView.getJsThread().getBridgeManager();
-                Response response = extensionManager.invokeWithCallback(module, functionName, rawParams, ExtensionManager.H5_JS_CALLBACK, -1, new H5Callback(extensionManager, jsCallbackIds, mWebViewRef));
-                if (response != null && module.startsWith("service.") && "getProvider".equalsIgnoreCase(functionName)) {
-                    responseResult = formatResultString(jsCallbackIds, response);
+                if (extensionManager != null) {
+                    FeatureInnerBridge.invokeWithCallback(extensionManager, module, functionName, rawParams, FeatureInnerBridge.H5_JS_CALLBACK, -1, new H5Callback(extensionManager, jsCallbackIds, mWebViewRef));
                 } else {
-                    Log.d(TAG, "invoke success, module:" + module + ",functionName:" + functionName);
-                    return;
+                    Log.e(TAG, "invoke fail, extensionManager is null, module :  " + module + ",functionName:" + functionName + ",response result is null");
                 }
+                return;
             }
             if (!TextUtils.isEmpty(responseResult)) {
                 nestedWebView.post(() -> nestedWebView.loadUrl(responseResult));
@@ -2147,7 +2147,7 @@ public class NestedWebView extends WebView
             private WeakReference<NestedWebView> mWeakReference;
 
             public H5Callback(ExtensionManager extensionManager, String[] jsCallbackIds, WeakReference<NestedWebView> weakReference) {
-                super(extensionManager, ExtensionManager.H5_JS_CALLBACK, Extension.Mode.ASYNC);
+                super(extensionManager, FeatureInnerBridge.H5_JS_CALLBACK, Extension.Mode.ASYNC);
                 mJsCallbackIds = jsCallbackIds;
                 mWeakReference = weakReference;
             }
