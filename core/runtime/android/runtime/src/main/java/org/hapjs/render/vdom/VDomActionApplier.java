@@ -18,6 +18,7 @@ import org.hapjs.component.Recycler;
 import org.hapjs.component.RecyclerDataItem;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.logging.CardLogManager;
+import org.hapjs.render.CallBackJsUtils;
 import org.hapjs.render.DebugUtils;
 import org.hapjs.render.RootView;
 import org.hapjs.render.VDomChangeAction;
@@ -64,6 +65,7 @@ public class VDomActionApplier {
         component.bindAttrs(action.attributes);
         component.bindStyles(action.styles);
         component.bindEvents(action.events);
+        component.applyHook(action.hooks);
         component.createView();
 
         return component;
@@ -95,6 +97,9 @@ public class VDomActionApplier {
                 // add body
                 addElement(hapEngine, context, action, doc, renderEventCallback, (VGroup) bodyEle);
                 action.inspectorVElementType = InspectorVElementType.VGROUP;
+                if(action.hooks.contains("mounted")){
+                    CallBackJsUtils.getInstance().callBackJs(jsThread,action.pageId,CallBackJsUtils.TYPE_NODE_MOUNTED,action.vId);
+                }
                 break;
             }
             case VDomChangeAction.ACTION_ADD: {
@@ -104,9 +109,15 @@ public class VDomActionApplier {
                     return;
                 }
                 addElement(hapEngine, context, action, doc, renderEventCallback, parent);
+                if (action.hooks.contains("mounted")) {
+                    CallBackJsUtils.getInstance().callBackJs(jsThread, action.pageId, CallBackJsUtils.TYPE_NODE_MOUNTED, action.vId);
+                }
                 break;
             }
             case VDomChangeAction.ACTION_UPDATE_FINISH: {
+                if(action.jsCallbacks){
+                    CallBackJsUtils.getInstance().callBackJs(jsThread,action.pageId,CallBackJsUtils.TYPE_PAGE_UPDATE_FINISH,action.vId);
+                }
                 break;
             }
             case VDomChangeAction.ACTION_CREATE_FINISH: {
@@ -114,6 +125,9 @@ public class VDomActionApplier {
                 jsThread.postInitializePage(action.pageId);
                 if (HapEngine.getInstance(jsThread.getAppInfo().getPackage()).isCardMode()) {
                     HostCallbackManager.getInstance().onCardCreate(action.pageId);
+                }
+                if (action.jsCallbacks) {
+                    CallBackJsUtils.getInstance().callBackJs(jsThread, action.pageId, CallBackJsUtils.TYPE_PAGE_CREATE_FINISH, action.vId);
                 }
                 break;
             }
@@ -162,11 +176,31 @@ public class VDomActionApplier {
                     Log.e(TAG, "ele is null, " + action);
                     return;
                 }
+                if (ele.getComponent() != null &&
+                        ele.getComponent().getHook() != null &&
+                        ele.getComponent().getHook().contains("destroy")) {
+                    CallBackJsUtils.getInstance().callBackJs(jsThread, action.pageId, CallBackJsUtils.TYPE_NODE_DESTROY, action.vId);
+                }
                 ele.getParent().removeChild(ele);
                 break;
             }
             case VDomChangeAction.ACTION_UPDATE_STYLE: {
+                VElement ele = doc.getElementById(action.vId);
+                if (ele == null) {
+                    Log.w(TAG, "ele is null, " + action);
+                    return;
+                }
+
+                CallBackJsUtils.getInstance().getCallBackJsParams(ele,action);
                 updateStyles(doc, action);
+                if (ele.getComponent() != null &&
+                        ele.getComponent().getHook() != null &&
+                        ele.getComponent().getHook().contains("update")) {
+                    if (!action.attributes.isEmpty()) {
+                        ele.getComponent().getAttrsDomData().putAll(action.attributes);
+                    }
+                    CallBackJsUtils.getInstance().callBackJs(jsThread, action.pageId, CallBackJsUtils.TYPE_NODE_UPDATE, action.vId);
+                }
                 break;
             }
             case VDomChangeAction.ACTION_UPDATE_ATTRS: {
@@ -175,6 +209,8 @@ public class VDomActionApplier {
                     Log.e(TAG, "ele is null, " + action);
                     return;
                 }
+
+                CallBackJsUtils.getInstance().getCallBackJsParams(ele,action);
 
                 if (action.attributes.containsKey("type")) {
                     VGroup parent = ele.getParent();
@@ -216,6 +252,12 @@ public class VDomActionApplier {
                     }
                 } else {
                     ele.getComponentDataHolder().bindAttrs(action.attributes);
+                }
+
+                if (ele.getComponent() != null &&
+                        ele.getComponent().getHook() != null &&
+                        ele.getComponent().getHook().contains("update")) {
+                    CallBackJsUtils.getInstance().callBackJs(jsThread, action.pageId, CallBackJsUtils.TYPE_NODE_UPDATE, action.vId);
                 }
                 break;
             }
