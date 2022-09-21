@@ -11,6 +11,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -214,7 +215,8 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
     }
 
     protected ListPopupWindow handleSpinnerIconClick(ListPopupWindow oldSpinner, ImageView spinnerIcon,
-                                                     int anchorRes, List<String> content, int selectedIndex, int arrowDownRes, int arrowUpRes) {
+                                                     int anchorRes, List<String> content, int selectedIndex, int arrowDownRes, int arrowUpRes,
+                                                     int width, int height, int verticalOffSet) {
         if (oldSpinner != null && oldSpinner.isShowing()) {
             oldSpinner.dismiss();
             spinnerIcon.setImageResource(arrowDownRes);
@@ -227,9 +229,11 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
             });
             spinner.setBackgroundDrawable(getResources().getDrawable(R.drawable.platform_popup_bg));
             spinner.setAnchorView(getActivity().findViewById(anchorRes));
-            spinner.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
-            spinner.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+            spinner.setWidth(width);
+            spinner.setHeight(height);
+            spinner.setVerticalOffset(verticalOffSet);
             spinner.setOnItemClickListener(this);
+            spinner.setModal(true);
             spinner.setAdapter(new BaseAdapter() {
                 @Override
                 public int getCount() {
@@ -270,6 +274,7 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
                 }
             });
             spinner.show();
+            spinner.getListView().setSelector(new ColorDrawable());
             return spinner;
         }
     }
@@ -293,6 +298,7 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
                 - getActivity().getResources().getDrawable(R.drawable.triangle).getIntrinsicWidth() / 2;
         triangle.setLayoutParams(params);
         popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true);
         popupWindow.setContentView(content);
         popupWindow.showAsDropDown(debugHintView);
     }

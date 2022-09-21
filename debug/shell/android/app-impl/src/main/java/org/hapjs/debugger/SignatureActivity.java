@@ -222,9 +222,11 @@ public class SignatureActivity extends DraggableActivity {
                     if (s.length() == 0) {
                         getSignBtn.setEnabled(false);
                         clearPkgBtn.setVisibility(View.GONE);
+                        setPaddingEnd(mPkgEditText, R.dimen.edit_text_hint_padding_end);
                     } else {
                         getSignBtn.setEnabled(true);
                         clearPkgBtn.setVisibility(View.VISIBLE);
+                        setPaddingEnd(mPkgEditText, R.dimen.edit_text_user_input_padding_end);
                     }
                 }
             });
@@ -234,6 +236,10 @@ public class SignatureActivity extends DraggableActivity {
             return content;
         }
 
+        private static void setPaddingEnd(View view, int paddingEndRes) {
+            view.setPadding(view.getPaddingStart(), view.getPaddingTop(),
+                    (int) view.getResources().getDimension(paddingEndRes), view.getPaddingBottom());
+        }
 
         @Override
         public void onClick(View v) {

@@ -23,6 +23,8 @@
     <string name="launch_app_test_detail">Launch quick app with parameters or by deeplink</string>
     <string name="get_sign_detail">Get signature of Android app or quick app</string>
 
+    <string name="btn_installed">Installed</string>
+
     <string name="hint_fail_to_bind_service">Can not start [Quick App Preview],please grant the permission of [Startup]/[Autostart] to [Quick App Preview] on the relevant settings page of system permission management, or open it Manual.</string>
     <string name="hint_no_response_vivo">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Startup\" and \"Backupgroud pop-ups\" to \"%1$s\" in \"App Permission Manager\".</string>
     <string name="hint_no_response_xiaomi">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Autostart\" to \"%1$s] in \"Manager apps\".</string>
@@ -88,8 +90,7 @@
     <string name="text_enable_analyzer">Enable Analyzer Panel</string>
     <string name="text_framework">Runtime framework: %s</string>
     <string name="text_version_not_support_card">The version is too low to support card: %s</string>
-    <string name="text_platform_hint_app">Please install Quick AppsPreview</string>
-    <string name="text_platform_hint_card">Please install Quick AppsPreview and allow Debugger
+    <string name="text_platform_hint">Please install Quick AppsPreview in [Platform Download] and allow Debugger
         automatic starting</string>
 
     <string name="setting_category_general">General</string>

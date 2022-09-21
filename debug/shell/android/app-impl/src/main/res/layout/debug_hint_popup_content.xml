@@ -8,19 +8,23 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:paddingTop="4dp"
+    android:orientation="vertical"
+    android:clipChildren="false">
     <ImageView
         android:id="@+id/triangle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:src="@drawable/triangle"/>
-    <LinearLayout
+    <org.hapjs.debugger.widget.BlurLinearLayout
         android:layout_below="@id/triangle"
-        android:layout_width="wrap_content"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:background="@drawable/hint_popup_color_bg">
+        android:layout_marginBottom="40dp"
+        android:layout_alignParentEnd="true"
+        style="@style/DebugHintShadowBackground">
         <TextView
             android:id="@+id/hint_text"
             android:layout_width="wrap_content"
@@ -31,5 +35,5 @@
             android:textColor="#FFFFFFFF"
             android:textSize="14sp"/>
 
-    </LinearLayout>
+    </org.hapjs.debugger.widget.BlurLinearLayout>
 </RelativeLayout>

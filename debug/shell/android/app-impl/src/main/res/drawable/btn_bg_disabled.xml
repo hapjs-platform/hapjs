@@ -9,13 +9,10 @@
     android:shape="rectangle">
     <solid android:color="#FFFFFF" />
     <gradient
+        android:angle="315"
         android:endColor="#D4EDFE"
         android:startColor="#C0F6FE"
-        android:type="linear"/>
+        android:type="linear" />
 
-    <corners
-        android:bottomLeftRadius="15dp"
-        android:bottomRightRadius="15dp"
-        android:topLeftRadius="15dp"
-        android:topRightRadius="15dp" />
+    <corners android:radius="15dp" />
 </shape>

@@ -7,9 +7,11 @@ package org.hapjs.debugger;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -17,6 +19,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +39,8 @@ import org.hapjs.debugger.app.impl.R;
 
 public class AppLaunchTestActivity extends AppCompatActivity {
     private static final String TAG = "AppLaunchTestActivity";
+
+    private static final String QUICK_APP_URL_PREFIX = "hap://app/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +71,7 @@ public class AppLaunchTestActivity extends AppCompatActivity {
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            return position == 0 ? new LaunchPageFragment() : new LaunchByDeeplilnkFragment();
+            return position == 0 ? new LaunchPageFragment() : new LaunchByDeeplinkFragment();
         }
 
         @Override
@@ -76,12 +81,14 @@ public class AppLaunchTestActivity extends AppCompatActivity {
     }
 
     public static class LaunchPageFragment extends Fragment {
+        private EditText mPkgEditText;
+
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             View content = inflater.inflate(R.layout.launch_page_layout, container, false);
 
-            TextView launchBtn = content.findViewById(R.id.btn_launch);
+            TextView launchBtn = content.findViewById(R.id.btn_launch_page);
             EditText pkgEditText = content.findViewById(R.id.pkg);
             View clearPkgBtn = content.findViewById(R.id.clear_pkg);
             clearPkgBtn.setOnClickListener(v -> pkgEditText.setText(null));
@@ -99,14 +106,23 @@ public class AppLaunchTestActivity extends AppCompatActivity {
                     if (s.length() == 0) {
                         launchBtn.setEnabled(false);
                         clearPkgBtn.setVisibility(View.GONE);
+                        setPaddingEnd(pkgEditText, R.dimen.edit_text_hint_padding_end);
                     } else {
                         launchBtn.setEnabled(true);
                         clearPkgBtn.setVisibility(View.VISIBLE);
+                        setPaddingEnd(pkgEditText, R.dimen.edit_text_user_input_padding_end);
                     }
                 }
             });
             pkgEditText.setOnFocusChangeListener((v, hasFocus) ->
                     clearPkgBtn.setVisibility(pkgEditText.length() > 0 && hasFocus ? View.VISIBLE : View.GONE));
+
+            mPkgEditText = pkgEditText;
+            new Handler().post(() -> {
+                mPkgEditText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(mPkgEditText, InputMethodManager.SHOW_IMPLICIT);
+            });
 
             EditText pageEditText = content.findViewById(R.id.page);
             View clearPageBtn = content.findViewById(R.id.clear_page);
@@ -124,8 +140,10 @@ public class AppLaunchTestActivity extends AppCompatActivity {
                 public void afterTextChanged(Editable s) {
                     if (s.length() == 0) {
                         clearPageBtn.setVisibility(View.GONE);
+                        setPaddingEnd(pageEditText, R.dimen.edit_text_hint_padding_end);
                     } else {
                         clearPageBtn.setVisibility(View.VISIBLE);
+                        setPaddingEnd(pageEditText, R.dimen.edit_text_user_input_padding_end);
                     }
                 }
             });
@@ -137,15 +155,23 @@ public class AppLaunchTestActivity extends AppCompatActivity {
 
             return content;
         }
+
+        public void onResume() {
+            super.onResume();
+
+            mPkgEditText.requestFocus();
+        }
     }
 
-    public static class LaunchByDeeplilnkFragment extends Fragment {
+    public static class LaunchByDeeplinkFragment extends Fragment {
+        private EditText mDeeplinkEditText;
+
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                                  @Nullable Bundle savedInstanceState) {
             View content = inflater.inflate(R.layout.launch_by_deeplink_layout, container, false);
 
-            TextView launchBtn = content.findViewById(R.id.btn_launch);
+            TextView launchBtn = content.findViewById(R.id.btn_launch_deeplink);
             EditText deeplinkEditText = content.findViewById(R.id.deeplink);
             View clearDeeplinkBtn = content.findViewById(R.id.clear_deeplink);
             clearDeeplinkBtn.setOnClickListener(v -> deeplinkEditText.setText(null));
@@ -163,18 +189,33 @@ public class AppLaunchTestActivity extends AppCompatActivity {
                     if (s.length() == 0) {
                         launchBtn.setEnabled(false);
                         clearDeeplinkBtn.setVisibility(View.GONE);
+                        setPaddingEnd(deeplinkEditText, R.dimen.edit_text_hint_padding_end);
                     } else {
                         launchBtn.setEnabled(true);
                         clearDeeplinkBtn.setVisibility(View.VISIBLE);
+                        setPaddingEnd(deeplinkEditText, R.dimen.edit_text_user_input_padding_end);
                     }
                 }
             });
             deeplinkEditText.setOnFocusChangeListener((v, hasFocus) ->
                     clearDeeplinkBtn.setVisibility(deeplinkEditText.length() > 0 && hasFocus ? View.VISIBLE : View.GONE));
 
+            mDeeplinkEditText = deeplinkEditText;
+            new Handler().post(() -> {
+                deeplinkEditText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(deeplinkEditText, InputMethodManager.SHOW_FORCED);
+            });
+
             launchBtn.setOnClickListener(v -> launchDeeplink(getActivity(), deeplinkEditText.getText().toString()));
 
             return content;
+        }
+
+        public void onResume() {
+            super.onResume();
+
+            mDeeplinkEditText.requestFocus();
         }
     }
 
@@ -184,12 +225,17 @@ public class AppLaunchTestActivity extends AppCompatActivity {
         return true;
     }
 
+    private static void setPaddingEnd(View view, int paddingEndRes) {
+        view.setPadding(view.getPaddingStart(), view.getPaddingTop(),
+                (int) view.getResources().getDimension(paddingEndRes), view.getPaddingBottom());
+    }
+
     private static void launchQuickApp(Activity activity, String packageName, String path) {
         if (TextUtils.isEmpty(packageName)) {
             Toast.makeText(activity, R.string.toast_no_package, Toast.LENGTH_LONG).show();
             return;
         }
-        String url = "hap://app/" + packageName + path;
+        String url = QUICK_APP_URL_PREFIX + packageName + path;
         launchDeeplink(activity, url);
     }
 

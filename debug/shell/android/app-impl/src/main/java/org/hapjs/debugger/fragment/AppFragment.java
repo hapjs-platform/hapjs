@@ -113,7 +113,10 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemClic
         mPlatformSpinnerIcon.setOnClickListener(v ->
                 mPlatformSpinner = handleSpinnerIconClick(mPlatformSpinner, mPlatformSpinnerIcon,
                         R.id.platform_info_primary_layout, mDisplayedPlatforms, getSelectedPlatformIndex(),
-                        R.drawable.arrow_down, R.drawable.arrow_up));
+                        R.drawable.arrow_down, R.drawable.arrow_up,
+                        (int) getResources().getDimension(R.dimen.platform_popup_width),
+                        ListPopupWindow.WRAP_CONTENT,
+                        0));
 
         mAnalyzerContainer = view.findViewById(R.id.analyzer_container);
         mAnalyzerEnableSwitch = view.findViewById(R.id.analyzer_enable);

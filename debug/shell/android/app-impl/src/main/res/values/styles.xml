@@ -75,4 +75,35 @@
         <item name="android:textColor">#4D000000</item>
         <item name="android:textStyle">bold</item>
     </style>
+
+
+    <style name="CardShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">@dimen/blur_y_offset</item>
+        <item name="blur_radius">@dimen/blur_radius</item>
+        <item name="spread_radius">0.7dp</item>
+        <item name="blur_color">#0D000F41</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/card_bg</item>
+    </style>
+
+    <style name="ButtonShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">@dimen/blur_y_offset</item>
+        <item name="blur_radius">@dimen/blur_radius</item>
+        <item name="spread_radius">@dimen/btn_blur_spread</item>
+        <item name="blur_color">@color/btn_blur_color</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/btn_bg</item>
+    </style>
+
+    <style name="DebugHintShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">16.7dp</item>
+        <item name="blur_radius">23.3dp</item>
+        <item name="spread_radius">0dp</item>
+        <item name="blur_color">#26000B3D</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/hint_popup_color_bg</item>
+    </style>
 </resources>
