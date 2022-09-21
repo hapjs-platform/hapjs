@@ -66,7 +66,8 @@
             android:label="@string/text_mode_card"
             android:launchMode="singleTask"
             android:process=":card"
-            android:taskAffinity=":card" />
+            android:taskAffinity=":card"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name="org.hapjs.debugger.AppLaunchTestActivity"
@@ -82,9 +83,9 @@
 
         <activity
             android:name="org.hapjs.debugger.InstalledAppActivity"
+            android:exported="true"
             android:label="@string/choose_app_label"
-            android:theme="@style/AppTheme.InstalledApp"
-            android:exported="true" />
+            android:theme="@style/AppTheme.InstalledApp" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
