@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -38,6 +38,7 @@ class XPage extends ModuleHost {
     this._visible = false
     this._meta = Object.assign({ query }, intent, meta)
     this._orientation = intent.orientation
+    this.nextTickCallbacks = [] // nextTick的回调函数数组
   }
 
   get $valid() {
