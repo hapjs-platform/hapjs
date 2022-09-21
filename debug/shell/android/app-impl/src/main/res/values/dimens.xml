@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
-    <dimen name="text_margin">16dp</dimen>
+    <dimen name="mode_selected_text_size">16sp</dimen>
+    <dimen name="mode_unselected_text_size">12.7sp</dimen>
+    <dimen name="platform_popup_item_padding_top">13dp</dimen>
+    <dimen name="platform_popup_item_padding_bottom">15dp</dimen>
+    <dimen name="platform_popup_item_padding_top_first">21dp</dimen>
+    <dimen name="platform_popup_item_padding_bottom_last">23dp</dimen>
 </resources>

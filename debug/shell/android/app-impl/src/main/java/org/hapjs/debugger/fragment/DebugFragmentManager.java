@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,11 +7,14 @@ package org.hapjs.debugger.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+
 import androidx.fragment.app.FragmentActivity;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.utils.PreferenceUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class DebugFragmentManager {
     private static final String IDE_PATH = "path";
@@ -26,7 +29,7 @@ public class DebugFragmentManager {
     public DebugFragmentManager(FragmentActivity activity, int containerViewId) {
         this.mActivity = activity;
         this.mContainerViewId = containerViewId;
-        this.mModeList = getAvailableModes(activity);
+        this.mModeList = Arrays.asList(Mode.values());
     }
 
     public void showDebugFragment(int index) {
@@ -49,10 +52,6 @@ public class DebugFragmentManager {
         int modeIndex = 0;
         if (isFromToolkit(intent)) {
             boolean isCardMode = "true".equals(intent.getStringExtra(CARD_MODE));
-            if (isCardMode && !PreferenceUtils.isCardModeAdded(mActivity)) {
-                PreferenceUtils.setCardModeAdded(mActivity, true);
-                refreshModeList();
-            }
             modeIndex = isCardMode ? 1 : 0;
         } else {
             modeIndex = PreferenceUtils.getRuntimeMode(mActivity);
@@ -72,10 +71,6 @@ public class DebugFragmentManager {
     public boolean onNewIntent(Intent intent) {
         if (isFromToolkit(intent)) {
             boolean isCardMode = "true".equals(intent.getStringExtra(CARD_MODE));
-            if (isCardMode && !PreferenceUtils.isCardModeAdded(mActivity)) {
-                PreferenceUtils.setCardModeAdded(mActivity, true);
-                refreshModeList();
-            }
             int modeIndex = isCardMode ? 1 : 0;
             Mode mode = Mode.getMode(modeIndex);
             if (mode == mMode) {
@@ -111,38 +106,6 @@ public class DebugFragmentManager {
         return null;
     }
 
-    public List<String> getNamesArray() {
-        List<String> namesArray = new ArrayList<>(mModeList.size());
-        for (int i = 0; i < mModeList.size(); i++) {
-            namesArray.add(mModeList.get(i).getName(mActivity));
-        }
-        return namesArray;
-    }
-
-    /**
-     * refresh mode list
-     *
-     * @return is mode list changed
-     */
-    public boolean refreshModeList() {
-        List<Mode> currentList = getAvailableModes(mActivity);
-        if (mModeList.equals(currentList)) {
-            return false;
-        }
-        mModeList = currentList;
-        return true;
-    }
-
-    private List<Mode> getAvailableModes(Context context) {
-        List<Mode> modes = new ArrayList<>();
-        for (Mode mode : Mode.values()) {
-            if (mode.isAvailable(context)) {
-                modes.add(mode);
-            }
-        }
-        return modes;
-    }
-
     public enum Mode {
         MODE_APP(R.string.text_mode_application),
         MODE_CARD(R.string.text_mode_card);
@@ -166,16 +129,6 @@ public class DebugFragmentManager {
 
         public int getIndex() {
             return ordinal();
-        }
-
-        public boolean isAvailable(Context context) {
-            if (this == Mode.MODE_APP) {
-                return true;
-            }
-            if (this == Mode.MODE_CARD) {
-                return PreferenceUtils.isCardModeAdded(context);
-            }
-            return false;
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -22,7 +22,6 @@ public class PreferenceUtils {
     private static final String KEY_CARD_HOST_PLATFORM = "debug_card_host_platform";
     private static final String KEY_DEBUG_CARD_PATH = "debug_card_path";
     private static final String KEY_DEBUG_CARD_PACKAGE = "debug_card_package";
-    private static final String KEY_CARD_MODE_ADDED = "card_mode_added";
     private static final String KEY_LAUNCH_PARAMS = "launch_params";
     private static final String KEY_WEB_DEBUG_ENABLED = "web_debug_enabled";
     private static final String KEY_SERIAL_NUMBER = "serial_number";
@@ -113,8 +112,8 @@ public class PreferenceUtils {
         return getPreference(context).getString(KEY_DEBUG_CARD_PACKAGE, "");
     }
 
-    public static void setDebugCardPackage(Context context, String path) {
-        getPreference(context).edit().putString(KEY_DEBUG_CARD_PACKAGE, path).apply();
+    public static void setDebugCardPackage(Context context, String pkg) {
+        getPreference(context).edit().putString(KEY_DEBUG_CARD_PACKAGE, pkg).apply();
     }
 
     public static String getDebugCardPath(Context context) {
@@ -123,14 +122,6 @@ public class PreferenceUtils {
 
     public static void setDebugCardPath(Context context, String path) {
         getPreference(context).edit().putString(KEY_DEBUG_CARD_PATH, path).apply();
-    }
-
-    public static boolean isCardModeAdded(Context context) {
-        return getPreference(context).getBoolean(KEY_CARD_MODE_ADDED, false);
-    }
-
-    public static void setCardModeAdded(Context context, boolean added) {
-        getPreference(context).edit().putBoolean(KEY_CARD_MODE_ADDED, added).apply();
     }
 
     public static void setLaunchParams(Context context, String params) {
