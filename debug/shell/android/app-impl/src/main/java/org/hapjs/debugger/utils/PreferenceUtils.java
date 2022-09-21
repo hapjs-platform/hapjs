@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.hapjs.debugger.app.impl.BuildConfig;
+
 public class PreferenceUtils {
     private static final String KEY_SERVER = "server";
     private static final String KEY_RUNTIME_MODE = "runtime_mode";
@@ -27,6 +29,7 @@ public class PreferenceUtils {
     private static final String KEY_SERIAL_NUMBER = "serial_number";
     //是否为通用扫描预览
     private static final String KEY_UNIVERSAL_SCAN = "universal_scan";
+    private static final String KEY_SHOW_DEBUG_HINT_VERSION = "show_debug_hint_version";
 
     public static String getServer(Context context) {
         return getPreference(context).getString(KEY_SERVER, "");
@@ -158,5 +161,13 @@ public class PreferenceUtils {
 
     public static boolean isUniversalScan(Context context) {
         return getPreference(context).getBoolean(KEY_UNIVERSAL_SCAN, false);
+    }
+
+    public static void setHasShownDebugHint(Context context) {
+        getPreference(context).edit().putLong(KEY_SHOW_DEBUG_HINT_VERSION, BuildConfig.VERSION_CODE).apply();
+    }
+
+    public static boolean hasShownDebugHint(Context context) {
+        return getPreference(context).getLong(KEY_SHOW_DEBUG_HINT_VERSION, 0) == BuildConfig.VERSION_CODE;
     }
 }

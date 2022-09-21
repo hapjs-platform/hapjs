@@ -13,7 +13,6 @@ import android.widget.LinearLayout;
 import androidx.annotation.Nullable;
 
 public class LastChildVisibleLinearLayout extends LinearLayout {
-    private boolean mResetChildrenWeightJustNow;
 
     public LastChildVisibleLinearLayout(Context context) {
         super(context);
@@ -35,9 +34,6 @@ public class LastChildVisibleLinearLayout extends LinearLayout {
             return;
         }
 
-        if (!mResetChildrenWeightJustNow) {
-            setChildrenLayoutWeightExceptLast(0);
-        }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         int totalLength = 0;
         for (int i = 0; i < getChildCount(); ++i) {
@@ -45,9 +41,7 @@ public class LastChildVisibleLinearLayout extends LinearLayout {
         }
         if (totalLength > getMeasuredWidth()) {
             setChildrenLayoutWeightExceptLast(1);
-            mResetChildrenWeightJustNow = true;
-        } else {
-            mResetChildrenWeightJustNow = false;
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
     }
 

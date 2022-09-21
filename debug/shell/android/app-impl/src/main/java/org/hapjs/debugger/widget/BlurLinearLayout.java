@@ -6,6 +6,7 @@
 package org.hapjs.debugger.widget;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
@@ -25,7 +26,9 @@ public class BlurLinearLayout extends LinearLayout {
     public BlurLinearLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        mBlurShadowDrawable = new BlurShadowDrawable(this, context, attrs);
-        setBackground(mBlurShadowDrawable);
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+            mBlurShadowDrawable = new BlurShadowDrawable(this, context, attrs);
+            setBackground(mBlurShadowDrawable);
+        }
     }
 }
