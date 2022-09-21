@@ -28,6 +28,7 @@ public class DraggableActivity extends FragmentActivity {
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_draggable);
         mRootView = findViewById(R.id.root_view);
+        mRootView.setOnClickListener(v -> onBackPressed());
         mBehavior = SettingViewBehavior.from(findViewById(R.id.content_wrapper));
         mBehavior.addCallback(new SettingViewBehavior.Callback() {
             @Override

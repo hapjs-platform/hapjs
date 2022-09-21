@@ -6,14 +6,16 @@
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingHorizontal="16dp"
     android:orientation="vertical"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:clipChildren="false">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:drawableStart="@drawable/tip_icon"
         android:drawablePadding="4dp"
         android:singleLine="true"
@@ -25,6 +27,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="28dp">
         <EditText
             android:id="@+id/pkg"
@@ -35,7 +38,7 @@
             android:background="@drawable/edit_text_bg"
             android:textSize="14sp"
             android:singleLine="true"
-            android:ellipsize="end"
+            android:textColorHint="#4D000000"
             android:hint="@string/launch_page_pkg_hint"/>
 
         <ImageView
@@ -51,6 +54,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="14dp">
         <EditText
             android:id="@+id/page"
@@ -61,7 +65,7 @@
             android:background="@drawable/edit_text_bg"
             android:textSize="14sp"
             android:singleLine="true"
-            android:ellipsize="end"
+            android:textColorHint="#4D000000"
             android:hint="@string/launch_page_page_hint"/>
 
         <ImageView
@@ -74,18 +78,20 @@
             android:visibility="gone"/>
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/btn_launch"
+    <org.hapjs.debugger.widget.BlurShadowButton
+        android:id="@+id/btn_launch_page"
         android:text="@string/btn_launch_app"
-        android:background="@drawable/btn_bg"
         android:textSize="18sp"
         android:textColor="#FFFFFFFF"
         android:textStyle="bold"
-        android:paddingVertical="14dp"
+        android:paddingVertical="11dp"
         android:gravity="center"
         android:enabled="false"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="35dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        app:corner_radius="16dp"
+        style="@style/ButtonShadowBackground"/>
 </LinearLayout>

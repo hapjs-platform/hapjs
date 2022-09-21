@@ -11,6 +11,6 @@
         android:width="20dp"
         android:height="20dp" />
     <solid android:color="#FFFFFF" />
-    <stroke android:width="3dp"
+    <stroke android:width="5dp"
         android:color="@android:color/transparent"/>
 </shape>
