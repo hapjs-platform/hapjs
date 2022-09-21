@@ -1,11 +1,17 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.debugger.pm;
 
+import android.text.TextUtils;
 import android.util.Log;
+
+import org.hapjs.debugger.utils.FileUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +21,6 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import org.hapjs.debugger.utils.FileUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class PackageManager {
     private static final String TAG = "PackageManager";
@@ -53,6 +56,50 @@ public class PackageManager {
             Log.e(TAG, "Fail to read manifest.json", e);
         } catch (JSONException e) {
             Log.e(TAG, "Fail to parse manifest.json", e);
+        } finally {
+            FileUtils.closeQuietly(zipFile);
+        }
+        return null;
+    }
+
+
+    public static File getIconFile(String packagePath, String iconPath) {
+        if (TextUtils.isEmpty(iconPath)) {
+            return null;
+        }
+        if (iconPath.startsWith("/")) {
+            iconPath = iconPath.substring(1);
+        }
+
+        Log.d(TAG, "getIconFile packagePath=" + packagePath);
+        File iconFile = getEntryFromZip(new File(packagePath), iconPath);
+        if (iconFile == null) {
+            Log.d(TAG, "no iconPath. try as split-rpk");
+            File baseSubpackage = retrieveBaseSubpackage(packagePath);
+            if (baseSubpackage != null) {
+                iconFile = getEntryFromZip(baseSubpackage, iconPath);
+                baseSubpackage.delete();
+            }
+        }
+        return iconFile;
+    }
+
+    private static File getEntryFromZip(File packageFile, String path) {
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(packageFile);
+            ZipEntry zipEntry = zipFile.getEntry(path);
+            if (zipEntry != null) {
+                InputStream input = zipFile.getInputStream(zipEntry);
+                File tmpIconFile = File.createTempFile("icon", "");
+                if (FileUtils.saveToFile(input, tmpIconFile)) {
+                    return tmpIconFile;
+                }
+            } else {
+                Log.w(TAG, "path: " + path + " not found");
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Fail to read path: " + path, e);
         } finally {
             FileUtils.closeQuietly(zipFile);
         }

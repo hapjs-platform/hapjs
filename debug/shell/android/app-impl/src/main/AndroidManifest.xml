@@ -70,17 +70,21 @@
 
         <activity
             android:name="org.hapjs.debugger.AppLaunchTestActivity"
-            android:label="@string/menu_label_launch_app_test" />
+            android:label="@string/menu_label_launch_app_test"
+            android:theme="@style/dialog_style"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name="org.hapjs.debugger.SignatureActivity"
             android:label="@string/get_signature_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/dialog_style"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name="org.hapjs.debugger.InstalledAppActivity"
             android:label="@string/choose_app_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.InstalledApp"
+            android:exported="true" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
