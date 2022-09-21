@@ -69,6 +69,7 @@ public class AppDebugManager {
     public static final String EXTRA_ERROR_CODE = "errorCode";
     public static final String EXTRA_SHOULD_RELOAD = "shouldReload";
     public static final String EXTRA_USE_ADB = "useADB";
+    public static final String EXTRA_USE_ANALYZER = "useAnalyzer";
     public static final String EXTRA_SERIAL_NUMBER = "serialNumber";
     public static final String EXTRA_PLATFORM_VERSION_CODE = "platformVersionCode";
     public static final String EXTRA_WAIT_DEVTOOLS = "waitDevTools";
@@ -417,6 +418,7 @@ public class AppDebugManager {
             data.putString(EXTRA_PATH, getLaunchPath());
             data.putBoolean(EXTRA_SHOULD_RELOAD, shouldReload);
             data.putBoolean(EXTRA_WEB_DEBUG_ENABLED, PreferenceUtils.isWebDebugEnabled(mContext));
+            data.putBoolean(EXTRA_USE_ANALYZER, PreferenceUtils.isUseAnalyzer(mContext));
             msg.setData(data);
 
             try {
@@ -437,12 +439,14 @@ public class AppDebugManager {
             msg.replyTo = mClient;
 
             boolean isUseADB = PreferenceUtils.isUseADB(mContext);
+            boolean isUseAnalyzer = PreferenceUtils.isUseAnalyzer(mContext);
 
             Bundle data = new Bundle();
             data.putString(EXTRA_PACKAGE, pkg);
             data.putString(EXTRA_PATH, getLaunchPath());
             data.putString(EXTRA_SERVER, debugServer);
             data.putBoolean(EXTRA_USE_ADB, isUseADB);
+            data.putBoolean(EXTRA_USE_ANALYZER, isUseAnalyzer);
             data.putString(EXTRA_SERIAL_NUMBER, isUseADB ? AppUtils.getSerialNumber() : "");
             data.putInt(EXTRA_PLATFORM_VERSION_CODE, mUsedPlatformVersionCode);
             data.putBoolean(EXTRA_WAIT_DEVTOOLS, PreferenceUtils.isWaitDevTools(mContext));

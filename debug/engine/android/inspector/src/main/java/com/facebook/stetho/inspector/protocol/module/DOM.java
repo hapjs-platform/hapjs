@@ -511,10 +511,13 @@ public class DOM implements ChromeDevtoolsDomain {
         return tagName != null && tagName.contains("tab-content");
     }
 
-    private Pair<Integer, InspectorVElement> findElementInTabContent(
-            InspectorVElement e, DocumentView docView, int x, int y, int depth) {
-        InspectorVElement parent = e.getParent(); // the tabs element;
+    private Pair<Integer, InspectorVElement> findElementInTabContent(InspectorVElement e, DocumentView docView,
+                                                                     int x, int y, int depth) {
+        InspectorVElement parent = e.getParent();  // the tabs element;
         int curIndex = ((Tabs) (parent.getComponent())).getCurrentIndex();
+        if (curIndex == -1) {
+            curIndex = 0;
+        }
         ElementInfo tabContentInfo = docView.getElementInfo(e);
         InspectorVElement tabContentChild =
                 (InspectorVElement) tabContentInfo.children.get(curIndex);
