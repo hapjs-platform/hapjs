@@ -62,6 +62,14 @@ public class AppLaunchTestActivity extends AppCompatActivity {
         mediator.attach();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+    }
+
     private class PagerAdapter extends FragmentStateAdapter {
 
         public PagerAdapter(@NonNull FragmentActivity fragmentActivity) {

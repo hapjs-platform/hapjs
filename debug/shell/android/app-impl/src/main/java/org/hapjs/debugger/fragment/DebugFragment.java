@@ -16,15 +16,18 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListPopupWindow;
 import android.widget.PopupWindow;
@@ -89,7 +92,6 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = setupViews(inflater, container);
-        setupDebug();
         setupServer();
         return view;
     }
@@ -118,9 +120,6 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
                 }
             }
         };
-
-        mDebugHintView = view.findViewById(R.id.debug_hint);
-        mDebugHintView.setOnClickListener(v -> showDebugHint(mDebugHintView));
 
         mScanInstallBtn = view.findViewById(R.id.btn_scan_install);
         mLocalInstallBtn = view.findViewById(R.id.btn_local_install);
@@ -153,6 +152,25 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        setupDebug();
+
+        if (!PreferenceUtils.hasShownDebugHint(getActivity())) {
+            Handler handler = new Handler();
+            handler.post(() -> {
+                PopupWindow popupWindow = showDebugHint(mDebugHintView);
+                handler.postDelayed(() -> {
+                    if (popupWindow.isShowing()) {
+                        popupWindow.dismiss();
+                    }
+                }, 6000);
+            });
+        }
+    }
+
     protected void setSwitchStateText(View ancestor, int id, boolean enable) {
         ((TextView) ancestor.findViewById(id)).setText(enable ? "ON" : "OFF");
     }
@@ -160,23 +178,19 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
     private void setInstallRpkActionsLayout(boolean isUsbEnable) {
         if (!isUsbEnable) {
             mScanInstallBtn.setVisibility(View.VISIBLE);
-            RelativeLayout.LayoutParams localInstallParams = (RelativeLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
-            localInstallParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-            localInstallParams.removeRule(RelativeLayout.ALIGN_PARENT_START);
+            FrameLayout.LayoutParams localInstallParams = (FrameLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
+            localInstallParams.gravity = Gravity.CENTER;
             mLocalInstallBtn.setLayoutParams(localInstallParams);
-            RelativeLayout.LayoutParams updateOnlineParams = (RelativeLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
-            updateOnlineParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-            updateOnlineParams.removeRule(RelativeLayout.CENTER_IN_PARENT);
+            FrameLayout.LayoutParams updateOnlineParams = (FrameLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
+            updateOnlineParams.gravity = Gravity.END;
             mUpdateOnlineBtn.setLayoutParams(updateOnlineParams);
         } else {
             mScanInstallBtn.setVisibility(View.GONE);
-            RelativeLayout.LayoutParams localInstallParams = (RelativeLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
-            localInstallParams.removeRule(RelativeLayout.CENTER_IN_PARENT);
-            localInstallParams.addRule(RelativeLayout.ALIGN_PARENT_START);
+            FrameLayout.LayoutParams localInstallParams = (FrameLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
+            localInstallParams.gravity = Gravity.START;
             mLocalInstallBtn.setLayoutParams(localInstallParams);
-            RelativeLayout.LayoutParams updateOnlineParams = (RelativeLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
-            updateOnlineParams.removeRule(RelativeLayout.ALIGN_PARENT_END);
-            updateOnlineParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+            FrameLayout.LayoutParams updateOnlineParams = (FrameLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
+            updateOnlineParams.gravity = Gravity.CENTER;
             mUpdateOnlineBtn.setLayoutParams(updateOnlineParams);
         }
     }
@@ -279,10 +293,10 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         }
     }
 
-    protected void showDebugHint(View debugHintView) {
+    protected PopupWindow showDebugHint(View debugHintView) {
         String hintText = getDebugHintText();
         if (TextUtils.isEmpty(hintText)) {
-            return;
+            return null;
         }
 
         PopupWindow popupWindow = new PopupWindow(getActivity());
@@ -301,6 +315,9 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         popupWindow.setFocusable(true);
         popupWindow.setContentView(content);
         popupWindow.showAsDropDown(debugHintView);
+
+        PreferenceUtils.setHasShownDebugHint(getActivity());
+        return popupWindow;
     }
 
     protected abstract String getDebugHintText();

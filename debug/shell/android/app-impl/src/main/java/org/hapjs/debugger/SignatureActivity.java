@@ -10,7 +10,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -348,8 +347,10 @@ public class SignatureActivity extends DraggableActivity {
             if (path.endsWith(".pem") || path.endsWith(".PEM")) {
                 String name = path.substring(path.lastIndexOf("/") + 1);
                 byte[] signature = SignatureUtils.getSignatureFromPem(this, uri);
-                displaySign(this, name, signature, null, null);
-                return;
+                if (signature != null) {
+                    displaySign(this, name, signature, null, null);
+                    return;
+                }
             }
         }
         Toast.makeText(this, R.string.toast_invalid_pem, Toast.LENGTH_SHORT).show();
@@ -377,23 +378,11 @@ public class SignatureActivity extends DraggableActivity {
         return new BitmapDrawable(bitmap);
     }
 
-    private static Drawable getIconDrawable(FragmentActivity activity, PackageInfo info) {
-        if (info.applicationInfo.icon != 0) {
-            try {
-                return activity.getPackageManager().getResourcesForApplication(info.applicationInfo)
-                        .getDrawable(info.applicationInfo.icon);
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.e(TAG, "failed to get icon from packageInfo: " + info, e);
-            }
-        }
-        return null;
-    }
-
     private static void getSignature(FragmentActivity activity, PackageInfo info) {
         if (info != null) {
             byte[] signature = info.signatures[0].toByteArray();
             CharSequence label = activity.getPackageManager().getApplicationLabel(info.applicationInfo);
-            Drawable icon = getIconDrawable(activity, info);
+            Drawable icon = info.applicationInfo.loadIcon(activity.getPackageManager());
             String appName = TextUtils.isEmpty(label) ? info.packageName : label.toString();
             String smsHash = SignatureUtils.getSMSHash(info.packageName, signature);
             displaySign(activity, appName, signature, icon, smsHash);
