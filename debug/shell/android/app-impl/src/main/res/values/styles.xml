@@ -5,7 +5,7 @@
     SPDX-License-Identifier: Apache-2.0
 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -17,6 +17,15 @@
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorPrimary">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/window_background</item>
+        <item name="android:statusBarColor" tools:targetApi="23">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+    </style>
+
+    <style name="AppTheme.InstalledApp" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
@@ -44,7 +53,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimary</item>
         <item name="colorAccent">#FF579CF8</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>>
+        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
     <style name="preference_dialog_style" parent="@style/dialog_style">
@@ -60,4 +69,10 @@
         <attr name="hint" format="string"/>
         <attr name="android:hint"/>
     </declare-styleable>
+
+    <style name="TabLayoutTextStyle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#4D000000</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

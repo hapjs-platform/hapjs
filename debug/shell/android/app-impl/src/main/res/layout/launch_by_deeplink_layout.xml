@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:orientation="vertical"
+    android:gravity="center_horizontal">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:drawableStart="@drawable/tip_icon"
+        android:drawablePadding="4dp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textSize="14dp"
+        android:textColor="#4D000000"
+        android:text="@string/launch_by_deeplink_desc"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp">
+        <EditText
+            android:id="@+id/deeplink"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:paddingHorizontal="14dp"
+            android:background="@drawable/edit_text_bg"
+            android:textSize="14sp"
+            android:singleLine="true"
+            android:hint="@string/hint_launch_deeplink"/>
+
+        <ImageView
+            android:id="@+id/clear_deeplink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="15dp"
+            android:src="@drawable/clear"
+            android:visibility="gone"/>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/btn_launch"
+        android:text="@string/btn_launch_app"
+        android:background="@drawable/btn_bg"
+        android:textSize="18sp"
+        android:textColor="#FFFFFFFF"
+        android:textStyle="bold"
+        android:paddingVertical="14dp"
+        android:gravity="center"
+        android:layout_marginTop="90dp"
+        android:layout_marginBottom="35dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>

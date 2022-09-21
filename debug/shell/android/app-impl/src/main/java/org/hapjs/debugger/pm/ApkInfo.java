@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,9 @@ public class ApkInfo {
 
     public static final String TYPE_DEBUGGER = "debugger";
     public static final String TYPE_PLATFORM = "platform";
+
+    private static final String DEBUGGER_PKG = "org.hapjs.debugger";
+    private static final String MOCKUP_PKG = "org.hapjs.mockup";
 
     private String type;
     private int versionCode;
@@ -45,5 +48,14 @@ public class ApkInfo {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPkg() {
+        if (TYPE_DEBUGGER.equals(type)) {
+            return DEBUGGER_PKG;
+        } else if (TYPE_PLATFORM.equals(type)) {
+            return MOCKUP_PKG;
+        }
+        return "";
     }
 }

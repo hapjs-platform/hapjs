@@ -1,145 +1,364 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginTop="16dp"
-    android:layout_marginRight="16dp"
-    android:orientation="vertical">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/text_platform"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/card_text_host"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/text_platform_hint_card"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall" />
-
-    <androidx.appcompat.widget.AppCompatSpinner
-        android:id="@+id/card_host_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/text_framework"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall" />
-
-    <TextView
-        android:id="@+id/card_text_platform"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/card_platform_version_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:visibility="gone"
-        tools:text="123" />
-
-    <TextView
-        android:id="@+id/card_platform_version_name_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:textAppearance="?android:attr/textAppearanceListItemSmall"
-        android:visibility="gone"
-        tools:text="123" />
+    android:layout_marginTop="18.7dp"
+    android:layout_marginHorizontal="16dp"
+    android:orientation="vertical"
+    android:id="@+id/app_layout">
 
     <LinearLayout
+        android:id="@+id/host_info_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+        <org.hapjs.debugger.widget.LastChildVisibleLinearLayout
+            android:id="@+id/host_info_primary_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="4.3dp"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/host_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FF000000"
+                android:textSize="27.3sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/host_pkg"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="4dp"
+                android:gravity="bottom"
+                android:textColor="#FF000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end"/>
+
+            <ImageView
+                android:id="@+id/host_spinner_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/arrow_down"/>
+        </org.hapjs.debugger.widget.LastChildVisibleLinearLayout>
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/platform_pkg_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/text_enable_usb_debug"
-            android:textAppearance="?android:attr/textAppearanceListItemSmall"
-            android:textStyle="bold" />
+            android:textColor="#4D000000"
+            android:textSize="12sp" />
 
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/usb_debug_switch"
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/platform_version_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp" />
+            android:textColor="#4D000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/platform_version_name_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#4D000000"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/card_btnScanInstall"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_scan_install" />
-
-    <Button
-        android:id="@+id/card_btnLocalInstall"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_local_install" />
-
-    <Button
-        android:id="@+id/card_btnUpdateOnline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_update_online" />
-
     <TextView
-        android:id="@+id/card_txtDebuggablePackage"
+        android:id="@+id/no_host_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="@string/toast_no_debuggable_package" />
+        android:textColor="#FF000000"
+        android:textSize="16sp"
+        android:text="@string/text_platform_hint_card"
+        android:visibility="gone" />
 
     <LinearLayout
-        android:id="@+id/cards_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <androidx.appcompat.widget.AppCompatSpinner
-            android:id="@+id/cards_spinner"
-            android:layout_width="0dip"
-            android:layout_height="32dp"
-            android:layout_marginBottom="8dp"
-            android:layout_weight="1" />
-
-        <Button
-            android:id="@+id/card_btnStartDebugging"
-            android:layout_width="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/card_bg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="25.3dp"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_start_debug" />
+            android:gravity="center"
+            android:orientation="horizontal">
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/text_enable_usb_debug"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#FF000000"/>
+
+            <TextView
+                android:id="@+id/usb_state_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:textSize="12sp"
+                android:textColor="#4D000000"/>
+
+            <Switch
+                android:id="@+id/usb_debug_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:thumb="@drawable/switch_thumb"
+                android:track="@drawable/switch_track" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="7.7dp" >
+            <TextView
+                android:id="@+id/btn_scan_install"
+                android:drawableTop="@drawable/scan_install"
+                android:text="@string/btn_scan_install"
+                android:textSize="12sp"
+                android:textColor="#9A000000"
+                android:gravity="center"
+                android:layout_alignParentStart="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/btn_local_install"
+                android:drawableTop="@drawable/local_install"
+                android:text="@string/btn_local_install"
+                android:textSize="12sp"
+                android:textColor="#9A000000"
+                android:gravity="center"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/btn_update_online"
+                android:drawableTop="@drawable/update_online"
+                android:text="@string/btn_update_online"
+                android:textSize="12sp"
+                android:textColor="#9A000000"
+                android:gravity="center"
+                android:layout_alignParentEnd="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/card_bg"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12.7dp"
+            android:paddingBottom="10dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/debug_pkg_info_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <org.hapjs.debugger.widget.LastChildVisibleLinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/debug_card"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#FF000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/card_spinner_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:src="@drawable/card_arrow_down"/>
+                </org.hapjs.debugger.widget.LastChildVisibleLinearLayout>
+                <TextView
+                    android:id="@+id/debug_pkg_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#4D000000"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_no_debuggable_pkg"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="#4D000000"
+                android:textSize="14sp"
+                android:text="@string/toast_no_debuggable_package" />
+
+            <TextView
+                android:id="@+id/btn_start_debugging"
+                android:text="@string/btn_start_debug"
+                android:background="@drawable/btn_bg"
+                android:textSize="13sp"
+                android:textColor="#FFFFFF"
+                android:paddingVertical="7dp"
+                android:paddingHorizontal="11dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/debug_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="12dp"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="9dp"
+            android:background="@drawable/card_bg"
+            android:drawableTop="@drawable/debug_hint"
+            android:drawablePadding="5dp"
+            android:textSize="10sp"
+            android:textColor="#4D000000"
+            android:text="@string/btn_debug_hint"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/card_bg"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/launch_app_test_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingVertical="10.3dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="11dp"
+            android:clickable="true"
+            android:background="@drawable/center_press_bg">
+            <ImageView
+                android:id="@+id/launch_app_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/launch_app_icon"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF000000"
+                    android:textSize="14sp"
+                    android:text="@string/menu_label_launch_app_test"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#4D000000"
+                    android:textSize="12sp"
+                    android:text="@string/launch_app_test_detail"/>
+            </LinearLayout>
+            <ImageView
+                android:id="@+id/go_test_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/go_arrow"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/get_sign_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingVertical="10.3dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="11dp"
+            android:clickable="true"
+            android:background="@drawable/bottom_press_bg">
+            <ImageView
+                android:id="@+id/get_sign_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/get_sign_icon"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FF000000"
+                    android:textSize="14sp"
+                    android:text="@string/get_signature_label"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#4D000000"
+                    android:textSize="12sp"
+                    android:text="@string/get_sign_detail"/>
+            </LinearLayout>
+            <ImageView
+                android:id="@+id/go_get_sign_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/go_arrow"/>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
