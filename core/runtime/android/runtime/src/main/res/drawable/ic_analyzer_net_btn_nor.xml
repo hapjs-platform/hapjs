@@ -1,0 +1,22 @@
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<vector android:height="33dp" android:viewportHeight="99"
+    android:viewportWidth="99" android:width="33dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="#333333" android:fillType="evenOdd"
+        android:pathData="M18,0L81,0A18,18 0,0 1,99 18L99,81A18,18 0,0 1,81 99L18,99A18,18 0,0 1,0 81L0,18A18,18 0,0 1,18 0z"
+        android:strokeColor="#00000000" android:strokeWidth="1"/>
+    <path android:fillColor="#00000000" android:fillType="evenOdd"
+        android:pathData="M49,50m14,-24.2487a28,28 72.5751,1 1,-28 48.4974a28,28 72.5751,1 1,28 -48.4974"
+        android:strokeColor="#FFFFFF" android:strokeWidth="4"/>
+    <path android:fillColor="#00000000" android:fillType="evenOdd"
+        android:pathData="M43,31C39,36.5218 37,42.6885 37,49.5C37,56.3115 39,62.4782 43,68"
+        android:strokeColor="#FFFFFF" android:strokeLineCap="round" android:strokeWidth="4"/>
+    <path android:fillColor="#00000000" android:fillType="evenOdd"
+        android:pathData="M55,31C59,36.5218 61,42.6885 61,49.5C61,56.3115 59,62.4782 55,68"
+        android:strokeColor="#FFFFFF" android:strokeLineCap="round" android:strokeWidth="4"/>
+    <path android:fillColor="#00000000" android:fillType="evenOdd"
+        android:pathData="M29,50L69,50" android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round" android:strokeWidth="4"/>
+</vector>

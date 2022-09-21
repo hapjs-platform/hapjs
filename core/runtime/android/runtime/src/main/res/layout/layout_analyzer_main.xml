@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/analyzer_main_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/analyzer_main_container_top"
+        android:layout_width="match_parent"
+        android:layout_height="199dp"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/analyzer_main_container_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="55dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/analyzer_main_center_line"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintVertical_weight="1"
+        tools:layout_editor_absoluteX="0dp" />
+
+    <View
+        android:id="@+id/analyzer_main_center_line"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="203dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/analyzer_main_menu_quota_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/analyzer_main_center_line">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/analyzer_main_quota_panel"
+            android:layout_width="187dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/ic_analyzer_quota_bg"
+            android:minHeight="52dp"
+            android:paddingStart="11dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="7dp"
+            android:paddingBottom="5dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/launch_panel_line_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toTopOf="@+id/launch_panel_line_2"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:id="@+id/launch_panel_cpu_item"
+                    android:layout_width="65dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toStartOf="@id/launch_panel_memory_item"
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <TextView
+                        android:id="@+id/launch_panel_frame_title"
+                        android:layout_width="28dp"
+                        android:layout_height="match_parent"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_frame_fps"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/launch_panel_frame_value"
+                        android:layout_width="35dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="2dp"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_unknown"
+                        android:textColor="#fff"
+                        android:textSize="11sp"
+                        tools:text="120" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/launch_panel_memory_item"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toTopOf="@id/launch_panel_page_forward_time_item"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/launch_panel_cpu_item"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/launch_panel_memory_title"
+                        android:layout_width="32dp"
+                        android:layout_height="match_parent"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_mem"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/launch_panel_memory_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="2dp"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_unknown"
+                        android:textColor="#fff"
+                        android:textSize="11sp"
+                        tools:text="1000M" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/launch_panel_line_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/launch_panel_line_3"
+                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_1">
+
+                <LinearLayout
+                    android:id="@+id/launch_panel_fps_item"
+                    android:layout_width="65dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/launch_panel_page_forward_time_item"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/launch_panel_cpu_item">
+
+                    <TextView
+                        android:id="@+id/launch_panel_feature_invoke_title"
+                        android:layout_width="28dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_feature_invoke"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/launch_panel_feature_invoke_value"
+                        android:layout_width="35dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_unknown"
+                        android:textColor="#fff"
+                        android:textSize="11sp"
+                        tools:text="120" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/launch_panel_page_forward_time_item"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/launch_panel_fps_item"
+                    app:layout_constraintTop_toBottomOf="@+id/launch_panel_memory_item">
+
+                    <TextView
+                        android:id="@+id/launch_panel_cpu_title"
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_cpu"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/launch_panel_cpu_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:ellipsize="end"
+                        android:gravity="start"
+                        android:lines="1"
+                        android:text="@string/analyzer_unknown"
+                        android:textColor="#fff"
+                        android:textSize="11sp"
+                        tools:text=">99.9%" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/launch_panel_line_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/launch_panel_line_2">
+
+                <TextView
+                    android:id="@+id/launch_panel_page_forward_time_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:lines="1"
+                    android:text="@string/analyzer_page_switch_time"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/launch_panel_page_forward_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:lines="1"
+                    android:text="@string/analyzer_unknown"
+                    android:textColor="#fff"
+                    android:textSize="11sp"
+                    tools:text=">999.9ms" />
+
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/analyzer_main_menu_logo_container"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/analyzer_main_menu_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:background="@drawable/ic_analyzer_main_bar_bg_right"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <RelativeLayout
+                    android:id="@+id/btn_analyzer_buttons_collapse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="12dp">
+
+                    <View
+                        android:layout_width="5dp"
+                        android:layout_height="20dp"
+                        android:layout_centerVertical="true"
+                        android:background="@drawable/ic_analyzer_sliding_panel_line" />
+                </RelativeLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:id="@+id/analyzer_main_menu_buttons"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="10dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/btn_analyzer_quota"
+                            android:layout_width="33dp"
+                            android:layout_height="33dp"
+                            app:srcCompat="@drawable/selector_analyzer_quota_btn" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/btn_analyzer_view3d"
+                            android:layout_width="33dp"
+                            android:layout_height="33dp"
+                            android:layout_marginStart="10dp"
+                            app:srcCompat="@drawable/selector_analyzer_view3d_btn" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/btn_analyzer_view_inspector"
+                            android:layout_width="33dp"
+                            android:layout_height="33dp"
+                            android:layout_marginStart="10dp"
+                            app:srcCompat="@drawable/selector_analyzer_inspector_btn" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/btn_analyzer_console"
+                            android:layout_width="33dp"
+                            android:layout_height="33dp"
+                            android:layout_marginStart="10dp"
+                            app:srcCompat="@drawable/selector_analyzer_log_btn" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/btn_analyzer_network"
+                            android:layout_width="33dp"
+                            android:layout_height="33dp"
+                            android:layout_marginStart="10dp"
+                            app:srcCompat="@drawable/selector_analyzer_net_btn" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/analyzer_main_logo_btn_container"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/ic_analyzer_main_bar_bg_right"
+                android:gravity="center"
+                android:visibility="visible">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/launch_logo_btn"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:srcCompat="@drawable/selector_analyzer_logo_btn" />
+            </RelativeLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

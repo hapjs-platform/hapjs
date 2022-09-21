@@ -45,6 +45,7 @@ public class DebugService extends Service {
     public static final String EXTRA_SERIAL_NUMBER = "serialNumber";
     public static final String EXTRA_PLATFORM_VERSION_CODE = "platformVersionCode";
     public static final String EXTRA_WEB_DEBUG_ENABLED = "webDebugEnabled";
+    public static final String EXTRA_USE_ANALYZER = "useAnalyzer";
     public static final String EXTRA_DEBUG_TARGET = "debugTarget";
     public static final String EXTRA_SENTRY_TRACE_ID = "sentryTraceId";
     private static final String TAG = "DebugService";
@@ -102,7 +103,8 @@ public class DebugService extends Service {
         String path = params.getString(EXTRA_PATH);
         boolean shouldReload = params.getBoolean(EXTRA_SHOULD_RELOAD);
         boolean webDebugEnabled = params.getBoolean(EXTRA_WEB_DEBUG_ENABLED);
-        boolean result = launchPackage(pkg, path, shouldReload, webDebugEnabled);
+        boolean useAnalyzer = params.getBoolean(EXTRA_USE_ANALYZER);
+        boolean result = launchPackage(pkg, path, shouldReload, webDebugEnabled, useAnalyzer);
         Bundle data = new Bundle();
         data.putString(EXTRA_PACKAGE, pkg);
         data.putString(EXTRA_PATH, path);
@@ -118,12 +120,13 @@ public class DebugService extends Service {
     }
 
     private boolean launchPackage(
-            String pkg, String path, boolean shouldReload, boolean webDebugEnabled) {
+            String pkg, String path, boolean shouldReload, boolean webDebugEnabled, boolean useAnalyzer) {
         if (TextUtils.isEmpty(pkg)) {
             Log.e(TAG, "Invalid package: " + pkg);
             return false;
         }
 
+        path = DebugUtils.appendAnalyzerParam(pkg, path, useAnalyzer);
         Intent intent = new Intent(IntentUtils.getLaunchAction(this));
         intent.putExtra(RuntimeActivity.EXTRA_APP, pkg);
         intent.putExtra(RuntimeActivity.EXTRA_PATH, path);
@@ -148,6 +151,7 @@ public class DebugService extends Service {
         String serialNumber = params.getString(EXTRA_SERIAL_NUMBER);
         int platformVersionCode = params.getInt(EXTRA_PLATFORM_VERSION_CODE);
         boolean enableWebDebug = params.getBoolean(EXTRA_WEB_DEBUG_ENABLED);
+        boolean useAnalyzer = params.getBoolean(EXTRA_USE_ANALYZER);
         String traceId = params.getString(EXTRA_SENTRY_TRACE_ID, "");
         boolean result =
                 debugPackage(
@@ -160,7 +164,8 @@ public class DebugService extends Service {
                         waitDevTools,
                         enableWebDebug,
                         debugTarget,
-                        traceId);
+                        traceId,
+                        useAnalyzer);
         Bundle data = new Bundle();
         data.putString(EXTRA_PACKAGE, pkg);
         data.putString(EXTRA_PATH, path);
@@ -185,12 +190,12 @@ public class DebugService extends Service {
             boolean waitDevTools,
             boolean webDebugEnabled,
             String debugTarget,
-            String traceId) {
+            String traceId,
+            boolean useAnalyzer) {
         if (TextUtils.isEmpty(pkg)) {
             Log.e(TAG, "Invalid package: " + pkg);
             return false;
         }
-
         Intent intent = new Intent(IntentUtils.getLaunchAction(this));
         intent.putExtra(RuntimeActivity.EXTRA_APP, pkg);
         intent.putExtra(RuntimeActivity.EXTRA_MODE, RuntimeActivity.MODE_CLEAR_TASK);
@@ -211,6 +216,9 @@ public class DebugService extends Service {
                             waitDevTools,
                             debugTarget,
                             traceId);
+        }
+        path = DebugUtils.appendAnalyzerParam(pkg, path, useAnalyzer);
+        if (!TextUtils.isEmpty(path)) {
             intent.putExtra(RuntimeActivity.EXTRA_PATH, path);
         }
         intent.putExtra(RuntimeActivity.EXTRA_FROM_DEBUGGER, true);

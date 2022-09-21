@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
     Copyright (c) 2021, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
@@ -65,4 +64,31 @@
     <string name="quick_app_open_native">正在打开“%s”APP，确认打开？</string>
     <string name="quick_app_open_quick_app_with_target">%1$s即将打开%2$s</string>
     <string name="quick_app_open_quick_app">即将离开%s，打开其他快应用</string>
+
+    <!--analyzer-->
+    <string name="analyzer_log_filter_hint">过滤查询</string>
+    <string name="analyzer_log_filter_collapse">收起</string>
+    <plurals name="analyzer_number_warning_message">
+        <item quantity="other">%1$d条提示</item>
+    </plurals>
+    <plurals name="analyzer_number_error_message">
+        <item quantity="other">%1$d条错误</item>
+    </plurals>
+    <plurals name="analyzer_notice_expand_tips">
+        <item quantity="other">提示：总共%1$d条消息</item>
+    </plurals>
+    <string name="analyzer_notice_min_warn_error_message_tips">有%1$s，%2$s</string>
+    <string name="analyzer_more_text_tip">更多</string>
+    <string name="analyzer_less_text_tip">收起</string>
+    <string name="analyzer_inspector_vdom_check_warning">[%1$s] 布局过深,vdom深度为%2$d，建议不超过%3$d层</string>
+    <string name="analyzer_inspector_native_check_warning">[%1$s] 布局过深,原生视图深度为%2$d，建议不超过%3$d层</string>
+    <string name="analyzer_feature_invoke_check_warning">[%1$s] 创建期间Feature调用%2$d次，建议不超过%3$d</string>
+    <string name="analyzer_image_check_warning">[%1$s] image组件图片过大,建议裁剪。原图[%2$s]，实际使用[%3$s]，图片资源:%4$s</string>
+    <string name="analyzer_outer_view_warning">[%1$s] 屏幕外渲染过多视图，建议懒加载</string>
+    <string name="analyzer_irregular_listitem_type_warning">[%1$s] 不规范的type值!请为不同dom结构的list-item设置不同的type</string>
+    <string name="analyzer_outer_view_warning_toast">过多视图超出屏幕范围（蓝色标记）之外</string>
+    <string name="analyzer_notice_copy_success">规范检测信息已复制至剪切板</string>
+    <string name="analyzer_net_init_fail_info">网络面板初始化失败，尝试</string>
+    <string name="analyzer_network_retry_kill_process"><u>停止当前进程</u></string>
+    <string name="analyzer_network_retry_reopen">， 然后打开调试器，重新开始调试。</string>
 </resources>

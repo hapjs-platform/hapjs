@@ -52,6 +52,9 @@ android {
             buildConfigField "String", "platformVersionName", "\"" + PLATFORM_VERSION_NAME + "\""
         }
     }
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
+    }
 }
 
 dependencies {
@@ -87,6 +90,8 @@ dependencies {
     api fileTree(dir: 'jsenv-libs', include: [jsenv])
     // api fileTree(include: ['*.aar'], dir: '/yourproject/build/outputs/aar')
     implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
+    implementation "androidx.constraintlayout:constraintlayout:${rootProject.androidXconstraintlayoutVersion}"
+    implementation "com.google.android.material:material:${rootProject.androidXVersion}"
 }
 
 apply plugin: 'com.moowork.node'

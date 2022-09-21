@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@drawable/ic_analyzer_panel_top_bg">
+
+    <RelativeLayout
+        android:id="@+id/btn_analyzer_inspector_ctl_line"
+        android:layout_width="match_parent"
+        android:layout_height="26dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <View
+            android:layout_width="52dp"
+            android:layout_height="5dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/ic_analyzer_sliding_panel_line" />
+    </RelativeLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="33dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:id="@+id/analyzer_inspector_top_button_group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_analyzer_inspector_ctl_line">
+        <LinearLayout
+            android:id="@+id/analyzer_inspector_type"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/ic_analyzer_inspector_type_bg"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toStartOf="@+id/btn_analyzer_inspector_refresh"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                android:id="@+id/btn_analyzer_inspector_vdom"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_analyzer_inspector_type_btn_bg"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="2dp"
+                android:text="@string/analyzer_inspector_type_vdom"
+                android:textColor="#ffffff"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/btn_analyzer_inspector_native"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/selector_analyzer_inspector_type_btn_bg"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="2dp"
+                android:text="@string/analyzer_inspector_type_native"
+                android:textColor="#ffffff"
+                android:textSize="14sp"
+                app:layout_constraintStart_toEndOf="@id/btn_analyzer_inspector_vdom"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/btn_analyzer_inspector_refresh"
+            android:layout_width="33dp"
+            android:layout_height="33dp"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/analyzer_inspector_type"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/selector_analyzer_refresh_btn" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/analyzer_inspector_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/analyzer_inspector_top_button_group"
+        app:layout_constraintVertical_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:orientation="horizontal">
+
+            <org.hapjs.analyzer.views.CSSBox
+                android:id="@+id/analyzer_inspector_cssbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="5dp"
+                android:paddingStart="5dp"
+                android:id="@+id/analyzer_inspector_attr_display_container"
+                android:layout_weight="1">
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:id="@+id/analyzer_inspector_attr_display"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="160dp"
+                        android:orientation="vertical"/>
+                </HorizontalScrollView>
+            </androidx.core.widget.NestedScrollView>
+
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:id="@+id/analyzer_inspector_vdom_native_container">
+
+            <HorizontalScrollView
+                android:id="@+id/analyzer_inspector_vdom_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:paddingBottom="5dp">
+
+                <org.hapjs.analyzer.views.tree.RecyclerTreeView
+                    android:id="@+id/analyzer_inspector_vdom_tree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </HorizontalScrollView>
+
+
+            <HorizontalScrollView
+                android:id="@+id/analyzer_inspector_native_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:visibility="gone">
+
+                <org.hapjs.analyzer.views.tree.RecyclerTreeView
+                    android:id="@+id/analyzer_inspector_native_tree"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </HorizontalScrollView>
+
+
+        </FrameLayout>
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,11 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hapjs.analyzer.model.NoticeMessage;
+import org.hapjs.analyzer.tools.AnalyzerHelper;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.YogaLayout;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.R;
 
 public abstract class Container<T extends View> extends Component<T> {
     private static final String TAG = "Container";
@@ -591,6 +595,7 @@ public abstract class Container<T extends View> extends Component<T> {
             }
 
             int i = 0;
+            boolean differentDom = false;
             for (; i < mChildren.size(); i++) {
                 RecyclerDataItem childItem = mChildren.get(i);
 
@@ -605,6 +610,7 @@ public abstract class Container<T extends View> extends Component<T> {
                     container.removeChild(child);
                     child.destroy();
                     child = null;
+                    differentDom = true;
                 }
                 if (child == null) {
                     child = childItem.createRecycleComponent(container);
@@ -623,6 +629,26 @@ public abstract class Container<T extends View> extends Component<T> {
                 if (child != null) {
                     container.removeChild(child);
                     child.destroy();
+                }
+            }
+            handleAnalyzerPanelDetect(container, differentDom);
+        }
+
+        private void handleAnalyzerPanelDetect(Container container, boolean differentDom) {
+            if (AnalyzerHelper.getInstance().isInAnalyzerMode() && differentDom) {
+                Page currentPage = AnalyzerHelper.getInstance().getCurrentPage();
+                if (currentPage != null) {
+                    RecyclerItem parent = getParent();
+                    while (parent != null) {
+                        ComponentCreator componentCreator = parent.getComponentCreator();
+                        if (componentCreator != null && TextUtils.equals(componentCreator.getClazz().getSimpleName(), "List")) {
+                            NoticeMessage warn = NoticeMessage.warn(currentPage.getName(), container.mContext.getString(R.string.analyzer_irregular_listitem_type_warning, currentPage.getName()));
+                            warn.setAction(new NoticeMessage.UIAction.Builder().pageId(currentPage.getPageId()).addComponentId(parent.getRef()).build());
+                            AnalyzerHelper.getInstance().notice(warn);
+                            break;
+                        }
+                        parent = parent.getParent();
+                    }
                 }
             }
         }

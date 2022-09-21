@@ -67,4 +67,64 @@
     <string name="quick_app_open_native">Opening app "%s",confirm to open?</string>
     <string name="quick_app_open_quick_app_with_target">%1$s is about to open %2$s</string>
     <string name="quick_app_open_quick_app">You are about to leave %s and open other quick apps</string>
+
+    <!--analyzer-->
+    <string name="analyzer_unknown" translatable="false">-</string>
+    <string name="analyzer_cpu" translatable="false">CPU</string>
+    <string name="analyzer_mem" translatable="false">MEM</string>
+    <string name="analyzer_frame_fps" translatable="false">FPS</string>
+    <string name="analyzer_page_switch_time" translatable="false">PageTime</string>
+    <string name="analyzer_feature_invoke" translatable="false">API</string>
+    <string name="analyzer_inspector_type_vdom" translatable="false">vdom</string>
+    <string name="analyzer_inspector_type_native" translatable="false">native</string>
+    <string name="analyzer_log_type_js" translatable="false">JS</string>
+    <string name="analyzer_log_type_native" translatable="false">NA</string>
+    <string name="analyzer_log_level_verbose" translatable="false">verbose</string>
+    <string name="analyzer_log_level_debug" translatable="false">debug</string>
+    <string name="analyzer_log_level_info" translatable="false">info</string>
+    <string name="analyzer_log_level_warning" translatable="false">warning</string>
+    <string name="analyzer_log_level_error" translatable="false">error</string>
+    <string name="analyzer_log_filter_hint">Filtered search</string>
+    <string name="analyzer_log_filter_collapse">Hide</string>
+    <plurals name="analyzer_number_warning_message">
+        <item quantity="one">%1$d notification</item>
+        <item quantity="other">%1$d notifications</item>
+    </plurals>
+    <plurals name="analyzer_number_error_message">
+        <item quantity="one">%1$d error</item>
+        <item quantity="other">%1$d errors</item>
+    </plurals>
+    <plurals name="analyzer_notice_expand_tips">
+        <item quantity="one">%1$d message</item>
+        <item quantity="other">%1$d messages</item>
+    </plurals>
+    <string name="analyzer_notice_min_warn_error_message_tips">%1$s, %2$s</string>
+    <string name="analyzer_more_text_tip">More</string>
+    <string name="analyzer_less_text_tip">Hide</string>
+    <string name="analyzer_inspector_vdom_check_warning">[%1$s] The depth of vdom is %2$d. Don\'t go over %3$d layers.</string>
+    <string name="analyzer_inspector_native_check_warning">[%1$s] The native view level is %2$d. Don\'t go over %3$d layers.</string>
+    <string name="analyzer_feature_invoke_check_warning">[%1$s] The features are invoked %2$d times when the page is being created. Don\'t exceed %3$d.</string>
+    <string name="analyzer_image_check_warning">[%1$s] Large picture is applied to image component. Original size: [%2$s]. Used size: [%3$s]. Source: %4$s.</string>
+    <string name="analyzer_outer_view_warning">[%1$s] Too many views rendered out of the screen. Use lazy loading.</string>
+    <string name="analyzer_irregular_listitem_type_warning">[%1$s] Use different list-item types with different dom.</string>
+    <string name="analyzer_outer_view_warning_toast">Too many views are outside the screen (marked in blue)</string>
+    <string name="analyzer_notice_copy_success">Copied regular inspection info to clipboard</string>
+    <string name="analyzer_net_detail_general" translatable="false">General</string>
+    <string name="analyzer_net_detail_timing" translatable="false">Timing</string>
+    <string name="analyzer_net_detail_time_stalled" translatable="false">Stalled:</string>
+    <string name="analyzer_net_time_download" translatable="false">Content download:</string>
+    <string name="analyzer_net_time_total" translatable="false">Total:</string>
+    <string name="analyzer_net_response" translatable="false">Response</string>
+    <string name="analyzer_net_response_toolong_warn" translatable="false">The text is too long to display fully!</string>
+    <string name="analyzer_net_preview" translatable="false">Preview</string>
+    <string name="analyzer_net_preview_no" translatable="false">Nothing to preview.</string>
+    <string name="analyzer_net_detail_time_start" translatable="false">Queued/Started at:</string>
+    <string name="analyzer_net_list_name" translatable="false">Name</string>
+    <string name="analyzer_net_list_type" translatable="false">Type</string>
+    <string name="analyzer_net_list_size" translatable="false">Size</string>
+    <string name="analyzer_net_list_time" translatable="false">Time</string>
+    <string name="analyzer_net_list_waterfall" translatable="false">Waterfall</string>
+    <string name="analyzer_net_init_fail_info">Couldn\'t initialize network. Try the following:\u0020</string>
+    <string name="analyzer_network_retry_kill_process"><u>kill current process</u></string>
+    <string name="analyzer_network_retry_reopen">, and start debugging again.</string>
 </resources>

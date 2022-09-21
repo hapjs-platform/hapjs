@@ -52,6 +52,14 @@ public class PageManager {
         mPageCache = new PageCache(mPageChangedListener);
     }
 
+    public void setPageChangedListener(PageChangedListener pageChangedListener) {
+        mPageChangedListener = pageChangedListener;
+    }
+
+    public PageChangedListener getPageChangedListener() {
+        return mPageChangedListener;
+    }
+
     public AppInfo getAppInfo() {
         return mAppInfo;
     }
