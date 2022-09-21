@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,7 +26,8 @@ import {
   getElementStyles,
   setElementStyles,
   setElementAttrs,
-  compileFragmentData
+  compileFragmentData,
+  processNextTickCallbacks
 } from './page/misc'
 
 import config from './config'
@@ -281,6 +282,27 @@ function processCallbacks(id, events) {
     return results
   }
   return new Error(`processCallbacks: 无效回调来源Id "${id}"`)
+}
+
+/**
+ * 处理原生在渲染节点和页面时的回调函数
+ * @param pageId 页面id
+ * @param type render hook 类型
+ * @param args 客户端回调的其他参数
+ */
+function processRenderHooks(pageId, type, args) {
+  switch (type) {
+    case 'updateFinish':
+      processNextTickCallbacks(_pageMap[pageId], args)
+      break
+    case 'createFinish':
+      processNextTickCallbacks(_pageMap[pageId], args)
+      break
+    case 'nodeMounted':
+    case 'nodeUpdate':
+    case 'nodeDestroy':
+      break
+  }
 }
 
 /**
@@ -864,6 +886,7 @@ const dock = {
   orientationChangePage,
   refreshPage,
   processCallbacks,
+  processRenderHooks,
   getAppConfig,
   getPageRoot,
   getPage,
