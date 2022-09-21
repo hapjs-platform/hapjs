@@ -8,8 +8,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:clipChildren="false">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,7 +45,7 @@
                 android:visibility="gone"/>
         </FrameLayout>
 
-        <TextView
+        <org.hapjs.debugger.widget.BlurShadowButton
             android:id="@+id/btn_get_sign"
             android:text="@string/btn_get_sign"
             android:background="@drawable/btn_bg"
@@ -55,19 +57,20 @@
             android:gravity="center"
             android:enabled="false"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            app:corner_radius="16dp"
+            style="@style/ButtonShadowBackground"/>
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginVertical="30dp"
-        android:orientation="horizontal">
+        android:layout_marginHorizontal="16dp">
         <FrameLayout
             android:id="@+id/selected_install_app"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" >
+            android:layout_width="155dp"
+            android:layout_height="145dp" >
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -77,17 +80,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="16dp"
-                android:layout_marginHorizontal="32dp"
+                android:layout_marginHorizontal="16dp"
                 android:text="@string/btn_choose_native_app"
                 android:textSize="14dp"
-                android:textColor="#FF579CF8"/>
+                android:textColor="#FFFF9957"/>
         </FrameLayout>
 
         <FrameLayout
             android:id="@+id/selected_apk"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" >
+            android:layout_width="155dp"
+            android:layout_height="145dp"
+            android:layout_alignParentEnd="true">
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -98,10 +101,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="16dp"
-                android:layout_marginHorizontal="32dp"
+                android:layout_marginHorizontal="16dp"
                 android:text="@string/btn_choose_apk_file"
                 android:textSize="14dp"
                 android:textColor="#FF579CF8"/>
         </FrameLayout>
-    </LinearLayout>
+    </RelativeLayout>
 </LinearLayout>

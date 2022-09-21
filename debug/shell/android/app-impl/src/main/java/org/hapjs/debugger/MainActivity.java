@@ -6,6 +6,7 @@
 package org.hapjs.debugger;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -13,7 +14,8 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.appbar.AppBarLayout;
 
@@ -22,7 +24,7 @@ import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.debug.CardDebugManager;
 import org.hapjs.debugger.fragment.DebugFragmentManager;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
     private static final String KEY_RPK_ADDRESS = "rpk_address";
     private DebugFragmentManager mDebugFragmentManager;
@@ -41,13 +43,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initViews() {
         ((AppBarLayout) findViewById(R.id.app_bar_layout)).setOutlineProvider(null);
 
-        mDebugFragmentManager = new DebugFragmentManager(this, R.id.container);
+        ViewPager2 pager = findViewById(R.id.pager);
+        mDebugFragmentManager = new DebugFragmentManager(this, pager);
         mDebugFragmentManager.showDebugFragment(getIntent());
 
         findViewById(R.id.app_mode_title).setOnClickListener(this);
         findViewById(R.id.card_mode_title).setOnClickListener(this);
         int mode = mDebugFragmentManager.getMode();
         updateTitleStyle(mode == 0);
+        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateTitleStyle(position == 0);
+            }
+        });
 
         findViewById(R.id.setting).setOnClickListener(this);
     }
@@ -107,15 +117,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (isAppMode) {
             appModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_selected_text_size));
             appModeTitle.setTextColor(getResources().getColor(R.color.mode_selected_color));
+            appModeTitle.setTypeface(null, Typeface.BOLD);
             cardModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_unselected_text_size));
             cardModeTitle.setTextColor(getResources().getColor(R.color.mode_unselected_color));
+            appModeTitle.setTypeface(null, Typeface.NORMAL);
             appModeBottomLine.setVisibility(View.VISIBLE);
             cardModeBottomLine.setVisibility(View.GONE);
         } else {
             appModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_unselected_text_size));
             appModeTitle.setTextColor(getResources().getColor(R.color.mode_unselected_color));
+            appModeTitle.setTypeface(null, Typeface.NORMAL);
             cardModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_selected_text_size));
             cardModeTitle.setTextColor(getResources().getColor(R.color.mode_selected_color));
+            appModeTitle.setTypeface(null, Typeface.BOLD);
             appModeBottomLine.setVisibility(View.GONE);
             cardModeBottomLine.setVisibility(View.VISIBLE);
         }

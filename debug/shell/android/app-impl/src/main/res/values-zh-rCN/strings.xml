@@ -22,6 +22,8 @@
     <string name="launch_app_test_detail">带参启动指定页面或通过deeplink启动应用</string>
     <string name="get_sign_detail">获取原生应用或快应用的签名</string>
 
+    <string name="btn_installed">已安装</string>
+
     <string name="hint_fail_to_bind_service">无法启动【快应用预览版】，请在系统权限管理相关设置页面中将【关联启动】/【自启动】权限授予【快应用预览版】，或者手动打开【快应用预览版】。</string>
     <string name="hint_no_response_vivo">若调试无响应，请前往手机系统设置“权限管理”页面，将“关联启动”和“后台弹出界面”权限授予“%1$s”。</string>
     <string name="hint_no_response_xiaomi">若调试无响应，请前往手机系统设置“应用管理”页面，将“自启动权限“权限授予“%1$s”。</string>
@@ -87,8 +89,8 @@
     <string name="text_enable_analyzer">开启性能面板</string>
     <string name="text_framework">运行框架: %s</string>
     <string name="text_version_not_support_card">框架版本不支持卡片: %s</string>
-    <string name="text_platform_hint_app">请安装最新预览版</string>
-    <string name="text_platform_hint_card">请安装最新预览版并允许调试器自启动</string>
+    <string name="text_platform_hint">请在【平台下载】中下载最新预览版平台，并允许调试器自启动</string>
+
 
     <string name="setting_category_general">通用</string>
     <string name="setting_item_server_title">服务器设置</string>
