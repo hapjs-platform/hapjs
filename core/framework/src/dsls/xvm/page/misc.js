@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -49,7 +49,8 @@ function updatePageActions(page) {
   const hasActions = execPageTasks(page)
   // 发送更新结束标识
   if (hasActions) {
-    page.doc.listener.updateFinish()
+    const hasCallbacks = page ? page.nextTickCallbacks.length > 0 : false
+    page.doc.listener.updateFinish(null, hasCallbacks)
   }
 }
 
