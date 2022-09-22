@@ -27,7 +27,8 @@ import {
   setElementStyles,
   setElementAttrs,
   compileFragmentData,
-  processNextTickCallbacks
+  processNextTickCallbacks,
+  processCustomDirectiveCallback
 } from './page/misc'
 
 import config from './config'
@@ -301,6 +302,8 @@ function processRenderHooks(pageId, type, args) {
     case 'nodeMounted':
     case 'nodeUpdate':
     case 'nodeDestroy':
+      // 处理节点上的自定义指令回调
+      processCustomDirectiveCallback(_pageMap[pageId], type, args)
       break
   }
 }

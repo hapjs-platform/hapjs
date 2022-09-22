@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,6 +28,7 @@ class XApp extends ModuleHost {
     this.customComponentMap = {} // 自定义组件表
     this._def = null // App 定义信息（来自app文件）
     this._data = {} // 全局数据定义
+    this._directive = options.directive || {} // 全局自定义指令定义
     this._events = {} // 绑定事件
     this._valid = true
     this._plugins = []
