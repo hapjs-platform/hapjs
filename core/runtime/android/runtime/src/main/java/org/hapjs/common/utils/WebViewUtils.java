@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,11 +10,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.WebView;
 import androidx.annotation.RequiresApi;
+import androidx.collection.ArraySet;
 import java.io.File;
 import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class WebViewUtils {
 
@@ -88,5 +93,107 @@ public class WebViewUtils {
             resultFileList = new Uri[]{data.getData()};
         }
         return resultFileList;
+    }
+
+    /**
+     * 检查WebView与H5通信的安全性
+     * @param webView
+     * @param url
+     * @param trustedUrls
+     * @param listener
+     */
+    public static void checkHandleMessage(WebView webView, String url, ArraySet<String> trustedUrls, UrlCheckListener listener) {
+        if (webView == null || TextUtils.isEmpty(url) || listener == null || trustedUrls == null) {
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        for (int i = 0; i < trustedUrls.size(); i++) {
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(trustedUrls.valueAt(i));
+        }
+        builder.append(']');
+        final String trustedUrlsStr = builder.toString();
+        webView.post(() -> {
+            webView.evaluateJavascript(getCheckJsStr(url, trustedUrlsStr), value -> {
+                if (Boolean.TRUE.toString().equals(value)) {
+                    listener.onTrusted();
+                } else {
+                    checkDecodeUrl(webView, url, trustedUrlsStr, listener);
+                }
+            });
+        });
+    }
+
+    private static void checkDecodeUrl(WebView webView, String url, String trustedUrlsStr, UrlCheckListener listener) {
+        if (webView == null || TextUtils.isEmpty(url)
+                || TextUtils.isEmpty(trustedUrlsStr)) {
+            if (null != listener) {
+                listener.onUnTrusted();
+            } else {
+                Log.e(TAG, "checkDecodeUrl listener null");
+            }
+            return;
+        }
+        final String decodeUrl = decodeUrl(url);
+        webView.post(() -> {
+            webView.evaluateJavascript(getCheckJsStr(url, decodeUrl), value -> {
+                if (Boolean.TRUE.toString().equals(value)) {
+                    listener.onTrusted();
+                } else {
+                    listener.onUnTrusted();
+                }
+            });
+        });
+    }
+
+    private static String getCheckJsStr(String url, String trustedUrls) {
+        return "javascript:" +
+                "function checkUrl (url, trustedUrl) {\n" +
+                "  return trustedUrl.some(function(item) {\n" +
+                "    if (typeof item === 'string') {\n" +
+                "       if (url[url.length-1] === '/') {\n" +
+                "         if (item[item.length-1] !== '/') {\n" +
+                "           item += '/'\n" +
+                "         }\n" +
+                "      } else {\n" +
+                "        if (item[item.length-1] === '/') {\n" +
+                "          url += '/'\n" +
+                "        }\n" +
+                "      }\n" +
+                "      return url === item\n" +
+                "    }\n" +
+                "    else {\n" +
+                "      if (item.type === 'regexp') {\n" +
+                "        var reg = new RegExp(item.source, item.flags)\n" +
+                "        return reg.test(url)\n" +
+                "      }\n" +
+                "    }\n" +
+                "    return false\n" +
+                "  })\n" +
+                "}\n" +
+                "checkUrl(\'" + url + "\', " + trustedUrls + ")";
+    }
+
+    private static String decodeUrl(String url) {
+        if (TextUtils.isEmpty(url)) {
+            return url;
+        }
+        String decodedUrl = null;
+        try {
+            decodedUrl = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException | IllegalArgumentException e) {
+            Log.e(TAG, "decode url failed :" + url, e);
+        }
+        return decodedUrl;
+    }
+
+    public interface UrlCheckListener {
+        void onTrusted();
+
+        void onUnTrusted();
     }
 }
