@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020, hapjs.org. All rights reserved.
+ * Copyright (C) 2022, hapjs.org. All rights reserved.
  */
 package org.hapjs.widgets.input;
 
