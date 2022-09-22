@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -39,6 +40,15 @@ import org.hapjs.runtime.ProviderManager;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 @FeatureExtensionAnnotation(
         name = Alarm.FEATURE_NAME,
@@ -270,20 +280,26 @@ public class Alarm extends FeatureExtension {
                 }
             }
 
+            String relativeFolderName = File.separator +activity.getApplication().getPackageName() + File.separator;
+            String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+            String fileMD5Name = fileMD5 + "." + extension;
             Cursor cursor = null;
             try {
-                cursor =
-                        activity
-                                .getContentResolver()
-                                .query(
-                                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                        new String[] {MediaStore.MediaColumns._ID},
-                                        // care only _id .
-                                        MediaStore.Audio.Media.DATA + "=?",
-                                        new String[] {destFile.getAbsolutePath()},
-                                        null);
-                if (cursor != null
-                        && cursor.moveToFirst()) { // return file uri if audio file exists.
+                String selection;
+                String[] selectionArgs;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    selection = MediaStore.Audio.Media.RELATIVE_PATH + "=? AND "
+                            + MediaStore.Audio.Media.DISPLAY_NAME + "=?";
+                    selectionArgs = new String[]{Environment.DIRECTORY_RINGTONES + relativeFolderName, fileMD5Name};
+                } else {
+                    selection = MediaStore.Audio.Media.DATA + "=?";
+                    selectionArgs = new String[]{destFile.getAbsolutePath()};
+                }
+
+                cursor = activity.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        new String[]{MediaStore.MediaColumns._ID},//care only _id .
+                        selection, selectionArgs, null);
+                if (cursor != null && cursor.moveToFirst()) {//return file uri if audio file exists.
                     int index = cursor.getColumnIndex(MediaStore.MediaColumns._ID);
                     if (index > -1) {
                         int ringtoneID = cursor.getInt(index);
@@ -299,8 +315,8 @@ public class Alarm extends FeatureExtension {
                 }
             }
 
-            // run here means never inserted to media store before.
-            Uri ringtoneUri = insertMediaStore(activity, fileName, destFile.getAbsolutePath());
+            //run here means never inserted to media store before.
+            Uri ringtoneUri = insertMediaStore(activity, fileName, relativeFolderName, fileMD5Name, destFile);
             if (ringtoneUri != null) {
                 holder.ringtone = ringtoneUri.toString();
                 return null;
@@ -357,25 +373,50 @@ public class Alarm extends FeatureExtension {
         }
     }
 
-    // insert into MediaStore.
-    private Uri insertMediaStore(Activity activity, String displayName, String filePath) {
+    //insert into MediaStore.
+    private Uri insertMediaStore(Activity activity, String displayName, String relativeFolderName,
+                                 String fileMD5Name, File destFile) {
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Audio.Media.DATA, filePath);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_RINGTONES + relativeFolderName);
+            values.put(MediaStore.Audio.Media.DISPLAY_NAME, fileMD5Name);
+        } else {
+            values.put(MediaStore.Audio.Media.DATA, destFile.getAbsolutePath());
+            values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
+        }
         values.put(MediaStore.Audio.Media.IS_ALARM, true);
-        values.put(
-                MediaStore.Audio.Media.MIME_TYPE,
-                URLConnection.guessContentTypeFromName(displayName));
-        values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
-        values.put(MediaStore.Audio.Media.TITLE,
-                FileUtils.getFileNameWithoutExtension(displayName));
-        return activity
-                .getContentResolver()
-                .insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        values.put(MediaStore.Audio.Media.MIME_TYPE, URLConnection.guessContentTypeFromName(displayName));
+        values.put(MediaStore.Audio.Media.TITLE, FileUtils.getFileNameWithoutExtension(displayName));
+        Uri mediaUri = activity.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            OutputStream output = null;
+            InputStream input = null;
+            try {
+                output = activity.getApplication().getContentResolver().openOutputStream(mediaUri);
+                input = new FileInputStream(destFile);
+                if (output == null) {
+                    return null;
+                }
+                byte[] buffer = new byte[4 * 1024];
+                for (int length; (length = input.read(buffer)) != -1; ) {
+                    output.write(buffer, 0, length);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "failed to save ringtone file");
+                return null;
+            } finally {
+                FileUtils.closeQuietly(output, input);
+            }
+        }
+        return mediaUri;
     }
 
     // file name with suffix.
     private String getFileName(String uri) {
-        int index = uri.lastIndexOf("/");
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf("/");
+        }
         if (index > 0) {
             return uri.substring(index + 1);
         } else {

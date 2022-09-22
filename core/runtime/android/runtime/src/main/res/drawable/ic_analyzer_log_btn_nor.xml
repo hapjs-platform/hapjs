@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<vector android:height="33dp" android:viewportHeight="99"
+    android:viewportWidth="99" android:width="33dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="#333333" android:fillType="evenOdd"
+        android:pathData="M18,0L81,0A18,18 0,0 1,99 18L99,81A18,18 0,0 1,81 99L18,99A18,18 0,0 1,0 81L0,18A18,18 0,0 1,18 0z"
+        android:strokeColor="#00000000" android:strokeWidth="1"/>
+    <path android:fillColor="#FFFFFF" android:fillType="evenOdd"
+        android:pathData="M68,20C71.3137,20 74,22.6863 74,26L74,62.2363C74,63.7412 73.4345,65.1911 72.4156,66.2986L61.5928,78.0624C60.4566,79.2973 58.8553,80 57.1772,80L32,80C28.6863,80 26,77.3137 26,74L26,26C26,22.6863 28.6863,20 32,20L68,20ZM68,24L32,24C30.8954,24 30,24.8954 30,26L30,74C30,75.1046 30.8954,76 32,76L57.1772,76C57.2861,76 57.3941,75.9911 57.5001,75.9738L57.5,62.0297C57.5,60.9753 58.3159,60.1115 59.3507,60.0351L59.5,60.0297L70,60.029L70,26C70,24.8954 69.1046,24 68,24ZM69.067,64.029L61.5,64.0297L61.499,72.256L69.067,64.029ZM54.1,48C55.2046,48 56.1,48.8954 56.1,50C56.1,51.1046 55.2046,52 54.1,52L39.1,52C37.9954,52 37.1,51.1046 37.1,50C37.1,48.8954 37.9954,48 39.1,48L54.1,48ZM61.1,36C62.2046,36 63.1,36.8954 63.1,38C63.1,39.1046 62.2046,40 61.1,40L39.1,40C37.9954,40 37.1,39.1046 37.1,38C37.1,36.8954 37.9954,36 39.1,36L61.1,36Z"
+        android:strokeColor="#00000000" android:strokeWidth="1"/>
+</vector>

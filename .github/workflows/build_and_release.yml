@@ -1,0 +1,85 @@
+name: Hapjs CI
+
+# 触发器
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      versionTag:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: gengjiawen/android-ndk:qa-2020-07-31
+    steps:
+      - uses: actions/checkout@v2
+      # 打包预览版
+      - name: Build mockup
+        id: build_mockup
+        run: |
+          cd ./mockup/platform/android
+          ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
+      # 打包调试器
+      - name: Build debugger
+        id: build_debugger
+        run: |
+          cd $GITHUB_WORKSPACE
+          cd ./debug/shell/android
+          ./gradlew assembleRelease -PdebugMode=false -DappVersionTag=${{ inputs.versionTag }}
+      # 创建release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ inputs.versionTag }}
+          release_name: Release ${{ inputs.versionTag }}
+          draft: false
+          prerelease: false
+      # 上传到release的资源——调试器apk
+      - name: Upload Debugger Release Asset
+        id: upload-debugger-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./debug/shell/android/app/build/outputs/apk/release/app-release.apk
+          asset_name: hapjs_debugger_v${{ inputs.versionTag }}.apk
+          asset_content_type: application/vnd.android.package-archiv
+      # 上传到release的资源——预览版apk
+      - name: Upload mockup Release Asset
+        id: upload-mockup-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./mockup/platform/android/app/build/outputs/apk/phone/release/app-phone-release.apk
+          asset_name: hapjs_platform_preview_release_v${{ inputs.versionTag }}.apk
+          asset_content_type: application/vnd.android.package-archiv
+      # 上传到release的资源——调试器mapping文件
+      - name: Upload debugger Release Asset
+        id: upload-debugger-mapping-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./debug/shell/android/app/build/outputs/mapping/release/mapping.txt
+          asset_name: hapjs_debugger_v${{ inputs.versionTag }}_mapping.txt
+          asset_content_type: text/plain
+      # 上传到release的资源——预览版mapping文件
+      - name: Upload mockup Release Asset
+        id: upload-mockup-mapping-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./mockup/platform/android/app/build/outputs/mapping/phone/release/mapping.txt
+          asset_name: hapjs_platform_preview_release_v${{ inputs.versionTag }}_mapping.txt
+          asset_content_type: text/plain

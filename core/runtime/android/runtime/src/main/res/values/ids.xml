@@ -13,4 +13,5 @@
     <item name="left_cutout_view" type="id" />
     <item name="navigation_bar_view" type="id" />
     <item name="skeleton" type="id" />
+    <item type="id" name="panel_overlay" />
 </resources>

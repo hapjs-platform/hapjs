@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,6 +16,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.preference:preference:' + rootProject.androidXVersion
     implementation 'androidx.appcompat:appcompat:' + rootProject.androidXVersion
     implementation 'androidx.constraintlayout:constraintlayout:' + rootProject.androidXConstraintlayoutVersion
     implementation 'com.google.android.material:material:' + rootProject.androidXVersion

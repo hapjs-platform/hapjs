@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -33,4 +33,31 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="dialog_style" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:title">@null</item>
+        <item name="android:dialogTitle">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">#FF579CF8</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>>
+    </style>
+
+    <style name="preference_dialog_style" parent="@style/dialog_style">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="animation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/bottom_in</item>
+        <item name="android:windowExitAnimation">@anim/bottom_out</item>
+    </style>
+
+    <declare-styleable name="EditTextPreference">
+        <attr name="hint" format="string"/>
+        <attr name="android:hint"/>
+    </declare-styleable>
 </resources>

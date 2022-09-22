@@ -53,6 +53,8 @@ public class ExtensionManager {
     private WidgetBridge mWidgetBridge;
     private V8Object mRegisteredInterface;
 
+    private FeatureInvokeListener mFeatureInvokeListener;
+
     public ExtensionManager(JsThread jsThread, Context context) {
         mJsThread = jsThread;
         mContext = context;
@@ -157,6 +159,9 @@ public class ExtensionManager {
         RuntimeLogManager.getDefault()
                 .logFeatureInvoke(mHybridManager.getApplicationContext().getPackage(), name,
                         action);
+        if (mFeatureInvokeListener != null) {
+            mFeatureInvokeListener.invoke(name, action, rawParams, jsCallback, instanceId);
+        }
         return onInvoke(name, action, rawParams, jsCallback, instanceId, null);
     }
 
@@ -353,6 +358,14 @@ public class ExtensionManager {
         }
     }
 
+    public void setFeatureInvokeListener(FeatureInvokeListener listener) {
+        this.mFeatureInvokeListener = listener;
+    }
+
+    public FeatureInvokeListener getFeatureInvokeListener() {
+        return mFeatureInvokeListener;
+    }
+
     private class JsInvocation implements Runnable {
         private Response mResponse;
         private String mJsCallback;
@@ -407,4 +420,6 @@ public class ExtensionManager {
             disposeFeature(true, this);
         }
     }
+
+
 }

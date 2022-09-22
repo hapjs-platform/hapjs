@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -60,7 +60,7 @@
         <activity
             android:name="org.hapjs.debugger.SettingsActivity"
             android:label="@string/activity_settings_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/dialog_style" />
         <activity
             android:name="org.hapjs.debugger.card.CardActivity"
             android:label="@string/text_mode_card"

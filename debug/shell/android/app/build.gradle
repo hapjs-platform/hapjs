@@ -11,8 +11,22 @@ android {
     defaultConfig {
         applicationId "org.hapjs.debugger"
     }
-}
 
+    signingConfigs {
+        release {
+            storeFile file("../debug-key.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
 
 dependencies {
     if ('repo' != System.properties['moduleDepsType']) {

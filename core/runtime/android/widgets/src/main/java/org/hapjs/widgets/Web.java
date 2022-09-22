@@ -7,6 +7,7 @@ package org.hapjs.widgets;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,14 +15,21 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.webkit.ValueCallback;
+
 import androidx.collection.ArraySet;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+
 import org.hapjs.bridge.annotation.WidgetAnnotation;
+import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.AcceptLanguageUtils;
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
@@ -50,11 +58,13 @@ import org.json.JSONObject;
                 Web.METHOD_CAN_BACK,
                 Web.METHOD_POST_MESSAGE,
                 Web.METHOD_IS_SUPPORT_WEB_RTC,
+                Web.METHOD_SET_COOKIE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_FOCUS
         })
 public class Web extends Component<NestedWebView> implements SwipeObserver {
+    private static final String TAG = "Web";
     protected static final String WIDGET_NAME = "web";
     // methods
     protected static final String METHOD_RELOAD = "reload";
@@ -65,7 +75,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     protected static final String METHOD_POST_MESSAGE = "postMessage";
     protected static final String METHOD_IS_SUPPORT_WEB_RTC = "isSupportWebRTC";
     protected static final String ENABLE_NIGHT_MODE = "enablenightmode";
-    private static final String TAG = "Web";
+    protected static final String METHOD_SET_COOKIE = "setCookie";
     // events
     private static final String EVENT_PAGE_START = "pagestart";
     private static final String EVENT_PAGE_FINISH = "pagefinish";
@@ -82,6 +92,17 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private static final String USER_AGENT = "useragent";
 
     private static final String KEY_STATE = "state";
+    // set cookie
+    private static final String KEY_DOMAIN = "domain";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_VALUE = "value";
+    private static final String KEY_PATH = "path";
+    private static final String KEY_MAX_AGE = "maxAge";
+    private static final String KEY_EXPIRES = "expires";
+    private static final String KEY_EXTRA = "extra";
+
+    private static final String KEY_SUCCESS = "success";
+    private static final String KEY_FAIL = "fail";
 
     private ArraySet<String> mTrustedUrls = new ArraySet<>();
     private String mTrustedSrc;
@@ -695,6 +716,102 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         }
     }
 
+    private void setCookie(Map<String, Object> args) {
+        if (!CookieManager.getInstance().acceptCookie()) {
+            CookieManager.getInstance().setAcceptCookie(true);
+        }
+        if (args != null) {
+            String domain = null;
+            if (args.get(KEY_DOMAIN) != null) {
+                domain = (String) args.get(KEY_DOMAIN);
+            }
+            String failId = null;
+            if (args.get(KEY_FAIL) != null) {
+                failId = (String) args.get(KEY_FAIL);
+            }
+            if (TextUtils.isEmpty(domain)) {
+                onJsMethodCallback(null, failId, false, "params error, domain is null");
+                return;
+            }
+
+            String name = "";
+            if (args.get(KEY_NAME) != null) {
+                name = (String) args.get(KEY_NAME);
+            }
+            StringBuilder builder = new StringBuilder().append(name).append("=");
+
+            if (args.get(KEY_VALUE) != null) {
+                String value = (String) args.get(KEY_VALUE);
+                builder.append(value).append(";");
+            }
+            builder.append("domain=").append(domain).append(";");
+
+            if (args.get(KEY_PATH) != null) {
+                String path = (String) args.get(KEY_PATH);
+                builder.append("path=").append(path).append(";");
+            }
+
+            if (args.get(KEY_EXPIRES) != null) {
+                String expires = (String) args.get(KEY_EXPIRES);
+                builder.append("expires=").append(expires).append(";");
+            }
+
+            if (args.get(KEY_MAX_AGE) != null) {
+                int maxAge = (int) args.get(KEY_MAX_AGE);
+                builder.append("max-age=").append(maxAge).append(";");
+            }
+
+            if (args.get(KEY_EXTRA) != null) {
+                String extra = (String) args.get(KEY_EXTRA);
+                builder.append(extra).append(";");
+            }
+            Uri uri = Uri.parse(domain);
+            // if specifying a value containing the "Secure" attribute, url must use the "https://" scheme.
+            // https://developer.android.com/reference/android/webkit/CookieManager
+            if (uri != null && TextUtils.isEmpty(uri.getScheme())) {
+                domain = "https://" + domain;
+            }
+            String successId = null;
+            if (args.get(KEY_SUCCESS) != null) {
+                successId = (String) args.get(KEY_SUCCESS);
+            }
+            final String setValue = builder.toString();
+            final String domainTemp = domain;
+            final String successIdTemp = successId;
+            final String failIdTemp = failId;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                CookieSyncManager cookieSyncManager = CookieSyncManager.createInstance(mContext);
+                CookieManager.getInstance().setCookie(domain, setValue);
+                Executors.io().execute(() -> {
+                    cookieSyncManager.sync();
+                    boolean result = TextUtils.isEmpty(setValue) ? TextUtils.isEmpty(CookieManager.getInstance().getCookie(domainTemp)) : setValue.equals(CookieManager.getInstance().getCookie(domainTemp));
+                    onJsMethodCallback(successIdTemp, failIdTemp, result, "set cookie fail, please check params");
+                });
+            } else {
+                CookieManager.getInstance().setCookie(domain, builder.toString(), result -> {
+                    onJsMethodCallback(successIdTemp, failIdTemp, result, "set cookie fail, please check params");
+                });
+                Executors.io().execute(() -> CookieManager.getInstance().flush());
+            }
+        }
+    }
+
+    private void onJsMethodCallback(String successCallback, String failCallback, boolean isSuccess, Object params) {
+        String callbackId = null;
+        Object callbackParams = null;
+        if (isSuccess && !TextUtils.isEmpty(successCallback)) {
+            callbackId = successCallback;
+            callbackParams = null;
+        }
+        if (!isSuccess && !TextUtils.isEmpty(failCallback)) {
+            callbackId = failCallback;
+            callbackParams = params;
+        }
+        if (!TextUtils.isEmpty(callbackId)) {
+            mCallback.onJsMethodCallback(getPageId(), callbackId, callbackParams);
+        }
+    }
+
     @Override
     public void invokeMethod(String methodName, Map<String, Object> args) {
         if (METHOD_RELOAD.equals(methodName)) {
@@ -711,6 +828,8 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
             postMessage(args);
         } else if (METHOD_IS_SUPPORT_WEB_RTC.equals(methodName)) {
             isSupportWebRTC(args);
+        } else if (METHOD_SET_COOKIE.equals(methodName)) {
+            setCookie(args);
         } else if (METHOD_TO_TEMP_FILE_PATH.equals(methodName)
                 || METHOD_GET_BOUNDING_CLIENT_RECT.equals(methodName)) {
             super.invokeMethod(methodName, args);

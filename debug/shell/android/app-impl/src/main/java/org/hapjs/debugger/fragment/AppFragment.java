@@ -53,6 +53,8 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
     private static final String URL_HTTPS_PREFIX = "https";
     private static final String KEY_CUSTOM_VALUE = "customValue";
     private static final String SCAN_TARGET_SKELETON = "skeleton";
+    private static final int SUPPORT_ANALYZER_PLATFORM_VERSION = 1100;
+
     private TextView mTxtDebuggablePackage;
     private TextView mPlatformVersionTv;
     private TextView mPlatformVersionNameTv;
@@ -63,6 +65,9 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
     private Button mUpdateOnlineBtn;
     private Button mStartDebugBtn;
     private SwitchCompat mUsbDebugSwitch;
+    private SwitchCompat mAnalyzerEnableSwitch;
+    private View mAnalyzerContainer;
+
     private AppCompatSpinner mPlatformSpinner;
     private ArrayAdapter<String> mArrayAdapter;
     private List<String> mDisplayedPlatforms = new ArrayList<String>();
@@ -140,6 +145,16 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
             }
         });
         mUsbDebugSwitch.setChecked(PreferenceUtils.isUseADB(getActivity()));
+
+        mAnalyzerContainer = view.findViewById(R.id.analyzer_container);
+        mAnalyzerEnableSwitch = view.findViewById(R.id.analyzer_enable);
+        mAnalyzerEnableSwitch.setChecked(PreferenceUtils.isUseAnalyzer(getActivity()));
+        mAnalyzerEnableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceUtils.setUseAnalyzer(getActivity(), isChecked);
+            }
+        });
         addHintView(view);
         return view;
     }
@@ -443,6 +458,14 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
             mPlatformVersionNameTv.setVisibility(View.VISIBLE);
             mPlatformVersionNameTv.setText(platformVersionName);
             AppDebugManager.setCurrentPlatformVersion(version);
+
+            if (version < SUPPORT_ANALYZER_PLATFORM_VERSION) {
+                mAnalyzerContainer.setVisibility(View.GONE);
+                PreferenceUtils.setUseAnalyzer(getContext(), false);
+            } else {
+                mAnalyzerContainer.setVisibility(View.VISIBLE);
+                PreferenceUtils.setUseAnalyzer(getContext(), mAnalyzerEnableSwitch.isChecked());
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Platform not found: ", e);
         }

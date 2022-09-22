@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -79,13 +79,14 @@
     <string name="text_platform_version_name">平台版本名称: %s</string>
     <string name="text_platform_version_beta">内测版</string>
     <string name="text_enable_usb_debug">开启USB调试</string>
+    <string name="text_enable_analyzer">开启性能面板</string>
     <string name="text_framework">运行框架: </string>
     <string name="text_version_not_support_card">框架版本不支持卡片: %s</string>
     <string name="text_platform_hint_app">请安装最新预览版</string>
     <string name="text_platform_hint_card">请安装最新预览版并允许调试器自启动</string>
 
     <string name="setting_category_general">通用</string>
-    <string name="setting_item_server_title">服务器</string>
+    <string name="setting_item_server_title">服务器设置</string>
     <string name="setting_category_inspect">调试</string>
     <string name="setting_item_unset_summary">未设置</string>
     <string name="setting_item_reload_strategy">应用更新策略</string>
@@ -95,11 +96,16 @@
     <string name="setting_item_wait_devtools_summary">如果需要调试首页，打开此开关</string>
     <string name="setting_item_web_debug_title">开启Web组件调试</string>
     <string name="setting_item_web_debug_summary">如果需要调试Web组件，打开此开关</string>
-    <string name="setting_item_set_params_title">启动参数</string>
+    <string name="setting_item_set_params_title">启动参数设置</string>
     <string name="setting_category_others">其他</string>
     <string name="setting_item_signature_title">获取应用签名</string>
     <string name="setting_item_set_params_hint">如: /pageName?key=value 或 key=value</string>
     <string name="toast_params_illegal">参数不能包含\"__DEBUG_PARAMS__\"</string>
+    <string name="setting_category_help">帮助</string>
+    <string name="setting_item_feedback">问题反馈</string>
+    <string name="setting_item_instruction">使用说明</string>
+    <string name="setting_item_faq">常见问题</string>
+    <string name="setting_item_doc">开发文档</string>
 
     <string name="hint_launch_package">快应用包名</string>
     <string name="hint_launch_path">快应用页面路径</string>
@@ -140,4 +146,5 @@
     <string name="toast_copy_to_clipboard_succ">已复制到剪切版</string>
     <string name="toast_get_signature_fail">获取签名失败</string>
     <string name="toast_app_not_install">应用未安装</string>
+    <string name="str_save">保存</string>
 </resources>

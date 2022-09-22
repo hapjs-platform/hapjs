@@ -69,7 +69,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -86,6 +85,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="8dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/analyzer_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/text_enable_analyzer"
+            android:textStyle="bold"
+            android:textAppearance="?android:attr/textAppearanceListItemSmall"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:padding="8dp"
+            android:id="@+id/analyzer_enable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <Button
