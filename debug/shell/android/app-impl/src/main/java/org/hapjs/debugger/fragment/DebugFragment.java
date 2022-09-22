@@ -300,7 +300,7 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         }
 
         PopupWindow popupWindow = new PopupWindow(getActivity());
-        popupWindow.setBackgroundDrawable(null);
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
         View content = LayoutInflater.from(getActivity()).inflate(R.layout.debug_hint_popup_content, null);
         ((TextView) content.findViewById(R.id.hint_text)).setText(hintText);
         int[] anchorLoc = new int[2];
@@ -314,6 +314,8 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         popupWindow.setOutsideTouchable(true);
         popupWindow.setFocusable(true);
         popupWindow.setContentView(content);
+        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
         popupWindow.showAsDropDown(debugHintView);
 
         PreferenceUtils.setHasShownDebugHint(getActivity());
