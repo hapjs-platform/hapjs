@@ -12,7 +12,7 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:${rootProject.swiperefreshlayoutVersion}"
 
     api "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
-    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.1.0'
+    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.4.0'
     api "com.google.android.exoplayer:exoplayer-core:${rootProject.exoplayerVersion}"
     api "com.google.android.exoplayer:exoplayer-dash:${rootProject.exoplayerVersion}"
     api "com.google.android.exoplayer:exoplayer-hls:${rootProject.exoplayerVersion}"
