@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import org.hapjs.common.utils.ColorUtil;
+import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.widgets.text.CustomTypefaceSpan;
 import org.hapjs.widgets.text.FontParser;
 import org.hapjs.widgets.text.TypefaceBuilder;
@@ -28,6 +29,7 @@ public class TextSpan {
     private String mColor;
     private int mFontSize;
     private int mLineHeight;
+    private float mLetterSpacing;
     private int mTextDecoration = TextDecoration.NONE;
 
     private boolean mIsDirty;
@@ -137,6 +139,17 @@ public class TextSpan {
             mIsDirty = !(textDecoration == mTextDecoration);
         }
         mTextDecoration = textDecoration;
+    }
+
+    public void setLetterSpacing(float letterSpacing) {
+        if (!mIsDirty) {
+            mIsDirty = !(FloatUtil.floatsEqual(letterSpacing, mLetterSpacing));
+        }
+        mLetterSpacing = letterSpacing;
+    }
+
+    public float getLetterSpacing() {
+        return mLetterSpacing;
     }
 
     private List<SetSpanOperation> createSetSpanOperation(int end) {
