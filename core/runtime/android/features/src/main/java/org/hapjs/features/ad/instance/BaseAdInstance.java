@@ -166,4 +166,12 @@ public abstract class BaseAdInstance implements InstanceManager.IInstance {
             mResponse = response;
         }
     }
+
+    /**
+     * 联盟预览版不支持广告相关功能
+     */
+    protected void callbackDefaultMockupErrorResponse() {
+        onError(AdConstants.ERROR_UNKNOWN, "the preview release does not support ad-related features, please use the corresponding vendor quick-app engine");
+    }
+
 }
