@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -166,7 +166,8 @@ function getNodeAsJSON(
   node,
   includeChildren = true,
   includeStyleObject = false,
-  includeMergedStyle = false
+  includeMergedStyle = false,
+  includeCustomDirective = false
 ) {
   if (node.nodeType === NodeType.ELEMENT) {
     // 元素节点：返回对象
@@ -215,6 +216,23 @@ function getNodeAsJSON(
       const style = getNodeMergedStyleAsObject(node)
       if (style && Object.keys(style).length) {
         hash.style = style
+      }
+    }
+
+    // 自定义指令，处理节点上需要触发的钩子函数
+    const dirList = node._directives || []
+    if (includeCustomDirective && dirList.length) {
+      // 节点上存在自定义指令，才设置hooks，减少渲染指令长度
+      hash.hooks = []
+      // 遍历节点上的自定义指令列表
+      for (let i = 0, len = dirList.length; i < len; i++) {
+        const callbacks = Object.keys(dirList[i].callbacks)
+        for (let j = 0, len = callbacks.length; j < len; j++) {
+          // 将需要触发的指令回调名称去重后存入hooks
+          if (hash.hooks.indexOf(callbacks[j]) === -1) {
+            hash.hooks.push(callbacks[j])
+          }
+        }
       }
     }
 

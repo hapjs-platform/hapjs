@@ -96,6 +96,24 @@ function initExternalData(vm, externalData) {
 }
 
 /**
+ * 合并全局、页面级自定义指令
+ * @param vm
+ */
+function initCustomDirective(vm) {
+  const appCustomDirective =
+    (vm._page.app && vm._page.app._def && vm._page.app._def.directives) || {}
+  const vmCustomDirective = vm._options.directives || {}
+  const directives = {}
+  // 合并指令存入一个新对象中，页面覆盖全局级别的指令
+  const dirs = $extend({}, appCustomDirective, vmCustomDirective)
+  for (const dirName in dirs) {
+    // 将指令名称转为小写
+    directives[dirName.toLocaleLowerCase()] = dirs[dirName]
+  }
+  vm._directives = directives
+}
+
+/**
  * 初始化vm状态
  * @param vm
  */
@@ -319,6 +337,11 @@ export default class XVm {
     this._$attrs = {}
     this.__$attrs__ = {}
     this._$listeners = []
+    this._directives = {}
+    // 如果是顶级Vm，增加自定义指令上下文数据
+    if (this._root === this) {
+      this._directivesContext = {}
+    }
     this._destroyed = false
 
     Object.defineProperties(this, {
@@ -440,6 +463,9 @@ export default class XVm {
 
     // 初始化vm状态, 将自定义函数添加到vm中
     initState(this)
+
+    // 初始化自定义指令
+    initCustomDirective(this)
 
     console.trace(`### App Framework ### 组件Vm(${this._type})创建成功`)
     // 自定义Vm与仅做数据驱动的Vm：无携带
