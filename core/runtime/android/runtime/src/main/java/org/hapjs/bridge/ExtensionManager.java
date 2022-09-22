@@ -44,6 +44,8 @@ public class ExtensionManager {
      * callback would be set as -1 when unset event
      */
     private static final String UNSET_JS_CALLBACK = "-1";
+    public static final String H5_JS_CALLBACK = "-2";
+
     protected Context mContext;
     protected FeatureBridge mFeatureBridge;
     protected ModuleBridge mModuleBridge;
@@ -213,7 +215,13 @@ public class ExtensionManager {
             String err = "Extension not available: " + name;
             Log.e(TAG, err);
             Response response = new Response(Response.CODE_PERMISSION_ERROR, err);
-            callback(response, jsCallback);
+            if (H5_JS_CALLBACK.equals(jsCallback)) {
+                if (realCallback != null) {
+                    realCallback.callback(response);
+                }
+            } else {
+                callback(response, jsCallback);
+            }
             return response;
         }
 
