@@ -26,8 +26,7 @@
     <string name="btn_installed">Installed</string>
 
     <string name="hint_fail_to_bind_service">Can not start [Quick App Preview],please grant the permission of [Startup]/[Autostart] to [Quick App Preview] on the relevant settings page of system permission management, or open it Manual.</string>
-    <string name="hint_no_response_vivo">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Startup\" and \"Backupgroud pop-ups\" to \"%1$s\" in \"App Permission Manager\".</string>
-    <string name="hint_no_response_xiaomi">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Autostart\" to \"%1$s] in \"Manager apps\".</string>
+    <string name="hint_no_response">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Startup\"/\"Autostart\" and \"Backupgroud pop-ups\" to \"%1$s\" on the relevant settings page of system permission management.</string>
 
     <string name="dlg_uninstall_title">Uninstall</string>
     <string name="dlg_uninstall_msg">You\'ve installed a higher version of Platform Preview. Please uninstall and then download and install.</string>

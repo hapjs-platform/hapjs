@@ -129,7 +129,6 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemClic
             }
         });
         setSwitchStateText(view, R.id.analyzer_state_text, mAnalyzerEnableSwitch.isChecked());
-        addHintView(view);
 
         return view;
     }
@@ -146,25 +145,13 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemClic
         return -1;
     }
 
-    private void addHintView(View view) {
-        if (view != null && view instanceof ViewGroup) {
-            TextView textView = new TextView(getContext());
-            textView.setText(getDebugHintText());
-            ((ViewGroup) view).addView(textView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-        }
-    }
-
     @Override
     protected String getDebugHintText() {
         CharSequence platformName = mPlatformNameTv.getText();
         if (TextUtils.isEmpty(platformName)) {
             return null;
         }
-
-        boolean isXiaomi = Build.MANUFACTURER.equalsIgnoreCase("Xiaomi");
-        int resId = isXiaomi ? R.string.hint_no_response_xiaomi : R.string.hint_no_response_vivo;
-        return getContext().getString(resId, platformName);
+        return getContext().getString(R.string.hint_no_response, platformName);
     }
 
     @Override

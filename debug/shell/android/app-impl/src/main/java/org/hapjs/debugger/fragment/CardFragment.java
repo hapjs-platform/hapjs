@@ -233,10 +233,7 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
         if (TextUtils.isEmpty(hostName)) {
             return null;
         }
-
-        boolean isXiaomi = Build.MANUFACTURER.equalsIgnoreCase("Xiaomi");
-        int resId = isXiaomi ? R.string.hint_no_response_xiaomi : R.string.hint_no_response_vivo;
-        return getContext().getString(resId, hostName);
+        return getContext().getString(R.string.hint_no_response, hostName);
     }
 
     @Override
