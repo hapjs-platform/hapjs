@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -131,6 +131,12 @@ public class A extends Text {
                     }
                 } else if (span.getSpannable() != null) {
                     stringBuilder.append(span.getSpannable());
+                }
+            } else if (child instanceof Image) {
+                Image image = (Image) child;
+                Spannable imageSpannable = image.getSpannable();
+                if (imageSpannable != null) {
+                    stringBuilder.append(imageSpannable);
                 }
             }
         }

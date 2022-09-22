@@ -423,6 +423,7 @@ public class Attributes {
         String TYPE = "type";
         String TEXT_OVERFLOW = "textOverflow";
         String TEXT_INDENT = "textIndent";
+        String LETTER_SPACING = "letterSpacing";
 
         String NAME = "name";
         String VALUE = "value";

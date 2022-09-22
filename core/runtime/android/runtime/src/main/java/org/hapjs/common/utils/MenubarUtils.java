@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,12 +10,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.bridge.AbstractExtension;
 import org.hapjs.bridge.Callback;
 import org.hapjs.bridge.ExtensionManager;
@@ -31,6 +33,7 @@ import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.system.SysOpProvider;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +42,7 @@ public class MenubarUtils {
     public static final String PARAM_PACKAGE = "package";
     public static final String PARAM_PAGE_PATH = "page_path";
     public static final String PARAM_PAGE_PARAMS = "page_params";
+    public static final String PARAM_PLATFORMS = "platforms";
     public static final String MENUBAR_HAS_SHORTCUT_INSTALLED = "has_shortcut_installed";
     /**
      * same with share key
@@ -58,7 +62,7 @@ public class MenubarUtils {
             Map<String, String> shareIdMap,
             Map<String, String> extra,
             RootView rootView,
-            ExtensionManager tmpExtentionManager) {
+            ExtensionManager tmpExtentionManager, final ShareCallback shareCallback) {
         if (null == shareIdMap || shareIdMap.size() == 0) {
             Log.e(TAG, "startShare error mShareRpkIconUrl empty or shareIdMap null or shareIdMap"
                     + " is empty share fail or page null.");
@@ -72,6 +76,7 @@ public class MenubarUtils {
         String shareUrl = "";
         String pageParams = "";
         String pagePath = "";
+        String sharePlatforms = "";
         boolean isShowCurrentPage = false;
         if (extra != null && !extra.isEmpty()) {
             title = extra.get(DisplayInfo.Style.KEY_MENUBAR_SHARE_TITLE);
@@ -87,6 +92,7 @@ public class MenubarUtils {
             shareUrl = extra.get(DisplayInfo.Style.PARAM_SHARE_URL);
             pagePath = extra.get(PARAM_PAGE_PATH);
             pageParams = extra.get(PARAM_PAGE_PARAMS);
+            sharePlatforms = extra.get(PARAM_PLATFORMS);
         }
         ExtensionManager extensionManager = null;
         boolean isChimera = false;
@@ -109,6 +115,9 @@ public class MenubarUtils {
                 sharejson.put(PARAM_TITLE, title);
                 sharejson.put(PARAM_SUMMARY, summery);
                 sharejson.put(PARAM_IMAGE_PATH, imgPath);
+                if (!TextUtils.isEmpty(sharePlatforms)) {
+                    sharejson.put(PARAM_PLATFORMS, new JSONArray(sharePlatforms));
+                }
                 JSONObject paramsJson = null;
                 boolean isShareParasmValid = false;
                 if (!TextUtils.isEmpty(shareParams)) {
@@ -195,6 +204,9 @@ public class MenubarUtils {
                                                 + response.getCode()
                                                 + " content : "
                                                 + response.getContent());
+                                if (null != shareCallback) {
+                                    shareCallback.onShareCallback(response);
+                                }
                             }
                         }
                     });
@@ -589,5 +601,9 @@ public class MenubarUtils {
     public static class UrlData {
         public String baseUrl;
         public Map<String, String> params;
+    }
+
+    public interface ShareCallback {
+        void onShareCallback(Response response);
     }
 }

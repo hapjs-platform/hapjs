@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.model;
 
 import android.text.TextUtils;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -98,6 +100,7 @@ public class DisplayInfo {
         public static final String PARAM_SHARE_CURRENT_PAGE = "shareCurrentPage";
         public static final String PARAM_SHARE_URL = "shareUrl";
         public static final String PARAM_SHARE_PARAMS = "shareParams";
+        public static final String PARAM_SHARE_USE_PAGE_PARAMS = "usePageParams";
 
         public static final String KEY_WINDOW_SOFT_INPUT_MODE = "windowSoftInputMode";
         public static final String KEY_ADJUST_PAN = "adjustPan";
@@ -134,8 +137,10 @@ public class DisplayInfo {
         private String mMenuBarDescription;
         private String mMenuBarIcon;
         private boolean mMenuBarCurrenPage;
+        private boolean mConfigShareCurrentPage;
         private String mMenuBarShareUrl;
         private String mMenuBarShareParams;
+        private String mMenuBarUsePageParams;
         private String mWindowSoftInputMode;
         private String mOrientation;
         private String mStatusBarImmersive;
@@ -180,9 +185,19 @@ public class DisplayInfo {
                 style.mMenuBarDescription =
                         menudatajson.optString(KEY_MENUBAR_SHARE_DESCRIPTION, null);
                 style.mMenuBarIcon = menudatajson.optString(KEY_MENUBAR_SHARE_ICON, null);
+                if (menudatajson.has(PARAM_SHARE_CURRENT_PAGE)) {
+                    style.mConfigShareCurrentPage = true;
+                }
                 style.mMenuBarCurrenPage = menudatajson.optBoolean(PARAM_SHARE_CURRENT_PAGE, false);
+                if (menudatajson.has(PARAM_SHARE_USE_PAGE_PARAMS)) {
+                    style.mMenuBarUsePageParams = menudatajson.optBoolean(PARAM_SHARE_USE_PAGE_PARAMS, false) ? "true" : "false";
+                } else {
+                    style.mMenuBarUsePageParams = "";
+                }
                 style.mMenuBarShareUrl = menudatajson.optString(PARAM_SHARE_URL, "");
                 style.mMenuBarShareParams = menudatajson.optString(PARAM_SHARE_PARAMS, "");
+            } else {
+                style.mMenuBarUsePageParams = "";
             }
 
             return style;
@@ -237,7 +252,9 @@ public class DisplayInfo {
                 case KEY_MENUBAR_SHARE_ICON:
                     return mMenuBarIcon;
                 case PARAM_SHARE_CURRENT_PAGE:
-                    return mMenuBarCurrenPage ? "true" : "false";
+                    return mMenuBarCurrenPage ? "true" : (mConfigShareCurrentPage ? "false" : "");
+                case PARAM_SHARE_USE_PAGE_PARAMS:
+                    return mMenuBarUsePageParams;
                 case PARAM_SHARE_URL:
                     return mMenuBarShareUrl;
                 case PARAM_SHARE_PARAMS:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapRegionDecoder;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -16,6 +18,7 @@ import android.net.Uri;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import com.caverock.androidsvg.SVG;
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
@@ -24,6 +27,7 @@ import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.fresco.animation.drawable.AnimatedDrawable2;
 import com.facebook.imagepipeline.common.ImageDecodeOptions;
 import com.facebook.imagepipeline.common.ResizeOptions;
+import com.facebook.imagepipeline.common.RotationOptions;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.facebook.imagepipeline.core.ImagePipelineFactory;
 import com.facebook.imagepipeline.datasource.BaseBitmapDataSubscriber;
@@ -331,9 +335,77 @@ public class BitmapUtils {
 
                     @Override
                     protected void onNewResultImpl(Bitmap bitmap) {
+
                     }
-                },
-                UiThreadImmediateExecutorService.getInstance());
+                }, UiThreadImmediateExecutorService.getInstance());
+    }
+
+    public static void fetchBitmapForImageSpan(final Uri imgUri, final BitmapLoadCallback bitmapLoadCallback,
+                                   int width, int height) {
+        if (imgUri == null || TextUtils.isEmpty(imgUri.toString()) || bitmapLoadCallback == null) {
+            return;
+        }
+        ImageDecodeOptions options = ImageDecodeOptions.newBuilder().setForceStaticImage(true)
+                .setDecodePreviewFrame(true).build();
+        ResizeOptions resizeOptions = null;
+        int realWidth = width;
+        int realHeight = height;
+        if (realWidth > 0 && realHeight > 0) {
+            if (width == IntegerUtil.UNDEFINED || height == IntegerUtil.UNDEFINED) {
+                realWidth = 0;
+                realHeight = 0;
+            }
+            boolean doResize = (realWidth > 0 && realHeight > 0);
+            resizeOptions = doResize ? new ResizeOptions(realWidth, realHeight) : null;
+        }
+        ImageRequest imageRequest = ImageRequestBuilder
+                .newBuilderWithSource(imgUri)
+                .setImageDecodeOptions(options)
+                .setRotationOptions(RotationOptions.autoRotate())
+                .setResizeOptions(resizeOptions)
+                .build();
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+        DataSource<CloseableReference<CloseableImage>> bitmapDataSource = imagePipeline
+                .fetchDecodedImage(imageRequest, null);
+        bitmapDataSource.subscribe(new BaseBitmapDataSubscriber() {
+            @Override
+            protected void onFailureImpl(DataSource<CloseableReference<CloseableImage>> dataSource) {
+                bitmapLoadCallback.onLoadFailure();
+            }
+
+            @Override
+            public void onNewResultImpl(DataSource<CloseableReference<CloseableImage>> dataSource) {
+                if (!dataSource.isFinished()) {
+                    return;
+                }
+                CloseableReference<CloseableImage> closeableImageRef = dataSource.getResult();
+                Bitmap bitmap = null;
+                if (closeableImageRef != null) {
+                    CloseableImage closeableImage = closeableImageRef.get();
+                    if (closeableImage instanceof CloseableBitmap) {
+                        bitmap = ((CloseableBitmap) closeableImage).getUnderlyingBitmap().copy(Bitmap.Config.ARGB_8888, true);
+                    } else if (closeableImage instanceof SvgDecoderUtil.CloseableSvgImage){
+                        SVG svg = ((SvgDecoderUtil.CloseableSvgImage) closeableImage).getSvg();
+                        int svgWidth = width > 0 ? width : closeableImage.getWidth();
+                        int svgHeight = height > 0 ? height : closeableImage.getHeight();
+                        bitmap = Bitmap.createBitmap(svgWidth, svgHeight, Bitmap.Config.ARGB_8888);
+                        Canvas bitmapCanvas = new Canvas(bitmap);
+                        svg.renderToCanvas(bitmapCanvas);
+                    }
+                }
+                if (bitmap != null) {
+                    bitmapLoadCallback.onLoadSuccess(closeableImageRef, bitmap);
+                } else {
+                    bitmapLoadCallback.onLoadFailure();
+                }
+            }
+
+            @Override
+            protected void onNewResultImpl(Bitmap bitmap) {
+
+            }
+
+        }, UiThreadImmediateExecutorService.getInstance());
     }
 
     public static Bitmap fetchBitmapSync(Uri uri) {
@@ -394,5 +466,24 @@ public class BitmapUtils {
         void onLoadSuccess(CloseableReference<CloseableImage> reference, Bitmap bitmap);
 
         void onLoadFailure();
+    }
+
+    public static Bitmap resizeBitmap(Bitmap origin, int newWidth, int newHeight) {
+        if (origin == null) {
+            return null;
+        }
+        int width = origin.getWidth();
+        int height = origin.getHeight();
+        if (width == newWidth && height == newHeight) {
+            return origin;
+        }
+
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+
+        Matrix matrix = new Matrix();
+        matrix.postScale(scaleWidth, scaleHeight);
+
+        return Bitmap.createBitmap(origin, 0, 0, width, height, matrix, true);
     }
 }

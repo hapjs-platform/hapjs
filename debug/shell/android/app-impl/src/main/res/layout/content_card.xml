@@ -5,25 +5,29 @@
     SPDX-License-Identifier: Apache-2.0
 -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="18.7dp"
-    android:layout_marginHorizontal="16dp"
+    android:layout_marginTop="16dp"
     android:orientation="vertical"
-    android:id="@+id/app_layout">
+    android:id="@+id/app_layout"
+    android:clipChildren="false">
 
     <LinearLayout
         android:id="@+id/host_info_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" >
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:orientation="vertical"
+        android:visibility="gone">
         <org.hapjs.debugger.widget.LastChildVisibleLinearLayout
             android:id="@+id/host_info_primary_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="4.3dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
             android:orientation="horizontal">
             <TextView
                 android:id="@+id/host_name"
@@ -31,7 +35,8 @@
                 android:layout_height="wrap_content"
                 android:textColor="#FF000000"
                 android:textSize="27.3sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-black"
+                android:textFontWeight="900"
                 android:singleLine="true"
                 android:ellipsize="end" />
 
@@ -43,7 +48,8 @@
                 android:gravity="bottom"
                 android:textColor="#FF000000"
                 android:textSize="11sp"
-                android:textStyle="bold"
+                android:fontFamily="sans-serif-black"
+                android:textFontWeight="900"
                 android:singleLine="true"
                 android:ellipsize="end"/>
 
@@ -80,23 +86,35 @@
 
     <TextView
         android:id="@+id/no_host_text"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#FF000000"
-        android:textSize="16sp"
-        android:text="@string/text_platform_hint_card"
+        android:layout_marginHorizontal="16dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="7.5dp"
+        android:textColor="#FFF95954"
+        android:textSize="11sp"
+        android:text="@string/text_platform_hint"
+        android:background="@drawable/card_no_host_tip_bg"
         android:visibility="gone" />
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/load_host_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginHorizontal="16dp" />
+
+    <org.hapjs.debugger.widget.BlurLinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/card_bg"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="16dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="16dp"
         android:paddingBottom="25.3dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        style="@style/CardShadowBackground">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -132,7 +150,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7.7dp" >
+            android:layout_marginTop="9.7dp" >
             <TextView
                 android:id="@+id/btn_scan_install"
                 android:drawableTop="@drawable/scan_install"
@@ -166,22 +184,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </RelativeLayout>
-    </LinearLayout>
+    </org.hapjs.debugger.widget.BlurLinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:orientation="horizontal">
-        <LinearLayout
+        android:layout_marginHorizontal="16dp"
+        android:orientation="horizontal"
+        android:clipChildren="false">
+        <org.hapjs.debugger.widget.BlurLinearLayout
+            android:id="@+id/start_debug_pkg_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="52dp"
             android:layout_weight="1"
-            android:background="@drawable/card_bg"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="12.7dp"
-            android:paddingBottom="10dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:clipChildren="false"
+            style="@style/CardShadowBackground">
 
             <LinearLayout
                 android:id="@+id/debug_pkg_info_layout"
@@ -189,6 +209,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_gravity="center_vertical"
+                android:paddingStart="16dp"
                 android:orientation="vertical"
                 android:visibility="gone">
                 <org.hapjs.debugger.widget.LastChildVisibleLinearLayout
@@ -203,7 +224,8 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="#FF000000"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
 
                     <ImageView
                         android:id="@+id/card_spinner_icon"
@@ -227,48 +249,56 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:paddingStart="16dp"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="#4D000000"
                 android:textSize="14sp"
+                android:textStyle="bold"
                 android:text="@string/toast_no_debuggable_package" />
 
-            <TextView
+            <org.hapjs.debugger.widget.BlurShadowButton
                 android:id="@+id/btn_start_debugging"
                 android:text="@string/btn_start_debug"
-                android:background="@drawable/btn_bg"
                 android:textSize="13sp"
                 android:textColor="#FFFFFF"
-                android:paddingVertical="7dp"
-                android:paddingHorizontal="11dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:gravity="center"
+                android:layout_marginEnd="16dp"
+                android:layout_width="74dp"
+                android:layout_height="26dp"
+                app:corner_radius="15dp"
+                style="@style/ButtonShadowBackground"/>
 
-        </LinearLayout>
+        </org.hapjs.debugger.widget.BlurLinearLayout>
 
-        <TextView
-            android:id="@+id/debug_hint"
+        <org.hapjs.debugger.widget.BlurLinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginStart="12dp"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="9dp"
-            android:background="@drawable/card_bg"
-            android:drawableTop="@drawable/debug_hint"
-            android:drawablePadding="5dp"
-            android:textSize="10sp"
-            android:textColor="#4D000000"
-            android:text="@string/btn_debug_hint"/>
+            style="@style/CardShadowBackground">
+            <TextView
+                android:id="@+id/debug_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="9dp"
+                android:drawableTop="@drawable/debug_hint"
+                android:drawablePadding="5dp"
+                android:textSize="10sp"
+                android:textColor="#4D000000"
+                android:text="@string/btn_debug_hint"/>
+        </org.hapjs.debugger.widget.BlurLinearLayout>
 
     </LinearLayout>
 
-    <LinearLayout
+    <org.hapjs.debugger.widget.BlurLinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:layout_marginTop="20dp"
-        android:background="@drawable/card_bg"
-        android:orientation="vertical">
+        android:layout_marginBottom="30dp"
+        android:layout_marginHorizontal="16dp"
+        android:orientation="vertical"
+        style="@style/CardShadowBackground">
 
         <LinearLayout
             android:id="@+id/launch_app_test_layout"
@@ -296,6 +326,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#FF000000"
                     android:textSize="14sp"
+                    android:textStyle="bold"
                     android:text="@string/menu_label_launch_app_test"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -341,6 +372,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="#FF000000"
                     android:textSize="14sp"
+                    android:textStyle="bold"
                     android:text="@string/get_signature_label"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -359,6 +391,6 @@
                 android:layout_centerVertical="true"
                 android:src="@drawable/go_arrow"/>
         </LinearLayout>
-    </LinearLayout>
+    </org.hapjs.debugger.widget.BlurLinearLayout>
 
 </LinearLayout>

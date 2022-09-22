@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListPopupWindow;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import org.hapjs.debug.log.DebuggerLogUtil;
 import org.hapjs.debugger.app.impl.R;
@@ -49,6 +51,7 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
 
     private static final String KEY_CARD_PATH = "cardPath";
 
+    private ImageView mLoadHostProgress;
     private View mHostInfoLayout;
     private TextView mPlatformPkgTv;
     private TextView mPlatformVersionTv;
@@ -102,6 +105,12 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
     protected View setupViews(LayoutInflater inflater, @Nullable ViewGroup container) {
         View view = super.setupViews(inflater, container);
 
+        mLoadHostProgress = view.findViewById(R.id.load_host_progress);
+        AnimatedVectorDrawableCompat hostProgress = AnimatedVectorDrawableCompat.create(
+                getActivity(), R.drawable.load_card_host_progress);
+        mLoadHostProgress.setImageDrawable(hostProgress);
+        hostProgress.start();
+
         mHostInfoLayout = view.findViewById(R.id.host_info_layout);
         mCardHostNameTv = view.findViewById(R.id.host_name);
         mCardHostPkgTv = view.findViewById(R.id.host_pkg);
@@ -115,7 +124,10 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
         mHostSpinnerIcon.setOnClickListener(v ->
                 mHostSpinner = handleSpinnerIconClick(mHostSpinner, mHostSpinnerIcon,
                         R.id.host_info_primary_layout, mDisplayedCardHosts, getSelectedHostIndex(),
-                        R.drawable.arrow_down, R.drawable.arrow_up));
+                        R.drawable.arrow_down, R.drawable.arrow_up,
+                        (int) getResources().getDimension(R.dimen.platform_popup_width),
+                        ListPopupWindow.WRAP_CONTENT,
+                        0));
 
         mDebugPkgInfoLayout = view.findViewById(R.id.debug_pkg_info_layout);
         mNoDebugPkgView = view.findViewById(R.id.txt_no_debuggable_pkg);
@@ -125,8 +137,12 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
         mCardSpinnerIcon.setVisibility(View.GONE);
         mCardSpinnerIcon.setOnClickListener(v ->
                 mCardSpinner = handleSpinnerIconClick(mCardSpinner, mCardSpinnerIcon,
-                        R.id.debug_pkg_info_layout, mCardList, getSelectedCardIndex(),
-                        R.drawable.card_arrow_down, R.drawable.card_arrow_up));
+                        R.id.start_debug_pkg_layout, mCardList, getSelectedCardIndex(),
+                        R.drawable.card_arrow_down, R.drawable.card_arrow_up,
+                        (int) getResources().getDimension(R.dimen.card_name_popup_width),
+                        mCardList.size() <= 4 ? ListPopupWindow.WRAP_CONTENT
+                                : (int) getResources().getDimension(R.dimen.card_name_popup_max_height),
+                        (int) getResources().getDimension(R.dimen.card_name_popup_vertical_offset)));
 
         refreshButtons(false);
 
@@ -307,10 +323,14 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
     }
 
     private void setCardHost(CardHostInfo cardHost) {
+        mLoadHostProgress.setVisibility(View.GONE);
         if (cardHost == null) {
             refreshButtons(false);
             mHostInfoLayout.setVisibility(View.GONE);
             mNoHostView.setVisibility(View.VISIBLE);
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            animation.setDuration(500);
+            mNoHostView.startAnimation(animation);
         } else if (!cardHost.equals(mCardHost)) {
             mCardHost = cardHost;
             PreferenceUtils.setCardHostPlatform(getContext(), cardHost.toString());
@@ -320,6 +340,9 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
             mCardHostNameTv.setText(mCardHostNames.get(mCardHosts.indexOf(cardHost)));
             mCardHostPkgTv.setText(" (" + cardHost.archiveHost + ")");
             mHostSpinnerIcon.setVisibility(mCardHosts.size() == 1 ? View.GONE : View.VISIBLE);
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            animation.setDuration(500);
+            mHostInfoLayout.startAnimation(animation);
             //now we have a new runtime platform, so unbind previous one
             AppDebugManager.getInstance(getContext()).unbindDebugService();
             refreshCorePlatformInfo(cardHost);
@@ -429,7 +452,7 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
 
     private void refreshStartDebugButton(boolean hasSelectedPlatform) {
         mStartDebugBtn.setEnabled(hasSelectedPlatform
-                && !TextUtils.isEmpty(PreferenceUtils.getDebugCardPath(getActivity()))
+                && !TextUtils.isEmpty(PreferenceUtils.getDebugCardPackage(getActivity()))
                 && !TextUtils.isEmpty(PreferenceUtils.getDebugCardPath(getActivity())));
     }
 

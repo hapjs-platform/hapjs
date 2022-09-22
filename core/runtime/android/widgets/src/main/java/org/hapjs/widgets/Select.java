@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -34,6 +34,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.text.TypefaceBuilder;
 import org.hapjs.widgets.view.SelectView;
@@ -126,6 +127,11 @@ public class Select extends Container<SelectView> {
             return;
         }
         super.addChild(child, index);
+
+        if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            GrayModeManager.getInstance().applyGrayMode(child.getHostView(), true);
+        }
+
         if (forceDarkAllowed) {
             ((Option) child).setSelfForceDarkAllowed();
         } else {

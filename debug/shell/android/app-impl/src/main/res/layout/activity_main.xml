@@ -5,8 +5,7 @@
     SPDX-License-Identifier: Apache-2.0
 -->
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -16,23 +15,26 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:background="@null">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize" >
+            android:layout_height="match_parent">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
-                android:src="@drawable/logo"/>
+                android:layout_marginStart="16dp"
+                android:src="@drawable/logo" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_centerHorizontal="true">
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -41,9 +43,11 @@
                     android:text="&lt;"
                     android:textColor="#1A000000"
                     android:textSize="16sp" />
+
                 <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent" >
+                    android:layout_height="match_parent">
+
                     <TextView
                         android:id="@+id/app_mode_title"
                         android:layout_width="wrap_content"
@@ -52,15 +56,17 @@
                         android:text="@string/text_mode_application"
                         android:textColor="@color/mode_selected_color"
                         android:textSize="@dimen/mode_selected_text_size" />
+
                     <View
                         android:id="@+id/app_mode_bottom_line"
                         android:layout_width="30dp"
                         android:layout_height="4dp"
-                        android:layout_marginTop="8dp"
                         android:layout_below="@id/app_mode_title"
                         android:layout_centerHorizontal="true"
-                        android:background="#FF000000" />
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/tab_indicator" />
                 </RelativeLayout>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -70,9 +76,11 @@
                     android:text="/"
                     android:textColor="#1A000000"
                     android:textSize="16sp" />
+
                 <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent" >
+                    android:layout_height="match_parent">
+
                     <TextView
                         android:id="@+id/card_mode_title"
                         android:layout_width="wrap_content"
@@ -81,6 +89,7 @@
                         android:text="@string/text_mode_card"
                         android:textColor="@color/mode_unselected_color"
                         android:textSize="@dimen/mode_unselected_text_size" />
+
                     <View
                         android:id="@+id/card_mode_bottom_line"
                         android:layout_width="30dp"
@@ -88,8 +97,9 @@
                         android:layout_marginTop="8dp"
                         android:layout_below="@id/card_mode_title"
                         android:layout_centerHorizontal="true"
-                        android:background="#FF000000"/>
+                        android:background="@drawable/tab_indicator" />
                 </RelativeLayout>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -99,14 +109,15 @@
                     android:textColor="#1A000000"
                     android:textSize="16sp" />
             </LinearLayout>
+
             <ImageView
                 android:id="@+id/setting"
-                android:src="@drawable/setting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="18dp"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true"/>
+                android:layout_marginEnd="18dp"
+                android:src="@drawable/setting" />
         </RelativeLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -116,10 +127,11 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <RelativeLayout
-            android:id="@+id/container"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </RelativeLayout>
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:paddingTop="16dp" />
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

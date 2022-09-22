@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -81,6 +81,7 @@ import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.Checkable;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.Runtime;
 import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.utils.ActivityUtils;
@@ -1349,6 +1350,7 @@ public class LauncherActivity extends RuntimeActivity {
         if (TextUtils.isEmpty(packages) || TextUtils.equals(packages, "unknown")) {
             return;
         }
+        GrayModeManager.getInstance().setCurrentPkg(packages);
         int theme = intent.getIntExtra(EXTRA_THEME_MODE, -1);
         if (DarkThemeUtil.needChangeDefaultNightMode(theme)) {
             AppCompatDelegate.setDefaultNightMode(DarkThemeUtil.convertThemeMode(theme));

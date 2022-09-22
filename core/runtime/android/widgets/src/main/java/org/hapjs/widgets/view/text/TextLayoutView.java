@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -13,6 +13,7 @@ import android.text.Spannable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
+import android.text.style.ImageSpan;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -72,6 +73,17 @@ public class TextLayoutView extends View implements ComponentHost, GestureHost {
         if (mText instanceof Spannable) {
             ClickableSpan[] spans =
                     ((Spannable) mText).getSpans(0, mText.length() - 1, ClickableSpan.class);
+            return (spans.length > 0);
+        }
+        return false;
+    }
+
+    private boolean containImageSpan() {
+        if (mText instanceof Spannable) {
+            ImageSpan[] spans = ((Spannable) mText).getSpans(
+                    0,
+                    mText.length() - 1,
+                    ImageSpan.class);
             return (spans.length > 0);
         }
         return false;
@@ -226,6 +238,8 @@ public class TextLayoutView extends View implements ComponentHost, GestureHost {
         int widthSize = View.MeasureSpec.getSize(widthMeasureSpec);
         layoutBuilder.setWidth(widthSize, convertToLayoutBuilderMode(widthMode));
         layoutBuilder.setText(mText);
+        // 包含ImageSpan的TextLayout不加入缓存，避免因缓存静态引用造成图片资源不能及时回收
+        layoutBuilder.setShouldCacheLayout(!containImageSpan());
         return layoutBuilder.build();
     }
 

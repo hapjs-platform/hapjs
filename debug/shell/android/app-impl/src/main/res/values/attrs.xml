@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<resources>
+    <declare-styleable name="BlurShadow">
+        <attr name="x_offset" format="dimension" />
+        <attr name="y_offset" format="dimension" />
+        <attr name="blur_radius" format="dimension" />
+        <attr name="spread_radius" format="dimension" />
+        <attr name="blur_color" format="color" />
+        <attr name="corner_radius" format="dimension" />
+    </declare-styleable>
+</resources>
