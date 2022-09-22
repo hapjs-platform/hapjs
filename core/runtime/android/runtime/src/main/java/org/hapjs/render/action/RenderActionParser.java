@@ -80,10 +80,16 @@ class RenderActionParser {
                 if (DebugUtils.DBG) {
                     DebugUtils.endRecord("JsToNative_generateDom");
                 }
+                if(args.length() != 0){
+                    parseJsCallback(args.getJSONObject(0),action);
+                }
                 action.action = VDomChangeAction.ACTION_CREATE_FINISH;
                 break;
             }
             case "updateFinish": {
+                if(args.length() != 0){
+                    parseJsCallback(args.getJSONObject(0),action);
+                }
                 action.action = VDomChangeAction.ACTION_UPDATE_FINISH;
                 break;
             }
@@ -383,6 +389,7 @@ class RenderActionParser {
         parseTagName(eleInfo, action);
         parseAttr(eleInfo, action);
         parseEvent(eleInfo, action);
+        parseHooks(eleInfo,action);
 
         // create node
         createRenderActionNode(document, action, eleInfo);
@@ -478,6 +485,23 @@ class RenderActionParser {
             String key = (String) keys.next();
             Object value = getTransformedJSONObject(jsObj, key);
             action.scrolls.put(key, value);
+        }
+    }
+
+    private static void parseHooks(JSONObject eleInfo, VDomChangeAction action) throws JSONException {
+        if (eleInfo.has("hooks")) {
+            JSONArray arr = eleInfo.getJSONArray("hooks");
+            final int N = arr.length();
+            for (int i = 0; i < N; i++) {
+                action.hooks.add(arr.getString(i));
+            }
+        }
+    }
+
+
+    private static void parseJsCallback(JSONObject eleInfo, VDomChangeAction action) throws JSONException {
+        if (eleInfo.has("jsCallbacks")) {
+            action.jsCallbacks = eleInfo.getBoolean("jsCallbacks");
         }
     }
 
