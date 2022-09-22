@@ -433,6 +433,7 @@ public class Attributes {
         String OBJECT_FIT = "objectFit";
         String ALT_OBJECT_FIT = "altObjectFit";
         String SRC = "src";
+        String SOURCE = "source";
         String ALT = "alt";
 
         String INDEX = "index";
