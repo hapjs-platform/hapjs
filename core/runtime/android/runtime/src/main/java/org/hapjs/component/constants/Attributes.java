@@ -564,6 +564,9 @@ public class Attributes {
         String CHANGE = "change";
         String RESIZE = "resize";
 
+        String PAGE_SPLIT = "splitpage";
+        String PAGE_CHANGED = "pagechanged";
+
         // list
         String SCROLL = "scroll";
         String SCROLL_BOTTOM = "scrollbottom";
