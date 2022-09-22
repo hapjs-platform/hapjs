@@ -64,7 +64,7 @@ class Listener {
    * @returns {undefined|number}
    */
   createBody(node) {
-    const body = getNodeAsJSON(node, true, true, false)
+    const body = getNodeAsJSON(node, true, true, false, true)
     const children = body.children
     delete body.children
     const actions = [_createAction('createBody', [body])]
@@ -127,7 +127,7 @@ class Listener {
       index = -1
     }
     return this.addActions(
-      _createAction('addElement', [ref, getNodeAsJSON(node, true, true, false), index])
+      _createAction('addElement', [ref, getNodeAsJSON(node, true, true, false, true), index])
     )
   }
 

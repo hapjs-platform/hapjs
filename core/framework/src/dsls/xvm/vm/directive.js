@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -57,6 +57,7 @@ function bindElement(vm, el, template) {
   setAttr(vm, el, template.attr)
   setAttrClass(vm, el, template.classList)
   setAttrStyle(vm, el, template.style)
+  setCustomDirectives(vm, el, template)
 
   bindEvents(vm, el, template.events) // 绑定事件
 }
@@ -647,6 +648,66 @@ function setAttrStyle(vm, el, style) {
 }
 
 /**
+ * 给element绑定自定义指令
+ * @param vm 节点所在的vm
+ * @param el 触发指令的节点
+ * @param data 节点描述信息
+ */
+function setCustomDirectives(vm, el, data) {
+  // directives：节点自带的指令信息
+  // appendDirectives：页面传递给自定义组件根节点的指令信息
+  const { directives, appendDirectives } = data
+
+  // 节点上不存在自定义指令信息则跳过
+  if (!directives && !appendDirectives) return
+
+  // 节点上存在自定义指令，则初始化_directives
+  el._directives = []
+
+  // 合并节点的directives和appendDirectives
+  const allDirs = [].concat(directives, appendDirectives)
+  let curVm = vm
+  for (let i = 0, len = allDirs.length; i < len; i++) {
+    const elDir = allDirs[i]
+    if (!elDir) continue
+
+    // 组件根节点处理：如果当前节点是组件的根节点，并且当前vm中没有定义节点的指令信息
+    if (el === vm._rootElement && !vm._directives[elDir.name]) {
+      // 则取父vm为自定义指令的context
+      curVm = vm._parent
+    }
+
+    const vmDirs = curVm._directives
+    // 节点自定义指令名称在vm上有定义
+    if (vmDirs[elDir.name]) {
+      const dirInfo = {
+        name: elDir.name,
+        callbacks: vmDirs[elDir.name]
+      }
+      if (typeof elDir.value === 'function') {
+        // 指令绑定的值为动态变量时：标记useDynamic为true，创建函数观察器，返回当前计算值
+        dirInfo.useDynamic = true
+        dirInfo.value = watch(curVm, elDir.value, undefined, el)
+      } else {
+        dirInfo.useDynamic = false
+        // 指令绑定的值非动态变量，直接返回
+        dirInfo.value = elDir.value
+      }
+      // 将当前指令信息push到节点_directives中
+      el._directives.push(dirInfo)
+
+      const directivesContext = vm._root._directivesContext
+      directivesContext[el.ref] = {}
+      // 记录当前节点自定义指令的vm上下文
+      directivesContext[el.ref][elDir.name] = curVm
+
+      // 为节点绑定原生方法
+      context.quickapp.dock.bindComponentMethods(curVm._page || {}, el)
+    }
+  }
+}
+
+/**
  * 绑定事件
  * @param vm
  * @param el
@@ -774,7 +835,7 @@ function watch(vm, calc, callback, node) {
       return
     }
     // 执行回调
-    callback(value)
+    callback && callback(value)
   })
   bindNodeWatcher(node, watcher)
   // 返回当前calc函数的计算结果

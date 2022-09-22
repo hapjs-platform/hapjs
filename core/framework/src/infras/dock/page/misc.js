@@ -350,6 +350,80 @@ function processNextTickCallbacks(page) {
   }
 }
 
+/**
+ * 处理节点自定义指令回调
+ * @param page 页面实例
+ * @param hookType 触发结构钩子类型
+ * @param args 客户端回调的参数
+ */
+function processCustomDirectiveCallback(page, hookType, args) {
+  const { ref, valueType, key, newValue, oldValue } = args
+
+  let callback
+  switch (hookType) {
+    case 'nodeMounted':
+      callback = 'mounted'
+      break
+    case 'nodeUpdate':
+      callback = 'update'
+      break
+    case 'nodeDestroy':
+      callback = 'destroy'
+      break
+  }
+  // 只处理nodeMounted、nodeUpdate、nodeDestroy钩子
+  if (!callback) return
+
+  const directivesContext = page.vm._directivesContext
+  // 从页面自定义指令上下文列表中得到对应节点的自定义指令上下文
+  const nodeDirContext = directivesContext[ref]
+  // 节点不存在指令上下文则跳过
+  if (!nodeDirContext) return
+
+  // 节点的自定义指令列表
+  const nodeDirs = Object.keys(nodeDirContext)
+
+  // 遍历触发节点自定义指令回调
+  for (let i = 0; i < nodeDirs.length; i++) {
+    // 节点指令所在的vm
+    const nodeDirVm = nodeDirContext[nodeDirs[i]]
+    // 取出节点在vm上对应的指令信息
+    const nodeDir = nodeDirVm._directives[nodeDirs[i]]
+    // 不存在对应指令 或 不存在对应指令回调则跳过
+    if (!nodeDir || !nodeDir[callback]) continue
+
+    let binding
+    const element = config.runtime.helper.getDocumentNodeByRef(page.doc, ref)
+    if (element) {
+      const nodeDir = element._directives.find(dir => dir.name === nodeDirs[i])
+      // 指令名称
+      binding = { name: nodeDir.name }
+
+      // 为指令绑定的data添加getter
+      Object.defineProperty(binding, 'data', {
+        enumerable: true,
+        configurable: false,
+        get() {
+          // 如果绑定的data为动态变量时，每次从watcher中取最新值，否则直接返回绑定值
+          return nodeDir.useDynamic && nodeDir.value.get ? nodeDir.value.get() : nodeDir.value
+        }
+      })
+      // 节点更新时增加更新相关参数
+      if (hookType === 'nodeUpdate') {
+        binding.key = key
+        binding.type = valueType
+        binding.newValue = newValue
+        binding.oldValue = oldValue
+      }
+    }
+    // 触发节点自定义指令回调
+    nodeDir[callback].call(nodeDirVm, element, binding)
+
+    // 自定义指令回调执行结束后，发送更新结束标识
+    page.doc.listener.updateFinish()
+  }
+}
+
 export {
   recreatePage,
   getRootElement,
@@ -361,5 +435,6 @@ export {
   setElementStyles,
   setElementAttrs,
   compileFragmentData,
-  processNextTickCallbacks
+  processNextTickCallbacks,
+  processCustomDirectiveCallback
 }
