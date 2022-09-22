@@ -166,7 +166,7 @@ public class EventButton extends Button {
                         if (ShortcutManager.hasShortcutInstalled(mContext, rpkPackage)) {
                             ShortcutManager.update(mContext, rpkPackage, rpkName, rpkIcon);
                             if (null != data) {
-                                data.put(EVENT_STATUS, SUCCESS);
+                                data.put(EVENT_STATUS, ERROR);
                                 data.put(EVENT_MESSAGE, "already createShortCut.");
                             } else {
                                 Log.e(TAG, "createShortCut hasShortcutInstalled  data is null.");
@@ -237,7 +237,7 @@ public class EventButton extends Button {
                         iGesture = gestureHost.getGesture();
                     }
                     if (iGesture instanceof GestureDelegate) {
-                        ((GestureDelegate) iGesture).fireEvent(eventName, data, immediately);
+                        ((GestureDelegate) iGesture).fireEvent(eventName, data, true);
                     }
                 }
                 reportTraceEvent(KEY_APP_EVENT_BUTTON_CLICK);
