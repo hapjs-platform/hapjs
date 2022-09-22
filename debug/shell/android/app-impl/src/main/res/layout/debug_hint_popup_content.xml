@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="11dp"
             android:paddingVertical="13dp"
-            android:text="@string/hint_no_response_vivo"
+            android:text="@string/hint_no_response"
             android:textColor="#FFFFFFFF"
             android:textSize="14sp"/>
 

@@ -25,8 +25,7 @@
     <string name="btn_installed">已安装</string>
 
     <string name="hint_fail_to_bind_service">无法启动【快应用预览版】，请在系统权限管理相关设置页面中将【关联启动】/【自启动】权限授予【快应用预览版】，或者手动打开【快应用预览版】。</string>
-    <string name="hint_no_response_vivo">若调试无响应，请前往手机系统设置“权限管理”页面，将“关联启动”和“后台弹出界面”权限授予“%1$s”。</string>
-    <string name="hint_no_response_xiaomi">若调试无响应，请前往手机系统设置“应用管理”页面，将“自启动权限“权限授予“%1$s”。</string>
+    <string name="hint_no_response">若调试无响应，请前往系统权限管理相关设置页面，将“关联启动”/“自启动”和“后台弹出界面”权限授予“%1$s”。</string>
 
     <string name="dlg_uninstall_title">卸载提示</string>
     <string name="dlg_uninstall_msg">您已经安装了较高版本的平台预览版，是否卸载当前版本再进行安装呢？</string>
