@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -327,6 +327,10 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
                 String fontFamily = Attributes.getString(attribute, null);
                 setFontFamily(fontFamily);
                 return true;
+            case Attributes.Style.LETTER_SPACING:
+                String letterSpacing = Attributes.getString(attribute, null);
+                parseLetterSpacing(letterSpacing);
+                return true;
             default:
                 break;
         }
@@ -622,6 +626,28 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
                         }
                     }
                 });
+    }
+    private void parseLetterSpacing(String letterspacing) {
+        if (letterspacing == null) {
+            return;
+        } else if (letterspacing.endsWith("normal")) {
+            setLetterSpacing(0.0f);
+        } else if (letterspacing.endsWith("dp")) {
+            float dp = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            setLetterSpacing(dp/getFontSize());
+        } else if (letterspacing.endsWith("px")) {
+            float px = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            setLetterSpacing(px/getFontSize());
+        } else if (letterspacing.endsWith("%")) {
+            float percent = Attributes.getPercent(letterspacing, 0);
+            setLetterSpacing(percent * getFontSize()/100);
+        }
+    }
+
+    private void setLetterSpacing(float spacing) {
+        mTextSpan.setLetterSpacing(spacing);
+        mLayoutBuilder.setLetterSpacing(spacing);
+        updateSpannable();
     }
 
     public TextSpan getTextSpan() {
