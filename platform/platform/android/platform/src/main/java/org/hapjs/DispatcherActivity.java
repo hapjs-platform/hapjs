@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -28,7 +28,6 @@ public class DispatcherActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         try {
             Intent intent = getIntent();
             setSource(intent);
@@ -37,6 +36,9 @@ public class DispatcherActivity extends Activity {
         } catch (Exception e) {
             Log.e(TAG, "onCreate parse intent get error", e);
         }
+
+        super.onCreate(savedInstanceState);
+
         try {
             finish();
         } catch (Exception e) {

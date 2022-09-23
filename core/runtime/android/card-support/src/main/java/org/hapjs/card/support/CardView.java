@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -33,9 +33,9 @@ import org.hapjs.card.sdk.utils.CardConfigUtils;
 import org.hapjs.card.support.utils.CardRuntimeErrorManager;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.io.AssetSource;
-import org.hapjs.io.Source;
 import org.hapjs.logging.LogHelper;
 import org.hapjs.logging.RuntimeLogManager;
+import org.hapjs.io.JavascriptReader;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.IHybridViewHolder;
 import org.hapjs.render.MainThreadFrameWorker;
@@ -142,10 +142,17 @@ public class CardView extends RootView
     }
 
     @Override
-    protected Source getJsAppSource() {
-        return mMode == HapEngine.Mode.CARD
-                ? new AssetSource(getContext(), "app/card.js")
-                : super.getJsAppSource();
+    protected boolean hasAppResourcesPreloaded(String pkg) {
+        return false;
+    }
+
+    @Override
+    protected String getAppJs() {
+        if (mMode == HapEngine.Mode.CARD) {
+            return JavascriptReader.get().read(new AssetSource(getContext(), "app/card.js"));
+        } else {
+            return super.getAppJs();
+        }
     }
 
     @Override
