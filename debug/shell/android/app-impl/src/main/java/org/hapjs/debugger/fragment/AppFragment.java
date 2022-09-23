@@ -414,7 +414,6 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemClic
     }
 
     private void setupPlatformInfo(String platformPackage) {
-        Log.e("charles", "setupPlatformInfo", new Throwable());
         try {
             mPlatformPkgTv.setVisibility(View.VISIBLE);
             mPlatformPkgTv.setText(" (" + platformPackage + ")");
