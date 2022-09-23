@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -670,7 +670,8 @@ function compileNativeComponent(vm, template, dest, type) {
   // 将richtext属性保存为html
   if (isRichTextNode(template)) {
     template.content = template.attr.value
-    template.contentType = template.attr.type
+    // 获取template的scene或type属性
+    template.contentType = template.attr.scene || template.attr.type
     // 注释：循环遍历richtext时，后面的richtext需要有value模板
     // delete template.attr['value']
   }
@@ -940,7 +941,8 @@ function compileRichText(vm, target, dest) {
 
       // 如果有新值, 重新编译
       if (value) {
-        if (textType !== 'html') {
+        // 当类型为book或者html时不用编译节点
+        if (textType !== 'html' && textType !== 'book') {
           // 解析value为template
           const xContent = parser.compile(value, textType)
           compile(vm, xContent, fragment)
@@ -952,7 +954,8 @@ function compileRichText(vm, target, dest) {
   }
 
   if (content) {
-    if (textType !== 'html') {
+    // 当类型为book或者html时不用编译节点
+    if (textType !== 'html' && textType !== 'book') {
       const xContent = parser.compile(content, textType)
       compile(vm, xContent, fragment)
     }
