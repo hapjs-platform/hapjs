@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -646,7 +646,7 @@ public class NestedWebView extends WebView
                                                                 }
 
                                                                 @Override
-                                                                public void onPermissionReject(int reason) {
+                                                                public void onPermissionReject(int reason, boolean dontDisturb) {
                                                                     callback.invoke(origin, false, false);
                                                                 }
                                                             });
@@ -811,18 +811,14 @@ public class NestedWebView extends WebView
                             String host = request.getOrigin().getHost();
                             if (webRtcPermissions.contains(Manifest.permission.CAMERA)
                                     && webRtcPermissions.contains(Manifest.permission.RECORD_AUDIO)) {
-                                warnMessage = getResources().getString(R.string.webrtc_warn_double_permission,
-                                        host,
-                                        getResources().getString(R.string.webrtc_warn_camera),
-                                        getResources().getString(R.string.webrtc_warn_microphone));
+                                        warnMessage = getResources().getString(R.string.webrtc_warn_permission_camera_and_microphone,
+                                        host);
                             } else if (webRtcPermissions.contains(Manifest.permission.CAMERA)) {
-                                warnMessage = getResources().getString(R.string.webrtc_warn_single_permission,
-                                        host,
-                                        getResources().getString(R.string.webrtc_warn_camera));
+                                warnMessage = getResources().getString(R.string.webrtc_warn_permission_camera,
+                                        host);
                             } else if (webRtcPermissions.contains(Manifest.permission.RECORD_AUDIO)) {
-                                warnMessage = getResources().getString(R.string.webrtc_warn_single_permission,
-                                        host,
-                                        getResources().getString(R.string.webrtc_warn_microphone));
+                                warnMessage = getResources().getString(R.string.webrtc_warn_permission_microphone,
+                                        host);
                             }
                             Resources res = getResources();
                             mWebRtcDialog = new CheckableAlertDialog(NestedWebView.this.getContext());
@@ -847,7 +843,7 @@ public class NestedWebView extends WebView
                                                                 }
 
                                                                 @Override
-                                                                public void onPermissionReject(int reason) {
+                                                                public void onPermissionReject(int reason, boolean dontDisturb) {
                                                                     ThreadUtils.runOnUiThread(request::deny);
                                                                     StringBuilder builder =
                                                                             new StringBuilder("onPermissionReject reason:")
@@ -1200,7 +1196,7 @@ public class NestedWebView extends WebView
                             }
 
                             @Override
-                            public void onPermissionReject(int reason) {
+                            public void onPermissionReject(int reason, boolean dontDisturb) {
                                 Log.d(TAG, "camera permission deny.");
                                 NestedWebView.this.post(
                                         new Runnable() {

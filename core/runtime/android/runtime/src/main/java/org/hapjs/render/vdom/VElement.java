@@ -43,7 +43,7 @@ public class VElement implements RecyclerDataItem.Holder {
         return mParent;
     }
 
-    ComponentDataHolder getComponentDataHolder() {
+    public ComponentDataHolder getComponentDataHolder() {
         return mDataHolder;
     }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFD8D8D8" />
+    <corners
+        android:radius="3.5dp" />
+</shape>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -213,6 +213,7 @@ public class ShortMessage extends FeatureExtension {
         Intent sentIntent = new Intent(SENT_SMS_ACTION);
         sentIntent.putExtra(BROADCAST_TAG, mIndex);
         sentIntent.putExtra(BROADCAST_QUICKAPP_NAME, name);
+        sentIntent.setPackage(activity.getPackageName());
         PendingIntent sendPI =
                 PendingIntent
                         .getBroadcast(activity, 0, sentIntent, PendingIntent.FLAG_UPDATE_CURRENT);

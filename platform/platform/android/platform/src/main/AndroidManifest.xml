@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -98,6 +98,16 @@
                     android:host="app"
                     android:pathPattern="/.*"
                     android:scheme="hap" />
+
+                <data
+                    android:host="qr.quickapp.cn"
+                    android:pathPattern="/app/.*"
+                    android:scheme="http" />
+
+                <data
+                    android:host="qr.quickapp.cn"
+                    android:pathPattern="/app/.*"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
 

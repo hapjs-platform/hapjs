@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,9 +11,14 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
+
 import com.facebook.yoga.YogaNode;
+
+import java.util.HashMap;
 import java.util.Map;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.utils.ColorUtil;
@@ -28,10 +33,12 @@ import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.webview.BaseWebViewClient;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.view.BookPagerView;
 
 @WidgetAnnotation(
         name = RichText.WIDGET_NAME,
         methods = {
+                RichText.METHOD_ADD_NEXT_CONTENT,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_TO_TEMP_FILE_PATH,
@@ -41,10 +48,13 @@ public class RichText extends Container<View> {
     protected static final String WIDGET_NAME = "richtext";
     private static final String TAG = "RichText";
     private static final String KEY_TYPE = "type";
+    private static final String KEY_SCENE = "scene";
     private static final String TYPE_MIX = "mix";
     private static final String TYPE_HTML = "html";
+    private static final String BOOK_SCENE = "book";
 
     // Event
+    public static final String METHOD_ADD_NEXT_CONTENT = "addContent";
     private static final String EVENT_START = "start";
     private static final String EVENT_COMPLETE = "complete";
 
@@ -63,28 +73,66 @@ public class RichText extends Container<View> {
 
     @Override
     protected View createViewImpl() {
-        String type = TYPE_MIX;
-        if (getAttrsDomData().containsKey(KEY_TYPE)) {
-            String attrType = (String) getAttrsDomData().get(KEY_TYPE);
-            if (TYPE_HTML.equals(attrType)) {
-                type = TYPE_HTML;
+        if (getAttrsDomData().containsKey(KEY_SCENE)) {
+            String scene = (String) getAttrsDomData().get(KEY_SCENE);
+            //翻页图文场景
+            if (BOOK_SCENE.equals(scene)) {
+                BookPagerView mBookPagerView = new BookPagerView(mContext);
+                mBookPagerView.setComponent(this);
+                ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                mBookPagerView.setLayoutParams(lp);
+                mBookPagerView.setBookEventListener(new BookPagerView.BookEventListener() {
+                    @Override
+                    public void onPageSplitEnd(int totalPage) {
+                        HashMap<String, Object> params = new HashMap<>();
+                        params.put("totalpage", totalPage);
+                        mCallback.onJsEventCallback(getPageId(), mRef, Attributes.Event.PAGE_SPLIT, RichText.this, params, null);
+                    }
+
+                    @Override
+                    public void onPageChanged(int curPage, int totalPage) {
+                        HashMap<String, Object> params = new HashMap<>();
+                        params.put("curpage", curPage);
+                        params.put("totalpage", totalPage);
+                        mCallback.onJsEventCallback(getPageId(), mRef, Attributes.Event.PAGE_CHANGED, RichText.this, params, null);
+                    }
+                });
+                return mBookPagerView;
+            }
+        } else {
+            String type = TYPE_MIX;
+            if (getAttrsDomData().containsKey(KEY_TYPE)) {
+                String attrType = (String) getAttrsDomData().get(KEY_TYPE);
+                if (TYPE_HTML.equals(attrType)) {
+                    type = TYPE_HTML;
+                }
+            }
+
+            switch (type) {
+                case TYPE_MIX:
+                    PercentFlexboxLayout percentFlexboxLayout = new PercentFlexboxLayout(mContext);
+                    percentFlexboxLayout.setComponent(this);
+                    return percentFlexboxLayout;
+                case TYPE_HTML:
+                    WebView webView = new HtmlWebView(mContext);
+                    mCallback.addActivityStateListener(this);
+                    return webView;
+                default:
+                    return null;
             }
         }
-
-        switch (type) {
-            case TYPE_MIX:
-                PercentFlexboxLayout percentFlexboxLayout = new PercentFlexboxLayout(mContext);
-                percentFlexboxLayout.setComponent(this);
-                return percentFlexboxLayout;
-            case TYPE_HTML:
-                WebView webView = new HtmlWebView(mContext);
-                mCallback.addActivityStateListener(this);
-                return webView;
-            default:
-                break;
-        }
-
         return null;
+    }
+
+    @Override
+    public void invokeMethod(String methodName, Map<String, Object> args) {
+        super.invokeMethod(methodName, args);
+        if (METHOD_ADD_NEXT_CONTENT.equals(methodName)) {
+            if (mHost instanceof BookPagerView) {
+                BookPagerView bookPagerView = (BookPagerView) mHost;
+                bookPagerView.addOriginText(Attributes.getString(args.get("value")), (int) Attributes.getLong(args.get("index"), -1));
+            }
+        }
     }
 
     @Override
@@ -105,9 +153,16 @@ public class RichText extends Container<View> {
     }
 
     public void setValue(String value) {
+        if (value == null || mHost == null) {
+            return;
+        }
+
         if (mHost instanceof WebView) {
             WebView webView = (WebView) mHost;
             webView.loadDataWithBaseURL(null, value, "text/html; charset=UTF-8", "UTF-8", null);
+        }else if (mHost instanceof BookPagerView) {
+            BookPagerView bookPagerView = (BookPagerView) mHost;
+            bookPagerView.setOriginText(value);
         }
     }
 

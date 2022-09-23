@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -48,11 +48,13 @@ public class NavigationUtils {
     private static final String PATH_WLAN_MANAGER = "/wlan_manager";
     private static final String PATH_BLUETOOTH_MANAGER = "/bluetooth_manager";
     private static final String PATH_5G_MANAGER = "/5g";
+    private static final String PATH_PERMISSIONS = "/permissions";
     private static final String GOOGLE_PLAY_PACKAGE = "com.android.vending";
     private static final String GOOGLE_SERVICE_PACKAGE = "com.google.android.gms";
     private static final Set<String> WHITE_APP_SET = new HashSet<>();
     private static final Map<String, String> SETTING_MAP = new HashMap<>();
     private static WeakReference<AlertDialog> sDialogRef;
+    private static final SysOpProvider sSysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
 
     static {
         WHITE_APP_SET.add(GOOGLE_PLAY_PACKAGE);
@@ -78,7 +80,7 @@ public class NavigationUtils {
         }
 
         if (UriUtils.isHybridSchema(schema)) {
-            return handleHapSetting(context, uri);
+            return handleHapSetting(context, uri, pkg);
         }
 
         try {
@@ -97,37 +99,49 @@ public class NavigationUtils {
         }
     }
 
-    private static boolean handleHapSetting(Context context, Uri uri) {
+    private static boolean handleHapSetting(Context context, Uri uri, String pkg) {
         String host = uri.getHost();
         if (HOST_HAP_SETTINGS.equals(host)) {
             String path = uri.getPath();
             String setting = SETTING_MAP.get(path);
-            if (TextUtils.isEmpty(setting) == false) {
+            if (!TextUtils.isEmpty(setting)) {
                 Intent intent = new Intent(setting);
                 context.startActivity(intent);
                 return true;
-
+            } else if (TextUtils.equals(PATH_PERMISSIONS, path)) {
+                return checkAndStartActivity(context, getPermissionActivityIntent(pkg));
             } else if (TextUtils.equals(PATH_5G_MANAGER, path)) {
-                SysOpProvider provider =
-                        ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
-                ComponentName componentName = provider.get5gMgrComponent();
-                Intent intent = new Intent();
-                intent.setComponent(componentName);
-                ResolveInfo resolveInfo =
-                        context.getPackageManager()
-                                .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
-                if (null != resolveInfo) {
-                    try {
-                        context.startActivity(intent);
-                        return true;
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed route to 5g mgr.", e);
-                    }
-                } else {
-                    Log.e(TAG, "null of resolve info.");
-                }
-                return false;
+                return checkAndStartActivity(context, get5gMgrIntent());
             }
+        }
+        return false;
+    }
+
+    private static Intent getPermissionActivityIntent(String pkg) {
+        return sSysOpProvider.getPermissionActivityIntent(pkg);
+    }
+
+    private static Intent get5gMgrIntent() {
+        ComponentName componentName = sSysOpProvider.get5gMgrComponent();
+        Intent intent = new Intent();
+        intent.setComponent(componentName);
+        return intent;
+    }
+
+    private static boolean checkAndStartActivity(Context context, Intent intent) {
+        if (intent == null) return false;
+        ResolveInfo resolveInfo =
+                context.getPackageManager()
+                        .resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (null != resolveInfo) {
+            try {
+                context.startActivity(intent);
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed route to 5g mgr.", e);
+            }
+        } else {
+            Log.e(TAG, "null of resolve info.");
         }
         return false;
     }
@@ -272,24 +286,7 @@ public class NavigationUtils {
                             return;
                         }
                         Application.ActivityLifecycleCallbacks activityLifecycle =
-                                new Application.ActivityLifecycleCallbacks() {
-                                    @Override
-                                    public void onActivityCreated(Activity activity,
-                                                                  Bundle savedInstanceState) {
-                                    }
-
-                                    @Override
-                                    public void onActivityStarted(Activity activity) {
-                                    }
-
-                                    @Override
-                                    public void onActivityResumed(Activity activity) {
-                                    }
-
-                                    @Override
-                                    public void onActivityPaused(Activity activity) {
-                                    }
-
+                                new SimpleActivityLifecycleCallbacks() {
                                     @Override
                                     public void onActivityStopped(Activity activity) {
                                         AlertDialog tempDialog =
@@ -300,15 +297,6 @@ public class NavigationUtils {
                                         sDialogRef = null;
                                         activity.getApplication()
                                                 .unregisterActivityLifecycleCallbacks(this);
-                                    }
-
-                                    @Override
-                                    public void onActivitySaveInstanceState(Activity activity,
-                                                                            Bundle outState) {
-                                    }
-
-                                    @Override
-                                    public void onActivityDestroyed(Activity activity) {
                                     }
                                 };
                         DialogInterface.OnClickListener listener =
@@ -333,7 +321,7 @@ public class NavigationUtils {
                                             RuntimeLogManager.getDefault()
                                                     .logRouterDialogClick(rpkPkg,
                                                             info.activityInfo.packageName, tempResult);
-                                        }else {
+                                        } else {
                                             RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, tempResult, tempResult ? "" : "dialog user denied");
                                             RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, info.activityInfo.packageName, tempResult);
                                         }
@@ -354,7 +342,7 @@ public class NavigationUtils {
                                             RuntimeLogManager.getDefault()
                                                     .logRouterDialogClick(rpkPkg,
                                                             info.activityInfo.packageName, false);
-                                        }else {
+                                        } else {
                                             RuntimeLogManager.getDefault().logRouterQuickApp(rpkPkg, targetRpk, routerAppFrom, false, "dialog user canceled");
                                             RuntimeLogManager.getDefault().logRouterRpkDialogClick(rpkPkg, targetRpk, false);
                                         }
@@ -372,7 +360,7 @@ public class NavigationUtils {
                         if (!startRpk) {
                             RuntimeLogManager.getDefault()
                                     .logRouterDialogShow(rpkPkg, info.activityInfo.packageName);
-                        }else {
+                        } else {
                             RuntimeLogManager.getDefault().logRouterRpkDialogShow(rpkPkg, targetRpk);
                         }
                     }

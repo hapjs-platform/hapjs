@@ -115,6 +115,11 @@
     native <methods>;
 }
 
+-keepclassmembers class org.hapjs.inspector.ReportInspectorInfo {
+    public static org.hapjs.inspector.ReportInspectorInfo getInstance();
+    public java.lang.String getWsUrl();
+}
+
 -keep class org.hapjs.inspector.reflect.* {
     native <methods>;
 }
@@ -170,3 +175,7 @@
 
 # this dontwarn must be the last dontwarn
 -dontwarn !org.hapjs.**, **
+
+-keep public class * extends org.hapjs.analyzer.panels.AbsPanel{
+    public <init>(android.content.Context);
+}

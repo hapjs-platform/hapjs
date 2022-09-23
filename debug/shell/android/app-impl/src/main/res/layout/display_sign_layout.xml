@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="18dp"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="2.5dp"
+            android:scaleType="center"
+            android:src="@drawable/back"/>
+
+        <TextView
+            android:id="@+id/display_sign_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_get_native_app_sign"
+            android:textColor="#FF000000"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="7dp"/>
+
+        <TextView
+            android:id="@+id/app_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FF000000"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:paddingVertical="15dp"
+            android:paddingHorizontal="14dp"
+            android:background="@drawable/sign_bg">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="#FF000000"
+                    android:text="@string/title_md5"/>
+
+                <TextView
+                    android:id="@+id/copy_md5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#FF579CF8"
+                    android:text="@string/btn_copy"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/sign_md5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="13sp"
+                android:textColor="#4D000000"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:background="@drawable/sign_bg">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="#FF000000"
+                    android:text="@string/title_sha256"/>
+
+                <TextView
+                    android:id="@+id/copy_sha256"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#FF579CF8"
+                    android:text="@string/btn_copy"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/sign_sha256"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="13sp"
+                android:textColor="#4D000000"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:background="@drawable/sign_bg">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="#FF000000"
+                    android:text="@string/title_sign"/>
+
+                <TextView
+                    android:id="@+id/copy_sign"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#FF579CF8"
+                    android:text="@string/btn_copy"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/sign"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:maxLines="4"
+                android:scrollbars="vertical"
+                android:textSize="13sp"
+                android:textColor="#4D000000"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/sms_hash_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:background="@drawable/sign_bg"
+            android:visibility="gone">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="#FF000000"
+                    android:text="@string/title_sms_hash"/>
+
+                <TextView
+                    android:id="@+id/copy_sms_hash"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="#FF579CF8"
+                    android:text="@string/btn_copy"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/sms_hash"
+                android:layout_marginTop="6dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="#4D000000"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

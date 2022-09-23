@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -141,6 +141,14 @@ public class RuntimeLogManager {
     public static final String KEY_RPK_ROUTER_RPK = "routerRpk";
     public static final String KEY_APP_ROUTER_RPK_DIALOG_SHOW = "routerRpkDialogShow";
     public static final String KEY_APP_ROUTER_RPK_DIALOG_CLICK = "routerRpkDialogClick";
+    // share button
+    public static final String KEY_APP_SHARE_BUTTON_SHOW = "shareButtonShow";
+    public static final String KEY_APP_SHARE_BUTTON_CLICK = "shareButtonClick";
+    //shortcut tips
+    public static final String KEY_APP_EVENT_BUTTON_SHOW = "eventbuttonShow";
+    public static final String KEY_APP_EVENT_BUTTON_CLICK = "eventbuttonClick";
+    public static final String KEY_APP_EVENT_BUTTON_TIPS_SHOW = "eventbuttonTipsShow";
+
     private Map<Object, Object> mStates;
     private Object mStateLock;
 

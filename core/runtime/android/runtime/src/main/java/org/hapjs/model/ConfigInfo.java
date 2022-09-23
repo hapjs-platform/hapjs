@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,11 +27,15 @@ public class ConfigInfo {
     private static final String KEY_NETWORK = "network";
     private static final String DEVICE_WIDTH = "device-width";
     private static final int CODE_DEVICE_WIDTH = -1;
+    private static final String KEY_GRAY_MODE = "grayMode";
+
     private JSONObject mData;
     private int mDesignWidth = DEFAULT_DESIGN_WIDTH;
     private boolean mDebug = false;
     private Set<String> mBackgroundFeatures = new HashSet<>();
     private NetworkConfig mNetworkConfig;
+    private GrayModeConfig mGrayModeConfig;
+    private boolean mDynamicDesignWidth = false;
 
     public ConfigInfo(JSONObject data) {
         mData = data;
@@ -41,6 +45,9 @@ public class ConfigInfo {
         ConfigInfo configInfo = new ConfigInfo(configObject);
         if (configObject != null) {
             configInfo.mDesignWidth = parseDesignWidth(configObject.opt(KEY_DESIGN_WIDTH));
+            if (configInfo.mDesignWidth == CODE_DEVICE_WIDTH) {
+                configInfo.mDynamicDesignWidth = true;
+            }
             configInfo.mDebug = configObject.optBoolean(KEY_DEBUG, false);
             JSONObject jsonBackground = configObject.optJSONObject(KEY_BACKGROUND);
             if (null != jsonBackground && jsonBackground.has(KEY_FEATURES)) {
@@ -59,6 +66,8 @@ public class ConfigInfo {
             }
             JSONObject networkObject = configObject.optJSONObject(KEY_NETWORK);
             configInfo.mNetworkConfig = NetworkConfig.parse(networkObject);
+            JSONObject jsonGrayMode = configObject.optJSONObject(KEY_GRAY_MODE);
+            configInfo.mGrayModeConfig = GrayModeConfig.fromJSONObject(jsonGrayMode);
         }
         return configInfo;
     }
@@ -97,7 +106,7 @@ public class ConfigInfo {
     }
 
     public int getDesignWidth() {
-        if (mDesignWidth == CODE_DEVICE_WIDTH) {
+        if (mDynamicDesignWidth) {
             Context context = Runtime.getInstance().getContext();
             DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
             int screenWidth = DisplayUtil.getScreenWidth(context);
@@ -120,6 +129,10 @@ public class ConfigInfo {
 
     public NetworkConfig getNetworkConfig() {
         return mNetworkConfig;
+    }
+
+    public GrayModeConfig getGrayModeConfig() {
+        return mGrayModeConfig;
     }
 
     public JSONObject getData() {

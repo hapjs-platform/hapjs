@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -137,6 +137,7 @@ public class ResidentService extends Service {
             Intent startIntent = new Intent(IntentUtils.getLaunchAction(context));
             startIntent.putExtra(RuntimeActivity.EXTRA_APP, pkg);
             startIntent.putExtra(RuntimeActivity.EXTRA_SOURCE, Source.currentSourceString());
+            startIntent.setPackage(context.getPackageName());
 
             PendingIntent pendingIntent =
                     PendingIntent.getActivity(
@@ -173,6 +174,7 @@ public class ResidentService extends Service {
 
             Intent closeIntent =
                     new Intent(appInfo.getPackage() + "." + ResidentManager.ACTION_CLOSE);
+            closeIntent.setPackage(context.getPackageName());
             remoteViews.setOnClickPendingIntent(
                     R.id.iv_resident_close,
                     PendingIntent.getBroadcast(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,7 +10,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -19,20 +18,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.ListPopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.appcompat.widget.SwitchCompat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
+
 import org.hapjs.debug.log.DebuggerLogUtil;
-import org.hapjs.debugger.HintSpinnerAdapter;
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.debug.CardDebugManager;
@@ -41,7 +37,11 @@ import org.hapjs.debugger.server.Server;
 import org.hapjs.debugger.utils.HttpUtils;
 import org.hapjs.debugger.utils.PreferenceUtils;
 
-public class CardFragment extends DebugFragment implements AdapterView.OnItemSelectedListener {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class CardFragment extends DebugFragment implements AdapterView.OnItemClickListener {
 
     private static final String TAG = "CardFragment";
 
@@ -51,29 +51,30 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
 
     private static final String KEY_CARD_PATH = "cardPath";
 
+    private ImageView mLoadHostProgress;
+    private View mHostInfoLayout;
+    private TextView mPlatformPkgTv;
     private TextView mPlatformVersionTv;
     private TextView mPlatformVersionNameTv;
-    private TextView mCardHostTv;
-    private TextView mCorePlatformTv;
-    private TextView mTxtDebuggablePackage;
+    private TextView mCardHostNameTv;
+    private TextView mCardHostPkgTv;
+    private View mNoHostView;
 
-    private Button mScanInstallBtn;
-    private Button mLocalInstallBtn;
-    private Button mUpdateOnlineBtn;
-    private Button mCardStartDebugBtn;
+    private ImageView mHostSpinnerIcon;
+    private ListPopupWindow mHostSpinner;
 
-    private AppCompatSpinner mCardHostSpinner;
-    private AppCompatSpinner mCardSpinner;
-
-    private View mCardView;
-    private SwitchCompat mUsbDebugSwitch;
+    private View mDebugPkgInfoLayout;
+    private View mNoDebugPkgView;
+    private TextView mDebugCardNameTv;
+    private TextView mDebugPkgTv;
+    private ImageView mCardSpinnerIcon;
+    private ListPopupWindow mCardSpinner;
 
     private List<String> mDisplayedCardHosts = new ArrayList<>();
+    private List<String> mCardHostNames = new ArrayList<>();
     private List<CardHostInfo> mCardHosts = new ArrayList<>();
     private List<String> mCardList = new ArrayList<>();
     private Map<String, String> mCardMap;
-    private ArrayAdapter<String> mArrayAdapter;
-    private ArrayAdapter<String> mCardArrayAdapter;
     private CardHostInfo mCardHost;
 
     private long mLastQueryTime;
@@ -95,95 +96,92 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
         super();
     }
 
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = setupViews(inflater, container);
-        setupDebug();
-        setupServer();
-        setupDebuggerLogUtil();
+    protected int getLayoutResources() {
+        return R.layout.content_card;
+    }
+
+    @Override
+    protected View setupViews(LayoutInflater inflater, @Nullable ViewGroup container) {
+        View view = super.setupViews(inflater, container);
+
+        mLoadHostProgress = view.findViewById(R.id.load_host_progress);
+        AnimatedVectorDrawableCompat hostProgress = AnimatedVectorDrawableCompat.create(
+                getActivity(), R.drawable.load_card_host_progress);
+        mLoadHostProgress.setImageDrawable(hostProgress);
+        hostProgress.start();
+
+        mHostInfoLayout = view.findViewById(R.id.host_info_layout);
+        mCardHostNameTv = view.findViewById(R.id.host_name);
+        mCardHostPkgTv = view.findViewById(R.id.host_pkg);
+        mPlatformPkgTv = view.findViewById(R.id.platform_pkg_text);
+        mPlatformVersionTv = view.findViewById(R.id.platform_version_text);
+        mPlatformVersionNameTv = view.findViewById(R.id.platform_version_name_text);
+        mNoHostView = view.findViewById(R.id.no_host_text);
+
+        mHostSpinnerIcon = view.findViewById(R.id.host_spinner_icon);
+        mHostSpinnerIcon.setVisibility(View.GONE);
+        mHostSpinnerIcon.setOnClickListener(v ->
+                mHostSpinner = handleSpinnerIconClick(mHostSpinner, mHostSpinnerIcon,
+                        R.id.host_info_primary_layout, mDisplayedCardHosts, getSelectedHostIndex(),
+                        R.drawable.arrow_down, R.drawable.arrow_up,
+                        (int) getResources().getDimension(R.dimen.platform_popup_width),
+                        ListPopupWindow.WRAP_CONTENT,
+                        0));
+
+        mDebugPkgInfoLayout = view.findViewById(R.id.debug_pkg_info_layout);
+        mNoDebugPkgView = view.findViewById(R.id.txt_no_debuggable_pkg);
+        mDebugCardNameTv = view.findViewById(R.id.debug_card);
+        mDebugPkgTv = view.findViewById(R.id.debug_pkg_name);
+        mCardSpinnerIcon = view.findViewById(R.id.card_spinner_icon);
+        mCardSpinnerIcon.setVisibility(View.GONE);
+        mCardSpinnerIcon.setOnClickListener(v ->
+                mCardSpinner = handleSpinnerIconClick(mCardSpinner, mCardSpinnerIcon,
+                        R.id.start_debug_pkg_layout, mCardList, getSelectedCardIndex(),
+                        R.drawable.card_arrow_down, R.drawable.card_arrow_up,
+                        (int) getResources().getDimension(R.dimen.card_name_popup_width),
+                        mCardList.size() <= 4 ? ListPopupWindow.WRAP_CONTENT
+                                : (int) getResources().getDimension(R.dimen.card_name_popup_max_height),
+                        (int) getResources().getDimension(R.dimen.card_name_popup_vertical_offset)));
+
+        refreshButtons(false);
+
+        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_UPDATE_CARD_HOSTS, mCardHosts), 2000);
+
         return view;
     }
 
-    private View setupViews(LayoutInflater inflater, @Nullable ViewGroup container) {
-        View view = inflater.inflate(R.layout.content_card, container, false);
-        View.OnClickListener clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.getId() == R.id.card_btnScanInstall) {
-                    startScanner();
-                } else if (v.getId() == R.id.card_btnLocalInstall) {
-                    pickPackage();
-                } else if (v.getId() == R.id.card_btnUpdateOnline) {
-                    updateOnline();
-                } else if (v.getId() == R.id.card_btnStartDebugging) {
-                    DebuggerLogUtil.resetTraceId();
-                    DebuggerLogUtil.logMessage("DEBUGGER_TOUCHED_START");
-                    prepareDebugging();
-                }
+    private int getSelectedHostIndex() {
+        return mCardHosts.indexOf(mCardHost);
+    }
+
+    private int getSelectedCardIndex() {
+        String path = PreferenceUtils.getDebugCardPath(getContext());
+        for (int i = 0; i < mCardMap.size(); i++) {
+            if (path.equals(mCardMap.get(mCardList.get(i)))) {
+                return i;
             }
-        };
-
-        mCardHostTv = view.findViewById(R.id.card_text_host);
-        mCorePlatformTv = view.findViewById(R.id.card_text_platform);
-        mPlatformVersionTv = view.findViewById(R.id.card_platform_version_text);
-        mPlatformVersionNameTv = view.findViewById(R.id.card_platform_version_name_text);
-        mTxtDebuggablePackage = view.findViewById(R.id.card_txtDebuggablePackage);
-
-        mScanInstallBtn = view.findViewById(R.id.card_btnScanInstall);
-        mLocalInstallBtn = view.findViewById(R.id.card_btnLocalInstall);
-        mUpdateOnlineBtn = view.findViewById(R.id.card_btnUpdateOnline);
-
-        mScanInstallBtn.setOnClickListener(clickListener);
-        mLocalInstallBtn.setOnClickListener(clickListener);
-        mUpdateOnlineBtn.setOnClickListener(clickListener);
-
-        mCardHostSpinner = view.findViewById(R.id.card_host_spinner);
-        mArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.item_spinner_select, mDisplayedCardHosts);
-        mArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        HintSpinnerAdapter adapter = new HintSpinnerAdapter(mArrayAdapter, R.layout.item_hint, getContext());
-        mCardHostSpinner.setAdapter(adapter);
-        mCardHostSpinner.setOnItemSelectedListener(this);
-
-        mCardView = view.findViewById(R.id.cards_view);
-        mCardSpinner = view.findViewById(R.id.cards_spinner);
-        mCardStartDebugBtn = view.findViewById(R.id.card_btnStartDebugging);
-        mCardStartDebugBtn.setOnClickListener(clickListener);
-        mCardArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.item_spinner_select, mCardList);
-        mCardArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        HintSpinnerAdapter cardAdapter = new HintSpinnerAdapter(mCardArrayAdapter, R.layout.item_card_hint,
-                getContext());
-        mCardSpinner.setAdapter(cardAdapter);
-        mCardSpinner.setOnItemSelectedListener(this);
-
-        mUsbDebugSwitch = ((SwitchCompat) view.findViewById(R.id.usb_debug_switch));
-        mUsbDebugSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mScanInstallBtn.setVisibility(isChecked ? View.GONE : View.VISIBLE);
-                PreferenceUtils.setUseADB(getActivity(), isChecked);
-                if (isChecked) {
-                    requestReadPhoneStatePermissionIfNeeded();
-                }
-            }
-        });
-        mUsbDebugSwitch.setChecked(PreferenceUtils.isUseADB(getActivity()));
-
-        enableDebug(false);
-
-        return view;
+        }
+        return -1;
     }
 
     protected void setupDebug() {
         AppDebugManager.getInstance(getContext()).setDebugListener(new AppDebugListener() {
             @Override
             protected void onInstallSuccess(final String pkg) {
+                resetButtonTextView();
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         setDebugPackageView(pkg, true);
                     }
                 });
+            }
+
+            @Override
+            public void onError(int code) {
+                resetButtonTextView();
+                super.onError(code);
             }
         });
         CardDebugManager.getInstance(getContext()).setDebugListener(new CardDebugManager.CardDebugListener() {
@@ -230,6 +228,15 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
     }
 
     @Override
+    protected String getDebugHintText() {
+        CharSequence hostName = mCardHostNameTv.getText();
+        if (TextUtils.isEmpty(hostName)) {
+            return null;
+        }
+        return getContext().getString(R.string.hint_no_response, hostName);
+    }
+
+    @Override
     protected void handleIDERequest(Intent intent) {
         if (intent != null && intent.hasExtra(KEY_CARD_PATH)) {
             PreferenceUtils.setDebugCardPath(getActivity(), intent.getStringExtra(KEY_CARD_PATH));
@@ -259,13 +266,10 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
         mCardHosts = cardHosts;
         if (mCardHosts.size() == 0) {
             setCardHost(null);
-            enableDebug(false);
-            mCardHostTv.setVisibility(View.GONE);
-            mCardHostSpinner.setVisibility(View.GONE);
             return;
         }
 
-        mArrayAdapter.clear();
+        mDisplayedCardHosts = new ArrayList<>();
         for (CardHostInfo cardHostInfo : mCardHosts) {
             final PackageManager pm = getContext().getApplicationContext().getPackageManager();
             ApplicationInfo ai;
@@ -275,22 +279,18 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
                 ai = null;
             }
             String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "unknown: ");
+            mCardHostNames.add(applicationName);
             String displayCardHost = applicationName + " (" + cardHostInfo.archiveHost + ") ";
             mDisplayedCardHosts.add(displayCardHost);
         }
-        mArrayAdapter.notifyDataSetChanged();
 
         if (mCardHosts.size() == 1) {
             //if there is only one platform, we choose it and don't show the Spinner
             CardHostInfo cardHostInfo = mCardHosts.get(0);
             setCardHost(cardHostInfo);
-            mCardHostTv.setVisibility(View.VISIBLE);
-            mCardHostTv.setText(mDisplayedCardHosts.get(0));
-            mCardHostSpinner.setVisibility(View.GONE);
             return;
         } else {
-            mCardHostTv.setVisibility(View.GONE);
-            mCardHostSpinner.setVisibility(View.VISIBLE);
+            mHostSpinnerIcon.setVisibility(View.VISIBLE);
         }
 
         CardHostInfo cardHostInfo = CardHostInfo.fromString(PreferenceUtils.getCardHostPlatform(getContext()));
@@ -305,13 +305,6 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
             }
         }
         setCardHost(cardHostInfo);
-
-        for (int i = 0; i < mCardHosts.size(); i++) {
-            if (cardHostInfo.equals(mCardHosts.get(i))) {
-                mCardHostSpinner.setSelection(i + 1, true);
-                break;
-            }
-        }
     }
 
     private boolean isCardHostsChanged(List<CardHostInfo> cardHosts) {
@@ -327,10 +320,26 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
     }
 
     private void setCardHost(CardHostInfo cardHost) {
-        if (!cardHost.equals(mCardHost)) {
+        mLoadHostProgress.setVisibility(View.GONE);
+        if (cardHost == null) {
+            refreshButtons(false);
+            mHostInfoLayout.setVisibility(View.GONE);
+            mNoHostView.setVisibility(View.VISIBLE);
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            animation.setDuration(500);
+            mNoHostView.startAnimation(animation);
+        } else if (!cardHost.equals(mCardHost)) {
             mCardHost = cardHost;
-            enableDebug(false);
             PreferenceUtils.setCardHostPlatform(getContext(), cardHost.toString());
+
+            mHostInfoLayout.setVisibility(View.VISIBLE);
+            mNoHostView.setVisibility(View.GONE);
+            mCardHostNameTv.setText(mCardHostNames.get(mCardHosts.indexOf(cardHost)));
+            mCardHostPkgTv.setText(" (" + cardHost.archiveHost + ")");
+            mHostSpinnerIcon.setVisibility(mCardHosts.size() == 1 ? View.GONE : View.VISIBLE);
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            animation.setDuration(500);
+            mHostInfoLayout.startAnimation(animation);
             //now we have a new runtime platform, so unbind previous one
             AppDebugManager.getInstance(getContext()).unbindDebugService();
             refreshCorePlatformInfo(cardHost);
@@ -342,15 +351,15 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
         final String corePlatform = CardDebugManager.getInstance(getContext()).getCorePlatform(cardHostInfo.archiveHost);
         PreferenceUtils.setPlatformPackage(getContext(), corePlatform);
         if (TextUtils.isEmpty(corePlatform)) {
+            mPlatformPkgTv.setVisibility(View.GONE);
             mPlatformVersionTv.setVisibility(View.GONE);
             mPlatformVersionNameTv.setVisibility(View.GONE);
-            mCorePlatformTv.setVisibility(View.GONE);
-            enableDebug(false);
+            refreshButtons(false);
             return;
         }
         try {
-            mCorePlatformTv.setVisibility(View.VISIBLE);
-            mCorePlatformTv.setText(corePlatform);
+            mPlatformPkgTv.setVisibility(View.VISIBLE);
+            mPlatformPkgTv.setText(getContext().getString(R.string.text_framework, corePlatform));
             ApplicationInfo appInfo = getContext().getPackageManager()
                     .getApplicationInfo(corePlatform, PackageManager.GET_META_DATA);
             int version = appInfo.metaData.getInt("platformVersion");
@@ -365,65 +374,50 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
             mPlatformVersionNameTv.setText(platformVersionName);
             mPlatformVersionTv.setVisibility(View.VISIBLE);
             mPlatformVersionTv.setText(platformVersion);
-            enableDebug(true);
+            refreshButtons(true);
             handleIDERequest(getActivity().getIntent());
             AppDebugManager.setCurrentPlatformVersion(version);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Platform not found: ", e);
             mPlatformVersionNameTv.setVisibility(View.GONE);
             mPlatformVersionTv.setVisibility(View.GONE);
-            enableDebug(false);
+            mPlatformPkgTv.setVisibility(View.GONE);
+            refreshButtons(false);
         }
     }
 
     private void setDebugPackageView(String pkg, boolean launch) {
-        if (TextUtils.isEmpty(pkg)) {
-            mCardView.setVisibility(View.GONE);
-            return;
+        mCardMap = null;
+        if (!TextUtils.isEmpty(pkg)) {
+            org.hapjs.debugger.pm.PackageInfo packageInfo = CardDebugManager.getInstance(getContext()).getPackageInfo(pkg);
+            mCardMap = packageInfo != null ? packageInfo.getCardInfos() : null;
         }
-        PreferenceUtils.setDebugCardPackage(getContext(), pkg);
-        mTxtDebuggablePackage.setText(pkg);
-
-        org.hapjs.debugger.pm.PackageInfo packageInfo = CardDebugManager.getInstance(getContext()).getPackageInfo(pkg);
-        mCardMap = packageInfo != null ? packageInfo.getCardInfos() : null;
 
         if (mCardMap == null || mCardMap.isEmpty()) {
-            mCardView.setVisibility(View.GONE);
+            mDebugPkgInfoLayout.setVisibility(View.GONE);
+            mNoDebugPkgView.setVisibility(View.VISIBLE);
             if (launch) {
                 Toast.makeText(getContext(), R.string.toast_no_card, Toast.LENGTH_SHORT).show();
             }
             return;
         }
-        mCardView.setVisibility(View.VISIBLE);
-        mCardArrayAdapter.clear();
-        mCardSpinner.setVisibility(View.VISIBLE);
-        mCardStartDebugBtn.setEnabled(false);
-        mCardList.addAll(mCardMap.keySet());
-        mCardArrayAdapter.notifyDataSetChanged();
 
-        String path;
-        if (mCardList.size() == 1) {
-            mCardSpinner.setSelection(1);
-            path = mCardMap.get(mCardList.get(0));
-        } else {
-            path = PreferenceUtils.getDebugCardPath(getContext());
-            int index = -1;
-            for (int i = 0; i < mCardMap.size(); i++) {
-                if (path.equals(mCardMap.get(mCardList.get(i)))) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index < 0) {
-                path = "";
-            }
-            mCardSpinner.setSelection(index + 1);
-        }
+        mCardList.clear();
+        mCardList.addAll(mCardMap.keySet());
+
+        int index = getSelectedCardIndex();
+        String path = mCardMap.get(mCardList.get(index < 0 ? 0 : index));
+        PreferenceUtils.setDebugCardPackage(getContext(), pkg);
         PreferenceUtils.setDebugCardPath(getContext(), path);
-        if (TextUtils.isEmpty(path)) {
-            return;
-        }
-        mCardStartDebugBtn.setEnabled(true);
+
+        mDebugPkgInfoLayout.setVisibility(View.VISIBLE);
+        mNoDebugPkgView.setVisibility(View.GONE);
+        mDebugPkgTv.setText(pkg);
+        setDebugCardName(mCardList.get(index < 0 ? 0 : index));
+        mCardSpinnerIcon.setVisibility(mCardList.size() > 1 ? View.VISIBLE : View.GONE);
+
+        mStartDebugBtn.setEnabled(true);
+
         if (launch) {
             if (isNeedDebug()) {
                 DebuggerLogUtil.resetTraceId();
@@ -438,17 +432,25 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
         }
     }
 
+    private void setDebugCardName(String cardName) {
+        mDebugCardNameTv.setText(cardName);
+    }
+
     private boolean isNeedDebug() {
         return mIsIdeDebug || mIsToolkitDebug;
     }
 
-    private void enableDebug(boolean enable) {
-        mScanInstallBtn.setEnabled(enable);
-        mLocalInstallBtn.setEnabled(enable);
-        mUpdateOnlineBtn.setEnabled(enable);
-        if (!enable) {
-            mCardView.setVisibility(View.GONE);
-        }
+    private void refreshButtons(boolean hasSelectedPlatform) {
+        mScanInstallBtn.setEnabled(hasSelectedPlatform);
+        mLocalInstallBtn.setEnabled(hasSelectedPlatform);
+        mUpdateOnlineBtn.setEnabled(hasSelectedPlatform);
+        refreshStartDebugButton(hasSelectedPlatform);
+    }
+
+    private void refreshStartDebugButton(boolean hasSelectedPlatform) {
+        mStartDebugBtn.setEnabled(hasSelectedPlatform
+                && !TextUtils.isEmpty(PreferenceUtils.getDebugCardPackage(getActivity()))
+                && !TextUtils.isEmpty(PreferenceUtils.getDebugCardPath(getActivity())));
     }
 
     @Override
@@ -501,7 +503,7 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
             }
         }
 
-        List<String> displayedCardHosts = new ArrayList<>(mDisplayedCardHosts);
+        List<String> displayedCardHosts = new ArrayList<>(mCardHostNames);
         List<CardHostInfo> cardHosts = new ArrayList<>(mCardHosts);
         List<Server.PlatformInfo> platformInfos = new ArrayList<>();
         for (int i = 0; i < cardHosts.size() && i < displayedCardHosts.size(); ++i) {
@@ -538,24 +540,16 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemSel
     }
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (parent == mCardHostSpinner) {
-            if (position < 1) {
-                return;
-            }
-            CardHostInfo cardHostInfo = mCardHosts.get(position - 1);
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (mHostSpinner != null && parent == mHostSpinner.getListView()) {
+            CardHostInfo cardHostInfo = mCardHosts.get(position);
             setCardHost(cardHostInfo);
-        } else if (parent == mCardSpinner) {
-            if (position < 1) {
-                return;
-            }
-            PreferenceUtils.setDebugCardPath(getContext(), mCardMap.get(mCardList.get(position - 1)));
-            mCardStartDebugBtn.setEnabled(true);
+            mHostSpinner.dismiss();
+        } else if (mCardSpinner != null && parent == mCardSpinner.getListView()) {
+            String cardName = mCardList.get(position);
+            PreferenceUtils.setDebugCardPath(getContext(), mCardMap.get(cardName));
+            setDebugCardName(cardName);
+            mCardSpinner.dismiss();
         }
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-        //ignore
     }
 }

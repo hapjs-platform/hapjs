@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -169,8 +169,11 @@ public class RenderActionManager {
             if (nodes == null) {
                 nodes = new HashSet<>();
             }
-            for (Node node : ss.getOwners()) {
-                getCSSRuleMatchedNodes((RenderActionNode) node, cssRuleLists, nodes);
+            //SynchronizedSet 在增强for循环中是非线程安全的，需要同步
+            synchronized (ss.getOwners()){
+                for (Node node: ss.getOwners()) {
+                    getCSSRuleMatchedNodes((RenderActionNode) node, cssRuleLists, nodes);
+                }
             }
         }
 
@@ -189,8 +192,10 @@ public class RenderActionManager {
 
         // match child node.
         List<RenderActionNode> children = node.getChildren();
-        for (RenderActionNode child : children) {
-            getCSSRuleMatchedNodes(child, cssRuleLists, nodes);
+        synchronized (children) {
+            for (RenderActionNode child : children) {
+                getCSSRuleMatchedNodes(child, cssRuleLists, nodes);
+            }
         }
     }
 

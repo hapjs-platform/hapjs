@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.render.css;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +19,7 @@ public class CSSStyleSheet {
     private CSSKeyframesRule mCSSKeyframesRule;
     private CSSFontFaceRule mCSSFontFaceRule;
     private List<CSSMediaRule> mCssMediaRules;
-    private Set<Node> mOwners = new HashSet<>();
+    private Set<Node> mOwners = Collections.synchronizedSet(new HashSet<>());
     private int mStyleObjectId;
 
     public void setCssMediaRules(List<CSSMediaRule> cssMediaRule) {
@@ -27,6 +28,10 @@ public class CSSStyleSheet {
 
     public synchronized void addOwner(Node owner) {
         mOwners.add(owner);
+    }
+
+    public synchronized void removeOwner(Node owner) {
+        mOwners.remove(owner);
     }
 
     public synchronized Set<Node> getOwners() {

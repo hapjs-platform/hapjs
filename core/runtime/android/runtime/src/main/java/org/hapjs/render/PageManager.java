@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -50,6 +50,14 @@ public class PageManager {
         mAppInfo = appInfo;
         mHandler = new HandlerImpl();
         mPageCache = new PageCache(mPageChangedListener);
+    }
+
+    public void setPageChangedListener(PageChangedListener pageChangedListener) {
+        mPageChangedListener = pageChangedListener;
+    }
+
+    public PageChangedListener getPageChangedListener() {
+        return mPageChangedListener;
     }
 
     public AppInfo getAppInfo() {
@@ -149,13 +157,13 @@ public class PageManager {
                         > page.getCacheExpiredTime()) {
                     page.cleanCache();
                     mPageCache.remove(request.getUri());
-                    page = buildPageByUri(hapRequest);
+                    page = buildPageByUri(hapRequest, mAppInfo, getCurrIndex());
                     if (mPageInfos.size() != 0 && page.shouldCache()) {
                         mPageCache.put(request.getUri(), page);
                     }
                 }
             } else {
-                page = buildPageByUri(hapRequest);
+                page = buildPageByUri(hapRequest, mAppInfo, getCurrIndex());
                 // 首页不放入子页面缓存池，配置不缓存不放入子页面缓存
                 if (mPageInfos.size() != 0 && page.shouldCache()) {
                     Log.d(TAG, "ifCache:" + page.shouldCache());
@@ -163,10 +171,21 @@ public class PageManager {
                 }
             }
         } else {
-            page = buildPageByFilter(request);
+            page = buildPageByFilter(request, mAppInfo, getCurrPage());
         }
         if (page != null) {
             page.setRequest(request);
+        }
+        return page;
+    }
+
+    public static Page buildPage(HybridRequest request, AppInfo appInfo, Page currPage) throws PageNotFoundException {
+        Page page;
+        if (request instanceof HybridRequest.HapRequest) {
+            HybridRequest.HapRequest hapRequest = (HybridRequest.HapRequest) request;
+            page = buildPageByUri(hapRequest, appInfo, -1);
+        } else {
+            page = buildPageByFilter(request, appInfo, currPage);
         }
         return page;
     }
@@ -217,26 +236,26 @@ public class PageManager {
         return errorPage;
     }
 
-    private Page buildPageByUri(HybridRequest.HapRequest request) throws PageNotFoundException {
-        if (!mAppInfo.getPackage().equals(request.getPackage())) {
+    private static Page buildPageByUri(HybridRequest.HapRequest request, AppInfo appInfo, int currIndex) throws PageNotFoundException {
+        if (!appInfo.getPackage().equals(request.getPackage())) {
             throw new PageNotFoundException("request is not for current app: " + request.getUri());
         }
 
         RoutableInfo routableInfo;
         String path = request.getPagePath();
-        RouterInfo routerInfo = mAppInfo.getRouterInfo();
+        RouterInfo routerInfo = appInfo.getRouterInfo();
         boolean isPageNotFound = false;
         if (HapEngine.getInstance(request.getPackage()).isCardMode()) {
             routableInfo = routerInfo.getCardInfoByPath(request.getPagePath());
         } else {
             String pageName = request.getPageName();
             if (TextUtils.isEmpty(pageName)) {
-                routableInfo = mAppInfo.getRouterInfo().getPageInfoByPath(path);
+                routableInfo = appInfo.getRouterInfo().getPageInfoByPath(path);
                 if (routableInfo == null && "/".equals(path)) {
-                    routableInfo = mAppInfo.getRouterInfo().getEntry();
+                    routableInfo = appInfo.getRouterInfo().getEntry();
                 }
             } else {
-                routableInfo = mAppInfo.getRouterInfo().getPageInfoByName(pageName);
+                routableInfo = appInfo.getRouterInfo().getPageInfoByName(pageName);
             }
         }
 
@@ -250,7 +269,7 @@ public class PageManager {
 
             if (!HapEngine.getInstance(request.getPackage()).isCardMode()
                     && routerInfo != null
-                    && getCurrIndex() < 0) {
+                    && currIndex < 0) {
                 isPageNotFound = true;
                 Log.w(TAG, "Page not found router to entry, hybridUrl:" + request.getUri());
                 routableInfo = routerInfo.getErrorPage(false);
@@ -262,7 +281,7 @@ public class PageManager {
 
         Page page =
                 new Page(
-                        mAppInfo,
+                        appInfo,
                         routableInfo,
                         request.getParams(),
                         request.getIntent(),
@@ -285,16 +304,17 @@ public class PageManager {
         return builder.build();
     }
 
-    private Page buildPageByFilter(HybridRequest request) throws PageNotFoundException {
+    private static Page buildPageByFilter(
+            HybridRequest request, AppInfo appInfo, Page currPage) throws PageNotFoundException {
         if (request == null) {
             throw new PageNotFoundException("request is null.");
         }
-        RouterInfo routerInfo = mAppInfo.getRouterInfo();
+        RouterInfo routerInfo = appInfo.getRouterInfo();
         if (routerInfo != null) {
             PageInfo pageInfo = routerInfo.getPageInfoByFilter(request);
             if (pageInfo != null) {
                 return new Page(
-                        mAppInfo,
+                        appInfo,
                         pageInfo,
                         request.getParams(),
                         request.getIntent(),
@@ -306,7 +326,7 @@ public class PageManager {
         if (!request.isDeepLink() && HybridRequest.ACTION_VIEW.equals(request.getAction())) {
             String uri = request.getUri();
             if (UriUtils.isWebUri(uri)) {
-                return WebPage.create(this, request);
+                return WebPage.create(appInfo, currPage, request);
             }
         }
 

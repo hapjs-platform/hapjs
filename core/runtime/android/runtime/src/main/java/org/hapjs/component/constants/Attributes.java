@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,112 +9,17 @@ import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.util.Log;
 import org.hapjs.card.sdk.utils.CardThemeUtils;
-import org.hapjs.common.json.JSONObject;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.render.Page;
-import org.hapjs.render.vdom.DocAnimator;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
-import org.json.JSONException;
 
 public class Attributes {
 
     private static final String TAG = "Attributes";
 
     private Attributes() {
-    }
-
-    public static int getPageOpenEnterAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_OPEN_ENTER)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_OPEN_ENTER);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageOpenEnterAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_OPEN_ENTER;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageCloseEnterAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_CLOSE_ENTER)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_CLOSE_ENTER);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageCloseEnterAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_CLOSE_ENTER;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageCloseExitAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_CLOSE_EXIT)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_CLOSE_EXIT);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageCloseExitAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_CLOSE_EXIT;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageOpenExitAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_OPEN_EXIT)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_OPEN_EXIT);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageOpenExitAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_OPEN_EXIT;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
     }
 
     public static int getInt(HapEngine hapEngine, Object value) {
@@ -423,6 +328,7 @@ public class Attributes {
         String TYPE = "type";
         String TEXT_OVERFLOW = "textOverflow";
         String TEXT_INDENT = "textIndent";
+        String LETTER_SPACING = "letterSpacing";
 
         String NAME = "name";
         String VALUE = "value";
@@ -432,6 +338,7 @@ public class Attributes {
         String OBJECT_FIT = "objectFit";
         String ALT_OBJECT_FIT = "altObjectFit";
         String SRC = "src";
+        String SOURCE = "source";
         String ALT = "alt";
 
         String INDEX = "index";
@@ -527,6 +434,10 @@ public class Attributes {
         String TELEPHONE = "tel";
     }
 
+    public interface EventType {
+        String SHORTCUT = "shortcut";
+    }
+
     public interface AutoComplete {
         String ON = "on";
         String OFF = "off";
@@ -563,6 +474,9 @@ public class Attributes {
 
         String CHANGE = "change";
         String RESIZE = "resize";
+
+        String PAGE_SPLIT = "splitpage";
+        String PAGE_CHANGED = "pagechanged";
 
         // list
         String SCROLL = "scroll";

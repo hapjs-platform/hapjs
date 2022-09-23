@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -37,7 +37,7 @@ static String guessGroup(Project project) {
 subprojects {
     group guessGroup(project)
 
-    project.version="2.1.0"
+    project.version="2.3.0"
 
     apply plugin: 'maven'
     uploadArchives {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -7,6 +7,7 @@
 import { APP_KEYS } from 'src/shared/events'
 
 import { $typeof, uniqueCallbackId, $camelize } from 'src/shared/util'
+import { updatePageActions } from '../../../dsls/xvm/page/misc'
 
 import config from '../config'
 
@@ -332,6 +333,23 @@ function compileFragmentData(rawData, document) {
   }
 }
 
+/**
+ * 处理页面 nextTickCallbacks
+ * @param page 页面
+ */
+function processNextTickCallbacks(page) {
+  // 获取当前页面根Vm的回调数组
+  const cbArr = page.nextTickCallbacks.slice(0)
+  // 清空回调事件的数组
+  page.nextTickCallbacks.length = 0
+  // 执行回调函数
+  for (const cb of cbArr) {
+    cb.call(page.vm)
+    console.trace(`### App Framework ### XExecutor 正在执行nextTick回调函数`)
+    updatePageActions(page)
+  }
+}
+
 export {
   recreatePage,
   getRootElement,
@@ -342,5 +360,6 @@ export {
   getElementStyles,
   setElementStyles,
   setElementAttrs,
-  compileFragmentData
+  compileFragmentData,
+  processNextTickCallbacks
 }

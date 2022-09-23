@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingTop="4dp"
+    android:orientation="vertical"
+    android:clipChildren="false">
+    <ImageView
+        android:id="@+id/triangle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/triangle"/>
+    <org.hapjs.debugger.widget.BlurLinearLayout
+        android:layout_below="@id/triangle"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="40dp"
+        android:layout_alignParentEnd="true"
+        style="@style/DebugHintShadowBackground">
+        <TextView
+            android:id="@+id/hint_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="13dp"
+            android:text="@string/hint_no_response"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp"/>
+
+    </org.hapjs.debugger.widget.BlurLinearLayout>
+</RelativeLayout>

@@ -1,11 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
-    <dimen name="text_margin">16dp</dimen>
+    <dimen name="mode_selected_text_size">16sp</dimen>
+    <dimen name="mode_unselected_text_size">12.7sp</dimen>
+    <dimen name="platform_popup_item_padding_top">13dp</dimen>
+    <dimen name="platform_popup_item_padding_bottom">15dp</dimen>
+    <dimen name="platform_popup_item_padding_top_first">21dp</dimen>
+    <dimen name="platform_popup_item_padding_bottom_last">23dp</dimen>
+    <dimen name="platform_popup_width">291dp</dimen>
+    <dimen name="card_name_popup_width">262dp</dimen>
+    <dimen name="card_name_popup_max_height">200dp</dimen>
+    <dimen name="card_name_popup_vertical_offset">7dp</dimen>
+
+    <dimen name="edit_text_hint_padding_end">14dp</dimen>
+    <dimen name="edit_text_user_input_padding_end">40dp</dimen>
+
+    <dimen name="blur_x_offset">0dp</dimen>
+    <dimen name="blur_y_offset">10dp</dimen>
+    <dimen name="blur_radius">20dp</dimen>
+    <dimen name="btn_blur_spread">-8.3dp</dimen>
+    <dimen name="download_btn_corner_radius">13dp</dimen>
+
+    <dimen name="spinner_blur_x_offset">0dp</dimen>
+    <dimen name="spinner_blur_y_offset">20dp</dimen>
+    <dimen name="spinner_blur_radius">20dp</dimen>
+    <dimen name="spinner_blur_spread">-1.7dp</dimen>
+    <dimen name="spinner_corner_radius">20dp</dimen>
 </resources>

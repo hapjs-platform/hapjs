@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -73,6 +73,7 @@ import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
 import org.hapjs.platform.R;
+import org.hapjs.render.AppResourcesLoader;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
@@ -81,6 +82,7 @@ import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.Checkable;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.Runtime;
 import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.utils.ActivityUtils;
@@ -257,6 +259,9 @@ public class LauncherActivity extends RuntimeActivity {
         unregisterInstallListener(getPackage());
         if (DistributionManager.CODE_APPLY_UPDATE_DELAYED == mCurrentStatusCode) {
             DistributionManager.getInstance().applyUpdate(getPackage());
+        }
+        if (!TextUtils.isEmpty(getPackage())) {
+            AppResourcesLoader.clearPreloadedResources(getPackage());
         }
     }
 
@@ -642,6 +647,8 @@ public class LauncherActivity extends RuntimeActivity {
     }
 
     private void launchApp(HybridRequest.HapRequest request) {
+        AppResourcesLoader.preload(getApplicationContext(), getHybridRequest());
+
         clearFailView();
         configNotch(true);
         String pkg = request.getPackage();
@@ -1349,6 +1356,7 @@ public class LauncherActivity extends RuntimeActivity {
         if (TextUtils.isEmpty(packages) || TextUtils.equals(packages, "unknown")) {
             return;
         }
+        GrayModeManager.getInstance().setCurrentPkg(packages);
         int theme = intent.getIntExtra(EXTRA_THEME_MODE, -1);
         if (DarkThemeUtil.needChangeDefaultNightMode(theme)) {
             AppCompatDelegate.setDefaultNightMode(DarkThemeUtil.convertThemeMode(theme));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -420,7 +420,7 @@ public class FlexImageViewAttach {
         mSubscribing = true;
         mEncodedSource = Fresco.getImagePipeline().fetchEncodedImage(mImageRequest, null);
         if (mDataSubscriber == null) {
-            mDataSubscriber = new SimpleDataSubscriber();
+            mDataSubscriber = new SimpleDataSubscriber(this);
         }
         mEncodedSource.subscribe(mDataSubscriber, getOrCreateExecutor());
     }
@@ -438,69 +438,88 @@ public class FlexImageViewAttach {
         mOnLoadStatusListener = listener;
     }
 
-    private class SimpleDataSubscriber
-            implements DataSubscriber<CloseableReference<PooledByteBuffer>> {
+    private void onDataSubscriberNewResult(DataSource<CloseableReference<PooledByteBuffer>> dataSource) {
+        EncodedImage tmpEncodedImage = null;
+        CloseableReference<PooledByteBuffer> ref = null;
+        synchronized (FlexImageViewAttach.this) {
+            if (!dataSource.isFinished()) {
+                return;
+            }
+            if (dataSource.isClosed() || !CloseableReference.isValid(dataSource.getResult())) {
+                mSubscribing = false;
+                return;
+            }
+            ref = dataSource.getResult();
+            tmpEncodedImage = new EncodedImage(ref);
+        }
+        final EncodedImage encodedImage = tmpEncodedImage;
+        try {
+            encodedImage.parseMetaData();
+
+            final int width = encodedImage.getWidth();
+            final int height = encodedImage.getHeight();
+            if (mImageWidth == 0 && mImageHeight == 0 && mOnLoadStatusListener != null) {
+                mImageWidth = width;
+                mImageHeight = height;
+                mOnLoadStatusListener.onComplete(mImageWidth, mImageHeight);
+            }
+
+            if ((width > BitmapUtil.MAX_BITMAP_SIZE ||
+                    height > BitmapUtil.MAX_BITMAP_SIZE) &&
+                    (getHostViewMeasureHeight() > BitmapUtil.MAX_BITMAP_SIZE ||
+                            getHostViewMeasureWidth() > BitmapUtil.MAX_BITMAP_SIZE)) {
+                mTileManager.setTileDataStream(encodedImage.getInputStream());
+                // must set data stream before notify.
+                notifyTileViewInvalidate();
+                if (mSubscribing) {
+                    mTileManager.runDecoder();
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "SimpleDataSubscriber onNewResult exception: ", e);
+        } finally {
+            synchronized (FlexImageViewAttach.this) {
+                if (encodedImage != null) {
+                    encodedImage.close();
+                }
+                if (!dataSource.isClosed()) {
+                    dataSource.close();
+                }
+                if (ref != null) {
+                    CloseableReference.closeSafely(ref);
+                }
+                mSubscribing = false;
+            }
+        }
+    }
+
+    private void onDataSubscriberFailure(DataSource dataSource) {
+        synchronized (FlexImageViewAttach.this) {
+            dataSource.close();
+            mSubscribing = false;
+        }
+    }
+
+    private static class SimpleDataSubscriber implements DataSubscriber<CloseableReference<PooledByteBuffer>> {
+        private WeakReference<FlexImageViewAttach> mFlexImageViewAttachRef;
+
+        public SimpleDataSubscriber(FlexImageViewAttach flexImageViewAttach) {
+            mFlexImageViewAttachRef = new WeakReference<>(flexImageViewAttach);
+        }
 
         @Override
         public void onNewResult(DataSource<CloseableReference<PooledByteBuffer>> dataSource) {
-            EncodedImage tmpEncodedImage = null;
-            CloseableReference<PooledByteBuffer> ref = null;
-            synchronized (FlexImageViewAttach.this) {
-                if (!dataSource.isFinished()) {
-                    return;
-                }
-                if (dataSource.isClosed() || !CloseableReference.isValid(dataSource.getResult())) {
-                    mSubscribing = false;
-                    return;
-                }
-                ref = dataSource.getResult();
-                tmpEncodedImage = new EncodedImage(ref);
-            }
-            final EncodedImage encodedImage = tmpEncodedImage;
-            try {
-                encodedImage.parseMetaData();
-
-                final int width = encodedImage.getWidth();
-                final int height = encodedImage.getHeight();
-                if (mImageWidth == 0 && mImageHeight == 0 && mOnLoadStatusListener != null) {
-                    mImageWidth = width;
-                    mImageHeight = height;
-                    mOnLoadStatusListener.onComplete(mImageWidth, mImageHeight);
-                }
-
-                if ((width > BitmapUtil.MAX_BITMAP_SIZE || height > BitmapUtil.MAX_BITMAP_SIZE)
-                        && (getHostViewMeasureHeight() > BitmapUtil.MAX_BITMAP_SIZE
-                        || getHostViewMeasureWidth() > BitmapUtil.MAX_BITMAP_SIZE)) {
-                    mTileManager.setTileDataStream(encodedImage.getInputStream());
-                    // must set data stream before notify.
-                    notifyTileViewInvalidate();
-                    if (mSubscribing) {
-                        mTileManager.runDecoder();
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "SimpleDataSubscriber onNewResult exception: ", e);
-            } finally {
-                synchronized (FlexImageViewAttach.this) {
-                    if (encodedImage != null) {
-                        encodedImage.close();
-                    }
-                    if (!dataSource.isClosed()) {
-                        dataSource.close();
-                    }
-                    if (ref != null) {
-                        CloseableReference.closeSafely(ref);
-                    }
-                    mSubscribing = false;
-                }
+            FlexImageViewAttach flexImageViewAttach = mFlexImageViewAttachRef.get();
+            if (flexImageViewAttach != null) {
+                flexImageViewAttach.onDataSubscriberNewResult(dataSource);
             }
         }
 
         @Override
         public void onFailure(DataSource dataSource) {
-            synchronized (FlexImageViewAttach.this) {
-                dataSource.close();
-                mSubscribing = false;
+            FlexImageViewAttach flexImageViewAttach = mFlexImageViewAttachRef.get();
+            if (flexImageViewAttach != null) {
+                flexImageViewAttach.onDataSubscriberFailure(dataSource);
             }
         }
 

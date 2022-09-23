@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,6 +32,7 @@ import org.hapjs.component.Placement;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.flexbox.PercentFlexboxLayout;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.Runtime;
 import org.hapjs.widgets.text.Text;
@@ -87,6 +88,9 @@ public class Popup extends Container<PercentFlexboxLayout> implements Floating {
     @Override
     protected PercentFlexboxLayout createViewImpl() {
         PercentFlexboxLayout flexboxLayout = new PercentFlexboxLayout(mContext);
+        if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            GrayModeManager.getInstance().applyGrayMode(flexboxLayout, true);
+        }
         flexboxLayout.setComponent(this);
         return flexboxLayout;
     }
@@ -94,6 +98,9 @@ public class Popup extends Container<PercentFlexboxLayout> implements Floating {
     @Override
     public void addChild(Component child, int index) {
         if (child instanceof Text) {
+            if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+                GrayModeManager.getInstance().applyGrayMode(child.getHostView(), true);
+            }
             super.addChild(child, index);
         }
     }
@@ -395,6 +402,9 @@ public class Popup extends Container<PercentFlexboxLayout> implements Floating {
         Activity activity = (Activity) mContext;
         ViewGroup parent = (ViewGroup) activity.getWindow().getDecorView().getRootView();
         Drawable dim = new ColorDrawable(mMaskColor);
+        if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            GrayModeManager.getInstance().applyGrayMode(dim);
+        }
         dim.setBounds(0, 0, parent.getWidth(), parent.getHeight());
         ViewGroupOverlay overlay = parent.getOverlay();
         overlay.add(dim);

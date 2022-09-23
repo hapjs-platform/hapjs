@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -13,10 +13,20 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorPrimary">@android:color/transparent</item>
+        <item name="android:windowBackground">@drawable/window_background</item>
+        <item name="android:statusBarColor" tools:targetApi="23">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+    </style>
+
+    <style name="AppTheme.InstalledApp" parent="Theme.AppCompat.Light.DarkActionBar">
+    <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
@@ -33,4 +43,69 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
+    <style name="dialog_style" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:title">@null</item>
+        <item name="android:dialogTitle">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">#FF579CF8</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
+
+    <style name="preference_dialog_style" parent="@style/dialog_style">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="animation" parent="android:Animation">
+        <item name="android:windowEnterAnimation">@anim/bottom_in</item>
+        <item name="android:windowExitAnimation">@anim/bottom_out</item>
+    </style>
+
+    <declare-styleable name="EditTextPreference">
+        <attr name="hint" format="string"/>
+        <attr name="android:hint"/>
+    </declare-styleable>
+
+    <style name="TabLayoutTextStyle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#4D000000</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+    <style name="CardShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">@dimen/blur_y_offset</item>
+        <item name="blur_radius">@dimen/blur_radius</item>
+        <item name="spread_radius">0.7dp</item>
+        <item name="blur_color">#0D000F41</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/card_bg</item>
+    </style>
+
+    <style name="ButtonShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">@dimen/blur_y_offset</item>
+        <item name="blur_radius">@dimen/blur_radius</item>
+        <item name="spread_radius">@dimen/btn_blur_spread</item>
+        <item name="blur_color">@color/btn_blur_color</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/btn_bg</item>
+    </style>
+
+    <style name="DebugHintShadowBackground" >
+        <item name="x_offset">@dimen/blur_x_offset</item>
+        <item name="y_offset">16.7dp</item>
+        <item name="blur_radius">23.3dp</item>
+        <item name="spread_radius">0dp</item>
+        <item name="blur_color">#26000B3D</item>
+        <item name="corner_radius">16dp</item>
+        <item name="android:background">@drawable/hint_popup_color_bg</item>
+    </style>
 </resources>

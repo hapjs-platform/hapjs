@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -161,6 +161,7 @@ public abstract class Component<T extends View>
     private AnimatorListenerBridge.AnimatorEventListener mAnimatorEventListener;
     private Map<String, String> mStylesApplyed;
     private Map<String, Object> mSavedState;
+    private List<String> mHookData;
     private Transform mTransform;
     private CSSAnimatorSet mAnimatorSet;
     private CSSTransitionSet mTransitionSet;
@@ -207,6 +208,7 @@ public abstract class Component<T extends View>
         mDomTreeChangeListeners = new ArrayList<>();
 
         mAnimations = new HashMap<>();
+        mHookData = new ArrayList<>();
 
         if (parent != null) {
             mLazyCreate = parent.mLazyCreate;
@@ -1491,6 +1493,17 @@ public abstract class Component<T extends View>
         return result;
     }
 
+    public void applyHook(List<String> hooks){
+        if (hooks == null || hooks.isEmpty()) {
+            return;
+        }
+        mHookData.addAll(hooks);
+    }
+
+    public List<String> getHook(){
+        return mHookData;
+    }
+
     private boolean isListenFullscreenChange() {
         return getDomEvents().contains(Attributes.Event.FULLSCREEN_CHANGE);
     }
@@ -1644,6 +1657,10 @@ public abstract class Component<T extends View>
             }
         }
         clearPreDrawListener();
+        if(mHookData != null){
+            mHookData.clear();
+        }
+
         if (mAnimatorEventListener != null) {
             mAnimatorEventListener.unregisterAllEvents();
             mAnimatorEventListener = null;
@@ -4161,5 +4178,9 @@ public abstract class Component<T extends View>
 
     public void setFullScreenView(View view) {
         mFullScreenView = view;
+    }
+
+    public boolean preConsumeEvent(String eventName, Map<String, Object> data, boolean immediately) {
+        return false;
     }
 }

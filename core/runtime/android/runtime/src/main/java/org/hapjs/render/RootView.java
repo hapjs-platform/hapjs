@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -54,6 +54,7 @@ import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.impl.android.AndroidViewClient;
 import org.hapjs.card.api.IRenderListener;
 import org.hapjs.common.executors.AbsTask;
+import org.hapjs.common.executors.Executor;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.json.JSONObject;
 import org.hapjs.common.net.HttpConfig;
@@ -100,6 +101,7 @@ import org.hapjs.render.vdom.VDomActionApplier;
 import org.hapjs.runtime.BuildConfig;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.LocaleResourcesParser;
@@ -143,8 +145,8 @@ public class RootView extends FrameLayout
     protected boolean mInitialized;
     JsThread mJsThread;
     Handler mHandler = new H();
-    VDomActionApplier mVdomActionApplier = new VDomActionApplier();
-    CallingComponent mCallingComponent = new CallingComponent();
+    public VDomActionApplier mVdomActionApplier = new VDomActionApplier();
+    public CallingComponent mCallingComponent = new CallingComponent();
     List<ActivityStateListener> mActivityStateListeners = new ArrayList<>();
     private boolean mExceptionCaught;
     private AndroidViewClient mAndroidViewClient;
@@ -741,8 +743,8 @@ public class RootView extends FrameLayout
         mDialogManager.showIncompatibleAppDialog();
     }
 
-    protected Source getJsAppSource() {
-        return new RpkSource(getContext(), getPackage(), "app.js");
+    protected String getAppJs() {
+        return AppResourcesLoader.getAppJs(getContext(), getPackage());
     }
 
     private void processUserException(Exception exception) {
@@ -817,183 +819,186 @@ public class RootView extends FrameLayout
         }
     }
 
+    protected boolean hasAppResourcesPreloaded(String pkg) {
+        return AppResourcesLoader.hasAppResourcesPreloaded(pkg);
+    }
+
     private void loadAppInfo(final HybridRequest request) {
-        Executors.io()
-                .execute(
-                        new AbsTask<LoadResult>() {
-                            @Override
-                            protected LoadResult doInBackground() {
-                                RuntimeLogManager.getDefault()
-                                        .logAsyncThreadTaskStart(mPackage, "loadAppInfo");
-                                Log.i(TAG, "loadAppInfo " + String.valueOf(request.getPackage()));
-                                ApplicationContext appContext =
-                                        HapEngine.getInstance(request.getPackage())
-                                                .getApplicationContext();
-                                mAppInfo = appContext.getAppInfo(false);
-                                if (mAppInfo == null) {
-                                    return LoadResult.APP_INFO_NULL;
-                                } else if (mAppInfo.getMinPlatformVersion()
-                                        > BuildConfig.platformVersion) {
-                                    return LoadResult.INCOMPATIBLE_APP;
-                                }
+        Executor executor = hasAppResourcesPreloaded(request.getPackage()) ? Executors.ui() : Executors.io();
+        executor.execute(
+                new AbsTask<LoadResult>() {
+                    @Override
+                    protected LoadResult doInBackground() {
+                        RuntimeLogManager.getDefault()
+                                .logAsyncThreadTaskStart(mPackage, "loadAppInfo");
+                        Log.i(TAG, "loadAppInfo " + String.valueOf(request.getPackage()));
+                        ApplicationContext appContext =
+                                HapEngine.getInstance(request.getPackage())
+                                        .getApplicationContext();
+                        mAppInfo = appContext.getAppInfo(false);
+                        GrayModeManager.getInstance().init(appContext.getContext().getApplicationContext());
+                        if (mAppInfo == null) {
+                            return LoadResult.APP_INFO_NULL;
+                        } else if (mAppInfo.getMinPlatformVersion()
+                                > BuildConfig.platformVersion) {
+                            return LoadResult.INCOMPATIBLE_APP;
+                        }
 
-                                UserAgentHelper.setAppInfo(mAppInfo.getPackage(),
-                                        mAppInfo.getVersionName());
-                                NetworkConfig networkConfig =
-                                        mAppInfo.getConfigInfo().getNetworkConfig();
-                                if (networkConfig != null) {
-                                    HttpConfig.get().onConfigChange(networkConfig);
-                                }
+                        UserAgentHelper.setAppInfo(mAppInfo.getPackage(),
+                                mAppInfo.getVersionName());
+                        NetworkConfig networkConfig =
+                                mAppInfo.getConfigInfo().getNetworkConfig();
+                        if (networkConfig != null) {
+                            HttpConfig.get().onConfigChange(networkConfig);
+                        }
 
-                                final DisplayInfo displayInfo = mAppInfo.getDisplayInfo();
-                                if (HapEngine.getInstance(mPackage).getMode() == HapEngine.Mode.APP
-                                        && displayInfo != null
-                                        && DarkThemeUtil
-                                        .needChangeDefaultNightMode(displayInfo.getThemeMode())) {
-                                    post(
-                                            new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    AppCompatDelegate.setDefaultNightMode(
-                                                            DarkThemeUtil.convertThemeMode(
-                                                                    displayInfo.getThemeMode()));
-                                                    Context context = getContext();
-                                                    if (context instanceof Activity
-                                                            && DarkThemeUtil.needRecreate(
-                                                            displayInfo.getThemeMode())) {
-                                                        Activity activity = (Activity) context;
-                                                        activity.recreate();
-                                                    }
-                                                }
-                                            });
-                                }
-
-                                EventManager.getInstance()
-                                        .invoke(new ApplicationLaunchEvent(mAppInfo.getPackage()));
-                                mRuntimeLifecycleCallback = new RuntimeLifecycleCallbackImpl();
-                                mPageManager = new PageManager(RootView.this, mAppInfo);
-                                // 在调试模式下, 等待Devtools连接会导致loadAppInfo被中断.当Devtools就绪会重新loadAppInfo,
-                                // 此时需要保持V8状态,不能重新初始化JsThread.
-                                if (mWaitDevTools && mRequest != null) {
-                                    mRequest = null;
-                                } else {
-                                    mJsThread = JsThreadFactory.getInstance().create(getContext());
-                                }
-                                mJsThread.getJsChunksManager().initialize(mAppInfo);
-
-                                // 当点击"开始调试",若Inspector没有销毁,则与DevTools的连接仍然保持,
-                                // 此时需要通过isInspectorReady方法知晓此状态,直接进入启动流程.
-                                try {
-                                    if (mWaitDevTools
-                                            && !InspectorManager.getInspector().isInspectorReady()) {
-                                        mRequest = request;
-                                        return LoadResult.INSPECTOR_UNREADY;
-                                    }
-                                } catch (AbstractMethodError e) {
-                                    Log.e(TAG, "Inspector call isInspectorReady error", e);
-                                }
-
-                                if (!HapEngine.getInstance(mPackage).isCardMode()) {
-                                    mResidentManager.init(getContext(), mAppInfo, mJsThread);
-                                }
-                                mJsThread.attach(
-                                        mHandler, mAppInfo, RootView.this,
-                                        mRuntimeLifecycleCallback, mPageManager);
-
-                                // init configuration before create application
-                                initConfiguration(appContext);
-                                mJsThread.getJsChunksManager().registerAppChunks();
-
-                                RuntimeLogManager.getDefault().logAppJsLoadStart(mPackage);
-                                String content = JavascriptReader.get().read(getJsAppSource());
-                                if (TextUtils.isEmpty(content)) {
-                                    return LoadResult.APP_JS_EMPTY;
-                                }
-
-                                Source cssSource =
-                                        new RpkSource(getContext(), getPackage(), "app.css.json");
-                                String css = TextReader.get().read(cssSource);
-                                RuntimeLogManager.getDefault().logAppJsLoadEnd(mPackage);
-                                mJsThread.postCreateApplication(content, css, request);
-                                mHasAppCreated.set(true);
-
-                                if (mAndroidViewClient != null) {
-                                    mAndroidViewClient.onApplicationCreate(RootView.this, mAppInfo);
-                                }
-                                if (mOnRequestWait.compareAndSet(true, false)) {
-                                    mJsThread.postOnRequestApplication();
-                                }
-                                if (mOnShowWait.compareAndSet(true, false)) {
-                                    mJsThread.postOnShowApplication();
-                                }
-                                if (mOnHideWait.compareAndSet(true, false)) {
-                                    mJsThread.postOnHideApplication();
-                                }
-
-                                try {
-                                    pushPage(mPageManager, request);
-                                } catch (PageNotFoundException ex) {
-                                    mJsThread.processV8Exception(ex);
-                                    return LoadResult.PAGE_NOT_FOUND;
-                                } finally {
-                                    mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
-                                }
-
-                                return LoadResult.SUCCESS;
-                            }
-
-                            @Override
-                            protected void onPostExecute(LoadResult result) {
-                                RuntimeLogManager.getDefault()
-                                        .logAsyncThreadTaskEnd(mPackage, "loadAppInfo");
-                                if (mIsDestroyed) {
-                                    onRenderFailed(IRenderListener.ErrorCode.ERROR_UNKNOWN,
-                                            "RootView has destroy");
-                                    return;
-                                }
-
-                                boolean handled = false;
-                                switch (result) {
-                                    case SUCCESS:
-                                        // skip
-                                        break;
-                                    case APP_INFO_NULL:
-                                        onRenderFailed(
-                                                IRenderListener.ErrorCode.ERROR_FILE_NOT_FOUND,
-                                                "Package resource not found");
-                                        break;
-                                    case PAGE_NOT_FOUND:
-                                        onRenderFailed(
-                                                IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND,
-                                                "Page not found");
-                                        break;
-                                    case INCOMPATIBLE_APP:
-                                        handled =
-                                                onRenderFailed(
-                                                        IRenderListener.ErrorCode.ERROR_INCOMPATIBLE,
-                                                        "App is incompatible with platform");
-                                        if (!handled) {
-                                            showIncompatibleAppDialog();
+                        final DisplayInfo displayInfo = mAppInfo.getDisplayInfo();
+                        if (HapEngine.getInstance(mPackage).getMode() == HapEngine.Mode.APP
+                                && displayInfo != null
+                                && DarkThemeUtil
+                                .needChangeDefaultNightMode(displayInfo.getThemeMode())) {
+                            post(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            AppCompatDelegate.setDefaultNightMode(
+                                                    DarkThemeUtil.convertThemeMode(
+                                                            displayInfo.getThemeMode()));
+                                            Context context = getContext();
+                                            if (context instanceof Activity
+                                                    && DarkThemeUtil.needRecreate(
+                                                    displayInfo.getThemeMode())) {
+                                                Activity activity = (Activity) context;
+                                                activity.recreate();
+                                            }
                                         }
-                                        break;
-                                    case INSPECTOR_UNREADY:
-                                        handled =
-                                                onRenderFailed(
-                                                        IRenderListener.ErrorCode.ERROR_INSPECTOR_UNREADY,
-                                                        "Inspector is not ready");
-                                        if (!handled) {
-                                            Toast.makeText(getContext(), R.string.inspector_unready,
+                                    });
+                        }
+
+                        EventManager.getInstance()
+                                .invoke(new ApplicationLaunchEvent(mAppInfo.getPackage()));
+                        mRuntimeLifecycleCallback = new RuntimeLifecycleCallbackImpl();
+                        mPageManager = new PageManager(RootView.this, mAppInfo);
+                        // 在调试模式下, 等待Devtools连接会导致loadAppInfo被中断.当Devtools就绪会重新loadAppInfo,
+                        // 此时需要保持V8状态,不能重新初始化JsThread.
+                        if (mWaitDevTools && mRequest != null) {
+                            mRequest = null;
+                        } else {
+                            mJsThread = JsThreadFactory.getInstance().create(getContext());
+                        }
+                        mJsThread.getJsChunksManager().initialize(mAppInfo);
+
+                        // 当点击"开始调试",若Inspector没有销毁,则与DevTools的连接仍然保持,
+                        // 此时需要通过isInspectorReady方法知晓此状态,直接进入启动流程.
+                        try {
+                            if (mWaitDevTools
+                                    && !InspectorManager.getInspector().isInspectorReady()) {
+                                mRequest = request;
+                                return LoadResult.INSPECTOR_UNREADY;
+                            }
+                        } catch (AbstractMethodError e) {
+                            Log.e(TAG, "Inspector call isInspectorReady error", e);
+                        }
+
+                        if (!HapEngine.getInstance(mPackage).isCardMode()) {
+                            mResidentManager.init(getContext(), mAppInfo, mJsThread);
+                        }
+                        mJsThread.attach(
+                                mHandler, mAppInfo, RootView.this,
+                                mRuntimeLifecycleCallback, mPageManager);
+
+                        // init configuration before create application
+                        initConfiguration(appContext);
+                        mJsThread.getJsChunksManager().registerAppChunks();
+
+                        RuntimeLogManager.getDefault().logAppJsLoadStart(mPackage);
+                        String content = getAppJs();
+                        if (TextUtils.isEmpty(content)) {
+                            return LoadResult.APP_JS_EMPTY;
+                        }
+
+                        String css = AppResourcesLoader.getAppCss(getContext(), mPackage);
+                        RuntimeLogManager.getDefault().logAppJsLoadEnd(mPackage);
+                        mJsThread.postCreateApplication(content, css, request);
+                        mHasAppCreated.set(true);
+
+                        if (mAndroidViewClient != null) {
+                            mAndroidViewClient.onApplicationCreate(RootView.this, mAppInfo);
+                        }
+                        if (mOnRequestWait.compareAndSet(true, false)) {
+                            mJsThread.postOnRequestApplication();
+                        }
+                        if (mOnShowWait.compareAndSet(true, false)) {
+                            mJsThread.postOnShowApplication();
+                        }
+                        if (mOnHideWait.compareAndSet(true, false)) {
+                            mJsThread.postOnHideApplication();
+                        }
+
+                        try {
+                            pushPage(mPageManager, request);
+                        } catch (PageNotFoundException ex) {
+                            mJsThread.processV8Exception(ex);
+                            return LoadResult.PAGE_NOT_FOUND;
+                        } finally {
+                            mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
+                        }
+
+                        return LoadResult.SUCCESS;
+                    }
+
+                    @Override
+                    protected void onPostExecute(LoadResult result) {
+                        RuntimeLogManager.getDefault()
+                                .logAsyncThreadTaskEnd(mPackage, "loadAppInfo");
+                        if (mIsDestroyed) {
+                            onRenderFailed(IRenderListener.ErrorCode.ERROR_UNKNOWN,
+                                    "RootView has destroy");
+                            return;
+                        }
+
+                        boolean handled = false;
+                        switch (result) {
+                            case SUCCESS:
+                                // skip
+                                break;
+                            case APP_INFO_NULL:
+                                onRenderFailed(
+                                        IRenderListener.ErrorCode.ERROR_FILE_NOT_FOUND,
+                                        "Package resource not found");
+                                break;
+                            case PAGE_NOT_FOUND:
+                                onRenderFailed(
+                                        IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND,
+                                        "Page not found");
+                                break;
+                            case INCOMPATIBLE_APP:
+                                handled =
+                                        onRenderFailed(
+                                                IRenderListener.ErrorCode.ERROR_INCOMPATIBLE,
+                                                "App is incompatible with platform");
+                                if (!handled) {
+                                    showIncompatibleAppDialog();
+                                }
+                                break;
+                            case INSPECTOR_UNREADY:
+                                handled =
+                                        onRenderFailed(
+                                                IRenderListener.ErrorCode.ERROR_INSPECTOR_UNREADY,
+                                                "Inspector is not ready");
+                                if (!handled) {
+                                    Toast.makeText(getContext(), R.string.inspector_unready,
                                                     Toast.LENGTH_SHORT)
-                                                    .show();
-                                        }
-                                        break;
-                                    default:
-                                        onRenderFailed(IRenderListener.ErrorCode.ERROR_UNKNOWN,
-                                                result.toString());
-                                        break;
+                                            .show();
                                 }
-                            }
-                        });
+                                break;
+                            default:
+                                onRenderFailed(IRenderListener.ErrorCode.ERROR_UNKNOWN,
+                                        result.toString());
+                                break;
+                        }
+                    }
+                });
     }
 
     private void initConfiguration(ApplicationContext appContext) {
@@ -1312,17 +1317,22 @@ public class RootView extends FrameLayout
         VDocument oldDocument = null;
         if (mDocument != null) {
             oldDocument = mDocument;
-            JSONObject oldPageAnimateSettingObj = getPageAnimationJsonFromParams(oldPage);
-            int animType =
-                    newIndex >= oldIndex
-                            ? Attributes.getPageOpenExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_EXIT)
-                            : Attributes.getPageCloseExitAnimation(
-                            oldPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            int animType;
+            if (oldPage == null) {
+                animType = newIndex >= oldIndex ? DocAnimator.TYPE_PAGE_OPEN_EXIT : DocAnimator.TYPE_PAGE_CLOSE_EXIT;
+            } else {
+                animType =
+                        newIndex >= oldIndex
+                                ? oldPage.getPageAnimation(
+                                        Attributes.PageAnimation.ACTION_OPEN_EXIT, DocAnimator.TYPE_PAGE_OPEN_EXIT)
+                                : oldPage.getPageAnimation(
+                                        Attributes.PageAnimation.ACTION_CLOSE_EXIT, DocAnimator.TYPE_PAGE_CLOSE_EXIT);
+            }
+            boolean isOpen = newIndex > oldIndex;
             mDocument.detachChildren(
                     animType,
-                    new InnerPageExitListener(mDocument, oldPage, newIndex > oldIndex),
-                    newIndex > oldIndex);
+                    new InnerPageExitListener(mDocument, oldPage, isOpen),
+                    isOpen);
             applicationContext.dispatchPageStop(oldPage);
 
             if (newIndex <= oldIndex) { // 返回操作
@@ -1338,11 +1348,10 @@ public class RootView extends FrameLayout
                     new HybridRequest.Builder().pkg(mPackage).uri(routableInfo.getPath()).build();
             mAndroidViewClient.onPageStarted(RootView.this, request.getUri());
         }
-        JSONObject currPageAnimateSettingObj = getPageAnimationJsonFromParams(currPage);
         if (newIndex >= oldIndex) {
-            forward(newIndex, currPage, currPageAnimateSettingObj);
+            forward(newIndex, currPage);
         } else {
-            backward(currPage, currPageAnimateSettingObj);
+            backward(currPage);
         }
         DocComponent oldComponent = oldDocument == null ? null : oldDocument.getComponent();
         DocComponent newComponent = mDocument.getComponent();
@@ -1354,7 +1363,7 @@ public class RootView extends FrameLayout
         currPage.setShouldRefresh(false);
     }
 
-    private void backward(Page currPage, JSONObject currPageAnimateSettingObj) {
+    private void backward(Page currPage) {
         boolean refresh = currPage.shouldRefresh();
         VDocument cacheDoc = currPage.getCacheDoc();
         boolean hasWeb = cacheDoc != null && cacheDoc.hasWebComponent();
@@ -1366,10 +1375,8 @@ public class RootView extends FrameLayout
             if (currPage.hasRenderActions()) {
                 applyActions();
             }
-            mDocument.attachChildren(
-                    false,
-                    Attributes.getPageCloseEnterAnimation(
-                            currPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
+            mDocument.attachChildren(false,
+                    currPage.getPageAnimation(Attributes.PageAnimation.ACTION_CLOSE_ENTER, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
                     mPageEnterListener);
             mJsThread.postChangeVisiblePage(currPage, true);
             if (refresh) {
@@ -1380,25 +1387,20 @@ public class RootView extends FrameLayout
             RuntimeLogManager.getDefault()
                     .logPageRecreateRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = new VDocument(createDocComponent(currPage.pageId));
-            mDocument.attachChildren(
-                    false,
-                    Attributes.getPageCloseEnterAnimation(
-                            currPageAnimateSettingObj, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
+            mDocument.attachChildren(false,
+                    currPage.getPageAnimation(Attributes.PageAnimation.ACTION_CLOSE_ENTER, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
                     mPageEnterListener);
             currPage.setDisplayInfo(mDocument);
         }
     }
     /* end implement PageManager.PageChangedListener */
 
-    private void forward(int newIndex, Page currPage, JSONObject currPageAnimateSettingObj) {
+    private void forward(int newIndex, Page currPage) {
         if (currPage.getCacheDoc() != null) {
             mDocument = currPage.getCacheDoc();
-            mDocument.attachChildren(
-                    true,
-                    newIndex == 0
-                            ? 0
-                            : Attributes.getPageOpenEnterAnimation(
-                            currPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_ENTER),
+            mDocument.attachChildren(true, newIndex == 0
+                            ? DocAnimator.TYPE_UNDEFINED
+                            : currPage.getPageAnimation(Attributes.PageAnimation.ACTION_OPEN_ENTER, DocAnimator.TYPE_PAGE_OPEN_ENTER),
                     mPageEnterListener);
             mJsThread.postChangeVisiblePage(currPage, true);
         } else {
@@ -1406,12 +1408,9 @@ public class RootView extends FrameLayout
             RuntimeLogManager.getDefault()
                     .logPageCreateRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = new VDocument(createDocComponent(currPage.pageId));
-            mDocument.attachChildren(
-                    true,
-                    newIndex == 0
-                            ? 0
-                            : Attributes.getPageOpenEnterAnimation(
-                            currPageAnimateSettingObj, DocAnimator.TYPE_PAGE_OPEN_ENTER),
+            mDocument.attachChildren(true, newIndex == 0
+                            ? DocAnimator.TYPE_UNDEFINED
+                            : currPage.getPageAnimation(Attributes.PageAnimation.ACTION_OPEN_ENTER, DocAnimator.TYPE_PAGE_OPEN_ENTER),
                     mPageEnterListener);
             currPage.setCacheDoc(mDocument);
             currPage.setDisplayInfo(mDocument);
@@ -1583,6 +1582,10 @@ public class RootView extends FrameLayout
         mAndroidViewClient = client;
     }
 
+    public AndroidViewClient getAndroidViewClient() {
+        return mAndroidViewClient;
+    }
+
     public void setLoadPageJsListener(Page.LoadPageJsListener loadPageJsListener) {
         mLoadPageJsListener = loadPageJsListener;
     }
@@ -1686,22 +1689,6 @@ public class RootView extends FrameLayout
 
     protected boolean onRenderProgress() {
         return false;
-    }
-
-    private JSONObject getPageAnimationJsonFromParams(Page page) {
-        JSONObject pageAnimateSettingObj = null;
-        if (page != null && page.params != null && page.params.size() > 0) {
-            Object obj = page.params.get(HybridRequest.PARAM_PAGE_ANIMATION);
-            if (obj instanceof String) {
-                String animationStr = obj.toString().trim();
-                try {
-                    pageAnimateSettingObj = new JSONObject(animationStr);
-                } catch (JSONException e) {
-                    Log.e(TAG, "onPageChangedInMainThread: ", e);
-                }
-            }
-        }
-        return pageAnimateSettingObj;
     }
 
     protected void onPageInitialized(Page page) {

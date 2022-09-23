@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -52,6 +52,8 @@ public class ExtensionManager {
     private JsThread mJsThread;
     private WidgetBridge mWidgetBridge;
     private V8Object mRegisteredInterface;
+
+    private FeatureInvokeListener mFeatureInvokeListener;
 
     public ExtensionManager(JsThread jsThread, Context context) {
         mJsThread = jsThread;
@@ -157,6 +159,9 @@ public class ExtensionManager {
         RuntimeLogManager.getDefault()
                 .logFeatureInvoke(mHybridManager.getApplicationContext().getPackage(), name,
                         action);
+        if (mFeatureInvokeListener != null) {
+            mFeatureInvokeListener.invoke(name, action, rawParams, jsCallback, instanceId);
+        }
         return onInvoke(name, action, rawParams, jsCallback, instanceId, null);
     }
 
@@ -337,20 +342,26 @@ public class ExtensionManager {
             }
 
             @Override
-            public void onPermissionReject(int reason) {
+            public void onPermissionReject(int reason, boolean dontDisturb) {
                 switch (reason) {
                     case Response.CODE_TOO_MANY_REQUEST:
                         mRequest.getCallback().callback(Response.TOO_MANY_REQUEST);
                         break;
                     case Response.CODE_USER_DENIED:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
-                        break;
                     default:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
+                        mRequest.getCallback().callback(Response.getUserDeniedResponse(dontDisturb));
                         break;
                 }
             }
         }
+    }
+
+    public void setFeatureInvokeListener(FeatureInvokeListener listener) {
+        this.mFeatureInvokeListener = listener;
+    }
+
+    public FeatureInvokeListener getFeatureInvokeListener() {
+        return mFeatureInvokeListener;
     }
 
     private class JsInvocation implements Runnable {
@@ -407,4 +418,6 @@ public class ExtensionManager {
             disposeFeature(true, this);
         }
     }
+
+
 }

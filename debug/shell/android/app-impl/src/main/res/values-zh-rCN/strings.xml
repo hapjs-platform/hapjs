@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -13,13 +13,19 @@
     <string name="btn_local_install">本地安装</string>
     <string name="btn_update_online">在线更新</string>
     <string name="btn_start_debug">开始调试</string>
+    <string name="btn_debug_hint">调试须知</string>
 
     <string name="btn_scan_installing">扫码安装中...</string>
     <string name="btn_local_installing">本地安装中...</string>
     <string name="btn_updating_online">在线更新中...</string>
 
+    <string name="launch_app_test_detail">带参启动指定页面或通过deeplink启动应用</string>
+    <string name="get_sign_detail">获取原生应用或快应用的签名</string>
+
+    <string name="btn_installed">已安装</string>
+
     <string name="hint_fail_to_bind_service">无法启动【快应用预览版】，请在系统权限管理相关设置页面中将【关联启动】/【自启动】权限授予【快应用预览版】，或者手动打开【快应用预览版】。</string>
-    <string name="hint_no_response">如果【开始调试】按钮没有反应，请在系统权限管理相关设置页面中将【关联启动】/【自启动】和【后台弹出界面】权限授予【快应用预览版】。</string>
+    <string name="hint_no_response">若调试无响应，请前往系统权限管理相关设置页面，将“关联启动”/“自启动”和“后台弹出界面”权限授予“%1$s”。</string>
 
     <string name="dlg_uninstall_title">卸载提示</string>
     <string name="dlg_uninstall_msg">您已经安装了较高版本的平台预览版，是否卸载当前版本再进行安装呢？</string>
@@ -68,25 +74,25 @@
     <string name="dlg_universal_scan_confirm_title">是否启动快应用？</string>
 
     <string name="text_mode">运行模式: </string>
-    <string name="text_mode_application">应用</string>
-    <string name="text_mode_card">卡片</string>
+    <string name="text_mode_application">应用模式</string>
+    <string name="text_mode_card">卡片模式</string>
 
     <string name="hint_choose_platform">选择运行平台</string>
     <string name="hint_choose_card">选择卡片</string>
     <string name="text_platform">运行平台: </string>
     <string name="text_platform_version_code_download">平台版本号: %s</string>
-    <string name="text_platform_version_code">平台标准号（版本号）: %s(%s)</string>
+    <string name="text_platform_version_code">平台标准号（版本号）: %s（%s）</string>
     <string name="text_platform_version_name">平台版本名称: %s</string>
     <string name="text_platform_version_beta">内测版</string>
     <string name="text_enable_usb_debug">开启USB调试</string>
     <string name="text_enable_analyzer">开启性能面板</string>
-    <string name="text_framework">运行框架: </string>
+    <string name="text_framework">运行框架: %s</string>
     <string name="text_version_not_support_card">框架版本不支持卡片: %s</string>
-    <string name="text_platform_hint_app">请安装最新预览版</string>
-    <string name="text_platform_hint_card">请安装最新预览版并允许调试器自启动</string>
+    <string name="text_platform_hint">请在【平台下载】中下载最新预览版平台，并允许调试器自启动</string>
+
 
     <string name="setting_category_general">通用</string>
-    <string name="setting_item_server_title">服务器</string>
+    <string name="setting_item_server_title">服务器设置</string>
     <string name="setting_category_inspect">调试</string>
     <string name="setting_item_unset_summary">未设置</string>
     <string name="setting_item_reload_strategy">应用更新策略</string>
@@ -96,21 +102,28 @@
     <string name="setting_item_wait_devtools_summary">如果需要调试首页，打开此开关</string>
     <string name="setting_item_web_debug_title">开启Web组件调试</string>
     <string name="setting_item_web_debug_summary">如果需要调试Web组件，打开此开关</string>
-    <string name="setting_item_set_params_title">启动参数</string>
+    <string name="setting_item_set_params_title">启动参数设置</string>
     <string name="setting_category_others">其他</string>
     <string name="setting_item_signature_title">获取应用签名</string>
     <string name="setting_item_set_params_hint">如: /pageName?key=value 或 key=value</string>
     <string name="toast_params_illegal">参数不能包含\"__DEBUG_PARAMS__\"</string>
+    <string name="setting_category_help">帮助</string>
+    <string name="setting_item_feedback">问题反馈</string>
+    <string name="setting_item_instruction">使用说明</string>
+    <string name="setting_item_faq">常见问题</string>
+    <string name="setting_item_doc">开发文档</string>
 
     <string name="hint_launch_package">快应用包名</string>
     <string name="hint_launch_path">快应用页面路径</string>
-    <string name="hint_launch_deeplink">快应用Deeplink</string>
+    <string name="hint_launch_deeplink">快应用Deeplink如: http://hapjs.org/app/com.test.app</string>
     <string name="btn_launch_app">启动</string>
     <string name="menu_label_launch_app_test">启动应用测试</string>
-    <string name="text_keyword_title">页面路径启动测试</string>
-    <string name="text_keyword_desc">本功能支持测试页面跳转，如关键词跳转等。请输入快应用包名和页面路径名\n(如: com.test.app和/pageName?key=value)</string>
-    <string name="text_deeplink_title">Deeplink启动测试</string>
-    <string name="text_deeplink_desc">请输入Deeplink跳转链接\n(如: http://hapjs.org/app/com.test.app)</string>
+    <string name="launch_page_test_title">页面路径启动测试</string>
+    <string name="launch_page_test_desc">本功能支持测试页面跳转，如关键词跳转等</string>
+    <string name="launch_page_pkg_hint">请输入快应用包名，如: com.test.app</string>
+    <string name="launch_page_page_hint">请输入快应用页面路径，如: pageName?key=value</string>
+    <string name="launch_by_deeplink_title">Deeplink启动测试</string>
+    <string name="launch_by_deeplink_desc">本功能支持测试Deeplink链接跳转</string>
     <string name="toast_no_package">请输入快应用包名！</string>
     <string name="toast_no_deeplink">请输入Deeplink跳转链接！</string>
     <string name="toast_wrong_deeplink">Deeplink跳转链接输入有误！</string>
@@ -122,10 +135,14 @@
     <string name="btn_choose_apk_file">选择apk文件</string>
     <string name="btn_choose_rpk_file">选择rpk或rpks文件</string>
     <string name="btn_choose_pem_file">选择PEM文件</string>
+    <string name="btn_copy">复制</string>
     <string name="btn_copy_md5">复制签名MD5</string>
     <string name="btn_copy_sha256">复制签名SHA-256</string>
     <string name="btn_copy_sign">复制签名</string>
     <string name="btn_copy_sms_hash">复制短信Hash</string>
+    <string name="tab_native_app">原生应用</string>
+    <string name="tab_quick_app">快应用</string>
+    <string name="tab_pem">PEM文件</string>
     <string name="title_get_native_app_sign">获取原生应用签名</string>
     <string name="title_get_rpk_sign">获取快应用签名</string>
     <string name="title_get_pem_sign">从PEM文件获取签名</string>
@@ -141,4 +158,6 @@
     <string name="toast_copy_to_clipboard_succ">已复制到剪切版</string>
     <string name="toast_get_signature_fail">获取签名失败</string>
     <string name="toast_app_not_install">应用未安装</string>
+    <string name="toast_invalid_pem">文件格式错误</string>
+    <string name="str_save">保存</string>
 </resources>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -49,6 +49,7 @@ public class FrescoUtils {
 
     private static List<MemoryTrimmable> mMemoryTrimmables = new CopyOnWriteArrayList<>();
     private static volatile boolean sInited = false;
+    private static List<InitializedCallback> sInitializedCallback = new CopyOnWriteArrayList<>();
 
     /**
      * Initializes Fresco with the user Drawee config.
@@ -85,6 +86,13 @@ public class FrescoUtils {
             Fresco.initialize(context, config, draweeConfigBuilder.build());
             sInited = true;
         }
+
+        Executors.io().execute(() -> {
+            for (InitializedCallback callback : sInitializedCallback) {
+                callback.onInitialized();
+            }
+            sInitializedCallback.clear();
+        });
     }
 
     public static void initializeAsync(final Context context) {
@@ -359,5 +367,19 @@ public class FrescoUtils {
                 super(consumer, producerContext);
             }
         }
+    }
+
+    public static void addInitializedCallback(InitializedCallback callback) {
+        synchronized (SoLoaderHelper.class) {
+            if (!sInited) {
+                sInitializedCallback.add(callback);
+                return;
+            }
+        }
+        callback.onInitialized();
+    }
+
+    public interface InitializedCallback {
+        void onInitialized();
     }
 }

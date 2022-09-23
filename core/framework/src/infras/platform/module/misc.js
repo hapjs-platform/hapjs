@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,7 +21,8 @@ const MODULES = {
   MODE: {
     SYNC: 0,
     CALLBACK: 1,
-    SUBSCRIBE: 2
+    SUBSCRIBE: 2,
+    SYNC_CALLBACK: 3
   },
   // 方法,属性,事件
   TYPE: {
@@ -562,11 +563,15 @@ function invokeNative(inst, module, method, args, moduleInstId) {
       argList.push('-1')
     }
     // 调用原生模块函数
-    bridge.invoke(modName, mthName, ...argList, moduleInstId)
-
+    const ret = bridge.invoke(modName, mthName, ...argList, moduleInstId)
     profiler.timeEnd(`PERF:invokeMod:${modName}.${mthName}()`)
 
     // 是否要返回Promise
+    if (mthMode === MODULES.MODE.SYNC_CALLBACK && ret) {
+      const result = transformModuleResult(inst, ret, module, mthName)
+      return result.data
+    }
+
     if (
       mthType === MODULES.TYPE.METHOD &&
       mthMode === MODULES.MODE.CALLBACK &&

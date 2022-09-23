@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,6 +12,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
+
+import org.hapjs.debugger.utils.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import org.hapjs.debugger.utils.FileUtils;
 
 public class SignatureUtils {
     private static final String TAG = "SignatureUtils";
@@ -92,7 +95,7 @@ public class SignatureUtils {
         return null;
     }
 
-    public static org.hapjs.debugger.pm.PackageInfo getHybridPackageInfo(Context context, Uri uri) {
+    public static Pair<org.hapjs.debugger.pm.PackageInfo, File> getHybridPackageInfo(Context context, Uri uri) {
         File archive = saveToFile(context, uri);
         File rpk = null;
         try {
@@ -102,7 +105,8 @@ public class SignatureUtils {
             if (rpk != null) {
                 org.hapjs.debugger.pm.PackageInfo pi = org.hapjs.debugger.pm.PackageManager.getPackageInfo(rpk.getAbsolutePath());
                 pi.setSignature(getSignatureFromRpk(rpk));
-                return pi;
+                File iconFile = org.hapjs.debugger.pm.PackageManager.getIconFile(rpk.getAbsolutePath(), pi.getIconPath());
+                return new Pair<>(pi, iconFile);
             }
         } finally {
             if (archive != null) {

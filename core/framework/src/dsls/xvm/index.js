@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,6 +10,7 @@ import XVm from './vm'
 import context from './context'
 
 import framework from './interface'
+import { isFunction } from '../../shared/util'
 
 /**
  * 根据id查找元素(添加对应原生组件的接口函数)
@@ -232,6 +233,18 @@ function $createElement(type, attrs, children) {
   return elem
 }
 
+/**
+ * 将回调函数加入 vm 的 nextTickCallbacks中
+ * @param  {function} cb, 回调函数
+ */
+function $nextTick(cb) {
+  if (!isFunction(cb)) {
+    console.warn('$nextTick函数仅支持函数类型的参数')
+  } else {
+    this._page.nextTickCallbacks.push(cb)
+  }
+}
+
 const methods = {
   $child,
   $vm,
@@ -240,7 +253,8 @@ const methods = {
   $config,
   $createElement,
   $extend,
-  $stringify
+  $stringify,
+  $nextTick
 }
 
 // 給Vm原型注册方法

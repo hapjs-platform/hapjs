@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,6 +32,9 @@ import org.hapjs.component.Container;
 import org.hapjs.component.OnDomTreeChangeListener;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.DecorLayout;
+import org.hapjs.render.vdom.DocComponent;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.widgets.map.model.HybridLatLng;
@@ -285,6 +288,11 @@ public class Map extends Container<MapFrameLayout> {
         }
         MapFrameLayout layout = (MapFrameLayout) mMapProxy.getMapView();
         layout.setComponent(this);
+        if (GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            DocComponent docComponent = getRootComponent();
+            DecorLayout decorLayout = docComponent.getDecorLayout();
+            decorLayout.applyGrayMode(false);
+        }
         return layout;
     }
 
