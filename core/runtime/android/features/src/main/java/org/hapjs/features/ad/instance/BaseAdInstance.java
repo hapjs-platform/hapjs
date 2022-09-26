@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -166,4 +166,12 @@ public abstract class BaseAdInstance implements InstanceManager.IInstance {
             mResponse = response;
         }
     }
+
+    /**
+     * 不支持广告相关功能提示
+     */
+    protected void callbackDefaultMockupErrorResponse() {
+        onError(AdConstants.ERROR_UNKNOWN, "Mockup does not support ad-related features");
+    }
+
 }

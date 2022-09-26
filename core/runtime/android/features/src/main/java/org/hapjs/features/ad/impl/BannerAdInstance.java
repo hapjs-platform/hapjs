@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,13 +38,13 @@ public class BannerAdInstance extends BaseBannerAdInstance {
     @Override
     public void show(Callback callback) {
         Log.d(TAG, "show: ");
-        callback.callback(Response.SUCCESS);
+        callbackDefaultMockupErrorResponse();
     }
 
     @Override
     public void hide(Callback callback) {
         Log.d(TAG, "hide: ");
-        callback.callback(Response.SUCCESS);
+        callbackDefaultMockupErrorResponse();
     }
 
     @Override

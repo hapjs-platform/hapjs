@@ -368,7 +368,8 @@ public class Request extends AbstractRequest {
             File dest = FileHelper.generateAvailableFile(fileName, downloadDir);
             boolean result = FileUtils.saveToFile(in, dest);
             if (result) {
-                downloadManager.remove(downloadId);
+
+                Executors.io().execute(() -> downloadManager.remove(downloadId));
                 return Uri.fromFile(dest);
             }
         } catch (IOException e) {
