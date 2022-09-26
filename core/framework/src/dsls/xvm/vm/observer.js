@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,7 +8,7 @@ import { isObject, isPlainObject } from 'src/shared/util'
 
 import XLinker from './linker'
 
-import { $def, $remove, hasProto, $own, arrayMethods, checkElement } from '../util'
+import { $def, $remove, hasProto, $own, arrayMethods } from '../util'
 
 // 修改后的Array的方法列表
 const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
@@ -124,7 +124,8 @@ XObserver.$ob = function(value, vm) {
   } else if (
     (Array.isArray(value) || isPlainObject(value)) &&
     Object.isExtensible(value) &&
-    !value._isXVm
+    !value._isXVm &&
+    !value.nodeType
   ) {
     // 如果对象可观察，则创建观察器
     ob = new XObserver(value)
@@ -186,9 +187,6 @@ export function defineReactive(obj, key, val, customSetter) {
     },
     set: function reactiveSetter(newVal) {
       // console.trace(`### App Framework ### 调用被观察属性 Setter ${key}`)
-      if (global.isRpkDebugMode()) {
-        checkElement(newVal, key)
-      }
 
       const value = getter ? getter.call(obj) : val
       if (newVal === value) {
