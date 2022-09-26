@@ -37,7 +37,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 
 import org.hapjs.debugger.app.impl.R;
 
-public class AppLaunchTestActivity extends AppCompatActivity {
+public class AppLaunchTestActivity extends DraggableActivity {
     private static final String TAG = "AppLaunchTestActivity";
 
     private static final String QUICK_APP_URL_PREFIX = "hap://app/";
@@ -225,12 +225,6 @@ public class AppLaunchTestActivity extends AppCompatActivity {
 
             mDeeplinkEditText.requestFocus();
         }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
     }
 
     private static void setPaddingEnd(View view, int paddingEndRes) {

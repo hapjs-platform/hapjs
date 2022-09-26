@@ -22,8 +22,6 @@
     <string name="launch_app_test_detail">带参启动指定页面或通过deeplink启动应用</string>
     <string name="get_sign_detail">获取原生应用或快应用的签名</string>
 
-    <string name="btn_installed">已安装</string>
-
     <string name="hint_fail_to_bind_service">无法启动【快应用预览版】，请在系统权限管理相关设置页面中将【关联启动】/【自启动】权限授予【快应用预览版】，或者手动打开【快应用预览版】。</string>
     <string name="hint_no_response">若调试无响应，请前往系统权限管理相关设置页面，将“关联启动”/“自启动”和“后台弹出界面”权限授予“%1$s”。</string>
 

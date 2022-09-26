@@ -34,10 +34,10 @@ public class DebugFragmentManager {
         @Override
         public Fragment createFragment(int position) {
             if (position == 0) {
-                mAppFragment = new AppFragment();
+                mAppFragment = createAppFragment();
                 return mAppFragment;
             } else {
-                mCardFragment = new CardFragment();
+                mCardFragment = createCardFragment();
                 return mCardFragment;
             }
         }
@@ -46,6 +46,14 @@ public class DebugFragmentManager {
         public int getItemCount() {
             return 2;
         }
+    }
+
+    protected AppFragment createAppFragment(){
+        return new AppFragment();
+    }
+
+    protected  CardFragment createCardFragment(){
+        return new CardFragment();
     }
 
     public DebugFragmentManager(FragmentActivity activity, ViewPager2 pager) {
