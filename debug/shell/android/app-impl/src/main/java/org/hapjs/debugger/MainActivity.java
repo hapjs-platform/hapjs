@@ -44,7 +44,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         ((AppBarLayout) findViewById(R.id.app_bar_layout)).setOutlineProvider(null);
 
         ViewPager2 pager = findViewById(R.id.pager);
-        mDebugFragmentManager = new DebugFragmentManager(this, pager);
+        mDebugFragmentManager = createDebugFragmentManager(pager);
         mDebugFragmentManager.showDebugFragment(getIntent());
 
         findViewById(R.id.app_mode_title).setOnClickListener(this);
@@ -60,6 +60,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         });
 
         findViewById(R.id.setting).setOnClickListener(this);
+    }
+
+    protected DebugFragmentManager createDebugFragmentManager(ViewPager2 pager){
+        return  new DebugFragmentManager(this, pager);
     }
 
     @Override

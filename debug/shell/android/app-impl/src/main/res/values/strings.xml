@@ -23,8 +23,6 @@
     <string name="launch_app_test_detail">Launch quick app with parameters or by deeplink</string>
     <string name="get_sign_detail">Get signature of Android app or quick app</string>
 
-    <string name="btn_installed">Installed</string>
-
     <string name="hint_fail_to_bind_service">Can not start [Quick App Preview],please grant the permission of [Startup]/[Autostart] to [Quick App Preview] on the relevant settings page of system permission management, or open it Manual.</string>
     <string name="hint_no_response">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Startup\"/\"Autostart\" and \"Backupgroud pop-ups\" to \"%1$s\" on the relevant settings page of system permission management.</string>
 

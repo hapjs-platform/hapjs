@@ -44,6 +44,8 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import org.hapjs.debug.log.DebuggerLogUtil;
+import org.hapjs.debugger.AppLaunchTestActivity;
+import org.hapjs.debugger.SignatureActivity;
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.pm.PackageInfo;
@@ -148,7 +150,8 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         });
         mUsbDebugSwitch.setChecked(PreferenceUtils.isUseADB(getActivity()));
         setSwitchStateText(view, R.id.usb_state_text, PreferenceUtils.isUseADB(getActivity()));
-
+        view.findViewById(R.id.launch_app_test_layout).setOnClickListener(v -> startLaunchTestActivity());
+        view.findViewById(R.id.get_sign_layout).setOnClickListener(v -> startSignatureActivity());
         return view;
     }
 
@@ -418,6 +421,14 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
 
     protected void setupDebuggerLogUtil() {
         DebuggerLogUtil.init(getContext().getApplicationContext(), "");
+    }
+
+    protected void startLaunchTestActivity() {
+        startActivity(new Intent(getActivity(), AppLaunchTestActivity.class));
+    }
+
+    protected void startSignatureActivity() {
+        startActivity(new Intent(getActivity(), SignatureActivity.class));
     }
 
     protected void startScanner() {
