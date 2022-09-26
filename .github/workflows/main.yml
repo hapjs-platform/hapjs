@@ -18,5 +18,5 @@ jobs:
         # 构建程序 打包
       - run: |
           cd ./mockup/platform/android
-          ./gradlew assembleRelease
-          ./gradlew assembleDebug
+          ./gradlew clean assemblePhoneDebug assemblePhoneRelease
+          ./gradlew clean assembleTvDebug assembleTvRelease
