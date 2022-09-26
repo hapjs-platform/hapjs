@@ -20,7 +20,7 @@ jobs:
         id: build_mockup
         run: |
           cd ./mockup/platform/android
-          ./gradlew assembleRelease -DappVersionTag=${{ inputs.versionTag }}
+          ./gradlew assemblePhoneRelease -DappVersionTag=${{ inputs.versionTag }}
       # 打包调试器
       - name: Build debugger
         id: build_debugger
