@@ -43,9 +43,7 @@ public class SettingsActivity extends AppCompatActivity {
         decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
         setContentView(R.layout.activity_settings);
         mRootView = findViewById(R.id.root_view);
-        getFragmentManager().beginTransaction()
-                .replace(R.id.content, new SettingsFragment())
-                .commit();
+        showSettingsFragment();
         mBehavior = SettingViewBehavior.from(findViewById(R.id.setting));
         mBehavior.addCallback(new SettingViewBehavior.Callback() {
             @Override
@@ -65,6 +63,12 @@ public class SettingsActivity extends AppCompatActivity {
         });
         runOnUiThread(() -> mBehavior.setState(SettingViewBehavior.STATE_EXPANDED));
         Log.d(TAG, "behavior state = " + mBehavior.getState());
+    }
+
+    protected void showSettingsFragment() {
+        getFragmentManager().beginTransaction()
+                .replace(R.id.content, new SettingsFragment())
+                .commit();
     }
 
     @Override
