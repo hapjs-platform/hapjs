@@ -31,7 +31,7 @@ function initApp(inst, code) {
   const instBootstrap = (name, config) => {
     profiler.time(`PERF:bootstrapApp`)
     result = $bootstrap(inst, name, config)
-    console.log(`### App Framework ### 完成App初始化(${inst.id})----`)
+    console.trace(`### App Framework ### 完成App初始化(${inst.id})----`)
     profiler.timeEnd(`PERF:bootstrapApp`)
     profiler.record(
       `### App Performance ### 启动APP[PERF:bootstrapApp]结束：${new Date().toJSON()}`

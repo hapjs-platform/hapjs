@@ -70,7 +70,9 @@ class XWatcher {
           } else if (typeof key !== 'symbol' && key[0] !== '_') {
             // 对象被Proxy代理后，原本访问[Symbol.toPrimitive]属性也会被劫持，即使该对象并未明确定义该属性
             // computed或者渲染watcher，则触发warn
-            console.warn(`请确认VM的data/public/protected/private中定义了属性：${key}`)
+            console.warn(
+              `### App Framework ### 请确认VM的data/public/protected/private中定义了属性：${key}`
+            )
           }
         }
         return target[key]

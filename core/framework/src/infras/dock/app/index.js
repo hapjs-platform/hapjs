@@ -78,7 +78,6 @@ class XApp extends ModuleHost {
       })
     } else {
       this._data = {}
-      console.warn(`### App Framework ### App 全局数据被清空`)
     }
   }
 

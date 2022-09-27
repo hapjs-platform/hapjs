@@ -22,7 +22,7 @@ export { $defineWrap } from '../app/bundle'
  * @returns {Error}
  */
 const $bootstrap = function(page, name, config, query) {
-  console.log(`### App Framework ### 启动页面---- ${name}`)
+  console.trace(`### App Framework ### 启动页面---- ${name}`)
 
   // 验证页面‘@app-component/xxxx’
   let pageName

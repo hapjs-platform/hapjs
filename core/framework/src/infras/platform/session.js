@@ -45,7 +45,7 @@ export default class Session extends Pubsub {
         this.publish('inspectorNotification', parsed, null)
       }
     } catch (error) {
-      console.log(error)
+      console.log(`### App Framework ### ${error}`)
     }
   }
 
@@ -84,7 +84,9 @@ export default class Session extends Pubsub {
     this[connectionSymbol] = null
     const remainingCallbacks = this[messageCallbacksSymbol].values()
     if (remainingCallbacks.length > 0) {
-      console.warn('remainingCallbacks will not executed due to inspector closed')
+      console.warn(
+        '### App Framework ### remainingCallbacks will not executed due to inspector closed'
+      )
     }
 
     this[messageCallbacksSymbol].clear()

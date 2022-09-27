@@ -235,10 +235,10 @@ function postBindSubVm(vm, subVm, template, dest = {}) {
  * @param subVm
  */
 function mergeProps(attrs, props, vm, subVm) {
-  if (!attrs) {
+  if (!attrs || Object.keys(attrs).length === 0) {
     return
   }
-  if (attrs && !props) {
+  if (!props) {
     console.warn(
       `### App Framework ### 组件 ${subVm._type} 中无props属性，放弃属性校验；推荐增加props属性`
     )
@@ -302,7 +302,7 @@ function initProps(key, value, vm, subVm, absent, prop) {
       defineReactive(_props, key, watcherValue, () => {
         if (!isUpdatingChildComponent) {
           console.error(
-            `### App Framework ### 组件${subVm._type} 禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
+            `### App Framework ### 组件${subVm._type}禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
           )
         }
       })
@@ -311,7 +311,7 @@ function initProps(key, value, vm, subVm, absent, prop) {
     value = validateProp(key, value, absent, prop, subVm)
     defineReactive(_props, key, value, () => {
       console.error(
-        `### App Framework ### 组件${subVm._type} 禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
+        `### App Framework ### 组件${subVm._type}禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
       )
     })
   }
@@ -449,7 +449,7 @@ function initAttrs(key, value, vm, subVm, props) {
 
   if (isReservedAttr(key)) {
     console.warn(
-      `### App Framework ### 组件${subVm._type}中属性 '${key}' 是保留字, 可能会导致应用运行异常`
+      `### App Framework ### 组件 ${subVm._type} 中属性 '${key}' 是保留字, 可能会导致应用运行异常`
     )
   }
   if (typeof value === 'function') {
@@ -870,7 +870,7 @@ function bindEvents(vm, el, events) {
       // 之前initState函数已经将自定义函数添加到vm中
       handler = vm[handler]
       if (!handler) {
-        console.warn(`### App Framework ### 没有找到回调事件 "${type}".`)
+        console.warn(`### App Framework ### 没有找到回调事件 '${type}'`)
       }
     }
 
@@ -878,7 +878,7 @@ function bindEvents(vm, el, events) {
       console.trace(`### App Framework ### 绑定回调事件---- ${type}`)
       nodeAddEventListener(el, type, $bind(handler, vm), false)
     } else {
-      console.warn(`### App Framework ### 回调事件 "${type}" 必须是函数`)
+      console.warn(`### App Framework ### 回调事件 '${type}' 必须是函数`)
     }
   }
 }

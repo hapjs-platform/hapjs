@@ -114,7 +114,7 @@ function HtmlParser(html, handler) {
     }
 
     if (html === last) {
-      console.error('### App Parser ### 解析错误: ' + html)
+      console.error('### App Parser ### 解析错误：' + html)
     }
     last = html
   }

@@ -9,7 +9,7 @@ export function setUpPromiseRejectionHook() {
   // todo expose to user later
   global.QuickApp.unhandledrejection = (type, promise, reason) => {
     if (reason.stack) {
-      console.warn(`Unhandled promise rejection: ${reason.stack}`)
+      console.warn(`### App Framework ### Unhandled promise rejection: ${reason.stack}`)
     }
   }
 }

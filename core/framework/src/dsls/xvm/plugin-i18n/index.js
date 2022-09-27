@@ -81,7 +81,7 @@ class PluginI18n {
     if (!isNull(ret)) {
       return ret
     } else {
-      console.warn(`i18n：locale文件中没有找到对应的key：${key}`)
+      console.warn(`### App Framework ### i18n：locale文件中没有找到对应的key：${key}`)
       return key
     }
   }
@@ -161,7 +161,7 @@ class PluginI18n {
 
   _fetchChoice(optionLine, choice) {
     if (typeof optionLine !== 'string') {
-      console.warn(`i18n：处理复数的值定义应该为string类型：${optionLine}`)
+      console.warn(`### App Framework ### i18n：处理复数的值定义应该为string类型：${optionLine}`)
       return null
     }
 
