@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,24 +14,17 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.webkit.ValueCallback;
-
 import androidx.collection.ArraySet;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.AcceptLanguageUtils;
 import org.hapjs.common.utils.ColorUtil;
+import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.SwipeObserver;
@@ -134,19 +127,6 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         getRootComponent().increaseWebComponentCount();
     }
 
-    public static String decodeUrl(String url) {
-        if (TextUtils.isEmpty(url)) {
-            return url;
-        }
-        String decodedUrl = null;
-        try {
-            decodedUrl = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException | IllegalArgumentException e) {
-            Log.e(TAG, "decode url failed :" + url, e);
-        }
-        return decodedUrl;
-    }
-
     @Override
     protected NestedWebView createViewImpl() {
         NestedWebView webView = new NestedWebView(mContext);
@@ -217,24 +197,22 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
 
                     while (!mPendingMessages.isEmpty()) {
                         String message = mPendingMessages.poll();
-                        tryHandleMessage(
-                                mHost.getUrl(),
-                                new UrlCheckListener() {
-                                    @Override
-                                    public void onTrusted() {
-                                        String onMessageJs =
-                                                "system.onmessage(\'" + message + "\')";
-                                        if (null != mHost) {
-                                            mHost.evaluateJavascript(onMessageJs, null);
-                                        }
-                                    }
+                        WebViewUtils.checkHandleMessage(mHost, mHost.getUrl(), mTrustedUrls, new WebViewUtils.UrlCheckListener() {
+                            @Override
+                            public void onTrusted() {
+                                String onMessageJs =
+                                        "system.onmessage(\'" + message + "\')";
+                                if (null != mHost) {
+                                    mHost.evaluateJavascript(onMessageJs, null);
+                                }
+                            }
 
-                                    @Override
-                                    public void onUnTrusted() {
-                                        Log.w(TAG,
-                                                "post message failed, because current url not match trust url");
-                                    }
-                                });
+                            @Override
+                            public void onUnTrusted() {
+                                Log.w(TAG,
+                                        "post message failed, because current url not match trust url");
+                            }
+                        });
                     }
                 });
         webView.setOnPageFinishListener(
@@ -436,26 +414,24 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                     new NestedWebView.OnMessageListener() {
                         @Override
                         public void onMessage(final String message, final String url) {
-                            tryHandleMessage(
-                                    url,
-                                    new UrlCheckListener() {
-                                        @Override
-                                        public void onTrusted() {
-                                            Map<String, Object> params = new HashMap<>();
-                                            params.put("message", message);
-                                            params.put("url", url);
-                                            mCallback.onJsEventCallback(
-                                                    getPageId(), mRef, EVENT_MESSAGE, Web.this,
-                                                    params, null);
-                                        }
+                            WebViewUtils.checkHandleMessage(mHost, url, mTrustedUrls, new WebViewUtils.UrlCheckListener() {
+                                @Override
+                                public void onTrusted() {
+                                    Map<String, Object> params = new HashMap<>();
+                                    params.put("message", message);
+                                    params.put("url", url);
+                                    mCallback.onJsEventCallback(
+                                            getPageId(), mRef, EVENT_MESSAGE, Web.this,
+                                            params, null);
+                                }
 
-                                        @Override
-                                        public void onUnTrusted() {
-                                            Log.w(
-                                                    TAG,
-                                                    "onmessage event not call, because current url not match trusted url");
-                                        }
-                                    });
+                                @Override
+                                public void onUnTrusted() {
+                                    Log.w(
+                                            TAG,
+                                            "onmessage event not call, because current url not match trusted url");
+                                }
+                            });
                         }
                     });
 
@@ -505,115 +481,6 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         return super.removeEvent(event);
     }
 
-    private void tryHandleMessage(String url, final UrlCheckListener listener) {
-        if (TextUtils.isEmpty(url) || listener == null) {
-            return;
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append('[');
-        for (int i = 0; i < mTrustedUrls.size(); i++) {
-            if (i > 0) {
-                builder.append(", ");
-            }
-            builder.append(mTrustedUrls.valueAt(i));
-        }
-        builder.append(']');
-        final String mTrustedUrlsStr = builder.toString();
-
-        String checkUrlJs =
-                "javascript:"
-                        + "function checkUrl (url, trustedUrl) {\n"
-                        + "  return trustedUrl.some(function(item) {\n"
-                        + "    if (typeof item === 'string') {\n"
-                        + "      if (url.endsWith('/')) {\n"
-                        + "        if (!item.endsWith('/')) {\n"
-                        + "          item += '/'\n"
-                        + "        }\n"
-                        + "      } else {\n"
-                        + "        if (item.endsWith('/')) {\n"
-                        + "          url += '/'\n"
-                        + "        }\n"
-                        + "      }\n"
-                        + "      return url === item\n"
-                        + "    }\n"
-                        + "    else {\n"
-                        + "      if (item.type === 'regexp') {\n"
-                        + "        var reg = new RegExp(item.source, item.flags)\n"
-                        + "        return reg.test(url)\n"
-                        + "      }\n"
-                        + "    }\n"
-                        + "    return false\n"
-                        + "  })\n"
-                        + "}\n"
-                        + "checkUrl(\'"
-                        + url
-                        + "\', "
-                        + mTrustedUrlsStr
-                        + ")";
-        mHost.evaluateJavascript(
-                checkUrlJs,
-                new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        if ("true".equals(value)) {
-                            listener.onTrusted();
-                        } else {
-                            checkDecodeUrl(url, mTrustedUrlsStr, listener);
-                        }
-                    }
-                });
-    }
-
-    private void checkDecodeUrl(String url, String trustedUrlsStrs,
-                                final UrlCheckListener listener) {
-        if (TextUtils.isEmpty(url) || TextUtils.isEmpty(trustedUrlsStrs)) {
-            if (null != listener) {
-                listener.onUnTrusted();
-            } else {
-                Log.e(TAG, "checkDecodeUrl listener null");
-            }
-            return;
-        }
-        String decodeUrl = decodeUrl(url);
-        String checkDecodeUrlJs =
-                "javascript:"
-                        + "function checkUrl (url, trustedUrl) {\n"
-                        + "  return trustedUrl.some(function(item) {\n"
-                        + "    if (typeof item === 'string') {\n"
-                        + "      return url === item\n"
-                        + "    }\n"
-                        + "    else {\n"
-                        + "      if (item.type === 'regexp') {\n"
-                        + "        var reg = new RegExp(item.source, item.flags)\n"
-                        + "        return reg.test(url)\n"
-                        + "      }\n"
-                        + "    }\n"
-                        + "    return false\n"
-                        + "  })\n"
-                        + "}\n"
-                        + "checkUrl(\'"
-                        + decodeUrl
-                        + "\', "
-                        + trustedUrlsStrs
-                        + ")";
-        if (null == mHost) {
-            Log.e(TAG, "checkDecodeUrl web  mHost null");
-            return;
-        }
-        mHost.evaluateJavascript(
-                checkDecodeUrlJs,
-                new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                        if ("true".equals(value)) {
-                            listener.onTrusted();
-                        } else {
-                            listener.onUnTrusted();
-                        }
-                    }
-                });
-    }
 
     public void loadUrl(String url) {
         if (TextUtils.isEmpty(url) || mHost == null) {
@@ -681,27 +548,25 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         Object messageObj = args.get("message");
         if (messageObj != null) {
             final String message = (String) messageObj;
-            tryHandleMessage(
-                    mHost.getUrl(),
-                    new UrlCheckListener() {
-                        @Override
-                        public void onTrusted() {
-                            if (mPageLoadStart) {
-                                String onMessageJs = "system.onmessage(\'" + message + "\')";
-                                if (null != mHost) {
-                                    mHost.evaluateJavascript(onMessageJs, null);
-                                }
-                            } else {
-                                mPendingMessages.offer(message);
-                            }
+            WebViewUtils.checkHandleMessage(mHost, mHost.getUrl(), mTrustedUrls, new WebViewUtils.UrlCheckListener() {
+                @Override
+                public void onTrusted() {
+                    if (mPageLoadStart) {
+                        String onMessageJs = "system.onmessage(\'" + message + "\')";
+                        if (null != mHost) {
+                            mHost.evaluateJavascript(onMessageJs, null);
                         }
+                    } else {
+                        mPendingMessages.offer(message);
+                    }
+                }
 
-                        @Override
-                        public void onUnTrusted() {
-                            Log.w(TAG,
-                                    "post message failed, because current url not match trusted url");
-                        }
-                    });
+                @Override
+                public void onUnTrusted() {
+                    Log.w(TAG,
+                            "post message failed, because current url not match trusted url");
+                }
+            });
         }
     }
 
@@ -900,9 +765,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         this.mIsLastLoadFinish = lastLoadFinish;
     }
 
-    private interface UrlCheckListener {
-        void onTrusted();
-
-        void onUnTrusted();
+    public ArraySet<String> getTrustedUlrs() {
+        return mTrustedUrls;
     }
 }

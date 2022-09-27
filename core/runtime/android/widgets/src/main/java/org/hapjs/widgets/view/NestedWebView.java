@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -57,6 +58,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.MotionEventCompat;
@@ -64,11 +66,16 @@ import androidx.core.view.NestedScrollingChildHelper;
 import androidx.core.view.VelocityTrackerCompat;
 import androidx.core.view.ViewCompat;
 
+import org.hapjs.bridge.Callback;
+import org.hapjs.bridge.Extension;
+import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.LifecycleListener;
+import org.hapjs.bridge.Response;
 import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
+import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.NavigationUtils;
@@ -86,6 +93,8 @@ import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.component.view.webview.BaseWebViewClient;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.serialize.Serializable;
+import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.ProviderManager;
@@ -94,9 +103,14 @@ import org.hapjs.system.SysOpProvider;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.Web;
 import org.hapjs.widgets.animation.WebProgressBar;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -172,6 +186,12 @@ public class NestedWebView extends WebView
     public static final String KEY_SYSTEM = "system";
     public static final String KEY_DEFAULT = "default";
     private String mSourceH5 = ""; //记录哪个网页调起的app
+
+    // jssdk url
+    private static final String JSSDK_URL = "https://quickapp/js/jssdk.hapwebview.min.js";
+    private static final String JSSDK_LOCAL_PATH = "jsscript/hapjssdk.min.js";
+    private static final String ERROR_MSG_URL_UNTRUSTED = "url untrusted";
+    private WebviewSettingProvider mWebViewSettingProvider;
 
     public NestedWebView(Context context) {
         super(context);
@@ -446,6 +466,40 @@ public class NestedWebView extends WebView
                             mOnPageFinishListener
                                     .onPageFinish(url, canGoBack(), view.canGoForward());
                         }
+                    }
+
+                    @Nullable
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                        // load local jssdk file
+                        if (JSSDK_URL.equals(url)) {
+                            AssetManager assetManager = getResources().getAssets();
+                            try {
+                                InputStream inputStream = assetManager.open(JSSDK_LOCAL_PATH);
+                                Log.d(TAG, "load hapjssdk success");
+                                return new WebResourceResponse(parseFileType(url), "UTF-8", inputStream);
+                            } catch (IOException e) {
+                                Log.e(TAG, "read hapjssdk file error", e);
+                            }
+                            return null;
+                        }
+                        return super.shouldInterceptRequest(view, url);
+                    }
+
+                    private String parseFileType(String filePath) {
+                        if (TextUtils.isEmpty(filePath)) {
+                            return "";
+                        }
+                        if (filePath.endsWith(".html") || filePath.endsWith(".htm")) {
+                            return "text/html";
+                        }
+                        if (filePath.endsWith(".js")) {
+                            return "text/javascript";
+                        }
+                        if (filePath.endsWith(".css")) {
+                            return "text/css";
+                        }
+                        return "";
                     }
 
                     @Override
@@ -950,6 +1004,9 @@ public class NestedWebView extends WebView
         // Keep 'miui' package for compatible with api level 100
         addJavascriptInterface(nativeApi, "miui");
         addJavascriptInterface(nativeApi, "system");
+        // only for jssdk
+        H5InvokeNativeApi h5InvokeNativeApi = new H5InvokeNativeApi(this);
+        addJavascriptInterface(h5InvokeNativeApi, "hapH5Invoke");
     }
 
     private boolean isDomainInWhitelist(String domain) {
@@ -1852,6 +1909,274 @@ public class NestedWebView extends WebView
     public interface OnProgressChangedListener {
         void onProgressChanged(int i);
     }
+
+    private static class H5InvokeNativeApi {
+        private WeakReference<NestedWebView> mWebViewRef;
+        private final String QUICK_APP = "quickapp";
+        private final String PARAM_FUNCTION_NAMES = "functionNames";
+
+        public H5InvokeNativeApi(NestedWebView webView) {
+            mWebViewRef = new WeakReference<>(webView);
+        }
+
+        private static String formatResultString(String[] jsCallbackIds, Response response) {
+            if (jsCallbackIds == null) {
+                return null;
+            }
+            // H5 page invoke scan feature, jsCallbackId: index:0 --> success, index:1 --> fail, index:2 ---> cancel, index:3 ---> complete
+            String successId = "", failId = "", cancelId = "", completeId = "";
+            if (jsCallbackIds.length > 0) {
+                successId = jsCallbackIds[0];
+            }
+            if (jsCallbackIds.length > 1) {
+                failId = jsCallbackIds[1];
+            }
+            if (jsCallbackIds.length > 2) {
+                cancelId = jsCallbackIds[2];
+            }
+            if (jsCallbackIds.length > 3) {
+                completeId = jsCallbackIds[3];
+            }
+            if (response != null) {
+                Object params = null;
+                try {
+                    if (response.getSerializeType() == Serializable.TYPE_JSON) {
+                        params = response.toJSON().get("content");
+                    } else {
+                        params = response.toSerializeObject().toMap().get("content");
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "formatResultString error", e);
+                }
+                int code = response.getCode();
+                if (code == Response.CODE_SUCCESS && !TextUtils.isEmpty(successId)) {
+                    if (params instanceof String) {
+                        return String.format("javascript:_hapInternalCall(%s, \"%s\")", successId, params);
+                    }
+                    return String.format("javascript:_hapInternalCall(%s, %s)", successId, params);
+                } else if (code == Response.CODE_CANCEL && !TextUtils.isEmpty(cancelId)) {
+                    if (params instanceof String) {
+                        return String.format("javascript:_hapInternalCall(%s, \"%s\")", cancelId, params);
+                    }
+                    return String.format("javascript:_hapInternalCall(%s, %s)", cancelId, params);
+                } else if ((code >= 200 || code < 0) && !TextUtils.isEmpty(failId)) {
+                    if (params instanceof String) {
+                        return String.format("javascript:_hapInternalCall(%s, \"%s\", %s)", failId, params, code);
+                    }
+                    return String.format("javascript:_hapInternalCall(%s, %s, %s)", failId, params, code);
+                }
+            }
+            if (!TextUtils.isEmpty(completeId)) {
+                return String.format("javascript:_hapInternalCall(%s)", completeId);
+            }
+            return null;
+        }
+
+        /**
+         * h5 support function name list
+         *
+         * @param callbacks
+         */
+
+        @JavascriptInterface
+        public void getH5FunctionNameList(String callbacks) {
+            final NestedWebView nestedWebView = mWebViewRef.get();
+            if (nestedWebView == null) {
+                Log.w(TAG, "H5 invoke fail, WebView is null");
+                return;
+            }
+            final Web web = (Web) nestedWebView.getComponent();
+            if (web == null) {
+                Log.w(TAG, "H5 invoke fail, Component is null");
+                return;
+            }
+            String[] jsCallbackIds = callbacks.split(",");
+            nestedWebView.post(() -> {
+                // check invoke security
+                WebViewUtils.checkHandleMessage(nestedWebView, nestedWebView.getUrl(), web.getTrustedUlrs(),
+                        new WebViewUtils.UrlCheckListener() {
+                            @Override
+                            public void onTrusted() {
+                                nestedWebView.post(() -> {
+                                    JSONObject jsonObject = new JSONObject();
+                                    List<String> functionNameList = nestedWebView.getWebViewSettingProvider() != null ?
+                                            nestedWebView.getWebViewSettingProvider().getJsFunctionNameList() :
+                                            null;
+                                    try {
+                                        JSONArray jsonArray = new JSONArray(functionNameList);
+                                        jsonObject.put(PARAM_FUNCTION_NAMES, jsonArray);
+                                    } catch (JSONException e) {
+                                        Log.e(TAG, "JsonObject error", e);
+                                    }
+                                    nestedWebView.loadUrl(formatResultString(jsCallbackIds,
+                                            new Response(Response.CODE_SUCCESS, jsonObject)));
+                                });
+                            }
+
+                            @Override
+                            public void onUnTrusted() {
+                                Log.e(TAG, "H5 invoke fail, url not trusted");
+                                String responseResult = formatResultString(jsCallbackIds,
+                                        new Response(CallbackError.UNTRUSTED_ERROR, ERROR_MSG_URL_UNTRUSTED));
+                                if (!TextUtils.isEmpty(responseResult)) {
+                                    nestedWebView.post(() -> nestedWebView.loadUrl(responseResult));
+                                } else {
+                                    Log.e(TAG, "invoke fail untrusted, response result is null");
+                                }
+                            }
+                        });
+            });
+        }
+
+        /**
+         * h5 call native feature by function name
+         *
+         * @param functionName feature function name
+         * @param rawParams    feature params
+         * @param callbacks    feature callbacks
+         */
+        @JavascriptInterface
+        public void specialH5InvokeNative(String functionName, String rawParams, String callbacks) {
+            final NestedWebView nestedWebView = mWebViewRef.get();
+            if (nestedWebView == null) {
+                Log.w(TAG, "H5 invoke fail, WebView is null");
+                return;
+            }
+            final Web web = (Web) nestedWebView.getComponent();
+            if (web == null) {
+                Log.w(TAG, "H5 invoke fail, Component is null");
+                return;
+            }
+            String[] jsCallbackIds = callbacks.split(",");
+            nestedWebView.post(() -> {
+                // check invoke security
+                WebViewUtils.checkHandleMessage(nestedWebView, nestedWebView.getUrl(), web.getTrustedUlrs(), new WebViewUtils.UrlCheckListener() {
+                    @Override
+                    public void onTrusted() {
+                        // H5 page invoke scan feature, jsCallbackId: index:0 --> success, index:1 --> fail, index:2 ---> cancel, index:3--->complete
+                        if (WebviewSettingProvider.FUNCTION_GET_ENV.equals(functionName)) {
+                            nestedWebView.post(() -> {
+                                JSONObject jsonObject = new JSONObject();
+                                try {
+                                    jsonObject.put(QUICK_APP, true);
+                                } catch (JSONException e) {
+                                    Log.e(TAG, "JsonObject error", e);
+                                }
+                                nestedWebView.loadUrl(formatResultString(jsCallbackIds, new Response(Response.CODE_SUCCESS, jsonObject)));
+                            });
+                        } else if (WebviewSettingProvider.FUNCTION_SCAN.equals(functionName)) {
+                            executeNativeFunction("system.barcode", WebviewSettingProvider.FUNCTION_SCAN, jsCallbackIds, rawParams, nestedWebView);
+                        } else {
+                            Log.e(TAG, "H5 invoke fail, function not support");
+                            String responseResult = formatResultString(jsCallbackIds, new Response(CallbackError.UNSUPPORT_ERROR, "not support"));
+                            if (!TextUtils.isEmpty(responseResult)) {
+                                nestedWebView.post(() -> nestedWebView.loadUrl(responseResult));
+                            } else {
+                                Log.e(TAG, "invoke fail untrusted, response result is null");
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onUnTrusted() {
+                        Log.e(TAG, "H5 invoke fail, url not trusted");
+                        String responseResult = formatResultString(jsCallbackIds, new Response(CallbackError.UNSUPPORT_ERROR, "untrusted"));
+                        if (!TextUtils.isEmpty(responseResult)) {
+                            nestedWebView.post(() -> nestedWebView.loadUrl(responseResult));
+                        } else {
+                            Log.e(TAG, "invoke fail untrusted, response result is null");
+                        }
+                    }
+                });
+            });
+        }
+
+        private void executeNativeFunction(String module, String functionName, String[] jsCallbackIds,
+                                           String rawParams, NestedWebView nestedWebView) {
+            String responseResult;
+            if (nestedWebView == null || nestedWebView.getComponent() == null) {
+                Log.e(TAG, "invoke fail, nestedWebView or nestedWebView component is null");
+                return;
+            }
+            // H5 page invoke scan feature, jsCallbackId: index:0 --> success, index:1 --> fail, index:2 ---> cancel, index:3--->complete
+            DocComponent docComponent = nestedWebView.getComponent().getRootComponent();
+            if (docComponent == null) {
+                Log.e(TAG, "invoke fail, DocComponent is null");
+                return;
+            }
+            RootView rootView = (RootView) docComponent.getHostView();
+            if (rootView == null || rootView.getJsThread() == null || rootView.getJsThread().getBridgeManager() == null) {
+                Log.e(TAG, "invoke fail, RootView Illegal status");
+                return;
+            }
+            if (TextUtils.isEmpty(module) || TextUtils.isEmpty(functionName)) {
+                responseResult = formatResultString(jsCallbackIds, new Response(CallbackError.PARAMS_ERROR, "params is wrong"));
+            } else {
+                ExtensionManager extensionManager = rootView.getJsThread().getBridgeManager();
+                Response response = extensionManager.invokeWithCallback(module, functionName, rawParams, ExtensionManager.H5_JS_CALLBACK, -1, new H5Callback(extensionManager, jsCallbackIds, mWebViewRef));
+                if (response != null && module.startsWith("service.") && "getProvider".equalsIgnoreCase(functionName)) {
+                    responseResult = formatResultString(jsCallbackIds, response);
+                } else {
+                    Log.d(TAG, "invoke success, module:" + module + ",functionName:" + functionName);
+                    return;
+                }
+            }
+            if (!TextUtils.isEmpty(responseResult)) {
+                nestedWebView.post(() -> nestedWebView.loadUrl(responseResult));
+            } else {
+                Log.e(TAG, "invoke fail, module:" + module + ",functionName:" + functionName + ",response result is null");
+            }
+        }
+
+        private interface CallbackError {
+            int UNTRUSTED_ERROR = -1;
+            int PARAMS_ERROR = -2;
+            int UNSUPPORT_ERROR = -3;
+        }
+
+        private static class H5Callback extends Callback {
+            private String[] mJsCallbackIds;
+            private WeakReference<NestedWebView> mWeakReference;
+
+            public H5Callback(ExtensionManager extensionManager, String[] jsCallbackIds, WeakReference<NestedWebView> weakReference) {
+                super(extensionManager, ExtensionManager.H5_JS_CALLBACK, Extension.Mode.ASYNC);
+                mJsCallbackIds = jsCallbackIds;
+                mWeakReference = weakReference;
+            }
+
+            @Override
+            protected void doCallback(Response response) {
+                String resultCallbackStr = formatResultString(mJsCallbackIds, response);
+                NestedWebView nestedWebView = mWeakReference != null ? mWeakReference.get() : null;
+                final String callH5Callback = resultCallbackStr;
+                if (nestedWebView != null) {
+                    nestedWebView.post(() -> {
+                        // scan result callback
+                        if (!TextUtils.isEmpty(callH5Callback)) {
+                            nestedWebView.loadUrl(callH5Callback);
+                        } else {
+                            Log.e(TAG, "call h5 call back is null");
+                        }
+                        // complete callback
+                        String completeCallbackStr = formatResultString(mJsCallbackIds, null);
+                        if (!TextUtils.isEmpty(completeCallbackStr)) {
+                            nestedWebView.loadUrl(completeCallbackStr);
+                        } else {
+                            Log.e(TAG, "call h5 call back complete string is null");
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    public WebviewSettingProvider getWebViewSettingProvider() {
+        if (mWebViewSettingProvider == null) {
+            mWebViewSettingProvider = ProviderManager.getDefault().getProvider(WebviewSettingProvider.NAME);
+        }
+        return mWebViewSettingProvider;
+    }
+
 
     private class WebViewNativeApi {
 

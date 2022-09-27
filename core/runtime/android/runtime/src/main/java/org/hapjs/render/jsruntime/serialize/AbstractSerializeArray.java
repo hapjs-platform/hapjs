@@ -1,14 +1,20 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.render.jsruntime.serialize;
 
+import android.util.Log;
+
 import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
 import com.eclipsesource.v8.utils.typedarrays.TypedArray;
 
+import org.json.JSONArray;
+
 abstract class AbstractSerializeArray implements SerializeArray {
+    private static final String TAG = "AbstractSerializeArray";
+
     @Override
     public Object get(int index) throws SerializeException {
         ensureExists(index);
@@ -95,4 +101,15 @@ abstract class AbstractSerializeArray implements SerializeArray {
     }
 
     protected abstract void ensureExists(int index) throws SerializeException;
+
+    @Override
+    public String toString() {
+        JSONArray jsonArray = null;
+        try {
+            jsonArray = toJSONArray();
+        } catch (Exception e) {
+            Log.e(TAG, "json error", e);
+        }
+        return jsonArray != null ? jsonArray.toString() : super.toString();
+    }
 }

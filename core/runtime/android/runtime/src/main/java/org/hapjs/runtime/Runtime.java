@@ -16,6 +16,8 @@ import org.hapjs.bridge.DefaultAppInfoProvider;
 import org.hapjs.bridge.DefaultApplicationProvider;
 import org.hapjs.bridge.DependencyManager;
 import org.hapjs.bridge.annotation.DependencyAnnotation;
+import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
+import org.hapjs.bridge.provider.webview.WebviewSettingProviderImpl;
 import org.hapjs.cache.DefaultInstallInterceptProviderImpl;
 import org.hapjs.cache.DefaultPackageCheckProvider;
 import org.hapjs.cache.InstallInterceptProvider;
@@ -166,6 +168,7 @@ public class Runtime {
         pm.addProvider(StatusBarSizeProvider.NAME, new DefaultStatusBarSizeProvider());
         pm.addProvider(FontSizeProvider.NAME, new DefaultFontSizeProvider());
         pm.addProvider(FontFamilyProvider.NAME, new DefaultFontFamilyProvider());
+        pm.addProvider(WebviewSettingProvider.NAME, new WebviewSettingProviderImpl());
         if (!mLazyLoad) {
             load();
         }
