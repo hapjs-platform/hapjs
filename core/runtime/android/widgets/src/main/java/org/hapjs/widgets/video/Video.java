@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,10 +7,12 @@ package org.hapjs.widgets.video;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
 import android.graphics.Outline;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,10 +20,21 @@ import android.view.ViewOutlineProvider;
 import com.facebook.yoga.YogaAlign;
 import com.facebook.yoga.YogaFlexDirection;
 import com.facebook.yoga.YogaNode;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import org.hapjs.bridge.ApplicationContext;
+import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.compat.BuildPlatform;
+import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.NetworkReportManager;
 import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.component.Component;
@@ -34,6 +47,8 @@ import org.hapjs.component.view.drawable.CSSBackgroundDrawable;
 import org.hapjs.model.videodata.VideoCacheData;
 import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.Page;
+import org.hapjs.render.RootView;
+import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.video.FlexVideoView;
 
@@ -56,6 +71,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     protected static final String METHOD_PAUSE = "pause";
     protected static final String METHOD_SET_CURRENT_TIME = "setCurrentTime";
     protected static final String METHOD_EXIT_FULLSCREEN = "exitFullscreen";
+    protected static final String METHOD_SNAP_SHOT = "snapshot";
     private static final String TAG = "Video";
     // event
     private static final String ERROR = "error";
@@ -88,6 +104,17 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     private boolean mPaused;
     private long mLastPosition = -1;
     public boolean mIsDestroy = false;
+
+    private static final String CALLBACK_KEY_SUCCESS = "success";
+    private static final String CALLBACK_KEY_FAIL = "fail";
+
+    private static final String RESULT_URI = "uri";
+    private static final String RESULT_NAME = "name";
+    private static final String RESULT_SIZE = "size";
+
+    private static final int IMAGE_QUALITY = 100;
+    private long mMinLastModified;
+    private static final long MAX_ALIVE_TIME_MILLIS = 60 * 60 * 1000L;
 
     public Video(
             HapEngine hapEngine,
@@ -483,7 +510,92 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         }
         mHost.exitFullscreen();
     }
+    private void snapshot(Map<String, Object> args) {
+        if (mHost == null || null == args) {
+            return;
+        }
 
+        DocComponent rootComponent = getRootComponent();
+        if (rootComponent == null) {
+            return;
+        }
+
+        RootView rootView = (RootView) rootComponent.getHostView();
+        if (rootView != null) {
+            HapEngine hapEngine = HapEngine.getInstance(rootView.getPackage());
+            ApplicationContext applicationContext = hapEngine.getApplicationContext();
+            File fileDir = new File(applicationContext.getCacheDir() + File.separator + "video_shot");
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            File tempFile = new File(fileDir, UUID.randomUUID() + ".jpeg");
+            Bitmap bitmap = null;
+            try (OutputStream out = new FileOutputStream(tempFile)) {
+                bitmap = mHost.getVideoView().getBitmap();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, out);
+
+                String internalUri = applicationContext.getInternalUri(tempFile);
+                String name = getFileName(internalUri);
+                Map<String, Object> data = new ArrayMap<>(3);
+                data.put(RESULT_URI, internalUri);
+                data.put(RESULT_NAME, name);
+                data.put(RESULT_SIZE, tempFile.length());
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_SUCCESS), data);
+            } catch (FileNotFoundException e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_FILE_NOT_FOUND);
+            } catch (IOException e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_IO_ERROR);
+            } catch (Exception e) {
+                mCallback.onJsMethodCallback(getPageId(), (String) args.get(CALLBACK_KEY_FAIL), e.getMessage(), Response.CODE_GENERIC_ERROR);
+            }
+            if (bitmap != null) {
+                bitmap.recycle();
+                bitmap = null;
+            }
+
+            synchronized (this) {
+                File[] files = fileDir.listFiles();
+                if (files != null && files.length > 1) {
+                    long currentTimeMillis = System.currentTimeMillis();
+                    if (currentTimeMillis - mMinLastModified <= MAX_ALIVE_TIME_MILLIS) {
+                        return;
+                    }
+                    mMinLastModified = Long.MAX_VALUE;
+
+                    Executors.io().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (File file : files) {
+                                long lastModified = file.lastModified();
+                                if (currentTimeMillis - lastModified > MAX_ALIVE_TIME_MILLIS) {
+                                    file.delete();
+                                    if (mMinLastModified == Long.MAX_VALUE) {
+                                        mMinLastModified = currentTimeMillis;
+                                    }
+                                } else {
+                                    if (mMinLastModified > lastModified) {
+                                        mMinLastModified = lastModified;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private String getFileName(String uri) {
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf('/');
+        }
+        if (index > 0) {
+            return uri.substring(index + 1);
+        } else {
+            return uri;
+        }
+    }
     @Override
     public void invokeMethod(String methodName, Map<String, Object> args) {
         if (METHOD_START.equals(methodName)) {
@@ -517,6 +629,8 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
             requestFullscreen(screenOrientation);
         } else if (METHOD_EXIT_FULLSCREEN.equals(methodName)) {
             exitFullscreen();
+        } else if (METHOD_SNAP_SHOT.equals(methodName)) {
+            snapshot(args);
         } else if (METHOD_GET_BOUNDING_CLIENT_RECT.equals(methodName)) {
             super.invokeMethod(methodName, args);
         }
