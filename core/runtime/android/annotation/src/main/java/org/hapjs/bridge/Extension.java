@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -28,7 +28,13 @@ public interface Extension {
          * get an empty response immediately, but receive response through
          * callback when invocation finished.
          */
-        CALLBACK
+        CALLBACK,
+        /**
+         * Synchronous invocation. When calling actions in such mode, caller
+         * will get response until invocation finished, but receive response
+         * through callback later.
+         */
+        SYNC_CALLBACK,
     }
 
     enum Type {
