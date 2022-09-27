@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -182,6 +182,8 @@ public class ExtensionMetaData {
                 ordinal = Mode.ASYNC.ordinal();
             } else if (Mode.CALLBACK.name().equals(obj)) {
                 ordinal = Mode.CALLBACK.ordinal();
+            } else if (Mode.SYNC_CALLBACK.name().equals(obj)) {
+                ordinal = Mode.SYNC_CALLBACK.ordinal();
             } else if (Type.FUNCTION.name().equals(obj)) {
                 ordinal = Type.FUNCTION.ordinal();
             } else if (Type.ATTRIBUTE.name().equals(obj)) {
@@ -228,7 +230,13 @@ public class ExtensionMetaData {
              * get an empty response immediately, but receive response through
              * callback when invocation finished.
              */
-            CALLBACK
+            CALLBACK,
+            /**
+             * Synchronous invocation. When calling actions in such mode, caller
+             * will get response until invocation finished, but receive response
+             * through callback later.
+             */
+            SYNC_CALLBACK,
         }
 
         enum Type {

@@ -25,7 +25,7 @@ import okhttp3.Headers;
 @FeatureExtensionAnnotation(
         name = DownloadTask.FEATURE_NAME,
         actions = {
-                @ActionAnnotation(name = DownloadTask.ACTION_DOWNLOAD, mode = FeatureExtension.Mode.SYNC),
+                @ActionAnnotation(name = DownloadTask.ACTION_DOWNLOAD, mode = FeatureExtension.Mode.SYNC_CALLBACK),
                 @ActionAnnotation(name = DownloadTask.ACTION_ABORT, mode = FeatureExtension.Mode.SYNC),
                 @ActionAnnotation(name = DownloadTask.EVENT_ON_PROGRESS_UPDATE, mode = FeatureExtension.Mode.CALLBACK, type = FeatureExtension.Type.FUNCTION, multiple = Extension.Multiple.MULTI),
                 @ActionAnnotation(name = DownloadTask.EVENT_ON_HEADERS_RECEIVED, mode = FeatureExtension.Mode.CALLBACK, type = FeatureExtension.Type.FUNCTION, multiple = Extension.Multiple.MULTI),
