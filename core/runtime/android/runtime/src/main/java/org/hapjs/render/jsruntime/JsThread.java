@@ -1055,6 +1055,10 @@ public class JsThread extends HandlerThread {
         mHandler.postAtFrontOfQueue(runnable);
     }
 
+    public void postInJsThread(Runnable runnable) {
+        mHandler.post(runnable);
+    }
+
     private void fireEvent(
             int pageId, List<JsEventCallbackData> datas,
             RenderEventCallback.EventPostListener listener) {
