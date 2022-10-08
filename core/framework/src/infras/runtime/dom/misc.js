@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,6 +9,7 @@ import { $camelize } from 'src/shared/util'
 import { NodeRef, NodeType } from './nodes/definition'
 import { getListener, getDocumentNodeByRef, removeDocument, getNodeStyleObjectId } from './model'
 import { classAttrToClassList } from './util'
+import $validateStyle from './validator'
 
 // 原生组件映射表
 const nativeComponentMap = {}
@@ -144,7 +145,7 @@ function setNodeInlineStyle(node, value) {
  * @returns {Object} - 样式对象，属性名为驼峰式命名
  */
 function cssText2StyleObject(cssText) {
-  const styleObj = {}
+  let styleObj = {}
   const rules = cssText.split(';')
   rules
     .filter(rule => rule.trim()) // 忽略空白的规则
@@ -153,7 +154,9 @@ function cssText2StyleObject(cssText) {
       let key = rule.substring(0, colonIdx).trim()
       key = $camelize(key)
       const value = rule.substring(colonIdx + 1).trim()
-      styleObj[key] = value
+      // 校验并转换部分动态更新的样式
+      const subStyle = $validateStyle(key, value)
+      styleObj = Object.assign(styleObj, subStyle || {})
     })
   console.trace(`### App Runtime ### 元素的样式转换：${cssText} 为${JSON.stringify(styleObj)}`)
   return styleObj

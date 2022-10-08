@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -84,4 +84,91 @@ function diffClassNameList(arg1, arg2) {
   return Object.keys(hash)
 }
 
-export { REG_IS_DATA_ATTR, $dataAttr, $hyphenateStyle, classAttrToClassList, diffClassNameList }
+/**
+ * 拆分上下左右类型简写属性
+ * @param names   属性名数组
+ * @param values  属性值数组
+ * @returns {array}
+ */
+function splitAttr(names, values) {
+  const resultArray = []
+  if (values) {
+    names.forEach((n, idx) => {
+      resultArray[idx] = {}
+      resultArray[idx].n = n
+    })
+
+    switch (values.length) {
+      case 1:
+        names.forEach((n, idx) => {
+          resultArray[idx].v = values[0]
+        })
+        break
+      case 2:
+        names.forEach((n, idx) => {
+          if (idx % 2) {
+            resultArray[idx].v = values[1]
+          } else {
+            resultArray[idx].v = values[0]
+          }
+        })
+        break
+      case 3:
+        names.forEach((n, idx) => {
+          if (idx % 2) {
+            resultArray[idx].v = values[1]
+          } else {
+            resultArray[idx].v = values[idx]
+          }
+        })
+        break
+      default:
+        names.forEach((n, idx) => {
+          resultArray[idx].v = values[idx]
+        })
+    }
+  }
+  return resultArray
+}
+
+/**
+ * XxxXxx转换为-xxx-xxx
+ * @param value
+ * @returns {void|string|XML|*}
+ */
+function camelCaseToHyphened(value) {
+  return value.replace(/([A-Z])/g, function(s, m) {
+    return '-' + m.toLowerCase()
+  })
+}
+
+/**
+ * 值的有效性检验
+ * @param value  值
+ */
+function isValidValue(value) {
+  return typeof value === 'number' || typeof value === 'string'
+}
+
+/**
+ * -xxx-xxx转换为XxxXxx
+ * @param value
+ * @returns {void|string|XML|*}
+ */
+function hyphenedToCamelCase(value) {
+  return value.replace(/-([a-z])/g, function(s, m) {
+    return m.toUpperCase()
+  })
+}
+
+export {
+  REG_IS_DATA_ATTR,
+  $dataAttr,
+  $hyphenateStyle,
+  classAttrToClassList,
+  diffClassNameList,
+  splitAttr,
+  camelCaseToHyphened,
+  isValidValue,
+  hyphenedToCamelCase
+}
