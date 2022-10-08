@@ -239,8 +239,8 @@ function $createElement(type, attrs, children) {
  */
 function $nextTick(cb) {
   if (!isFunction(cb)) {
-    console.warn('$nextTick函数仅支持函数类型的参数')
-  } else {
+    console.warn('### App Framework ### $nextTick函数仅支持函数类型的参数')
+  } else if (this._page && this._page.nextTickCallbacks) {
     this._page.nextTickCallbacks.push(cb)
   }
 }

@@ -40,7 +40,7 @@ function initPage(page, code, query, globals) {
     )
     profiler.time(`PERF:bootstrapPage`)
     result = $bootstrap(page, name, configs, query)
-    const hasCallbacks = page.nextTickCallbacks.length > 0
+    const hasCallbacks = page.nextTickCallbacks && page.nextTickCallbacks.length > 0
     page.doc.listener.createFinish(null, hasCallbacks)
 
     console.trace(`### App Framework ### 完成实例初始化(${page.id})----`)

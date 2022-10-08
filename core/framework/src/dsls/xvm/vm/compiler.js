@@ -568,14 +568,14 @@ function compileCustomComponent(vm, component, template, dest, type, meta) {
 
   // 处理组件的自定义指令
   const dirs = template.directives
-  if (dirs && dirs.length) {
+  if (dirs && dirs.length && component && component.template) {
     component.template.appendDirectives = []
     for (let i = 0, len = dirs.length; i < len; i++) {
       const elDir = dirs[i]
       const vmDirs = vm._directives
       // 在使用自定义组件时，如果节点的自定义指令名称在vm上有定义，则将当前指令信息push到组件根节点的 appendDirectives 数组中
       // 在生成组件vm时会合并组件根节点的 directives 和 appendDirectives
-      if (vmDirs[elDir.name]) {
+      if (vmDirs && vmDirs[elDir.name]) {
         component.template.appendDirectives.push(elDir)
       }
     }
@@ -657,6 +657,13 @@ function compileNativeComponent(vm, template, dest, type) {
 
     // 定义样式到文档中
     const isDocLevel = app._shareDocStyle && dest === doc.documentElement
+
+    let styleObject = {}
+    // 合并父组件externalClasses传入的样式
+    assignObjectInOrder(styleObject, vm._options && vm._options.style)
+    assignObjectInOrder(styleObject, vm._externalClasses)
+
+    styleObject = Object.keys(styleObject).length === 0 ? vm._options.style : styleObject
     context.quickapp.runtime.helper.registerStyleObject(
       vm._type,
       vm._options.style,

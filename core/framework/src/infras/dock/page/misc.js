@@ -339,6 +339,8 @@ function compileFragmentData(rawData, document) {
  * @param page 页面
  */
 function processNextTickCallbacks(page) {
+  if (!page || !page.nextTickCallbacks) return
+
   // 获取当前页面根Vm的回调数组
   const cbArr = page.nextTickCallbacks.slice(0)
   // 清空回调事件的数组
