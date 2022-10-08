@@ -553,42 +553,42 @@ export default class XVm {
         setTitleBar: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setTitleBar ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setTitleBar ----`)
             context.quickapp.runtime.helper.updatePageTitleBar(page.doc, attr)
           }
         },
         setMeta: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setMeta ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setMeta ----`)
             context.quickapp.runtime.helper.setMeta(page.doc, attr)
           }
         },
         scrollTo: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 scrollTo ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 scrollTo ----`)
             context.quickapp.runtime.helper.scrollTo(page.doc, attr)
           }
         },
         scrollBy: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 scrollBy ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 scrollBy ----`)
             context.quickapp.runtime.helper.scrollBy(page.doc, attr)
           }
         },
         setStatusBar: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setStatusBar ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setStatusBar ----`)
             context.quickapp.runtime.helper.updatePageStatusBar(page.doc, attr)
           }
         },
         exitFullscreen: function() {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 exitFullscreen ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 exitFullscreen ----`)
             context.quickapp.runtime.helper.exitFullscreen(page.doc)
           }
         },
@@ -630,7 +630,7 @@ export default class XVm {
         },
         hideSkeleton: function() {
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 hideSkeleton ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 hideSkeleton ----`)
             context.quickapp.runtime.helper.hideSkeleton(page.doc, page.id)
           }
         },
@@ -733,7 +733,7 @@ export default class XVm {
       id = undefined
     } else if (typeof id !== 'string') {
       // 如果id不是字符串, 则什么也不做
-      console.error(`### App Framework ### emitElement的参数id不合法`)
+      console.error(`### App Framework ### $emitElement的参数id不合法`)
       return
     }
 
@@ -742,7 +742,7 @@ export default class XVm {
       return fireEventWrap(element, type, { detail: detail })
     } else {
       // 如果id不是字符串, 则什么也不做
-      console.error(`### App Framework ### emitElement执行失败: 找不到id为 '${id}' 的组件`)
+      console.error(`### App Framework ### $emitElement执行失败: 找不到id为 '${id}' 的组件`)
     }
   }
 
@@ -840,7 +840,7 @@ export default class XVm {
     const page = this._page
     // 如果是页面对象
     if (page && page.doc) {
-      console.log(`### App Framework ### 强制更新页面 ---- ${page.id}`)
+      console.trace(`### App Framework ### 强制更新页面 ---- ${page.id}`)
       updatePageActions(page)
     }
   }
@@ -956,7 +956,7 @@ XVm.parseExpression = function(exp) {
  */
 XVm.getPath = function(obj, target) {
   if (/[^\w.$]/.test(target)) {
-    console.warn(`### App Framework ### getPath调用:  观察对象 '${target}' 不合法`)
+    console.warn(`### App Framework ### getPath调用：观察对象 '${target}' 不合法`)
     return
   }
   // 解析target路径
@@ -967,12 +967,12 @@ XVm.getPath = function(obj, target) {
   for (let i = 0; i < nameListLen; i++) {
     const name = nameList[i]
     if (isReserved(name)) {
-      console.warn(`### App Framework ### getPath调用: 属性名 '${name}' 不能以 $ 或 _ 开头`)
+      console.warn(`### App Framework ### getPath调用：属性名 '${name}' 不能以 $ 或 _ 开头`)
       return
     }
     if (!obj[name]) {
       console.warn(
-        `### App Framework ### getPath调用: 属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
+        `### App Framework ### getPath调用：属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
       )
       return
     }
@@ -989,7 +989,7 @@ XVm.getPath = function(obj, target) {
  */
 XVm.setPath = function(obj, target, val) {
   if (/[^\w.$]/.test(target)) {
-    console.warn(`### App Framework ### setPath调用:  观察对象 '${target}' 不合法`)
+    console.warn(`### App Framework ### setPath调用：观察对象 '${target}' 不合法`)
     return
   }
   // 解析target路径
@@ -1000,12 +1000,12 @@ XVm.setPath = function(obj, target, val) {
   for (let i = 0; i < nameListLen; i++) {
     const name = nameList[i]
     if (isReserved(name)) {
-      console.warn(`### App Framework ### setPath调用: 属性名 '${name}' 不能以 $ 或 _ 开头`)
+      console.warn(`### App Framework ### setPath调用：属性名 '${name}' 不能以 $ 或 _ 开头`)
       return
     }
     if (!obj[name]) {
       console.warn(
-        `### App Framework ### setPath调用: 属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
+        `### App Framework ### setPath调用：属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
       )
       return
     }

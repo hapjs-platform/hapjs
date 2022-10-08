@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -78,7 +78,6 @@ class XApp extends ModuleHost {
       })
     } else {
       this._data = {}
-      console.warn(`### App Framework ### App 全局数据被清空`)
     }
   }
 

@@ -128,7 +128,7 @@ function createApplication(id, code) {
 
     result = config.publish(APP_KEYS.initApp, [app, code])
   } else {
-    result = new Error(`createApplication: 无效应用Id "${id}"`)
+    result = new Error(`createApplication: 无效应用Id '${id}'`)
   }
   profiler.timeEnd(`PERF:createApplication`)
   profiler.record(
@@ -229,7 +229,7 @@ function createPage(id, appid, code, query, intent, meta) {
     const globals = makeTimer(page, callback, normalize)
     result = config.publish(APP_KEYS.initPage, [page, code, query, globals])
   } else {
-    result = new Error(`createPage: 无效页面Id "${id}"`)
+    result = new Error(`createPage: 无效页面Id '${id}'`)
   }
   profiler.timeEnd(`PERF:createPage`)
   profiler.record(
@@ -488,7 +488,8 @@ function changeVisiblePage(id, show) {
       changeIsFirstOnShowToFalse()
     }
   } else {
-    console.error(`### App Framework ### changeVisiblePage 页面(${id})无效`)
+    const lc = show ? 'onShow' : 'onHide'
+    console.error(`### App Framework ### 执行生命周期${lc}时，页面 '${id}' 无效`)
   }
 }
 
@@ -503,7 +504,7 @@ function backPressPage(id) {
     console.trace(`### App Framework ### backPressOnPage 页面(${id})响应`)
     result = config.publish(APP_KEYS.onBackPress, [page])
   } else {
-    console.error(`### App Framework ### backPressOnPage 页面(${id})无效`)
+    console.error(`### App Framework ### 执行页面周期onBackPress时，页面 '${id}' 无效`)
   }
 
   // true代表自己处理逻辑，否则遵循系统默认行为
@@ -524,7 +525,7 @@ function menuButtonPressPage(id) {
     console.trace(`### App Framework ### menuButtonPressPage 页面(${id})响应`)
     result = config.publish(APP_KEYS.onMenuButtonPress, [page])
   } else {
-    console.error(`### App Framework ### menuButtonPressPage 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onMenuButtonPress时，页面 '${id}' 无效`)
   }
 
   // true代表自己处理逻辑，否则遵循系统默认行为
@@ -547,7 +548,9 @@ function keyPressPage(id, options) {
     const { action, code, repeatCount } = options
     result = config.publish(APP_KEYS.onKey, [page, { action, code, repeatCount }])
   } else {
-    console.error(`### App Framework ### onKey 页面(${id})无效:${JSON.stringify(options)}`)
+    console.error(
+      `### App Framework ### 执行生命周期onKey时，页面 '${id}' 无效： ${JSON.stringify(options)}`
+    )
   }
 
   // 布尔类型转换, 防止jscore异常
@@ -568,7 +571,7 @@ function menuPressPage(id) {
     console.trace(`### App Framework ### menuPressOnPage 页面(${id})响应`)
     result = config.publish(APP_KEYS.onMenuPress, [page])
   } else {
-    console.error(`### App Framework ### menuPressOnPage 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onMenuPress时，页面 '${id}' 无效`)
   }
 
   // true代表自己处理逻辑，否则遵循系统默认行为
@@ -595,7 +598,7 @@ function notifyConfigurationChanged(pageId, options) {
     config.publish(APP_KEYS.onConfigurationChanged, [page, options])
   } else {
     console.trace(
-      `### App Framework ### notifyConfigurationChanged 页面(${pageId})无效：${JSON.stringify(
+      `### App Framework ### 执行生命周期onConfigurationChanged时，页面 '${pageId}' 无效：${JSON.stringify(
         options
       )}`
     )
@@ -615,7 +618,7 @@ function orientationChangePage(id, param) {
     )
     config.publish(APP_KEYS.onOrientationChange, [page, param])
   } else {
-    console.error(`### App Framework ### orientationChangePage 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onOrientationChange时，页面 '${id}' 无效`)
   }
 }
 
@@ -632,7 +635,7 @@ function refreshPage(id, query, intent) {
     console.trace(`### App Framework ### refreshPage 页面(${id})响应：${JSON.stringify(query)}`)
     config.publish(APP_KEYS.onRefresh, [page, query, intent])
   } else {
-    console.error(`### App Framework ### refreshPage 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onRefresh时，页面 '${id}' 无效`)
   }
 }
 
@@ -654,7 +657,7 @@ function notifyAppError(id, param) {
       }
     }
   } else {
-    console.error(`### App Framework ### notifyAppError 应用(${id})无效`)
+    console.error(`### App Framework ### notifyAppError 应用 '${id}' 无效`)
   }
 }
 
@@ -665,7 +668,7 @@ function notifyAppError(id, param) {
 function destroyPage(id) {
   const page = _pageMap[id]
   if (!page) {
-    return new Error(`destroyPage: 无效页面Id "${id}"`)
+    return new Error(`destroyPage: 无效页面Id '${id}'`)
   }
   config.publish(APP_KEYS.destroyPage, [page])
   destroyPageCore(page)
@@ -738,7 +741,7 @@ function bindComponentMethods(page, element) {
 function notifyPageNotFound(id, params = {}) {
   const app = _appMap[id]
   if (!app) {
-    console.error(`### App Framework ### notifyPageNotFound app不存在， id： ${id}`)
+    console.error(`### App Framework ### notifyPageNotFound app不存在，id：${id}`)
   } else {
     console.trace(
       `### App Framework ### notifyPageNotFound 应用(${id})响应， 参数： ${JSON.stringify(params)}`
@@ -831,7 +834,7 @@ function reachPageTop(id) {
     console.trace(`### App Framework ### reachPageTop 页面(${id})响应`)
     config.publish(APP_KEYS.onReachTop, [page])
   } else {
-    console.error(`### App Framework ### reachPageTop 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onReachTop时，页面 '${id}' 无效`)
   }
 }
 
@@ -845,7 +848,7 @@ function reachPageBottom(id) {
     console.trace(`### App Framework ### reachPageBottom 页面(${id})响应`)
     config.publish(APP_KEYS.onReachBottom, [page])
   } else {
-    console.error(`### App Framework ### reachPageBottom 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onReachBottom时，页面 '${id}' 无效`)
   }
 }
 
@@ -861,7 +864,7 @@ function pageScroll(id, params) {
     console.trace(`### App Framework ### pageScroll 页面(${id})响应`)
     config.publish(APP_KEYS.onPageScroll, [page, params])
   } else {
-    console.error(`### App Framework ### pageScroll 页面(${id})无效`)
+    console.error(`### App Framework ### 执行生命周期onPageScroll时，页面 '${id}' 无效`)
   }
 }
 

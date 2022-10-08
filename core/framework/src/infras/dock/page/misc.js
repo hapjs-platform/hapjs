@@ -33,7 +33,7 @@ function recreatePage(page) {
  * @param  {object} page
  */
 function destroyPage(page) {
-  console.log(`### App Framework ### 销毁页面(${page.id})----`)
+  console.log(`### App Framework ### 销毁页面 ${page.id} ----`)
 
   page.intent = null
   page.name = null
@@ -111,7 +111,9 @@ function callback(inst, callbackId, args = [], preserved) {
   }
 
   if (!inst.$valid) {
-    console.error(`invoke: 回调函数所属对象(${inst.id})已经无效, 终止回调执行`)
+    console.error(
+      `### App Framework ### invoke: 回调函数所属对象(${inst.id})已经无效, 终止回调执行`
+    )
     return
   }
 

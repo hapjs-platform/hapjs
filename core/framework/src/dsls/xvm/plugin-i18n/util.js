@@ -56,7 +56,9 @@ export function parseArgs(...args) {
   }
 
   if (locale) {
-    console.warn(`当前多语言国际化的版本：不支持参数传递具体某个locale：${locale}`)
+    console.warn(
+      `### App Framework ### 当前多语言国际化的版本：不支持参数传递具体某个locale：${locale}`
+    )
   }
 
   return { locale, params }

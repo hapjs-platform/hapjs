@@ -49,7 +49,7 @@ function $child(id) {
   const info = this._ids[id]
   if (info) {
     if (info.vm._destroyed) {
-      console.warn(`### App Framework ### 组件Vm(${info.vm._type})已销毁`)
+      console.warn(`### App Framework ### 组件 ${info.vm._type} 已销毁`)
     }
     return info.vm
   }
@@ -73,12 +73,12 @@ function $vm(id) {
  */
 function $config() {
   if (this._destroyed) {
-    console.error(`### App Framework ### 组件Vm(${this._type})已销毁`)
+    console.error(`### App Framework ### 组件Vm '${this._type}' 已销毁`)
   }
   if (this._page && this._page.app && this._page.app.options) {
     return this._page.app.options
   } else {
-    console.error(`### App Framework ### 获取配置失败！`)
+    console.error(`### App Framework ### $config 获取配置失败`)
   }
 }
 
@@ -166,7 +166,7 @@ function $createElement(type, attrs, children) {
               })
             }
             if (v.log) {
-              console.error('### App Parser ###', v.log)
+              console.error('### App Parser ### ', v.log)
             }
           }
         })

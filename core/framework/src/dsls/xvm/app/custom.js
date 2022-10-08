@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -25,12 +25,12 @@ function contextCustomComponent(app, id) {
  */
 function defineCustomComponent(app, inst, name, def) {
   if (!app || !inst) {
-    console.warn(`### App Framework ### defineCustomComponent() app或inst不存在`)
+    console.warn(`### App Framework ### app或inst不存在，注册自定义组件 '${name}' 失败`)
     return
   }
   const contextCustomComponentMap = contextCustomComponent(app, inst.id)
   if (contextCustomComponentMap[name]) {
-    console.warn(`### App Framework ### 组件 (${name}) 被重复注册`)
+    console.warn(`### App Framework ### 组件 '${name}' 被重复注册`)
   }
   contextCustomComponentMap[name] = def
 }
@@ -44,7 +44,7 @@ function defineCustomComponent(app, inst, name, def) {
  */
 function requireCustomComponent(app, inst, name) {
   if (!app || !inst) {
-    console.warn(`### App Framework ### requireCustomComponent() app或inst不存在`)
+    console.warn(`### App Framework ### app或inst不存在，加载自定义组件 '${name}' 失败`)
     return
   }
 
@@ -69,7 +69,7 @@ function requireCustomComponent(app, inst, name) {
  */
 function removeCustomComponent(app, inst, name) {
   if (!app || !inst) {
-    console.warn(`### App Framework ### removeCustomComponent() app或inst不存在`)
+    console.warn(`### App Framework ### app或inst不存在，删除自定义组件 '${name}' 失败`)
     return
   }
   const contextCustomComponentMap = contextCustomComponent(app, inst.id)

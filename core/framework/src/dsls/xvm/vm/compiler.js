@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -806,7 +806,7 @@ function bindFor(vm, target, frag, info) {
       trackMap[key].push(item)
       if (trackMap[key].length > 1) {
         console.warn(
-          `### App Framework ### for 循环数据的tid 属性 '${key} 不唯一, 可能导致性能问题`
+          `### App Framework ### for 循环数据的tid 属性 '${key}' 不唯一, 可能导致性能问题`
         )
       }
     })
