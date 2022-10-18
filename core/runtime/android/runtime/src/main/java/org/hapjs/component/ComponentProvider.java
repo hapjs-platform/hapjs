@@ -17,4 +17,6 @@ public interface ComponentProvider {
      * @return true: Android O以下版本Bitmap默认RGB565 false:Android O以下版本Bitmap默认ARGB8888
      */
     boolean isDefaultRgb565EnableBelowAndroidO(Context context);
+
+    boolean isSysShowSizeChange();
 }

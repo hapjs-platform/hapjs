@@ -12,4 +12,9 @@ public class DefaultComponentProviderImpl implements ComponentProvider {
     public boolean isDefaultRgb565EnableBelowAndroidO(Context context) {
         return true;
     }
+
+    @Override
+    public boolean isSysShowSizeChange() {
+        return false;
+    }
 }
