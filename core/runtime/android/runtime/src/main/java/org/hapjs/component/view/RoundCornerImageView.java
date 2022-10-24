@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2022, hapjs.org. All rights reserved.
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
+ * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.component.view;
 

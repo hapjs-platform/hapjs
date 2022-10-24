@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
