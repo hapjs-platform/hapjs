@@ -175,6 +175,7 @@ public class ExtensionManager {
             int instanceId,
             Callback realCallback) {
         AbstractExtension f = null;
+        String pkg = mHybridManager.getApplicationContext().getPackage();
         if (isFeatureAvailable(name)) {
             f = mFeatureBridge.getExtension(name);
             // Operating environment does not meet the requirements
@@ -184,6 +185,7 @@ public class ExtensionManager {
                                 Response.CODE_PERMISSION_ERROR,
                                 "Refuse to use this interfaces in background: " + name);
                 callback(response, jsCallback, realCallback);
+                RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
                 return response;
             }
         }
@@ -199,6 +201,7 @@ public class ExtensionManager {
             Log.e(TAG, err);
             Response response = new Response(Response.CODE_PERMISSION_ERROR, err);
             callback(response, jsCallback, realCallback);
+            RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
             return response;
         }
 
@@ -212,12 +215,13 @@ public class ExtensionManager {
                     realCallback.callback(response);
                 }
             }
+            RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
             return response;
         } else if (mode == Extension.Mode.SYNC_CALLBACK) {
-            setCallbackToRequest(jsCallback, realCallback, request, mode);
+            setCallbackToRequest(pkg, name, action, jsCallback, realCallback, request, mode);
             return f.invoke(request);
         } else {
-            setCallbackToRequest(jsCallback, realCallback, request, mode);
+            setCallbackToRequest(pkg, name, action, jsCallback, realCallback, request, mode);
             Executor executor = f.getExecutor(request);
             executor = executor == null ? Executors.io() : executor;
             new AsyncInvocation(f, request, executor).execute();
@@ -228,12 +232,13 @@ public class ExtensionManager {
             }
         }
     }
-    private void setCallbackToRequest(String jsCallback, Callback realCallback, Request request, Extension.Mode mode) {
+
+    private void setCallbackToRequest(String pkg, String name, String action, String jsCallback, Callback realCallback, Request request, Extension.Mode mode) {
         if (null != realCallback) {
-            request.setCallback(realCallback);
+            request.setCallback(new CallbackWrapper(pkg, name, action, realCallback));
         } else {
             Callback callback = new Callback(this, jsCallback, mode);
-            request.setCallback(callback);
+            request.setCallback(new CallbackWrapper(pkg, name, action, callback));
         }
     }
     public void dispose() {
