@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
@@ -533,6 +534,11 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public int getSafeAreaWidth(Context context) {
         return 0;
+    }
+
+    @Override
+    public void updateConfiguration(Context context, Configuration configuration) {
+
     }
 
 }

@@ -8,6 +8,7 @@ package org.hapjs.system;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.view.View;
@@ -174,4 +175,6 @@ public interface SysOpProvider {
     int getFoldDisplayWidth(Context context);
 
     int getSafeAreaWidth(Context context);
+
+    void updateConfiguration(Context context, Configuration configuration);
 }
