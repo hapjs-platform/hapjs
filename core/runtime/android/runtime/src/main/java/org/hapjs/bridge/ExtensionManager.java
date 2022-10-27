@@ -213,6 +213,9 @@ public class ExtensionManager {
                 }
             }
             return response;
+        } else if (mode == Extension.Mode.SYNC_CALLBACK) {
+            setCallbackToRequest(jsCallback, realCallback, request, mode);
+            return f.invoke(request);
         } else {
             setCallbackToRequest(jsCallback, realCallback, request, mode);
             Executor executor = f.getExecutor(request);
