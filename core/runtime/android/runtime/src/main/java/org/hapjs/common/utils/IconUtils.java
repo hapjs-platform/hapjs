@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -270,6 +270,33 @@ public class IconUtils {
                     }
                 },
                 sExecutor);
+    }
+
+    public static void getIconBitmapWithoutResize(Context context, Uri iconUri, final OnBitmapCallback callBack) {
+        final Context applicationContext = context.getApplicationContext();
+        ImageRequest request = ImageRequestBuilder.newBuilderWithSource(iconUri).build();
+        FrescoUtils.initialize(applicationContext);
+        ImagePipeline imagePipeline = Fresco.getImagePipeline();
+        DataSource<CloseableReference<CloseableImage>>
+                data = imagePipeline.fetchDecodedImage(request, null);
+        data.subscribe(new BaseBitmapDataSubscriber() {
+            @Override
+            protected void onNewResultImpl(Bitmap bitmap) {
+                if (bitmap == null) {
+                    callBack.onError(new Exception("Download bitmap error"));
+                    return;
+                }
+
+                Log.d(TAG, "onNewResultImpl:" + bitmap);
+                callBack.onResult(bitmap);
+            }
+
+            @Override
+            protected void onFailureImpl(
+                    DataSource<CloseableReference<CloseableImage>> dataSource) {
+                callBack.onError(dataSource.getFailureCause());
+            }
+        }, sExecutor);
     }
 
     public static void getIconDrawableAsync(
