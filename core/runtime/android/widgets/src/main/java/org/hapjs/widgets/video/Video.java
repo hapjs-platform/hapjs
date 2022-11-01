@@ -59,6 +59,7 @@ import org.hapjs.widgets.view.video.FlexVideoView;
                 Video.METHOD_PAUSE,
                 Video.METHOD_SET_CURRENT_TIME,
                 Video.METHOD_EXIT_FULLSCREEN,
+                Video.METHOD_SNAP_SHOT,
                 Component.METHOD_REQUEST_FULLSCREEN,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_FOCUS
