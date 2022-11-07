@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -85,7 +85,7 @@ class XWatcher {
   get() {
     XLinker.pushTarget(this)
     // console.trace(`### App Framework ### XLinker pushTarget ${this.id}`)
-    const value = this.getter.call(this.vmGetter, this.vm)
+    const value = this.active ? this.getter.call(this.vmGetter, this.vm) : undefined
     XLinker.popTarget()
     // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
     this.clearLink()
