@@ -87,7 +87,7 @@ class XWatcher {
   get() {
     XLinker.pushTarget(this)
     // console.trace(`### App Framework ### XLinker pushTarget ${this.id}`)
-    const value = this.getter.call(this.vmGetter, this.vm)
+    const value = this.active ? this.getter.call(this.vmGetter, this.vm) : undefined
     XLinker.popTarget()
     // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
     this.clearLink()
