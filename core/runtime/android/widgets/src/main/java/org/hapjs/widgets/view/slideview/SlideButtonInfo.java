@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -87,7 +87,7 @@ public class SlideButtonInfo {
                             break;
                         case BUTTONS_BUTTON_WIDTH:
                             String buttonWidthStr = jsonObject.optString(key);
-                            holder.buttonWidth = Attributes.getInt(component.getHapEngine(), buttonWidthStr, UNDEFINE);
+                            holder.buttonWidth = Attributes.getInt(component.getHapEngine(), buttonWidthStr, UNDEFINE, component);
                             break;
                         case BUTTONS_ICON:
                             String iconStr = jsonObject.optString(key);
@@ -95,11 +95,11 @@ public class SlideButtonInfo {
                             break;
                         case BUTTONS_ICON_WIDTH:
                             String iconWidthStr = jsonObject.optString(key);
-                            holder.iconWidth = Attributes.getInt(component.getHapEngine(), iconWidthStr, UNDEFINE);
+                            holder.iconWidth = Attributes.getInt(component.getHapEngine(), iconWidthStr, UNDEFINE, component);
                             break;
                         case BUTTONS_ICON_HEIGHT:
                             String iconHeightStr = jsonObject.optString(key);
-                            holder.iconHeight = Attributes.getInt(component.getHapEngine(), iconHeightStr, UNDEFINE);
+                            holder.iconHeight = Attributes.getInt(component.getHapEngine(), iconHeightStr, UNDEFINE, component);
                             break;
                         case BUTTONS_ICON_BACKGROUND_COLOR:
                             String iconBackgroundColorStr = jsonObject.optString(key);
@@ -111,7 +111,7 @@ public class SlideButtonInfo {
                             break;
                         case BUTTONS_TEXT_SIZE:
                             String textSizeStr = jsonObject.optString(key);
-                            holder.textSize = Attributes.getFontSize(component.getHapEngine(), component.getPage(), textSizeStr, UNDEFINE);
+                            holder.textSize = Attributes.getFontSize(component.getHapEngine(), component.getPage(), textSizeStr, UNDEFINE, component);
                             break;
                         case BUTTONS_TEXT_COLOR:
                             String textColorStr = jsonObject.optString(key);

@@ -317,7 +317,7 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
     }
 
     private void setImageSpanWidth(String widthStr) {
-        int width = Attributes.getInt(mHapEngine, widthStr, 0);
+        int width = Attributes.getInt(mHapEngine, widthStr, 0, this);
         if (mImgWidth == width) {
             return;
         }
@@ -328,7 +328,7 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
     }
 
     private void setImageSpanHeight(String heightStr) {
-        int height = Attributes.getInt(mHapEngine, heightStr, 0);
+        int height = Attributes.getInt(mHapEngine, heightStr, 0, this);
         if (mImgHeight == height) {
             return;
         }

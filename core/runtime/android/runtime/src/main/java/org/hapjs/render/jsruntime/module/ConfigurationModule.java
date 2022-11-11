@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.render.jsruntime.module;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 
@@ -22,6 +23,8 @@ import org.hapjs.render.RootView;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.GrayModeManager;
+import org.hapjs.runtime.ProviderManager;
+import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,7 +36,8 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = ConfigurationModule.ACTION_GET_THEME_MODE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = ConfigurationModule.ACTION_SET_GRAY_MODE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = ConfigurationModule.ACTION_GET_FOLDABLE_STATE, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_SCREEN_ORIENTATION, mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_SCREEN_ORIENTATION, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_SHOWSIZE_LEVEL, mode = Extension.Mode.SYNC)
         })
 public class ConfigurationModule extends ModuleExtension {
 
@@ -54,6 +58,7 @@ public class ConfigurationModule extends ModuleExtension {
     protected static final int FOLDABLE_SCREEN_COLLAPSE = 2;
     protected static final int FOLDABLE_SCREEN_UNKNOWN = 0;
     protected static final int FOLDABLE_SCREEN_HALF_COLLAPSE = 3;
+    protected static final String ACTION_GET_SHOWSIZE_LEVEL = "getShowLevel";
 
     @Override
     public void attach(RootView rootView, PageManager pageManager, AppInfo appInfo) {
@@ -74,6 +79,8 @@ public class ConfigurationModule extends ModuleExtension {
             return getScreenOrientation(request);
         } else if (ACTION_GET_FOLDABLE_STATE.equals(action)) {
             return getFoldableState(request);
+        } else if (ACTION_GET_SHOWSIZE_LEVEL.equals(action)) {
+            return getShowLevel(request);
         }
         return null;
     }
@@ -95,6 +102,26 @@ public class ConfigurationModule extends ModuleExtension {
         } else {
             return new Response(CONFIGURATION_ORIENTATION_UNDEFINED);
         }
+    }
+
+    protected Response getShowLevel(Request request) {
+        boolean isDefaultSysShowSize = true;
+        float showSizeLevel = 1.0f;
+        Context context = request.getApplicationContext().getContext();
+        if (null == context) {
+            return new Response(Response.CODE_SERVICE_UNAVAILABLE, showSizeLevel + "");
+        }
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        if (null != sysOpProvider) {
+            isDefaultSysShowSize = !sysOpProvider.isSysShowLevelChange(context);
+        }
+        if (isDefaultSysShowSize) {
+            return new Response(Response.CODE_SUCCESS, showSizeLevel + "");
+        }
+        if (null != sysOpProvider) {
+            showSizeLevel = sysOpProvider.getScaleShowLevel(context);
+        }
+        return new Response(Response.CODE_SUCCESS, showSizeLevel + "");
     }
 
     private Response getThemeMode(Request request) {

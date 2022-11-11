@@ -265,6 +265,11 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
+    public boolean isShowSizeAdjustAuto() {
+        return false;
+    }
+
+    @Override
     public void showSystemMenu(final Context context, final AppInfo appInfo) {
         HybridDialogProvider provider =
                 ProviderManager.getDefault().getProvider(HybridDialogProvider.NAME);
@@ -534,6 +539,31 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public int getSafeAreaWidth(Context context) {
         return 0;
+    }
+
+    @Override
+    public Map<String, Object> getSystemFontLevelData(Context context) {
+        return null;
+    }
+
+    @Override
+    public float getFontLevelAdjustSize(HapEngine hapEngine, Page page, float size, float minFontScale, float maxFontScale) {
+        return 0;
+    }
+
+    @Override
+    public boolean isAdjustFontLevel(Context context) {
+        return false;
+    }
+
+    @Override
+    public boolean isSysShowLevelChange(Context context) {
+        return false;
+    }
+
+    @Override
+    public float getScaleShowLevel(Context context) {
+        return 1;
     }
 
     @Override

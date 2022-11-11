@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -49,7 +49,7 @@ public class SecondaryConfirmInfo {
                         break;
                     case BUTTONS_SECONDARY_CONFIRM_TEXT_SIZE:
                         String textSizeStr = jsonObject.optString(key);
-                        secondaryConfirmInfo.textSize = Attributes.getFontSize(component.getHapEngine(), component.getPage(), textSizeStr, UNDEFINE);
+                        secondaryConfirmInfo.textSize = Attributes.getFontSize(component.getHapEngine(), component.getPage(), textSizeStr, UNDEFINE, component);
                         break;
                     case BUTTONS_SECONDARY_CONFIRM_TEXT_COLOR:
                         String textColorStr = jsonObject.optString(key);

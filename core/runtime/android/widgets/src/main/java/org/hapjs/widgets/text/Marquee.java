@@ -163,8 +163,8 @@ public class Marquee extends Container<Marquee.MarqueeTextView> {
                 setColor(colorStr);
                 return true;
             case Attributes.Style.FONT_SIZE:
-                int defaultFontSize = Attributes.getInt(mHapEngine, getDefaultFontSize());
-                int fontSize = Attributes.getInt(mHapEngine, attribute, defaultFontSize);
+                int defaultFontSize = Attributes.getInt(mHapEngine, getDefaultFontSize(), this);
+                int fontSize = Attributes.getInt(mHapEngine, attribute, defaultFontSize, this);
                 setFontSize(fontSize);
                 return true;
             case Attributes.Style.FONT_WEIGHT:

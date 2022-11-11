@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+
+import org.hapjs.component.constants.Attributes;
 import org.hapjs.render.MultiWindowManager;
 
 import java.util.HashMap;
@@ -16,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.hapjs.runtime.ProviderManager;
+import org.hapjs.system.SysOpProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -182,6 +186,11 @@ public class DisplayInfo {
         public static final String KEY_FORCE_DARK = "forceDark";
 
         public static final String KEY_TEXT_SIZE_ADJUST = "textSizeAdjust";
+        public static final String KEY_SHOW_SIZE_ADJUST = "showSizeAdjust";
+        public static final String KEY_MIN_FONT_LEVEL = "minFontLevel";
+        public static final String KEY_MAX_FONT_LEVEL = "maxFontLevel";
+        public static final String KEY_MIN_SHOW_LEVEL = "minShowLevel";
+        public static final String KEY_MAX_SHOW_LEVEL = "maxShowLevel";
         public static final String MENU_BAR_DARK_STYLE = "dark";
         public static final String MENU_BAR_LIGHT_STYLE = "light";
         public static final String KEY_PAGE_ANIMATION = "pageAnimation";
@@ -219,6 +228,11 @@ public class DisplayInfo {
         private String mStatusBarBackgroundColor;
         private String mStatusBarBackgroundOpacity;
         private String mTextSizeAdjust;
+        private String mShowSizeAdjust;
+        private String mMinFontLevel;
+        private String mMaxFontLevel;
+        private String mMinShowLevel;
+        private String mMaxShowLevel;
         private String mFitCutout;
         private String mForceDark;
 
@@ -247,6 +261,26 @@ public class DisplayInfo {
             style.mStatusBarBackgroundOpacity =
                     jsonObject.optString(KEY_STATUS_BAR_BACKGROUND_OPACITY, null);
             style.mTextSizeAdjust = jsonObject.optString(KEY_TEXT_SIZE_ADJUST, null);
+            if (TextUtils.equals("auto", style.mTextSizeAdjust)
+                    || TextUtils.equals(Attributes.Style.AUTO_SIZE, style.mTextSizeAdjust)) {
+                SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+                if (null != sysOpProvider) {
+                    sysOpProvider.getSystemFontLevelData(null);
+                } else {
+                    Log.w(TAG, "parse sysOpProvider is null.");
+                }
+                double minFontLevel = jsonObject.optDouble(KEY_MIN_FONT_LEVEL, -1);
+                style.mMinFontLevel = (minFontLevel <= 0 ? "" : (minFontLevel + ""));
+                double maxFontLevel = jsonObject.optDouble(KEY_MAX_FONT_LEVEL, -1);
+                style.mMaxFontLevel = (maxFontLevel <= 0 ? "" : (maxFontLevel + ""));
+            }
+            style.mShowSizeAdjust = jsonObject.optString(KEY_SHOW_SIZE_ADJUST, null);
+            if (TextUtils.equals("auto", style.mShowSizeAdjust)) {
+                double minShowLevel = jsonObject.optDouble(KEY_MIN_SHOW_LEVEL, -1);
+                style.mMinShowLevel = (minShowLevel <= 0 ? "" : (minShowLevel + ""));
+                double maxShowLevel = jsonObject.optDouble(KEY_MAX_SHOW_LEVEL, -1);
+                style.mMaxShowLevel = (maxShowLevel <= 0 ? "" : (maxShowLevel + ""));
+            }
             style.mFitCutout = jsonObject.optString(KEY_FIT_CUTOUT, null);
             style.mForceDark = jsonObject.optString(KEY_FORCE_DARK, null);
 
@@ -358,6 +392,16 @@ public class DisplayInfo {
                     return mStatusBarBackgroundOpacity;
                 case KEY_TEXT_SIZE_ADJUST:
                     return mTextSizeAdjust;
+                case KEY_SHOW_SIZE_ADJUST:
+                    return mShowSizeAdjust;
+                case KEY_MIN_FONT_LEVEL:
+                    return mMinFontLevel;
+                case KEY_MAX_FONT_LEVEL:
+                    return mMaxFontLevel;
+                case KEY_MIN_SHOW_LEVEL:
+                    return mMinShowLevel;
+                case KEY_MAX_SHOW_LEVEL:
+                    return mMaxShowLevel;
                 case KEY_FIT_CUTOUT:
                     return mFitCutout;
                 case KEY_MENUBAR:
