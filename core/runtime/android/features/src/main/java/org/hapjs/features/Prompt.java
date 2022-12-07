@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -293,12 +293,14 @@ public class Prompt extends FeatureExtension {
                                     }
                                 });
 
-                        if (alertDialog instanceof Dialog) {
-                            DarkThemeUtil.disableForceDark((Dialog) alertDialog);
-                        }
-                        alertDialog.show();
-                    }
-                });
+                if (alertDialog instanceof Dialog) {
+                    DarkThemeUtil.disableForceDark((Dialog) alertDialog);
+                }
+                //无障碍适配
+                dialogAccessibilityAdaptation(activity.getApplicationContext(), alertDialog);
+                alertDialog.show();
+            }
+        });
     }
 
     private Dialog getContextMenuDialog(
@@ -378,6 +380,8 @@ public class Prompt extends FeatureExtension {
         }
         layoutParams.gravity = Gravity.CENTER;
         mWindowManager.addView(mLoadingView, layoutParams);
+        //无障碍适配
+        viewAccessibilityAdaptation(activity, mLoadingView, message);
     }
 
     private void hideLoading(Request request) {
@@ -492,5 +496,11 @@ public class Prompt extends FeatureExtension {
             }
             return view;
         }
+    }
+
+    protected void dialogAccessibilityAdaptation(Context context, Dialog dialog) {
+    }
+
+    protected void viewAccessibilityAdaptation(Context context, View view, String contentDesc) {
     }
 }
