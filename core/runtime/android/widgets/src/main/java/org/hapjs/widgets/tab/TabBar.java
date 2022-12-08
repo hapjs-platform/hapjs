@@ -6,6 +6,7 @@
 package org.hapjs.widgets.tab;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -15,6 +16,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.facebook.yoga.YogaNode;
 import com.google.android.material.tabs.TabLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.component.AbstractScrollable;
@@ -31,7 +35,10 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.helper.StateHelper;
 import org.hapjs.component.view.state.State;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.R;
 import org.hapjs.widgets.view.PercentTabLayout;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 @WidgetAnnotation(
         name = TabBar.WIDGET_NAME,
@@ -39,13 +46,18 @@ import org.hapjs.widgets.view.PercentTabLayout;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class TabBar extends AbstractScrollable<PercentTabLayout>
         implements OnDomTreeChangeListener, HScrollable {
     protected static final String WIDGET_NAME = "tab-bar";
     private static final String TAG = "TabBar";
     private int mDomIndex;
+    private static final String TALKBACK_TABS_LABELS = "arialabels";
+    private List<String> mDescriptions = null;
+
 
     public TabBar(
             HapEngine hapEngine,
@@ -114,11 +126,32 @@ public class TabBar extends AbstractScrollable<PercentTabLayout>
                 String mode = Attributes.getString(attribute, Attributes.Mode.FIXED);
                 setMode(mode);
                 return true;
+            case TALKBACK_TABS_LABELS:
+                initTabsDesp(attribute);
+                return true;
             default:
                 break;
         }
 
         return super.setAttribute(key, attribute);
+    }
+
+    private void initTabsDesp(Object attribute) {
+        boolean isTalkBackEnable = isEnableTalkBack();
+        if (isTalkBackEnable && attribute instanceof JSONArray) {
+            mDescriptions = new ArrayList<>();
+            JSONArray jsonArray = (JSONArray) attribute;
+            for (int i = 0; i < jsonArray.length(); i++) {
+                try {
+                    Object description = jsonArray.get(i);
+                    if (description instanceof String) {
+                        mDescriptions.add((String) description);
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "initTabsDesp failed ", e);
+                }
+            }
+        }
     }
 
     private void setMode(String modeStr) {
@@ -186,7 +219,13 @@ public class TabBar extends AbstractScrollable<PercentTabLayout>
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         wrapper.setLayoutParams(layoutParams);
         wrapper.addView(childView);
-
+        if (isEnableTalkBack()) {
+            String description = null;
+            if (null != mDescriptions && index < mDescriptions.size()) {
+                description = mDescriptions.get(index);
+            }
+            wrapper.initTalkBack(childView, index, description);
+        }
         tab.setCustomView(wrapper);
         mHost.addTab(tab, index, false);
 
@@ -309,6 +348,7 @@ public class TabBar extends AbstractScrollable<PercentTabLayout>
 
         public TabBarLayoutWrapper(Context context) {
             super(context);
+            setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
 
         public TabBarLayoutWrapper(Context context, AttributeSet attrs) {
@@ -317,6 +357,16 @@ public class TabBar extends AbstractScrollable<PercentTabLayout>
 
         public TabBarLayoutWrapper(Context context, AttributeSet attrs, int defStyleAttr) {
             super(context, attrs, defStyleAttr);
+        }
+
+        public void initTalkBack(View childView, int index, String description) {
+            if (null != childView && index >= 0) {
+                if (TextUtils.isEmpty(description)) {
+                    setContentDescription(childView.getResources().getString(R.string.talkback_notitle_defaultstr));
+                } else {
+                    setContentDescription(description);
+                }
+            }
         }
 
         @Override

@@ -83,7 +83,9 @@ import org.hapjs.widgets.view.text.TextSpan;
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Edit.METHOD_SELECT,
                 Edit.METHOD_SET_SELECTION_RANGE,
-                Edit.METHOD_GET_SELECTION_RANGE
+                Edit.METHOD_GET_SELECTION_RANGE,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Edit extends Component<TextView> implements SwipeObserver {
     protected static final String WIDGET_NAME = "input";
@@ -139,7 +141,7 @@ public class Edit extends Component<TextView> implements SwipeObserver {
 
     @Override
     protected TextView createViewImpl() {
-        FlexEditText editText = new FlexEditText(mContext);
+        FlexEditText editText = new FlexEditText(mContext,isEnableTalkBack());
         editText.setComponent(this);
 
         initDefaultView(editText);

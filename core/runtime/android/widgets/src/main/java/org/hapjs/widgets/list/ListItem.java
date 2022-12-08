@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.widgets.list;
 
 import android.content.Context;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import java.util.Map;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
@@ -14,9 +16,13 @@ import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.flexbox.PercentFlexboxLayout;
+import org.hapjs.component.view.gesture.GestureDelegate;
+import org.hapjs.component.view.gesture.GestureHost;
+import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.state.State;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.system.utils.TalkBackUtils;
 import org.hapjs.widgets.view.list.FlexLayoutManager;
 
 @WidgetAnnotation(
@@ -25,11 +31,14 @@ import org.hapjs.widgets.view.list.FlexLayoutManager;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_FOCUS,
-                Component.METHOD_GET_BOUNDING_CLIENT_RECT
+                Component.METHOD_GET_BOUNDING_CLIENT_RECT,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class ListItem extends Container<PercentFlexboxLayout> {
 
     protected static final String WIDGET_NAME = "list-item";
+    private boolean mIsEnableTalkBack;
 
     public ListItem(
             HapEngine hapEngine,
@@ -39,6 +48,7 @@ public class ListItem extends Container<PercentFlexboxLayout> {
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
+        mIsEnableTalkBack = isEnableTalkBack();
     }
 
     @Override
@@ -70,6 +80,9 @@ public class ListItem extends Container<PercentFlexboxLayout> {
                 boolean isDisallow = Attributes.getBoolean(attribute, false);
                 disallowIntercept(isDisallow);
                 return true;
+            case Attributes.Style.ARIA_LABEL:
+            case Attributes.Style.ARIA_LABEL_LOWER:
+                return true;
             default:
                 break;
         }
@@ -84,6 +97,7 @@ public class ListItem extends Container<PercentFlexboxLayout> {
 
     public static class RecyclerItem extends Container.RecyclerItem {
         private int mAttrType = -1;
+        private String mAttrDescription;
 
         public RecyclerItem(int ref, ComponentCreator componentCreator) {
             super(ref, componentCreator);
@@ -94,12 +108,34 @@ public class ListItem extends Container<PercentFlexboxLayout> {
             super.bindAttrs(attrs);
 
             Object type = getAttrsDomData().get(Attributes.Style.TYPE);
+            boolean isNeedNotify = false;
             if (type != null) {
                 int attrType = type.toString().trim().hashCode();
                 if (attrType != mAttrType) {
                     mAttrType = attrType;
-                    notifyTypeChanged();
+                    isNeedNotify = true;
                 }
+            }
+            if (null != mComponentCreator) {
+                Context context = mComponentCreator.getContext();
+                boolean isEnableTalkBack = false;
+                if (null != context) {
+                    isEnableTalkBack = TalkBackUtils.isEnableTalkBack(context, false);
+                }
+                if (isEnableTalkBack) {
+                    Object description = getAttrsDomData().get(Attributes.Style.ARIA_LABEL_LOWER);
+                    if (description instanceof String) {
+                        String realDescription = ((String) description);
+                        if (null != realDescription && !realDescription.equals(mAttrDescription)) {
+                            mAttrDescription = realDescription;
+                            isNeedNotify = true;
+                        }
+                    }
+                }
+            }
+
+            if (isNeedNotify) {
+                notifyTypeChanged();
             }
         }
 
@@ -108,6 +144,10 @@ public class ListItem extends Container<PercentFlexboxLayout> {
             // 所以共用了 RecyclerAdapter, 共用了 ViewHolder 缓存池
             // 这里对 type 处理, 来使不同的 list 内的 list-item 不要复用组件, 从而避免错误
             return mAttrType + getParent().hashCode();
+        }
+
+        String getViewDescription() {
+            return mAttrDescription;
         }
 
         int getColumnSpan() {
@@ -145,6 +185,29 @@ public class ListItem extends Container<PercentFlexboxLayout> {
         @Override
         protected void requestBindTemplate() {
             notifyItemChanged();
+        }
+    }
+
+    @Override
+    public void performComponentClick(MotionEvent event) {
+        if (mIsEnableTalkBack) {
+            int allChildCount = getChildCount();
+            if (allChildCount > 0) {
+                Component topChild = getChildAt(0);
+                if (null != topChild) {
+                    View topHostView = topChild.getHostView();
+                    if (topHostView instanceof GestureHost) {
+                        GestureHost gestureHost = (GestureHost) topHostView;
+                        IGesture iGesture = null;
+                        if (null != gestureHost) {
+                            iGesture = gestureHost.getGesture();
+                        }
+                        if (iGesture instanceof GestureDelegate) {
+                            ((GestureDelegate) iGesture).fireClickEvent(event, true);
+                        }
+                    }
+                }
+            }
         }
     }
 }

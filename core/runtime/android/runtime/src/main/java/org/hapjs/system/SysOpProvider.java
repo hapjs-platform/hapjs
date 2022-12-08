@@ -190,4 +190,6 @@ public interface SysOpProvider {
     float getScaleShowLevel(Context context);
 
     void updateConfiguration(Context context, Configuration configuration);
+
+    boolean isEnableTalkBack(Context context);
 }

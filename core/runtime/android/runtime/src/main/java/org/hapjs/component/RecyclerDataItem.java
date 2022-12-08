@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present,  the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -25,7 +25,7 @@ public abstract class RecyclerDataItem implements ComponentDataHolder {
     private final CombinedMap<String, CSSValues> mStyleDomData = new CombinedMap<>();
     private final CombinedMap<String, Object> mAttrsDomData = new CombinedMap<>();
     private final CombinedMap<String, Boolean> mEventDomData = new CombinedMap<>();
-    private final ComponentCreator mComponentCreator;
+    protected final ComponentCreator mComponentCreator;
     protected Node mCssNode;
     private Container.RecyclerItem mParent;
     private Component mBoundRecycleComponent;
@@ -383,6 +383,10 @@ public abstract class RecyclerDataItem implements ComponentDataHolder {
         private Context mContext;
         private RenderEventCallback mCallback;
         private Widget mWidget;
+
+        public Context getContext() {
+            return mContext;
+        }
 
         public ComponentCreator(
                 HapEngine hapEngine, Context context, RenderEventCallback callback, Widget widget) {

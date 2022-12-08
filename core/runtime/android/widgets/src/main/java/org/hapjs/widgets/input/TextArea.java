@@ -35,6 +35,8 @@ import org.hapjs.widgets.view.text.FlexEditText;
                 Edit.METHOD_SELECT,
                 Edit.METHOD_SET_SELECTION_RANGE,
                 Edit.METHOD_GET_SELECTION_RANGE,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class TextArea extends Edit {
 

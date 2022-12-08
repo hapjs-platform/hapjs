@@ -46,7 +46,9 @@ import org.json.JSONObject;
                 Camera.METHOD_GET_EXPOSURE_VALUE,
                 Camera.METHOD_GET_FPS_RANGE,
                 Camera.METHOD_START_RECORD,
-                Camera.METHOD_STOP_RECORD
+                Camera.METHOD_STOP_RECORD,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Camera extends Component<CameraView> {
 

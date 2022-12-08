@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,6 +7,7 @@ package org.hapjs.widgets.view.swiper;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +19,8 @@ import java.util.Objects;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.RecyclerDataItem;
+import org.hapjs.system.utils.TalkBackUtils;
+import org.hapjs.widgets.R;
 
 public class LoopPagerAdapter extends BaseLoopPagerAdapter {
 
@@ -35,6 +38,7 @@ public class LoopPagerAdapter extends BaseLoopPagerAdapter {
     private Map<Component, RecyclerDataItem> mCreatedComponents = new ArrayMap<>();
     private Container.RecyclerItem mContainerDataItem;
     private Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private boolean mIsEnableTalkBack;
     private Runnable mNotify =
             new Runnable() {
                 @Override
@@ -49,6 +53,7 @@ public class LoopPagerAdapter extends BaseLoopPagerAdapter {
 
     public LoopPagerAdapter(LoopViewPager viewPager) {
         mViewPager = viewPager;
+        mIsEnableTalkBack = TalkBackUtils.isEnableTalkBack((null != viewPager ? viewPager.getContext() : null), false);
     }
 
     public void setData(Container container, Container.RecyclerItem data) {
@@ -100,7 +105,15 @@ public class LoopPagerAdapter extends BaseLoopPagerAdapter {
         item.dispatchBindComponent(component);
         mContainer.addChild(component); // it will be destroy when mContainer destroy
         container.addView(component.getHostView());
-
+        if (mIsEnableTalkBack) {
+            View tmpHostView = component.getHostView();
+            if (null != tmpHostView) {
+                CharSequence contentDesp = tmpHostView.getContentDescription();
+                if (TextUtils.isEmpty(contentDesp)) {
+                    tmpHostView.setContentDescription(tmpHostView.getResources().getString(R.string.talkback_notitle_defaultstr));
+                }
+            }
+        }
         mCreatedComponents.put(component, item);
 
         return component;

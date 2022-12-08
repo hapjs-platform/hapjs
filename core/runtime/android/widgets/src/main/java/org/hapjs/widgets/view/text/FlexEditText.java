@@ -1,20 +1,24 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.widgets.view.text;
 
 import android.content.Context;
+import android.os.Build;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
 import android.view.inputmethod.InputMethodManager;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.component.Component;
@@ -23,6 +27,7 @@ import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.helper.StateHelper;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
+import org.hapjs.widgets.R;
 import org.hapjs.widgets.input.Edit;
 
 public class FlexEditText extends AppCompatAutoCompleteTextView
@@ -35,10 +40,56 @@ public class FlexEditText extends AppCompatAutoCompleteTextView
     private IGesture mGesture;
     private boolean mAutoCompleted = true;
     private boolean mLastWindowFocus = false;
+    private boolean mIsEnableTalkBack;
 
     public FlexEditText(Context context) {
         super(context);
         setThreshold(0);
+    }
+
+    public FlexEditText(Context context, boolean isEnableTalkBack) {
+        super(context);
+        setThreshold(0);
+        mIsEnableTalkBack = isEnableTalkBack;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void initTalkBack(AccessibilityNodeInfo info) {
+        if (mIsEnableTalkBack && null != info) {
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK);
+            info.setClickable(false);
+            info.setLongClickable(false);
+            info.setClassName("");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                info.setHintText("");
+            }
+            Editable curTextStr = getText();
+            String realTextStr = "";
+            if (null != curTextStr && !TextUtils.isEmpty(curTextStr.toString())) {
+                realTextStr = curTextStr.toString();
+            }
+            if (TextUtils.isEmpty(realTextStr)) {
+                info.setText(getResources().getString(R.string.talkback_edit_input)
+                        + " "
+                        + getResources().getString(R.string.talkback_press_active));
+            } else {
+                info.setText((!TextUtils.isEmpty(getHint()) ? getHint() : "")
+                        + " "
+                        + getResources().getString(R.string.talkback_edit)
+                        + " "
+                        + (!TextUtils.isEmpty(realTextStr) ? realTextStr : "")
+                        + " "
+                        + getResources().getString(R.string.talkback_press_active_more));
+            }
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+        super.onInitializeAccessibilityNodeInfo(info);
+        initTalkBack(info);
     }
 
     @Override
