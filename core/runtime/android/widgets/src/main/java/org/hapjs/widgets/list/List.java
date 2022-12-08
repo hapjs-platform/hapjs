@@ -37,6 +37,7 @@ import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.utils.YogaUtil;
 import org.hapjs.component.view.ScrollView;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.R;
 import org.hapjs.widgets.RecyclerDataItemFactory;
 import org.hapjs.widgets.view.list.FlexGridLayoutManager;
 import org.hapjs.widgets.view.list.FlexLayoutManager;
@@ -51,7 +52,9 @@ import org.hapjs.widgets.view.list.RecyclerViewAdapter;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class List extends AbstractScrollable<RecyclerView> implements Recycler, SwipeObserver {
     protected static final String WIDGET_NAME = "list";
@@ -85,6 +88,7 @@ public class List extends AbstractScrollable<RecyclerView> implements Recycler, 
     private boolean mIsScrollPage = false;
     private int mOrientation = OrientationHelper.VERTICAL;
     private boolean mIsReverse = false;
+    private boolean mIsEnableTalkBack;
 
     public List(
             HapEngine hapEngine,
@@ -94,6 +98,7 @@ public class List extends AbstractScrollable<RecyclerView> implements Recycler, 
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, elId, callback, savedState);
+        mIsEnableTalkBack = isEnableTalkBack();
     }
 
     @Override
@@ -778,6 +783,15 @@ public class List extends AbstractScrollable<RecyclerView> implements Recycler, 
         private Component mRecycleComponent;
         private RecyclerDataItem mItem;
 
+        public void setContentDescription(String description) {
+            if (!TextUtils.isEmpty(description) && null != mRecycleComponent) {
+                View hostView = mRecycleComponent.getHostView();
+                if (null != hostView) {
+                    hostView.setContentDescription(description);
+                }
+            }
+        }
+
         Holder(Component instance) {
             super(instance.getHostView());
             mRecycleComponent = instance;
@@ -858,6 +872,16 @@ public class List extends AbstractScrollable<RecyclerView> implements Recycler, 
         public void onBindViewHolder(Holder holder, int position) {
             ListItem.RecyclerItem item = getItem(position);
             mRecyclerItem.attachToTemplate(item);
+            if (mIsEnableTalkBack) {
+                String description = item.getViewDescription();
+                if (TextUtils.isEmpty(description)) {
+                    if (null != mContext) {
+                        holder.setContentDescription(mContext.getResources().getString(R.string.talkback_notitle_defaultstr));
+                    }
+                } else {
+                    holder.setContentDescription(description);
+                }
+            }
             holder.bind(item);
             Component component = holder.getRecycleComponent();
             lazySetAppearanceWatch(component);

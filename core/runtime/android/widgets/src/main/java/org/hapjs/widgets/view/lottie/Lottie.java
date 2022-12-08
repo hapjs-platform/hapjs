@@ -31,7 +31,9 @@ import java.util.Map;
                 Lottie.METHOD_RESUME,
                 Lottie.METHOD_RESET,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 public class Lottie extends Component<FlexLottie> {

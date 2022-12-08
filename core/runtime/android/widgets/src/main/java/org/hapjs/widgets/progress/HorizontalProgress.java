@@ -32,7 +32,9 @@ import org.hapjs.runtime.HapEngine;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         },
         types = {@TypeAnnotation(name = HorizontalProgress.TYPE_HORIZONTAL, isDefault = true)})
 public class HorizontalProgress extends Progress<FrameLayout> {

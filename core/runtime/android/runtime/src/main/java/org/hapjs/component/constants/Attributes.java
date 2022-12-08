@@ -474,7 +474,9 @@ public class Attributes {
         String MODE = "mode";
 
         String ARIA_LABEL = "ariaLabel";
+        String ARIA_LABEL_LOWER = "arialabel";
         String ARIA_UNFOCUSABLE = "ariaUnfocusable";
+        String ARIA_UNFOCUSABLE_LOWER = "ariaunfocusable";
 
         String FORCE_DARK = "forcedark";
 

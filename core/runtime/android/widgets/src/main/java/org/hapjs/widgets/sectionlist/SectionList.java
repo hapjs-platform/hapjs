@@ -42,7 +42,9 @@ import org.hapjs.widgets.view.list.section.SectionRecyclerView;
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_FOCUS,
-                SectionList.METHOD_SCROLL_TO
+                SectionList.METHOD_SCROLL_TO,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class SectionList extends AbstractScrollable<SectionRecyclerView>
         implements Recycler, SwipeObserver {
