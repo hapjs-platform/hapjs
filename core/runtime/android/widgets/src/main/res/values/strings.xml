@@ -39,4 +39,21 @@
     <string name="webrtc_warn_reject">Decline</string>
     <string name="webrtc_warn_allow">Allow</string>
     <string name="header_2_space">\u3000\u3000</string>
+
+    <string name="talkback_notitle_defaultstr">Unlabeled components</string>
+    <!--edit-->
+    <string name="talkback_edit_input">Input box</string>
+    <string name="talkback_edit">Edit Box</string>
+    <string name="talkback_press_active">Click twice to activate</string>
+    <string name="talkback_press_active_more">Tap twice and hold for more options</string>
+    <!--checkbox-->
+    <string name="talkback_selected">Selected</string>
+    <string name="talkback_unselected">Unselected</string>
+    <string name="talkback_checkbox">check box</string>
+    <string name="talkback_no_use">deactivated</string>
+    <string name="talkback_press_active_min">Click twice</string>
+    <string name="talkback_cancel_select">Uncheck</string>
+    <string name="talkback_select">Check</string>
+    <!--radio-->
+    <string name="talkback_radio">Radio</string>
 </resources>

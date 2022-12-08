@@ -57,7 +57,9 @@ import static org.hapjs.logging.RuntimeLogManager.KEY_APP_EVENT_BUTTON_SHOW;
                 Component.METHOD_FOCUS,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_TO_TEMP_FILE_PATH
+                Component.METHOD_TO_TEMP_FILE_PATH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 

@@ -43,7 +43,9 @@ import org.hapjs.widgets.view.CanvasViewContainer;
         methods = {
                 Canvas.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Canvas extends Component<CanvasViewContainer> {
 

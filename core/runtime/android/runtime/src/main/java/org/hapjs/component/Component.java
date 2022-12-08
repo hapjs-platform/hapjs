@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
@@ -100,6 +101,7 @@ import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.system.SysOpProvider;
+import org.hapjs.system.utils.TalkBackUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -108,6 +110,8 @@ public abstract class Component<T extends View>
 
     public static final int INVALID_PAGE_ID = -1;
     public static final String METHOD_FOCUS = "focus";
+    public static final String METHOD_TALKBACK_FOCUS = "requestTalkBackFocus";
+    public static final String METHOD_TALKBACK_ANNOUNCE = "announceForTalkBack";
     public static final String METHOD_ANIMATE = "animate";
     public static final String METHOD_REQUEST_FULLSCREEN = "requestFullscreen";
     public static final String METHOD_GET_BOUNDING_CLIENT_RECT = "getBoundingClientRect";
@@ -981,10 +985,12 @@ public abstract class Component<T extends View>
                 setFocusable(focusable);
                 return true;
             case Attributes.Style.ARIA_LABEL:
+            case Attributes.Style.ARIA_LABEL_LOWER:
                 String ariaLabel = Attributes.getString(attribute);
                 setAriaLabel(ariaLabel);
                 return true;
             case Attributes.Style.ARIA_UNFOCUSABLE:
+            case Attributes.Style.ARIA_UNFOCUSABLE_LOWER:
                 boolean ariaUnfocusable = Attributes.getBoolean(attribute, true);
                 setAriaUnfocusable(ariaUnfocusable);
                 return true;
@@ -2926,6 +2932,14 @@ public abstract class Component<T extends View>
                 focus = Attributes.getBoolean(args.get("focus"), true);
             }
             focus(focus);
+        } else if (METHOD_TALKBACK_FOCUS.equals(methodName)) {
+            requestTalkBackFocus();
+        } else if (METHOD_TALKBACK_ANNOUNCE.equals(methodName)) {
+            String content = null;
+            if (args != null && args.get("content") != null) {
+                content = Attributes.getString(args.get("content"), "");
+            }
+            announceForTalkBack(content);
         } else if (METHOD_REQUEST_FULLSCREEN.equals(methodName)) {
             int screenOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
             if (args != null) {
@@ -4249,5 +4263,57 @@ public abstract class Component<T extends View>
 
     public boolean preConsumeEvent(String eventName, Map<String, Object> data, boolean immediately) {
         return false;
+    }
+
+    public void requestTalkBackFocus() {
+        if (isEnableTalkBack() && mHost != null) {
+            if (mHost.isAttachedToWindow()) {
+                mHost.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_HOVER_ENTER);
+            } else {
+                Log.w(TAG, "requestTalkBackFocus is not valid.");
+                mHost.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+                        mHost.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_HOVER_ENTER);
+                        mHost.removeOnAttachStateChangeListener(this);
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+
+                    }
+                });
+            }
+        }
+    }
+
+    public void announceForTalkBack(String content) {
+        if (isEnableTalkBack() && mHost != null && !TextUtils.isEmpty(content)) {
+            if (mHost.isAttachedToWindow()) {
+                mHost.announceForAccessibility(content);
+            } else {
+                Log.w(TAG, "announceForTalkBack is not valid.");
+                mHost.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+                        mHost.announceForAccessibility(content);
+                        mHost.removeOnAttachStateChangeListener(this);
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+
+                    }
+                });
+            }
+        }
+    }
+
+    public boolean isEnableTalkBack() {
+        return TalkBackUtils.isEnableTalkBack(mContext, false);
+    }
+
+    public void performComponentClick(MotionEvent event) {
+
     }
 }

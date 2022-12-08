@@ -39,7 +39,9 @@ import org.hapjs.widgets.sectionlist.model.ItemGroup;
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_FOCUS,
                 SectionGroup.METHOD_EXPAND,
-                SectionGroup.METHOD_SCROLL_TO
+                SectionGroup.METHOD_SCROLL_TO,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class SectionGroup extends AbstractScrollable<FrameLayout> {
 

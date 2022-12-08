@@ -47,7 +47,9 @@ import org.hapjs.widgets.view.text.TextSpan;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         },
         types = {@TypeAnnotation(name = Text.TYPE_TEXT, isDefault = true)})
 public class Text extends AbstractText<TextLayoutView> implements SwipeObserver {

@@ -66,7 +66,9 @@ import org.json.JSONObject;
                 Map.METHOD_SET_MAX_AND_MIN_SCALE_LEVEL,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Map extends Container<MapFrameLayout> {
 
