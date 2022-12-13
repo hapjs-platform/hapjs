@@ -55,4 +55,10 @@
     <string name="talkback_select">选中</string>
     <!--radio-->
     <string name="talkback_radio">单选框</string>
+    <!--video 无障碍-->
+    <string name="talkback_video_controller_play">播放</string>
+    <string name="talkback_video_controller_pause">暂停</string>
+    <string name="talkback_video_controller_full_screen">全屏</string>
+    <string name="talkback_video_controller_exit_full_screen">退出全屏</string>
+
 </resources>

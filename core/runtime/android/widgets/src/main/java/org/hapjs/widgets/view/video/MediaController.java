@@ -28,6 +28,7 @@ import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.component.Component;
 import org.hapjs.model.videodata.VideoCacheData;
 import org.hapjs.model.videodata.VideoCacheManager;
+import org.hapjs.system.utils.TalkBackUtils;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.video.ExoPlayer;
 import org.hapjs.widgets.video.IMediaPlayer;
@@ -112,6 +113,7 @@ public class MediaController extends RelativeLayout {
     private TextView mTitle;
     private int mTitleHeight;
     private final String TAG = "MediaController";
+    private boolean mIsEnableTalkBack;
     private FullscreenChangeListener mFullScreenChangeListener;
     private OnSeekBarChangeListener mOnSeekBarChangeListener;
     // There are two scenarios that can trigger the seekbar listener to trigger:
@@ -205,6 +207,7 @@ public class MediaController extends RelativeLayout {
     public MediaController(Context context, boolean useFastForward) {
         super(context);
         mContext = context;
+        mIsEnableTalkBack = TalkBackUtils.isEnableTalkBack(mContext, false);
         makeControllerView();
     }
 
@@ -245,6 +248,9 @@ public class MediaController extends RelativeLayout {
         if (mPauseButton != null) {
             mPauseButton.requestFocus();
             mPauseButton.setOnClickListener(mPauseListener);
+            if (mIsEnableTalkBack) {
+                mPauseButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_play));
+            }
         }
         mProgress = (SeekBar) v.findViewById(R.id.mediacontroller_progress);
         if (mProgress != null) {
@@ -279,6 +285,10 @@ public class MediaController extends RelativeLayout {
         mTitleBarContainer = v.findViewById(R.id.title_bar_container);
         v.findViewById(R.id.back_arrow).setOnClickListener(view -> mVideoView.exitFullscreen());
         mTitle = v.findViewById(R.id.title);
+        if (mIsEnableTalkBack) {
+            v.findViewById(R.id.back_arrow).setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_exit_full_screen));
+            mFullButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_full_screen));
+        }
     }
 
     private void applyButtonVisibility() {
@@ -591,8 +601,14 @@ public class MediaController extends RelativeLayout {
 
         if (mPlayer.isPlaying()) {
             mPauseButton.setImageResource(R.drawable.ic_media_pause);
+            if (mIsEnableTalkBack) {
+                mPauseButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_pause));
+            }
         } else {
             mPauseButton.setImageResource(R.drawable.ic_media_play);
+            if (mIsEnableTalkBack) {
+                mPauseButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_play));
+            }
         }
     }
 
@@ -642,7 +658,9 @@ public class MediaController extends RelativeLayout {
 
     public void enterFullscreen() {
         mFullButton.setImageResource(R.drawable.ic_media_exit_fullscreen);
-
+        if (mIsEnableTalkBack) {
+            mFullButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_exit_full_screen));
+        }
         mTitleBarContainer.setVisibility(VISIBLE);
         View statusBarPlaceholder = mTitleBarContainer.findViewById(R.id.status_bar_bg);
         LinearLayout.LayoutParams params =
@@ -658,7 +676,9 @@ public class MediaController extends RelativeLayout {
 
     public void exitFullscreen() {
         mFullButton.setImageResource(R.drawable.ic_media_enter_fullscreen);
-
+        if (mIsEnableTalkBack) {
+            mFullButton.setContentDescription(getContext().getResources().getString(R.string.talkback_video_controller_full_screen));
+        }
         mTitleBarContainer.setVisibility(GONE);
         mVideoView.getComponent().getRootComponent().resetStatusBar();
     }

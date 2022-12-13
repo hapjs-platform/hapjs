@@ -56,4 +56,9 @@
     <string name="talkback_select">Check</string>
     <!--radio-->
     <string name="talkback_radio">Radio</string>
+    <!--video 无障碍-->
+    <string name="talkback_video_controller_play">play</string>
+    <string name="talkback_video_controller_pause">pause</string>
+    <string name="talkback_video_controller_full_screen">full screen</string>
+    <string name="talkback_video_controller_exit_full_screen">exit full screen</string>
 </resources>
