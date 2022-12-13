@@ -143,4 +143,9 @@
     <string name="shortcut_add_shortcut_mini">Add to desktop</string>
     <string name="shortcut_add_shortcut_desktop">Add to desktop</string>
     <string name="shortcut_add_shortcut_long">Add to desktop</string>
+    <!--menubar 无障碍-->
+    <string name="talkback_titlebar_left_menu_iv">更多-按钮</string>
+    <string name="popup_window_default_title">弹出式窗口</string>
+    <string name="talkback_close">关闭-按钮</string>
+    <string name="talkback_common_button">按钮</string>
 </resources>

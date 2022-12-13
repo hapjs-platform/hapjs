@@ -56,4 +56,14 @@
     <string name="talkback_select">Check</string>
     <!--radio-->
     <string name="talkback_radio">Radio</string>
+    <!-- 加桌、桌面-->
+    <string name="shortcut_add_shortcut_mini">Add to desktop</string>
+    <string name="shortcut_add_shortcut_desktop">Add to desktop</string>
+    <string name="shortcut_add_shortcut_long">Add to desktop</string>
+
+    <!--menubar 无障碍-->
+    <string name="talkback_titlebar_left_menu_iv">more-button</string>
+    <string name="popup_window_default_title">pop-up window</string>
+    <string name="talkback_close">close-button</string>
+    <string name="talkback_common_button">button</string>
 </resources>
