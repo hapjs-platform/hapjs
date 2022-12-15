@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hapjs.bridge.HybridRequest;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
 import org.hapjs.logging.RuntimeLogManager;
@@ -39,11 +40,16 @@ public class PageManager {
     private static final int MSG_BACK = 3;
     private static final int MSG_CLEAR = 4;
     private static final int MSG_FINISH = 5;
-    public PageCache mPageCache;
+    private static final int MSG_LEFT_REPLACE = 6;
+
+    public final static String ABOUT_PAGE_PATH = "file:///android_asset/app/about-page.js";
+
     private AppInfo mAppInfo;
     private List<Page> mPageInfos = new ArrayList<>();
     private PageChangedListener mPageChangedListener;
     private Handler mHandler;
+    public PageCache mPageCache;
+    private int mMultiWindowLeftPageId = -1;
 
     public PageManager(PageChangedListener pageChangeListener, AppInfo appInfo) {
         mPageChangedListener = pageChangeListener;
@@ -136,6 +142,77 @@ public class PageManager {
             return null;
         }
         return mPageInfos.get(mPageInfos.size() - 1);
+    }
+
+    public Page getPrePage(Page page) {
+        int index = mPageInfos.indexOf(page);
+        int prePageIndex = index - 1;
+        return getPage(prePageIndex);
+    }
+
+    public void updateMultiWindowLeftPage(Page leftPage) {
+        if (mPageInfos.size() == 0 || leftPage == null) {
+            Page lastLeftPage = getMultiWindowLeftPage();
+            if (lastLeftPage != null) {
+                lastLeftPage.setIsMultiWindowLeftPage(false);
+            }
+            mMultiWindowLeftPageId = -1;
+            return;
+        }
+        leftPage.setIsMultiWindowLeftPage(true);
+        mMultiWindowLeftPageId = leftPage.getPageId();
+    }
+
+    public Page updateMultiWindowLeftPageWhenNewCreate() {
+        if (mPageInfos.size() <= 1) {
+            Page lastLeftPage = getMultiWindowLeftPage();
+            if (lastLeftPage != null) {
+                lastLeftPage.setIsMultiWindowLeftPage(false);
+            }
+            mMultiWindowLeftPageId = -1;
+            return null;
+        }
+
+        Page leftPage = null;
+        if (MultiWindowManager.isNavigationMode()) {
+            leftPage = mPageInfos.get(0);
+        } else if (MultiWindowManager.isShoppingMode()) {
+            leftPage = mPageInfos.get(getCurrIndex() - 1);
+        }
+        if (leftPage != null) {
+            leftPage.setIsMultiWindowLeftPage(true);
+            mMultiWindowLeftPageId = leftPage.getPageId();
+        }
+        return leftPage;
+    }
+
+    public int getMultiWindowLeftPageId() {
+        return mMultiWindowLeftPageId;
+    }
+
+    private boolean hasMultiWindowLeftPage() {
+        return FoldingUtils.isMultiWindowMode() && mMultiWindowLeftPageId >= 0;
+    }
+
+    @Nullable
+    public Page getMultiWindowLeftPage() {
+        if (mPageInfos.size() == 0 || !hasMultiWindowLeftPage()) {
+            return null;
+        }
+        return getPageById(mMultiWindowLeftPageId);
+    }
+
+    private int getMultiWindowLeftPageIndex() {
+        if (mPageInfos.size() == 0 || !hasMultiWindowLeftPage()) {
+            return -1;
+        }
+        for (int i = 0; i < mPageInfos.size(); i++) {
+            Page page = mPageInfos.get(i);
+            if (page.getPageId() == mMultiWindowLeftPageId) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -382,9 +459,26 @@ public class PageManager {
         int oldIndex = getCurrIndex();
         int newIndex = oldIndex + 1;
 
+        if (FoldingUtils.isMultiWindowMode() && isRepeatPushRightPage(oldPage, page)) {
+            replace(page);
+            return;
+        }
+
         mPageChangedListener.onPagePreChange(oldIndex, newIndex, oldPage, page);
         mPageInfos.add(page);
         mPageChangedListener.onPageChanged(oldIndex, newIndex, oldPage, page);
+    }
+
+    private boolean isRepeatPushRightPage(Page oldPage, Page newPage) {
+        if (oldPage == null || newPage == null) {
+            return false;
+        }
+        HybridRequest oldRequest = oldPage.getRequest();
+        HybridRequest newRequest = newPage.getRequest();
+        if (oldRequest == null || newRequest == null) {
+            return false;
+        }
+        return TextUtils.equals(oldRequest.getUri(), newRequest.getUri());
     }
 
     private void clearPageTask(Page page) {
@@ -432,6 +526,7 @@ public class PageManager {
             Page page = mPageInfos.remove(0);
             mPageChangedListener.onPageRemoved(0, page);
         }
+        mMultiWindowLeftPageId = -1;
     }
 
     public void replace(Page page) {
@@ -457,6 +552,31 @@ public class PageManager {
         mPageChangedListener.onPageRemoved(index, oldPage);
         mPageInfos.set(index, page);
         mPageChangedListener.onPageChanged(index, index, oldPage, page);
+    }
+
+    public void replaceLeftPage(Page leftPage) {
+        if (!ThreadUtils.isInMainThread()) {
+            mHandler.obtainMessage(MSG_LEFT_REPLACE, leftPage).sendToTarget();
+            return;
+        }
+        if (null != leftPage && !leftPage.isTabPage()
+                && prepareTabBar(leftPage, false)) {
+            Log.w(TAG, "replace left page path is not valid tabbar path : " + leftPage.getPath());
+            return;
+        }
+        Page oldLeftPage = getMultiWindowLeftPage();
+        int leftPageIndex = getMultiWindowLeftPageIndex();
+        if (leftPageIndex < 0 || leftPageIndex >= mPageInfos.size()) {
+            Log.e(TAG, "replace left page fail! size=" + mPageInfos.size() + " left page index=" + leftPageIndex);
+            return;
+        }
+        if (leftPage != null && oldLeftPage != null) {
+            leftPage.setReferrer(oldLeftPage.getReferrer());
+        }
+        mPageChangedListener.onPagePreChange(leftPageIndex, leftPageIndex, oldLeftPage, leftPage);
+        mPageChangedListener.onPageRemoved(leftPageIndex, oldLeftPage);
+        mPageInfos.set(leftPageIndex, leftPage);
+        mPageChangedListener.onPageChanged(leftPageIndex, leftPageIndex, oldLeftPage, leftPage);
     }
 
     public void back() {
@@ -486,16 +606,92 @@ public class PageManager {
     }
 
     public void clear() {
+        clear(false);
+    }
+
+    public void clear(boolean isExit) {
         if (!ThreadUtils.isInMainThread()) {
-            mHandler.sendEmptyMessage(MSG_CLEAR);
+            mHandler.obtainMessage(MSG_CLEAR, isExit).sendToTarget();
             return;
         }
 
-        while (mPageInfos.size() > 1) {
-            int index = mPageInfos.size() - 2;
+        int pageCountLimit = 1;
+        if (!isExit && hasMultiWindowLeftPage()) {
+            pageCountLimit = 2;
+        }
+        int offset = 2;
+        while (mPageInfos.size() > pageCountLimit) {
+            int index = mPageInfos.size() - offset;
+            if (mPageInfos.get(index).getPageId() == mMultiWindowLeftPageId) {
+                offset += 1;
+                continue;
+            }
             Page page = mPageInfos.remove(index);
             mPageChangedListener.onPageRemoved(index, page);
         }
+    }
+
+    /**
+     * 在折叠屏设备上，当设备折叠或者展开时，重建当前Page对象
+     *
+     * @return 重建后的Page对象
+     * @throws PageNotFoundException page找不到的异常
+     */
+    public Page reloadOnFoldableDevice() throws PageNotFoundException {
+        for (Page page : mPageInfos) {
+            page.setShouldReload(true);
+        }
+
+        Page oldCurrPage = getCurrPage();
+        if (oldCurrPage == null) {
+            //do nothing
+            return null;
+        }
+        Page page = null;
+        if (null != oldCurrPage.getRoutableInfo()
+                && ABOUT_PAGE_PATH.equals(oldCurrPage.getRoutableInfo().getUri())
+                && oldCurrPage.getState() == Page.STATE_VISIBLE) {
+            if (ABOUT_PAGE_PATH.equals(oldCurrPage.getRoutableInfo().getUri())) {
+                page = buildAboutPage();
+                replace(page);
+            }
+        } else if (null == oldCurrPage.getRequest()
+                && null != mAppInfo
+                && null != mAppInfo.getRouterInfo()
+                && null != mAppInfo.getRouterInfo().getEntry()
+                && oldCurrPage.getRoutableInfo() == mAppInfo.getRouterInfo().getEntry()
+                && oldCurrPage.getState() == Page.STATE_VISIBLE) {
+            page = buildHomePage();
+            replace(page);
+        } else if (oldCurrPage.getState() == Page.STATE_VISIBLE) {
+            page = buildPage(oldCurrPage.getRequest());
+            replace(page);
+        }
+        return page;
+    }
+
+    public Page reloadLeftPageOnFoldableDevice() throws PageNotFoundException {
+        Page oldLeftPage = getMultiWindowLeftPage();
+        if (oldLeftPage == null) {
+            return null;
+        }
+        Page leftPage = null;
+        if (null != oldLeftPage.getRoutableInfo()
+                && ABOUT_PAGE_PATH.equals(oldLeftPage.getRoutableInfo().getUri())) {
+            leftPage = buildAboutPage();
+            replaceLeftPage(leftPage);
+        } else if (null == oldLeftPage.getRequest()
+                && null != mAppInfo
+                && null != mAppInfo.getRouterInfo()
+                && null != mAppInfo.getRouterInfo().getEntry()
+                && oldLeftPage.getRoutableInfo() == mAppInfo.getRouterInfo().getEntry()) {
+            leftPage = buildHomePage();
+            replaceLeftPage(leftPage);
+        } else {
+            leftPage = buildPage(oldLeftPage.getRequest());
+            replaceLeftPage(leftPage);
+        }
+        return leftPage;
     }
 
     public void reload() throws PageNotFoundException {
@@ -612,11 +808,13 @@ public class PageManager {
                     back(msg.arg1);
                     break;
                 case MSG_CLEAR:
-                    clear();
+                    clear((boolean) msg.obj);
                     break;
                 case MSG_FINISH:
                     finish((Integer) msg.obj);
                     break;
+                case MSG_LEFT_REPLACE:
+                    replaceLeftPage((Page) msg.obj);
                 default:
                     break;
             }

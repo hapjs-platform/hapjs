@@ -36,6 +36,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.hapjs.bridge.EnvironmentManager;
 import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.HybridRequest;
@@ -64,6 +67,7 @@ import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.ScreenOrientation;
 import org.hapjs.render.DebugUtils;
 import org.hapjs.render.IdGenerator;
+import org.hapjs.render.MultiWindowManager;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RenderActionPackage;
@@ -665,7 +669,11 @@ public class JsThread extends HandlerThread {
             // 仅发送visible=false事件,在activity变为start时会重新发送visible=true事件
             if (visible && page.getState() == Page.STATE_INITIALIZED && !mBlocked) {
                 if (page.shouldReload() && page.getRequest() != null) {
-                    RouterUtils.replace(mPageManager, page.getRequest());
+                    if (MultiWindowManager.shouldApplyMultiWindowMode(mContext) && page.getIsMultiWindowLeftPage()) {
+                        RouterUtils.replaceLeftPage(mPageManager, page.getRequest());
+                    } else {
+                        RouterUtils.replace(mPageManager, page.getRequest());
+                    }
                     return;
                 }
                 requestFocus();
