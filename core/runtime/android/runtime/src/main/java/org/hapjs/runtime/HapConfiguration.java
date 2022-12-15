@@ -20,8 +20,8 @@ public class HapConfiguration {
     private int mOrientation;
     private int mLastOrientation;
 
-    private int mScreenSize;
-    private int mLastScreenSize;
+    private double mScreenSize;
+    private double mLastScreenSize;
 
     public HapConfiguration() {
         mLocale = Locale.getDefault();
@@ -76,19 +76,19 @@ public class HapConfiguration {
         mLastOrientation = lastOrientation;
     }
 
-    public int getScreenSize() {
+    public double getScreenSize() {
         return mScreenSize;
     }
 
-    public void setScreenSize(int mScreenSize) {
+    public void setScreenSize(double mScreenSize) {
         this.mScreenSize = mScreenSize;
     }
 
-    public int getLastScreenSize() {
+    public double getLastScreenSize() {
         return mLastScreenSize;
     }
 
-    public void setLastScreenSize(int mLastScreenSize) {
+    public void setLastScreenSize(double mLastScreenSize) {
         this.mLastScreenSize = mLastScreenSize;
     }
 

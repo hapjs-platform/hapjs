@@ -29,6 +29,10 @@ public class FoldingUtils {
         return false;
     }
 
+    public static boolean isMultiWindowMode() {
+        return DisplayInfo.MODE_MULTI_WINDOW.equals(mRpkWideScreenFitMode);
+    }
+
     public static boolean isAdaptiveScreenMode() {
         return DisplayInfo.MODE_ADAPTIVE_SCREEN.equals(mRpkWideScreenFitMode);
     }
