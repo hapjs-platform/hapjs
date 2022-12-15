@@ -31,6 +31,8 @@ public class DisplayInfo {
     public static final String MODE_FILL_SCREEN = "fillScreen";
     public static final String MODE_MULTI_WINDOW = "multiWindow";
     private static final String KEY_MULTI_WINDOW_MODE = "multiWindowMode";
+    private static final String KEY_MULTI_WINDOW_CONFIG = "multiWindowConfig";
+    private static final String KEY_MULTI_WINDOW_CONFIG_MODE = "mode";
     public static final String MODE_SHOPPING = "shopping";
     public static final String MODE_NAVIGATION = "navigation";
     public static final String MODE_ADAPTIVE_SCREEN = "adaptiveScreen";
@@ -56,6 +58,12 @@ public class DisplayInfo {
             displayInfo.mFitMode = fitMode;
             if (TextUtils.equals(fitMode, MODE_MULTI_WINDOW)) {
                 String multiWindowMode = jsonObject.optString(KEY_MULTI_WINDOW_MODE);
+                if (TextUtils.isEmpty(multiWindowMode)) {
+                    JSONObject multiWindowConfigJsonObject = jsonObject.optJSONObject(KEY_MULTI_WINDOW_CONFIG);
+                    if (multiWindowConfigJsonObject != null) {
+                        multiWindowMode = multiWindowConfigJsonObject.optString(KEY_MULTI_WINDOW_CONFIG_MODE);
+                    }
+                }
                 MultiWindowManager.setMultiWindowModeType(multiWindowMode);
             }
         }

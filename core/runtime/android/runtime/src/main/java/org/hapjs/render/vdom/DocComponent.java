@@ -40,8 +40,6 @@ public class DocComponent extends Container {
     protected DecorLayout mDecorLayout;
     protected AppInfo mAppInfo;
     protected boolean mOpenWithAnim;
-    protected PageEnterListener mPageEnterListener;
-    protected PageExitListener mPageExitListener;
     private int mPageId = -1;
     private volatile int mWebComponentCount;
     private Page mPage;
@@ -504,51 +502,5 @@ public class DocComponent extends Container {
 
     public DecorLayout getDecorLayout() {
         return mDecorLayout;
-    }
-
-    public interface PageEnterListener {
-        void onStart();
-
-        void onEnd();
-    }
-
-    public interface PageExitListener {
-        void onStart();
-
-        void onEnd();
-    }
-
-    public class AttachAnimatorListener extends AnimatorListenerAdapter {
-
-        @Override
-        public void onAnimationStart(Animator animation) {
-            mDecorLayout.setIsAttachAnimation(true);
-        }
-
-        @Override
-        public void onAnimationEnd(Animator animation) {
-            if (mOpenWithAnim) {
-                mOpenWithAnim = false;
-            }
-
-            mDecorLayout.setIsAttachAnimation(false);
-        }
-    }
-
-    public class DetachAnimatorListener extends AnimatorListenerAdapter {
-        boolean open;
-
-        DetachAnimatorListener(boolean open) {
-            this.open = open;
-        }
-
-        @Override
-        public void onAnimationStart(Animator animation) {
-        }
-
-        @Override
-        public void onAnimationEnd(final Animator animation) {
-            executePageExitEnd(open);
-        }
     }
 }

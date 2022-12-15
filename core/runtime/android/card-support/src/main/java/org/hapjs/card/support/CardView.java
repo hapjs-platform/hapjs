@@ -94,7 +94,7 @@ public class CardView extends RootView
                         return false;
                     }
 
-                    applyAction(action);
+                    applyAction(getDocument(), action);
                     return true;
                 }
             };

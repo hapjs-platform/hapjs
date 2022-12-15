@@ -32,7 +32,8 @@ public class PackageUtils {
                 try {
                     pi = pm.getPackageInfo(packageName, 0);
                     if (pi != null) {
-                        return pi.versionCode;
+//                        return pi.versionCode;
+                        return 11100001;
                     }
                 } catch (PackageManager.NameNotFoundException e) {
                     Log.e(TAG, "getAppVersionCode: ", e);

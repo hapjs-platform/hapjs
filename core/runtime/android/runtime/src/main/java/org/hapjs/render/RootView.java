@@ -367,7 +367,6 @@ public class RootView extends FrameLayout
                 }
             };
     private boolean mFirstRenderActionReceived = false;
-    private InnerPageEnterListener mPageEnterListener = new InnerPageEnterListener();
 
     public RootView(Context context) {
         this(context, null);
@@ -1119,8 +1118,6 @@ public class RootView extends FrameLayout
             newConfig.setLastScreenSize(newScreenSize);
         }
 
-        mJsThread.addConfigurationNotifyInfo(task);
-
         // update media query when 'theme mode' or 'orientation' has changed.
         if (configurationChanged) {
             mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
@@ -1182,7 +1179,6 @@ public class RootView extends FrameLayout
             if (isFoldStatus(getContext())) {
                 ReloadPageConfigurationChangedInfo task = new ReloadPageConfigurationChangedInfo(currentPage);
                 task.setOrientationChanged(true);
-                mJsThread.addConfigurationNotifyInfo(task);
             } else {
                 mJsThread.postNotifyConfigurationChanged(currentPage, JsThread.CONFIGURATION_TYPE_ORIENTATION);
             }
@@ -1779,7 +1775,7 @@ public class RootView extends FrameLayout
     }
 
     void onMultiWindowPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {
-        RuntimeLogManager.getDefault().recordPageChanged(newPage);
+        RuntimeLogManager.getDefault().logPageChanged(newPage);
 
         if (newPage != null && newPage.getReferrer() == null && newIndex > oldIndex) {
             newPage.setReferrer(oldPage);
@@ -1916,7 +1912,7 @@ public class RootView extends FrameLayout
         VDocument newDoc;
 
         if (cacheDoc != null && !(hasWeb && darkModeChanged)) {
-            RuntimeLogManager.getDefault().recordPageCacheRenderStart(
+            RuntimeLogManager.getDefault().logPageCacheRenderStart(
                     mAppInfo.getPackage(), backwardTargetPage.getName());
             newDoc = backwardTargetPage.getCacheDoc();
             if (backwardTargetPage.hasRenderActions()) {
@@ -1935,7 +1931,7 @@ public class RootView extends FrameLayout
             }
         } else {
             mJsThread.postRecreatePage(backwardTargetPage);
-            RuntimeLogManager.getDefault().recordPageRecreateRenderStart(
+            RuntimeLogManager.getDefault().logPageRecreateRenderStart(
                     mAppInfo.getPackage(), backwardTargetPage.getName());
             newDoc = new VDocument(createDocComponent(backwardTargetPage.pageId));
             newDoc.attachChildren(false, backwardAnimType, extraInfo,
@@ -1964,7 +1960,7 @@ public class RootView extends FrameLayout
             mJsThread.postChangeVisiblePage(currPage, true);
         } else {
             mJsThread.loadPage(currPage);
-            RuntimeLogManager.getDefault().recordPageCreateRenderStart(
+            RuntimeLogManager.getDefault().logPageCreateRenderStart(
                     mAppInfo.getPackage(), currPage.getName());
             newDoc = new VDocument(createDocComponent(currPage.pageId));
             newDoc.attachChildren(true, forwardAnimType, extraInfo, new InnerPageEnterListener(newDoc, currPage, isReplaceLeftPage));

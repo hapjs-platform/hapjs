@@ -42,8 +42,6 @@ public class PageManager {
     private static final int MSG_FINISH = 5;
     private static final int MSG_LEFT_REPLACE = 6;
 
-    public final static String ABOUT_PAGE_PATH = "file:///android_asset/app/about-page.js";
-
     private AppInfo mAppInfo;
     private List<Page> mPageInfos = new ArrayList<>();
     private PageChangedListener mPageChangedListener;
