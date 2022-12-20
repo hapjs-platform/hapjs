@@ -66,7 +66,7 @@ public class TalkBackUtils {
 
     public static boolean isEnableTalkBack(Context context, boolean forceCheck) {
         if (sIsChecking) {
-            return true;
+            return false;
         }
         if ((sIsForceCheck || forceCheck || sTalkBackEnable == TALKBACK_DEFAULT) && null != context) {
             sIsForceCheck = false;
