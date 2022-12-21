@@ -26,6 +26,7 @@ import org.hapjs.runtime.Runtime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AppResourcesLoader {
     private static final String TAG = "ResourcesPreloader";
@@ -38,11 +39,14 @@ public class AppResourcesLoader {
     private static Map<String, AppResources> sAppResources = new HashMap<>();
 
     public static void preload(Context context, HybridRequest request) {
+        String pkg = request.getPackage();
+        AppResources appResources = new AppResources();
+        sAppResources.put(pkg, appResources);
         Context appContext = context.getApplicationContext();
-        Executors.io().execute(() -> doPreload(appContext, request));
+        Executors.io().execute(() -> doPreload(appContext, request, appResources));
     }
 
-    private static void doPreload(Context context, HybridRequest request) {
+    private static void doPreload(Context context, HybridRequest request, AppResources appResources) {
         String pkg = request.getPackage();
         ApplicationContext appContext = HapEngine.getInstance(pkg).getApplicationContext();
         AppInfo appInfo = appContext.getAppInfo(false);
@@ -51,11 +55,7 @@ public class AppResourcesLoader {
             return;
         }
 
-        AppResources appResources = sAppResources.get(pkg);
-        if (appResources == null) {
-            appResources = new AppResources(appInfo.getSubpackageInfos());
-            sAppResources.put(pkg, appResources);
-        }
+        appResources.subpackageInfos = appInfo.getSubpackageInfos();
 
         if (appResources.appJs == null) {
             appResources.appJs = ensureNotNull(loadAppJs(context, pkg));
@@ -221,8 +221,7 @@ public class AppResourcesLoader {
         Map<String, String> pageCssMap = new HashMap<>();
         Map<String, String> chunksMap = new HashMap<>();
 
-        AppResources(List<SubpackageInfo> subpackageInfos) {
-            this.subpackageInfos = subpackageInfos;
+        AppResources() {
         }
     }
 }
