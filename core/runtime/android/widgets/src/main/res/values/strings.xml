@@ -56,6 +56,9 @@
     <string name="talkback_select">Check</string>
     <!--radio-->
     <string name="talkback_radio">Radio</string>
+    <!--progress-->
+    <string name="talkback_progress_percent">Percent</string>
+    <string name="talkback_progress">Progress bar</string>
     <!--video 无障碍-->
     <string name="talkback_video_controller_play">play</string>
     <string name="talkback_video_controller_pause">pause</string>

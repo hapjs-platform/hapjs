@@ -55,6 +55,9 @@
     <string name="talkback_select">选中</string>
     <!--radio-->
     <string name="talkback_radio">单选框</string>
+    <!--progress-->
+    <string name="talkback_progress_percent">百分之</string>
+    <string name="talkback_progress">进度条</string>
     <!--video 无障碍-->
     <string name="talkback_video_controller_play">播放</string>
     <string name="talkback_video_controller_pause">暂停</string>

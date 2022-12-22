@@ -54,7 +54,7 @@ public class FlexEditText extends AppCompatAutoCompleteTextView
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void initTallkback(AccessibilityNodeInfo info) {
+    private void initTalkBack(AccessibilityNodeInfo info) {
         if (mIsEnableTalkBack && null != info) {
             info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK);
@@ -89,7 +89,7 @@ public class FlexEditText extends AppCompatAutoCompleteTextView
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        initTallkback(info);
+        initTalkBack(info);
     }
 
     @Override

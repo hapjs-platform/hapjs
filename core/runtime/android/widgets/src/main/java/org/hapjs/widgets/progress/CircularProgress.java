@@ -12,6 +12,7 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ProgressBar;
 import java.util.Map;
 import org.hapjs.bridge.annotation.TypeAnnotation;
@@ -26,6 +27,7 @@ import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.R;
 
 @WidgetAnnotation(
         name = Progress.WIDGET_NAME,
@@ -156,6 +158,20 @@ public class CircularProgress extends Progress<ProgressBar> {
             }
             result |= mKeyEventDelegate.onKey(keyAction, keyCode, event);
             return result;
+        }
+
+        @Override
+        public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+            super.onInitializeAccessibilityNodeInfo(info);
+            info.setClassName("");
+            info.setClickable(false);
+            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+            if (getProgress() >= 0) {
+                info.setText(mContext.getResources().getString(R.string.talkback_progress_percent)
+                        + getProgress()
+                        + " "
+                        + mContext.getResources().getString(R.string.talkback_progress));
+            }
         }
     }
 }
