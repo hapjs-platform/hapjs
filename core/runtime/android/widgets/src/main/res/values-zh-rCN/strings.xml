@@ -60,4 +60,12 @@
     <string name="popup_window_default_title">弹出式窗口</string>
     <string name="talkback_close">关闭-按钮</string>
     <string name="talkback_common_button">按钮</string>
+    <!--progress-->
+    <string name="talkback_progress_percent">百分之</string>
+    <string name="talkback_progress">进度条</string>
+    <!--video 无障碍-->
+    <string name="talkback_video_controller_play">播放</string>
+    <string name="talkback_video_controller_pause">暂停</string>
+    <string name="talkback_video_controller_full_screen">全屏</string>
+    <string name="talkback_video_controller_exit_full_screen">退出全屏</string>
 </resources>

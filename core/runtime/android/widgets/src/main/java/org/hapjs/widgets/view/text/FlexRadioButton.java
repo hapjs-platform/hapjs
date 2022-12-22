@@ -40,7 +40,7 @@ public class FlexRadioButton extends AppCompatRadioButton implements ComponentHo
         this.mValue = value;
     }
 
-    private void initTallkback(AccessibilityNodeInfo info) {
+    private void initTalkBack(AccessibilityNodeInfo info) {
         if (mIsEnableTalkBack && null != info) {
             info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             info.setClassName("");
@@ -70,7 +70,7 @@ public class FlexRadioButton extends AppCompatRadioButton implements ComponentHo
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        initTallkback(info);
+        initTalkBack(info);
     }
 
     @Override

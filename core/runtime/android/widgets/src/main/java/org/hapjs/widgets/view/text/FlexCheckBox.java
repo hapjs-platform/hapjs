@@ -47,11 +47,11 @@ public class FlexCheckBox extends AppCompatCheckBox implements ComponentHost, Ge
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
-        initTallkback(info);
+        initTalkBack(info);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void initTallkback(AccessibilityNodeInfo info) {
+    private void initTalkBack(AccessibilityNodeInfo info) {
         if (mIsEnableTalkBack && null != info) {
             info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             info.setClassName("");
