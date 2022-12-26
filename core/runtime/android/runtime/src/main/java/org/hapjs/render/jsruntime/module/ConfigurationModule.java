@@ -37,9 +37,14 @@ public class ConfigurationModule extends ModuleExtension {
     protected static final String ACTION_SET_LOCALE = "setLocale";
     protected static final String ACTION_GET_THEME_MODE = "getThemeMode";
     protected static final String ACTION_SET_GRAY_MODE = "setGrayMode";
+    protected static final String ACTION_GET_FOLDABLE_STATE = "getFoldableState";
 
     private static final String PARAM_LANG = "language";
     private static final String PARAM_COUNTRY_REGION = "countryOrRegion";
+    protected static final int FOLDABLE_SCREEN_EXPAND = 1;
+    protected static final int FOLDABLE_SCREEN_COLLAPSE = 2;
+    protected static final int FOLDABLE_SCREEN_UNKNOWN = 0;
+    protected static final int FOLDABLE_SCREEN_HALF_COLLAPSE = 3;
 
     @Override
     public void attach(RootView rootView, PageManager pageManager, AppInfo appInfo) {
@@ -56,6 +61,8 @@ public class ConfigurationModule extends ModuleExtension {
             return getThemeMode(request);
         } else if (ACTION_SET_GRAY_MODE.equals(action)) {
             return setGrayMode(request);
+        } else if (ACTION_GET_FOLDABLE_STATE.equals(action)) {
+            return getFoldableState(request);
         }
         return null;
     }
@@ -74,6 +81,10 @@ public class ConfigurationModule extends ModuleExtension {
         } else {
             return Response.ERROR;
         }
+    }
+
+    protected Response getFoldableState(Request request) {
+        return new Response(FOLDABLE_SCREEN_UNKNOWN);
     }
 
     private Response setLocale(Request request) throws JSONException {
