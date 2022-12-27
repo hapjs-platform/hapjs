@@ -5,7 +5,10 @@
 
 package org.hapjs.render.jsruntime.module;
 
+import android.app.Activity;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+
 import java.util.Locale;
 import org.hapjs.bridge.Extension;
 import org.hapjs.bridge.Request;
@@ -28,7 +31,9 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = ConfigurationModule.ACTION_GET_LOCALE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = ConfigurationModule.ACTION_SET_LOCALE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = ConfigurationModule.ACTION_GET_THEME_MODE, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(name = ConfigurationModule.ACTION_SET_GRAY_MODE, mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = ConfigurationModule.ACTION_SET_GRAY_MODE, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_FOLDABLE_STATE, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = ConfigurationModule.ACTION_GET_SCREEN_ORIENTATION, mode = Extension.Mode.SYNC)
         })
 public class ConfigurationModule extends ModuleExtension {
 
@@ -38,9 +43,13 @@ public class ConfigurationModule extends ModuleExtension {
     protected static final String ACTION_GET_THEME_MODE = "getThemeMode";
     protected static final String ACTION_SET_GRAY_MODE = "setGrayMode";
     protected static final String ACTION_GET_FOLDABLE_STATE = "getFoldableState";
+    protected static final String ACTION_GET_SCREEN_ORIENTATION = "getScreenOrientation";
 
     private static final String PARAM_LANG = "language";
     private static final String PARAM_COUNTRY_REGION = "countryOrRegion";
+    private static final String CONFIGURATION_ORIENTATION_UNDEFINED = "undefined";
+    private static final String CONFIGURATION_ORIENTATION_PORTRAIT = "portrait";
+    private static final String CONFIGURATION_ORIENTATION_LANDSCAPE = "landscape";
     protected static final int FOLDABLE_SCREEN_EXPAND = 1;
     protected static final int FOLDABLE_SCREEN_COLLAPSE = 2;
     protected static final int FOLDABLE_SCREEN_UNKNOWN = 0;
@@ -61,10 +70,31 @@ public class ConfigurationModule extends ModuleExtension {
             return getThemeMode(request);
         } else if (ACTION_SET_GRAY_MODE.equals(action)) {
             return setGrayMode(request);
+        } else if (ACTION_GET_SCREEN_ORIENTATION.equals(action)) {
+            return getScreenOrientation(request);
         } else if (ACTION_GET_FOLDABLE_STATE.equals(action)) {
             return getFoldableState(request);
         }
         return null;
+    }
+
+    private Response getScreenOrientation(Request request) {
+        Activity activity = request.getNativeInterface().getActivity();
+        Resources resources = activity.getResources();
+        if (activity == null) {
+            return new Response(CONFIGURATION_ORIENTATION_UNDEFINED);
+        }
+        Configuration configuration = resources.getConfiguration();
+        if (configuration == null) {
+            return new Response(CONFIGURATION_ORIENTATION_UNDEFINED);
+        }
+        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            return new Response(CONFIGURATION_ORIENTATION_PORTRAIT);
+        } else if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            return new Response(CONFIGURATION_ORIENTATION_LANDSCAPE);
+        } else {
+            return new Response(CONFIGURATION_ORIENTATION_UNDEFINED);
+        }
     }
 
     private Response getThemeMode(Request request) {
