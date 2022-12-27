@@ -232,6 +232,18 @@ public class FileUtils {
         }
     }
 
+    public static String getFileExtensionFromFileName(String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            return "";
+        }
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+            return fileName.substring(lastDotIndex);
+        } else {
+            return "";
+        }
+    }
+
     public static String getFileNameWithoutExtension(File file) {
         String name = file.getName();
         int lastDotIndex = name.lastIndexOf('.');
