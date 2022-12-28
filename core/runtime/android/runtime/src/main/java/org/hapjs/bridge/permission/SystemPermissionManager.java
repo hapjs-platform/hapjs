@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,11 +9,14 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.util.Log;
+
 import androidx.core.app.ActivityCompat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.hapjs.bridge.AbstractExtension;
 import org.hapjs.bridge.Constants;
@@ -21,10 +24,17 @@ import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.LifecycleListener;
 
 public class SystemPermissionManager implements PermissionManager {
+
+    private static final String TAG = "SystemPermissionManager";
+
     private static final Map<String, String> PERMISSION_ALTERNATIVES = new HashMap<>();
     private static final AtomicInteger sRequestCodeGenerator =
             new AtomicInteger(Constants.FEATURE_PERMISSION_CODE_BASE);
     private static final SystemPermissionManager sInstance = new SystemPermissionManager();
+
+    private Semaphore mSemaphore;
+
+    private static final int SEMAPHORE_COUNT = 1;
 
     static {
         PERMISSION_ALTERNATIVES.put(
@@ -34,6 +44,10 @@ public class SystemPermissionManager implements PermissionManager {
 
     public static SystemPermissionManager getDefault() {
         return sInstance;
+    }
+
+    private SystemPermissionManager() {
+        mSemaphore = new Semaphore(SEMAPHORE_COUNT);
     }
 
     @Override
@@ -48,6 +62,12 @@ public class SystemPermissionManager implements PermissionManager {
             return;
         }
 
+        try {
+            mSemaphore.acquire();
+        } catch (InterruptedException e) {
+            Log.d(TAG, "SystemPermissionManager InterruptedException : ", e);
+        }
+
         final int requestCode = sRequestCodeGenerator.incrementAndGet();
         ActivityCompat.requestPermissions(hybridManager.getActivity(), permissions, requestCode);
         hybridManager.addLifecycleListener(
@@ -56,6 +76,7 @@ public class SystemPermissionManager implements PermissionManager {
                     public void onRequestPermissionsResult(
                             int code, String[] permissions, int[] grantResults) {
                         if (requestCode == code) {
+                            mSemaphore.release();
                             hybridManager.removeLifecycleListener(this);
                             String[] grantedPermissions =
                                     filterGrantedPermissions(permissions, grantResults);
@@ -67,6 +88,13 @@ public class SystemPermissionManager implements PermissionManager {
                                 callback.onPermissionReject(hybridManager, grantedPermissions);
                             }
                         }
+                    }
+
+                    @Override
+                    public void onDestroy() {
+                        super.onDestroy();
+                        mSemaphore.release();
+                        hybridManager.removeLifecycleListener(this);
                     }
                 });
     }
