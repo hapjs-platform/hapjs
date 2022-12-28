@@ -31,7 +31,7 @@ import java.util.List;
 public class AnalyzerDetectionManager {
     private static final String TAG = "AnalyzerDetectionManage";
     private static final long SECOND_TO_MILLIS = 1000;
-    private static final long RECOMMEND_MAX_FEATURE_INVOKE_NUM = 40;
+    private static final int RECOMMEND_MAX_FEATURE_INVOKE_NUM = 40;
     public static final String EVENT_FORWARD_PAGE_START = "event_page_forward_start"; // Start of page creation
     public static final String EVENT_FORWARD_PAGE_FINISHED = "event_page_forward_finish"; // End of page creation
     public static final String EVENT_FEATURE_INVOKE = "event_feature_invoke"; // Feature invoke
@@ -137,7 +137,8 @@ public class AnalyzerDetectionManager {
                 String pageName = page.getName();
                 Context context = Analyzer.get().getApplicationContext();
                 if (context != null) {
-                    String vDomWarn = context.getString(R.string.analyzer_inspector_vdom_check_warning, pageName, virtualDomLayerCount, InspectorUtils.MAX_VIRTUAL_DOM_DEPTH);
+                    String vDomWarn = context.getResources().getQuantityString(R.plurals.analyzer_inspector_vdom_check_warning,
+                            InspectorUtils.MAX_VIRTUAL_DOM_DEPTH, pageName, virtualDomLayerCount, InspectorUtils.MAX_VIRTUAL_DOM_DEPTH);
                     NoticeMessage warn = NoticeMessage.warn(pageName, vDomWarn);
                     warn.setAction(vDomUiAction);
                     AnalyzerHelper.getInstance().notice(warn);
@@ -164,7 +165,8 @@ public class AnalyzerDetectionManager {
                 String pageName = page.getName();
                 Context context = Analyzer.get().getApplicationContext();
                 if (context != null) {
-                    String nativeWarn = context.getString(R.string.analyzer_inspector_native_check_warning, pageName, viewTreeLayerCount, InspectorUtils.MAX_VIEW_TREE_DEPTH);
+                    String nativeWarn = context.getResources().getQuantityString(R.plurals.analyzer_inspector_native_check_warning,
+                            InspectorUtils.MAX_VIEW_TREE_DEPTH, pageName, viewTreeLayerCount, InspectorUtils.MAX_VIEW_TREE_DEPTH);
                     NoticeMessage warn = NoticeMessage.warn(pageName, nativeWarn);
                     warn.setAction(viewTreeUiAction);
                     AnalyzerHelper.getInstance().notice(warn);
@@ -205,7 +207,8 @@ public class AnalyzerDetectionManager {
         if (mFeatureInvokeDuringCreatePage > RECOMMEND_MAX_FEATURE_INVOKE_NUM) {
             String pageName = page.getName();
             Context context = Runtime.getInstance().getContext();
-            String nativeWarn = context.getString(R.string.analyzer_feature_invoke_check_warning, pageName, mFeatureInvokeDuringCreatePage, RECOMMEND_MAX_FEATURE_INVOKE_NUM);
+            String nativeWarn = context.getResources().getQuantityString(R.plurals.analyzer_feature_invoke_check_warning,
+                    RECOMMEND_MAX_FEATURE_INVOKE_NUM, pageName, mFeatureInvokeDuringCreatePage, RECOMMEND_MAX_FEATURE_INVOKE_NUM);
             NoticeMessage warn = NoticeMessage.warn(pageName, nativeWarn);
             AnalyzerHelper.getInstance().notice(warn);
         }
