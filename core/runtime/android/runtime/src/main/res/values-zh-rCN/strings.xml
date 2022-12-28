@@ -79,9 +79,15 @@
     <string name="analyzer_notice_min_warn_error_message_tips">有%1$s，%2$s</string>
     <string name="analyzer_more_text_tip">更多</string>
     <string name="analyzer_less_text_tip">收起</string>
-    <string name="analyzer_inspector_vdom_check_warning">[%1$s] 布局过深,vdom深度为%2$d，建议不超过%3$d层</string>
-    <string name="analyzer_inspector_native_check_warning">[%1$s] 布局过深,原生视图深度为%2$d，建议不超过%3$d层</string>
-    <string name="analyzer_feature_invoke_check_warning">[%1$s] 创建期间Feature调用%2$d次，建议不超过%3$d</string>
+    <plurals name="analyzer_inspector_vdom_check_warning">
+        <item quantity="other">[%1$s] 布局过深,vdom深度为%2$d，建议不超过%3$d层</item>
+    </plurals>
+    <plurals name="analyzer_inspector_native_check_warning">
+        <item quantity="other">[%1$s] 布局过深,原生视图深度为%2$d，建议不超过%3$d层</item>
+    </plurals>
+    <plurals name="analyzer_feature_invoke_check_warning">
+        <item quantity="other">[%1$s] 创建期间Feature调用%2$d次，建议不超过%3$d</item>
+    </plurals>
     <string name="analyzer_image_check_warning">[%1$s] image组件图片过大,建议裁剪。原图[%2$s]，实际使用[%3$s]，图片资源:%4$s</string>
     <string name="analyzer_outer_view_warning">[%1$s] 屏幕外渲染过多视图，建议懒加载</string>
     <string name="analyzer_irregular_listitem_type_warning">[%1$s] 不规范的type值!请为不同dom结构的list-item设置不同的type</string>

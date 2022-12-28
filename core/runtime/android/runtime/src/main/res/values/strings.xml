@@ -100,9 +100,18 @@
     <string name="analyzer_notice_min_warn_error_message_tips">%1$s, %2$s</string>
     <string name="analyzer_more_text_tip">More</string>
     <string name="analyzer_less_text_tip">Hide</string>
-    <string name="analyzer_inspector_vdom_check_warning">[%1$s] The depth of vdom is %2$d. Don\'t go over %3$d layers.</string>
-    <string name="analyzer_inspector_native_check_warning">[%1$s] The native view level is %2$d. Don\'t go over %3$d layers.</string>
-    <string name="analyzer_feature_invoke_check_warning">[%1$s] The features are invoked %2$d times when the page is being created. Don\'t exceed %3$d.</string>
+    <plurals name="analyzer_inspector_vdom_check_warning">
+        <item quantity="one">[%1$s] The depth of vdom is %2$d. Don\'t go over %3$d layer.</item>
+        <item quantity="other">[%1$s] The depth of vdom is %2$d. Don\'t go over %3$d layers.</item>
+    </plurals>
+    <plurals name="analyzer_inspector_native_check_warning">
+        <item quantity="one">[%1$s] The native view level is %2$d. Don\'t go over %3$d layer.</item>
+        <item quantity="other">[%1$s] The native view level is %2$d. Don\'t go over %3$d layers.</item>
+    </plurals>
+    <plurals name="analyzer_feature_invoke_check_warning">
+        <item quantity="one">[%1$s] The features are invoked %2$d time when the page is being created. Don\'t exceed %3$d.</item>
+        <item quantity="other">[%1$s] The features are invoked %2$d times when the page is being created. Don\'t exceed %3$d.</item>
+    </plurals>
     <string name="analyzer_image_check_warning">[%1$s] Large picture is applied to image component. Original size: [%2$s]. Used size: [%3$s]. Source: %4$s.</string>
     <string name="analyzer_outer_view_warning">[%1$s] Too many views rendered out of the screen. Use lazy loading.</string>
     <string name="analyzer_irregular_listitem_type_warning">[%1$s] Use different list-item types with different dom.</string>
