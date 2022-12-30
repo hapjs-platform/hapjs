@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -539,7 +539,8 @@ public abstract class Component<T extends View>
 
         if (mTransform != null
                 && (!Float.isNaN(mTransform.getTranslationXPercent())
-                || !Float.isNaN(mTransform.getTranslationYPercent()))) {
+                || !Float.isNaN(mTransform.getTranslationYPercent())
+                || !Float.isNaN(mTransform.getTranslationZPercent()))) {
             addGlobalLayoutListener();
         } else if (mTransformLayoutListener != null) {
             removeGlobalLayoutListener();
@@ -3425,7 +3426,7 @@ public abstract class Component<T extends View>
         callback(args, CALLBACK_KEY_COMPLETE, null);
     }
 
-    public void callback(java.util.Map<String, Object> args, String key, Object object) {
+    public void callback(Map<String, Object> args, String key, Object object) {
         if (args != null && args.containsKey(key)) {
             String callbackId = (String) args.get(key);
             mCallback.onJsMethodCallback(getPageId(), callbackId, object);
@@ -3627,6 +3628,11 @@ public abstract class Component<T extends View>
                         component.mTransform.getTranslationYPercent() * component.mHost.getHeight();
                 component.mTransform.setTranslationY(translationY);
                 component.mHost.setTranslationY(translationY);
+            }
+            if (!Float.isNaN(component.mTransform.getTranslationZPercent())) {
+                float translationZ = component.mTransform.getTranslationZPercent() * 2; // 2dp thickness
+                component.mTransform.setTranslationZ(translationZ);
+                component.mHost.setTranslationZ(translationZ);
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -61,6 +61,7 @@ public class AnimationParser {
     static final String TAG_SCALE_Y = "scaleY";
     static final String TAG_TRANSLATE_X = "translateX";
     static final String TAG_TRANSLATE_Y = "translateY";
+    static final String TAG_TRANSLATE_Z = "translateZ";
     static final String PROPERTY_ALPHA = "alpha";
     static final String PROPERTY_BACKGROUND_COLOR = TAG_BACKGROUND_COLOR;
     static final String PROPERTY_BACKGROUND_POSITION = TAG_BACKGROUND_POSITION;
@@ -75,6 +76,7 @@ public class AnimationParser {
     static final String PROPERTY_TRANSLATION_Y = "translationY";
     static final String PROPERTY_PIVOT_X = "pivotX";
     static final String PROPERTY_PIVOT_Y = "pivotY";
+    static final String PROPERTY_TRANSLATION_Z = "translationZ";
     private static final String TAG = "AnimationParser";
     private static final String TAG_TIME = "time";
     private static final String TAG_TRANSFORM = "transform";
@@ -308,6 +310,27 @@ public class AnimationParser {
                                                     Keyframe.ofFloat(fraction, translateY),
                                                     interpolator));
                         }
+
+                        String strZ = transformObject.optString(TAG_TRANSLATE_Z);
+                        float translateZ = FloatUtil.UNDEFINED;
+                        if (!TextUtils.isEmpty(strZ)) {
+                            if (strZ.endsWith(Attributes.Unit.PERCENT)) {
+                                animatorSet.setIsPercent(true);
+                                float ratio = Attributes.getPercent(strZ, 0);
+                                // 2dp thickness
+                                translateZ = ratio * 2;
+                            } else {
+                                translateZ =
+                                        Attributes.getFloat(hapEngine, strZ, FloatUtil.UNDEFINED);
+                            }
+                        }
+                        if (!FloatUtil.isUndefined(translateZ)) {
+                            getKeyframeList(PROPERTY_TRANSLATION_Z, keyframeMap)
+                                    .add(
+                                            keyframeWithInterpolator(
+                                                    Keyframe.ofFloat(fraction, translateZ),
+                                                    interpolator));
+                        }
                     }
 
                     // support transform origin
@@ -500,6 +523,7 @@ public class AnimationParser {
                 case PROPERTY_SCALE_Y:
                 case PROPERTY_TRANSLATION_X:
                 case PROPERTY_TRANSLATION_Y:
+                case PROPERTY_TRANSLATION_Z:
                 case PROPERTY_PIVOT_X:
                 case PROPERTY_PIVOT_Y:
                     ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(target, holder);
