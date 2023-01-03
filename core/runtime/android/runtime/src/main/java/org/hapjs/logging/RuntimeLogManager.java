@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import org.hapjs.bridge.Request;
+import org.hapjs.bridge.Response;
 import org.hapjs.cache.CacheStorage;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.json.JSONObject;
@@ -58,6 +59,7 @@ public class RuntimeLogManager {
     private static final String CATEGORY_PAGE_RENDER = "pageRender";
     private static final String CATEGORY_PAGE_ERROR = "pageError";
     private static final String CATEGORY_FEATURE_INVOKE = "featureInvoke";
+    public static final String CATEGORY_FEATURE_RESULT = "featureResult";
     private static final String CATEGORY_PERMISSION = "permission";
     private static final String CATEGORY_EXTERNAL_CALL = "externalCall";
     private static final String CATEGORY_CARD = "card";
@@ -148,6 +150,11 @@ public class RuntimeLogManager {
     public static final String KEY_APP_EVENT_BUTTON_SHOW = "eventbuttonShow";
     public static final String KEY_APP_EVENT_BUTTON_CLICK = "eventbuttonClick";
     public static final String KEY_APP_EVENT_BUTTON_TIPS_SHOW = "eventbuttonTipsShow";
+
+    //feature result
+    public static final String PARAM_FEATURE_NAME = "feature";
+    public static final String PARAM_FEATURE_ACTION = "action";
+    public static final String PARAM_FEATURE_RESULT = "featureResult";
 
     private Map<Object, Object> mStates;
     private Object mStateLock;
@@ -560,6 +567,17 @@ public class RuntimeLogManager {
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_ACTION, action);
         mProvider.logCountEvent(pkg, CATEGORY_FEATURE_INVOKE, feature, params);
+    }
+
+    public void logFeatureResult(String pkg, String feature, String action, Response response) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_FEATURE_NAME, feature);
+        params.put(PARAM_FEATURE_ACTION, action);
+        params.put(PARAM_FEATURE_RESULT, String.valueOf(response != null ? response.getCode() : -1));
+        mProvider.logCountEvent(pkg, CATEGORY_FEATURE_RESULT, CATEGORY_FEATURE_RESULT, params);
     }
 
     public void logPermissionPrompt(
