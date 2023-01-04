@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,8 +10,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import java.io.File;
-import java.io.IOException;
+
 import org.hapjs.bridge.AppInfoProvider;
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.cache.utils.PackageUtils;
@@ -23,6 +22,9 @@ import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.model.AppInfo;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
+
+import java.io.File;
+import java.io.IOException;
 
 public class Cache {
     private static final String TAG = "Cache";
@@ -276,11 +278,13 @@ public class Cache {
             return null;
         }
         AppInfo appInfo = getAppInfo();
-        String iconPath = appInfo.getIcon();
-        try {
-            return get(iconPath);
-        } catch (CacheException e) {
-            Log.w(TAG, "Failed to get iconUri", e);
+        if (appInfo != null) {
+            String iconPath = appInfo.getIcon();
+            try {
+                return get(iconPath);
+            } catch (CacheException e) {
+                Log.w(TAG, "Failed to get iconUri", e);
+            }
         }
         return null;
     }
