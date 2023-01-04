@@ -137,8 +137,7 @@ public class RuntimeLogManager {
     private static final String KEY_APP_ROUTER_DIALOG_CLICK = "routerDialogClick";
     private LogProvider mProvider;
     public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
-    public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
-
+    public static final String PARAM_ROUTER_APP_RESULT_DESC = "result_desc";
     public static final String PARAM_ROUTER_RPK_FROM = "routerRpkFrom";
     public static final String PARAM_ROUTER_RPK_RESULT = "routerRpkResult";
     public static final String PARAM_ROUTER_RPK_TARGET = "target_pkg";
@@ -268,7 +267,7 @@ public class RuntimeLogManager {
             String nativeActivity,
             String routerAppFrom,
             boolean result,
-            String failureMsg,
+            String resultDesc,
             String sourceH5) {
         if (mProvider == null) {
             return;
@@ -279,9 +278,7 @@ public class RuntimeLogManager {
         params.put(PARAM_NATIVE_ACTIVITY, nativeActivity);
         params.put(PARAM_ROUTER_NATIVE_FROM, routerAppFrom);
         params.put(PARAM_ROUTER_NATIVE_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
-        if (!TextUtils.isEmpty(failureMsg)) {
-            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
-        }
+        params.put(PARAM_ROUTER_APP_RESULT_DESC, resultDesc);
         if (!TextUtils.isEmpty(sourceH5)) {
             params.put(PARAM_OUTER_APP_SOURCE_H5, sourceH5);
         }
@@ -307,7 +304,7 @@ public class RuntimeLogManager {
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_DIALOG_CLICK, params);
     }
 
-    public void logRouterQuickApp(String pkg, String targetPkg, String routerFrom, boolean result, String failureMsg) {
+    public void logRouterQuickApp(String pkg, String targetPkg, String routerFrom, boolean result, String resultDesc) {
         if (mProvider == null) {
             return;
         }
@@ -315,9 +312,7 @@ public class RuntimeLogManager {
         params.put(PARAM_ROUTER_RPK_TARGET, targetPkg);
         params.put(PARAM_ROUTER_RPK_FROM, routerFrom);
         params.put(PARAM_ROUTER_RPK_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
-        if (!TextUtils.isEmpty(failureMsg)) {
-            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
-        }
+        params.put(PARAM_ROUTER_APP_RESULT_DESC, resultDesc);
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_RPK_ROUTER_RPK, params);
     }
 
