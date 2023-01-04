@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -662,7 +662,7 @@ public class JsThread extends HandlerThread {
             // 当thread被block的时候,activity已经stop,不应该发送visible=true事件,
             // 仅发送visible=false事件,在activity变为start时会重新发送visible=true事件
             if (visible && page.getState() == Page.STATE_INITIALIZED && !mBlocked) {
-                if (page.shouldReload()) {
+                if (page.shouldReload() && page.getRequest() != null) {
                     RouterUtils.replace(mPageManager, page.getRequest());
                     return;
                 }
