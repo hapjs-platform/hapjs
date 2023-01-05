@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -39,6 +39,7 @@ public class Source {
     public static final String SHORTCUT_SCENE_WEB = "web";
     public static final String SHORTCUT_SCENE_MENU = "menu";
     public static final String SHORTCUT_SCENE_SMART_PROGRAM = "smartProgram";
+    public static final String SHORTCUT_SCENE_EASY_TRANSFER = "easyTransfer";
     public static final String SHORTCUT_SCENE_OTHER = "other";
     // shortcut dialog subscene values
     public static final String DIALOG_SCENE_EXIT_APP = "exitApp";

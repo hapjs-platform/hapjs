@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.text.TextUtils;
 import android.util.Log;
 import java.util.HashSet;
@@ -69,8 +70,8 @@ public class ShortcutManager {
         Bitmap icon = IconUtils.getIconBitmap(context, iconUri);
 
         boolean result = installInner(context, pkg, path, appName, icon, source);
-        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, iconUri, source,
-                result);
+        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, iconUri,
+                "", "", source, result);
         return result;
     }
 
@@ -80,10 +81,13 @@ public class ShortcutManager {
             String path,
             String params,
             String appName,
+            String type,
+            String serverIconUrl,
             Bitmap icon,
             Source source) {
         boolean result = installInner(context, pkg, path, appName, icon, source);
-        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null, source, result);
+        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null,
+                type, serverIconUrl, source, result);
         return result;
     }
 
@@ -96,7 +100,7 @@ public class ShortcutManager {
         if (Build.VERSION.SDK_INT < 26) {
             return installOnBase(context, pkg, path, appName, icon, source);
         } else {
-            return installAboveOreoInner(context, pkg, path, appName, icon, source, null);
+            return installAboveOreoInner(context, pkg, path, appName, icon, source, null, null);
         }
     }
 
@@ -135,8 +139,8 @@ public class ShortcutManager {
 
         if (Build.VERSION.SDK_INT < 26) {
             boolean result = installOnBase(context, pkg, path, appName, icon, source);
-            IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null, source,
-                    result);
+            IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null,
+                    "", "", source, result);
             return result;
         } else {
             ShortcutInstaller.ResultLatch resultLatch =
@@ -170,8 +174,24 @@ public class ShortcutManager {
             Source source,
             IntentSender intentSender) {
         boolean result =
-                installAboveOreoInner(context, pkg, path, appName, icon, source, intentSender);
-        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null, source, result);
+                installAboveOreoInner(context, pkg, path, appName, icon, source, intentSender, null);
+        IMPL.onShortcutInstallComplete(context, pkg, path, params, appName, null, "", "", source, result);
+        return result;
+    }
+
+    public static boolean installAboveOreo(
+            Context context,
+            String pkg,
+            String appName,
+            Bitmap icon,
+            String type,
+            String serverIconUrl,
+            Source source,
+            IntentSender intentSender,
+            PersistableBundle bundle) {
+        boolean result = installAboveOreoInner(context, pkg, "", appName, icon, source, intentSender, bundle);
+        IMPL.onShortcutInstallComplete(context, pkg, "", "", appName, null, type,
+                serverIconUrl, source, result);
         return result;
     }
 
@@ -183,7 +203,8 @@ public class ShortcutManager {
             String appName,
             Bitmap icon,
             Source source,
-            IntentSender intentSender) {
+            IntentSender intentSender,
+            PersistableBundle bundle) {
         android.content.pm.ShortcutManager shortcutManager =
                 context.getSystemService(android.content.pm.ShortcutManager.class);
         if (shortcutManager.isRequestPinShortcutSupported()) {
@@ -193,6 +214,10 @@ public class ShortcutManager {
                             .setShortLabel(appName)
                             .setIntent(getLaunchIntent(context, pkg, path, source));
             ComponentName componentName = getLauncherActivity(context);
+            //增加extra参数
+            if (bundle != null) {
+                builder.setExtras(bundle);
+            }
             if (componentName != null) {
                 builder.setActivity(componentName);
             }

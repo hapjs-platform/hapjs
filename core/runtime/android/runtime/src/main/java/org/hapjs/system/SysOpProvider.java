@@ -57,6 +57,8 @@ public interface SysOpProvider {
             String params,
             String appName,
             Uri iconUri,
+            String type,
+            String serverIconUrl,
             Source source,
             boolean isComplete);
 
