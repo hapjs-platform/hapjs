@@ -192,6 +192,8 @@ public abstract class Component<T extends View>
     private ComponentPreDrawListener mUnReadyPreDrawListener;
     private boolean mRegisterClickEvent;
 
+    protected boolean mIsAdMaterial = false;
+    protected boolean mIsUseInList = false;
 
     private View mFullScreenView;
 
@@ -225,6 +227,12 @@ public abstract class Component<T extends View>
             if (appInfo != null) {
                 mMinPlatformVersion = appInfo.getMinPlatformVersion();
             }
+        }
+        if (mParent != null && mParent.isAdMaterial()) {
+            mIsAdMaterial = true;
+        }
+        if (mParent != null && mParent.isUseInList()) {
+            mIsUseInList = true;
         }
     }
 
@@ -2979,6 +2987,13 @@ public abstract class Component<T extends View>
         mRef = ref;
     }
 
+    /**
+     * list 中 绑定数据后，回调该方法
+     */
+    protected void afterApplyDataToComponent() {
+
+    }
+
     public RenderEventCallback getCallback() {
         return mCallback;
     }
@@ -3674,6 +3689,14 @@ public abstract class Component<T extends View>
         }
     }
 
+    public boolean isAdMaterial() {
+        return mIsAdMaterial;
+    }
+
+    public boolean isUseInList() {
+        return mIsUseInList;
+    }
+
     public static class RecyclerItem extends RecyclerDataItem {
 
         private Map<String, Object> mInstanceState = new HashMap<>();
@@ -3741,6 +3764,7 @@ public abstract class Component<T extends View>
             }
             recycle.performRestoreInstanceState(mInstanceState);
             mInstanceState.clear();
+            recycle.afterApplyDataToComponent();
         }
 
         public boolean isFixOrFloating() {
