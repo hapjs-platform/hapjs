@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.common.utils;
 
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,5 +30,11 @@ public class ViewUtils {
                         ? ViewGroup.LayoutParams.WRAP_CONTENT
                         : ViewGroup.LayoutParams.MATCH_PARENT;
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+    }
+
+    public static void fitMultiModeLayoutParams(Context context, ViewGroup.LayoutParams lp) {
+        if (FoldingUtils.isMultiWindowMode()) {
+            lp.width = DisplayUtil.getScreenWidth(context);
+        }
     }
 }

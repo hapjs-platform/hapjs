@@ -228,6 +228,21 @@ public class RouterUtils {
         pageManager.replace(page);
     }
 
+    public static void replaceLeftPage(PageManager pageManager, HybridRequest request) {
+        if (pageManager == null) {
+            return;
+        }
+        recordAppRouterStats(pageManager, request);
+        Page page;
+        try {
+            page = pageManager.buildPage(request);
+        } catch (PageNotFoundException e) {
+            Page leftPage = pageManager.getMultiWindowLeftPage();
+            page = pageManager.buildErrorPage(request, leftPage != null && leftPage.isPageNotFound());
+        }
+        pageManager.replaceLeftPage(page);
+    }
+
     public static boolean back(Context context, PageManager pageManager) {
         if (pageManager != null && pageManager.getCurrIndex() > 0) {
             pageManager.back();
@@ -271,7 +286,7 @@ public class RouterUtils {
 
     public static void exit(Context context, PageManager pageManager) {
         if (pageManager != null) {
-            pageManager.clear();
+            pageManager.clear(true);
         }
         back(context, pageManager);
     }

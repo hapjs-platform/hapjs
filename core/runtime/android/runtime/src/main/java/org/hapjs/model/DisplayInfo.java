@@ -9,6 +9,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
+import org.hapjs.render.MultiWindowManager;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +29,12 @@ public class DisplayInfo {
     public static final String MODE_ORIGINAL = "original";
     public static final String MODE_FIT_SCREEN = "fitScreen";
     public static final String MODE_FILL_SCREEN = "fillScreen";
+    public static final String MODE_MULTI_WINDOW = "multiWindow";
+    private static final String KEY_MULTI_WINDOW_MODE = "multiWindowMode";
+    private static final String KEY_MULTI_WINDOW_CONFIG = "multiWindowConfig";
+    private static final String KEY_MULTI_WINDOW_CONFIG_MODE = "mode";
+    public static final String MODE_SHOPPING = "shopping";
+    public static final String MODE_NAVIGATION = "navigation";
     public static final String MODE_ADAPTIVE_SCREEN = "adaptiveScreen";
 
     private static final String KEY_PAGE_ANIMATION = "pageAnimation";
@@ -48,6 +56,16 @@ public class DisplayInfo {
         String fitMode = jsonObject.optString(KEY_FIT_WIDE_SCREEN);
         if (!TextUtils.isEmpty(fitMode)) {
             displayInfo.mFitMode = fitMode;
+            if (TextUtils.equals(fitMode, MODE_MULTI_WINDOW)) {
+                String multiWindowMode = jsonObject.optString(KEY_MULTI_WINDOW_MODE);
+                if (TextUtils.isEmpty(multiWindowMode)) {
+                    JSONObject multiWindowConfigJsonObject = jsonObject.optJSONObject(KEY_MULTI_WINDOW_CONFIG);
+                    if (multiWindowConfigJsonObject != null) {
+                        multiWindowMode = multiWindowConfigJsonObject.optString(KEY_MULTI_WINDOW_CONFIG_MODE);
+                    }
+                }
+                MultiWindowManager.setMultiWindowModeType(multiWindowMode);
+            }
         }
 
         JSONObject pagesObject = jsonObject.optJSONObject(KEY_PAGES);

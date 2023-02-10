@@ -108,6 +108,7 @@ public class Page implements IPage {
     private volatile int mLoadJsResult = JS_LOAD_RESULT_NONE;
     private int mInnerPageTag = PAGE_TAG_DEFAULT;
     private boolean mPageShowTitleBar = true;
+    private boolean mIsMultiWindowLeftPage = false;
 
     private String mExtraTitleBarBackgroundColor;
     private String mExtraTitleBarBackgroundOpacity;
@@ -309,6 +310,14 @@ public class Page implements IPage {
 
     public int getLoadJsResult() {
         return mLoadJsResult;
+    }
+
+    public void setIsMultiWindowLeftPage(boolean isMultiWindowLeftPage) {
+        mIsMultiWindowLeftPage = isMultiWindowLeftPage;
+    }
+
+    public boolean getIsMultiWindowLeftPage() {
+        return mIsMultiWindowLeftPage;
     }
 
     public void setLoadJsResult(int loadJsResult) {
