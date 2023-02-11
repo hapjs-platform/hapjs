@@ -253,6 +253,9 @@ subprojects {
             tv {
                 dimension "platform"
             }
+            car {
+                dimension "platform"
+            }
         }
         sourceSets {
             main.kotlin.srcDirs += 'src/main/kotlin'
