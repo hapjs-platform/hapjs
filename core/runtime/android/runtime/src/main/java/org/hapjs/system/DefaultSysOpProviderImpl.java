@@ -492,7 +492,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
             screenOrientation = page.getOrientation();
         } else {
             screenOrientation =
-                    BuildPlatform.isTV() ?
+                    BuildPlatform.isTV() | BuildPlatform.isCar() ?
                             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
         }
