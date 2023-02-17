@@ -2575,4 +2575,9 @@ public class RootView extends FrameLayout
             return mReloadPage;
         }
     }
+
+    public RenderEventCallback getRenderEventCallback() {
+        return mRenderEventCallback;
+    }
+
 }

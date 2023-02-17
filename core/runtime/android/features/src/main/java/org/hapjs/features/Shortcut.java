@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2023, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,21 +16,29 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import java.lang.ref.WeakReference;
+
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
+import org.hapjs.bridge.storage.file.InternalUriUtils;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.IconUtils;
 import org.hapjs.common.utils.ShortcutManager;
+import org.hapjs.common.utils.UriUtils;
+import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.logging.Source;
+import org.hapjs.render.Page;
+import org.hapjs.render.PageManager;
+import org.hapjs.render.RootView;
 import org.hapjs.runtime.Checkable;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.lang.ref.WeakReference;
 
 @FeatureExtensionAnnotation(
         name = Shortcut.FEATURE_NAME,
@@ -58,6 +66,9 @@ public class Shortcut extends FeatureExtension {
     protected static final String ATTR_SYSTEM_PROMPT_ENABLED_ALIAS = "systemPromptEnabled";
     protected static final String ATTR_GET_SYSTEM_PROMPT_ENABLED = "__getSystemPromptEnabled";
     protected static final String ATTR_SET_SYSTEM_PROMPT_ENABLED = "__setSystemPromptEnabled";
+    private static final String PARAM_KEY_NAME = "name";
+    private static final String PARAM_KEY_ICON_URL = "iconUrl";
+    private static final String PARAM_KEY_PATH = "path";
     private static final String TAG = "Shortcut";
     private static final String ATTR_DEFAULT_PARAMS_KEY = "value";
     private static final int CODE_EXCEED_USE_FREQUENCY = Response.CODE_FEATURE_ERROR + 1;
@@ -82,18 +93,33 @@ public class Shortcut extends FeatureExtension {
     protected void hasInstalled(Request request) throws JSONException {
         final Context context = request.getNativeInterface().getActivity();
         String pkg = request.getApplicationContext().getPackage();
-
-        boolean hasInstall = ShortcutManager.hasShortcutInstalled(context, pkg);
+        JSONObject jsonParams = request.getJSONParams();
+        final String path = jsonParams == null ? "" : jsonParams.optString(PARAM_KEY_PATH, "");
+        boolean hasInstall = ShortcutManager.hasShortcutInstalled(context, pkg, path);
         request.getCallback().callback(new Response(hasInstall));
     }
 
     private void install(final Request request) throws JSONException {
         final Activity activity = request.getNativeInterface().getActivity();
-        final String name = request.getApplicationContext().getName();
+        String nameTemp = request.getApplicationContext().getName();
         final String pkg = request.getApplicationContext().getPackage();
-        final Uri iconUri = request.getApplicationContext().getIcon();
+        final String path = request.getJSONParams() == null ? "" : request.getJSONParams().optString(PARAM_KEY_PATH);
+        Uri iconUriTemp = request.getApplicationContext().getIcon();
         final String customMessage = request.getJSONParams().optString(PARAM_MESSAGE);
-
+        if (!TextUtils.isEmpty(path)) {
+            //不为空时优先取开发者指定
+            nameTemp = request.getJSONParams().optString(PARAM_KEY_NAME);
+            if (TextUtils.isEmpty(nameTemp)) {
+                Response response =
+                        new Response(Response.CODE_GENERIC_ERROR, "name is null");
+                request.getCallback().callback(response);
+                return;
+            }
+            String iconUrl = request.getJSONParams().optString(PARAM_KEY_ICON_URL);
+            iconUriTemp = tryParseUri(iconUrl, request);
+        }
+        final String name = nameTemp;
+        final Uri iconUri = iconUriTemp;
         if (TextUtils.isEmpty(name) || iconUri == null) {
             Response response =
                     new Response(Response.CODE_GENERIC_ERROR, "app name or app iconUri is null");
@@ -115,7 +141,7 @@ public class Shortcut extends FeatureExtension {
             return;
         }
 
-        if (ShortcutManager.hasShortcutInstalled(activity, pkg)) {
+        if (ShortcutManager.hasShortcutInstalled(activity, pkg, path)) {
             ShortcutManager.update(activity, pkg, name, iconUri);
             Response response =
                     new Response(
@@ -127,6 +153,12 @@ public class Shortcut extends FeatureExtension {
 
         if (activity.isDestroyed() || activity.isFinishing()) {
             request.getCallback().callback(Response.ERROR);
+            return;
+        }
+
+        if (!ShortcutManager.checkShortcutNumber(activity, pkg, path)) {
+            request.getCallback().callback(new Response(Response.CODE_GENERIC_ERROR, "check Shortcut Number fail"));
+            Log.w(TAG, "check Shortcut Number fail:" + "pkg=" + pkg + ",iconUri=" + iconUri + ",name=" + name + ",path=" + path);
             return;
         }
 
@@ -156,6 +188,38 @@ public class Shortcut extends FeatureExtension {
                                 iconDrawable);
                     }
                 });
+    }
+
+    public Uri tryParseUri(String iconUrl, final Request request) {
+        if (TextUtils.isEmpty(iconUrl)) {
+            return request.getApplicationContext().getIcon();
+        }
+        Uri result = null;
+        result = UriUtils.computeUri(iconUrl);
+        Activity activity = request.getNativeInterface().getActivity();
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return null;
+        }
+        RenderEventCallback callback = null;
+        if (result == null) {
+            View hybridView = activity.findViewById(org.hapjs.runtime.R.id.hybrid_view);
+            if (!(hybridView instanceof RootView)) {
+                return null;
+            }
+            callback = ((RootView) hybridView).getRenderEventCallback();
+            PageManager pageManager = ((RootView) hybridView).getPageManager();
+            if (pageManager == null) {
+                return null;
+            }
+            Page currentPage = pageManager.getCurrPage();
+            result = callback.getCache(iconUrl);
+        } else if (InternalUriUtils.isInternalUri(result)) {
+            if (callback == null) {
+                return null;
+            }
+            result = callback.getUnderlyingUri(iconUrl);
+        }
+        return result;
     }
 
     protected void showCreateDialog(
@@ -262,6 +326,13 @@ public class Shortcut extends FeatureExtension {
 
     protected void onAccept(
             Request request, Context context, String pkgName, String name, Uri iconUri) {
+        String path = "";
+        try {
+            path = request.getJSONParams() == null ? "" : request.getJSONParams().optString(PARAM_KEY_PATH);
+        } catch (JSONException e) {
+            Log.e(TAG, "get path error", e);
+        }
+
         if (ShortcutManager.hasShortcutInstalled(context, pkgName)) {
             ShortcutManager.update(context, pkgName, name, iconUri);
             Response response = new Response(Response.CODE_SUCCESS, "Update success");
@@ -269,7 +340,7 @@ public class Shortcut extends FeatureExtension {
         } else {
             Source source = new Source();
             source.putExtra(Source.EXTRA_SCENE, Source.SHORTCUT_SCENE_API);
-            boolean result = ShortcutManager.install(context, pkgName, name, iconUri, source);
+            boolean result = ShortcutManager.install(context, pkgName, path, "", name, iconUri, source);
             if (result) {
                 request.getCallback().callback(Response.SUCCESS);
             } else {

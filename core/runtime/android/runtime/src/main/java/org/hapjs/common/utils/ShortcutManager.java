@@ -312,4 +312,8 @@ public class ShortcutManager {
         }
         return shortcutId;
     }
+
+    public static boolean checkShortcutNumber(Context context, String pkg, String path){
+        return IMPL.checkShortcutNumber(context,pkg,path);
+    }
 }

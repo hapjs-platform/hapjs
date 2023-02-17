@@ -84,6 +84,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     private static final String TAG = "DefaultSysOpProvider";
     private static final String UNINSTALL_SHORTCUT_ACTION =
             "com.android.launcher.action.UNINSTALL_SHORTCUT";
+    private static final int LIMIT_DEFAULT = 10;//同时允许单个资源最大加桌数量
 
     @Override
     public boolean shouldCreateShortcutByPlatform(Context context, String pkg) {
@@ -533,6 +534,71 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public int getSafeAreaWidth(Context context) {
         return 0;
+    }
+
+    @Override
+    public boolean checkShortcutNumber(Context context, String pkg, String path) {
+        int shortcutNumber = 0;
+        if (Build.VERSION.SDK_INT >= 26) {
+            shortcutNumber = getShortcutNumberAboveOreo(context, pkg, path);
+        } else {
+            shortcutNumber = getShortcutNumberOnBase(context, pkg, path);
+        }
+        return shortcutNumber <= LIMIT_DEFAULT;
+    }
+
+    private int getShortcutNumberOnBase(Context context, String pkg, String path) {
+        Uri uri = getQueryUri();
+        String[] projection = new String[]{"intent"};
+        String selection = "itemType=1";
+        Cursor cursor = null;
+        int number = 0;
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, null, null);
+            if (cursor == null) {
+                return number;
+            }
+            while (cursor.moveToNext()) {
+                String intentText = cursor.getString(0);
+                try {
+                    Intent intent = Intent.parseUri(intentText, 0);
+                    if (IntentUtils.getLaunchAction(context).equals(intent.getAction())) {
+                        String extraPackage = intent.getStringExtra(RuntimeActivity.EXTRA_APP);
+                        if (TextUtils.equals(extraPackage, pkg)) {
+                            number++;
+                            continue;
+                        }
+                    }
+                } catch (URISyntaxException e) {
+                    Log.e(TAG, "parseUri error", e);
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "getShortcutNumberOnBase: ", e);
+        } finally {
+            FileUtils.closeQuietly(cursor);
+        }
+        return number;
+    }
+
+    @TargetApi(26)
+    private int getShortcutNumberAboveOreo(Context context, String pkg, String path) {
+        int number = 0;
+        try {
+            ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+            List<ShortcutInfo> shortcuts = shortcutManager.getPinnedShortcuts();
+            if (shortcuts != null) {
+                for (ShortcutInfo shortcutInfo : shortcuts) {
+                    if (!TextUtils.isEmpty(shortcutInfo.getId()) && shortcutInfo.getId().startsWith(pkg)) {
+                        number++;
+                    }
+                }
+            } else {
+                Log.e(TAG, "getShortcutNumberAboveOreo shortcuts null");
+            }
+        } catch (Exception e) {
+        }
+        return number;
     }
 
 }

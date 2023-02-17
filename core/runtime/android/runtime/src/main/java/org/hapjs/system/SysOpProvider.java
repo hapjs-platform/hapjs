@@ -174,4 +174,13 @@ public interface SysOpProvider {
     int getFoldDisplayWidth(Context context);
 
     int getSafeAreaWidth(Context context);
+
+    /**
+     * 检查单个资源最大允许加桌数量
+     * @param context
+     * @param pkg
+     * @param path
+     * @return true--没有超过桌面图标限制
+     */
+    boolean checkShortcutNumber(Context context, String pkg, String path);
 }
