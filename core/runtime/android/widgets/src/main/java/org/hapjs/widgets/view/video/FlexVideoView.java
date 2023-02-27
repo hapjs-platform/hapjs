@@ -97,6 +97,7 @@ public class FlexVideoView extends FrameLayout
     private Uri mPosterUri;
     private Boolean mMuted;
     private String mPlayCount;
+    private float mSpeed = Video.SPEED_DEFAULT;
     private OnErrorListener mOnErrorListener;
     private OnIdleListener mOnIdleListener;
     private OnStartListener mOnStartListener;
@@ -1301,9 +1302,17 @@ public class FlexVideoView extends FrameLayout
             if (mMuted != null) {
                 mPlayer.setMuted(mMuted);
             }
+            mPlayer.setSpeed(mSpeed);
             mPlayer.setDataSource(mUri);
             mPlayer.setEventListener(this);
             mControlsManager.attachPlayer(mPlayer);
+        }
+    }
+
+    public void setSpeed(float speed) {
+        mSpeed = speed;
+        if (mPlayer != null) {
+            mPlayer.setSpeed(speed);
         }
     }
 

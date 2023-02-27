@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -111,6 +111,12 @@ public interface IMediaPlayer {
     @IntDef({MEDIA_SOURCE_ERROR, MEDIA_RENDER_ERROR, MEDIA_UNEXCEPTED_ERROR})
     @interface MediaErrorType {
     }
+
+    /**
+     * 设置播放速度
+     * @param speed 倍速
+     */
+    void setSpeed(float speed);
 
     interface EventListener {
         void onLoadingChanged(IMediaPlayer player, boolean isLoading);
