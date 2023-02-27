@@ -149,6 +149,8 @@ public class FlexVideoView extends FrameLayout
     public static Uri mCacheFullScreenUri = null;
     public static boolean mIsFullScreen = false;
     public boolean mIsEverCacheVideo = false;
+    // 是否按下 video 控制栏左下角暂停按钮
+    private boolean mIsPauseButtonPress;
 
     public FlexVideoView(final Context context) {
         this(context, true);
@@ -217,6 +219,14 @@ public class FlexVideoView extends FrameLayout
 
     private boolean isRoundedBorders() {
         return mBorderRadiusFlags > 0f;
+    }
+
+    public void setPauseButtonPress(boolean mIsPauseButtonPress) {
+        this.mIsPauseButtonPress = mIsPauseButtonPress;
+    }
+
+    public boolean isPauseButtonPress() {
+        return mIsPauseButtonPress;
     }
 
     public void start() {

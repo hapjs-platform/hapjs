@@ -97,6 +97,15 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
 
     private static final String CURRENT_TIME = "currenttime";
 
+    //pause reason
+    private static final String PAUSE_CODE = "pauseCode";
+    // 按下视频左下角暂停按钮，导致视频暂停
+    private static final int VIDEO_PAUSE_OF_PRESS_PAUSE_BUTTON = 201;
+    // 调用快应用官方文档中的视频暂停方法，导致视频暂停
+    private static final int VIDEO_PAUSE_OF_CALL_PAUSE_METHOD = 202;
+    // 其他情况导致视频暂停
+    private static final int VIDEO_PAUSE_OF_OTHER_REASON = 203;
+
     private String mUri;
     private String mParseUriStr;
     private boolean mAutoPlay;
@@ -119,6 +128,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     private long mMinLastModified;
     private static final long MAX_ALIVE_TIME_MILLIS = 60 * 60 * 1000L;
 
+    private boolean mCallFromPauseMethod;
+    private FlexVideoView mVideoView;
+
     public Video(
             HapEngine hapEngine,
             Context context,
@@ -133,10 +145,10 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     @Override
     protected FlexVideoView createViewImpl() {
         boolean visible = Attributes.getBoolean(mAttrsDomData.get(CONTROLS), true);
-        final FlexVideoView videoView = new FlexVideoView(mContext, visible);
-        videoView.setComponent(this);
-        videoView.setIsLazyCreate(mLazyCreate);
-        videoView.setOnPreparedListener(new FlexVideoView.OnPreparedListener() {
+        mVideoView = new FlexVideoView(mContext, visible);
+        mVideoView.setComponent(this);
+        mVideoView.setIsLazyCreate(mLazyCreate);
+        mVideoView.setOnPreparedListener(new FlexVideoView.OnPreparedListener() {
             @Override
             public void onPrepared(IMediaPlayer mp) {
                 if (mHost == null || !mHost.isAttachedToWindow()) {
@@ -160,9 +172,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                 if (lastPosition > 0) {
                     mp.seek(lastPosition);
                     setLastPosition(-1);
-                    videoView.start();
+                    mVideoView.start();
                 } else if (mAutoPlay) {
-                    videoView.start();
+                    mVideoView.start();
                 } else {
                     Log.w(TAG, "createViewImpl onPrepared else  lastPosition : " + lastPosition);
                 }
@@ -174,7 +186,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         getOrCreateBackgroundComposer().setBackgroundColor(0xee000000);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            videoView.setOutlineProvider(
+            mVideoView.setOutlineProvider(
                     new ViewOutlineProvider() {
                         @Override
                         public void getOutline(View view, Outline outline) {
@@ -192,9 +204,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                             }
                         }
                     });
-            videoView.setClipToOutline(true);
+            mVideoView.setClipToOutline(true);
         }
-        return videoView;
+        return mVideoView;
     }
 
     @Override
@@ -328,7 +340,16 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                     new FlexVideoView.OnPauseListener() {
                         @Override
                         public void onPause() {
-                            mCallback.onJsEventCallback(getPageId(), mRef, PAUSE, Video.this, null,
+                            Map<String, Object> params = new HashMap<>(1);
+                            if (mVideoView != null && mVideoView.isPauseButtonPress()) {
+                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_PRESS_PAUSE_BUTTON);
+                            } else if (mCallFromPauseMethod) {
+                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_CALL_PAUSE_METHOD);
+                            } else {
+                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_OTHER_REASON);
+                            }
+                            Log.i(TAG, "pauseCode: " + params.get(PAUSE_CODE));
+                            mCallback.onJsEventCallback(getPageId(), mRef, PAUSE, Video.this, params,
                                     null);
                         }
                     });
@@ -507,7 +528,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         if (mHost == null) {
             return;
         }
+        mCallFromPauseMethod = true;
         mHost.pause();
+        mCallFromPauseMethod = false;
     }
 
     private void requestFullscreen(int screenOrientation) {
