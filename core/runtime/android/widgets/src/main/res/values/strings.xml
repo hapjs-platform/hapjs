@@ -39,4 +39,9 @@
     <string name="webrtc_warn_reject">Decline</string>
     <string name="webrtc_warn_allow">Allow</string>
     <string name="header_2_space">\u3000\u3000</string>
+
+    <string name="notice_stopped_visiting">Stopped visiting this page</string>
+    <string name="notice_block_risk_content">This page may contain high risk content and has been blocked for you</string>
+    <string name="notice_continue_to_visit">continue_to_visit</string>
+    <string name="notice_exit">exit</string>
 </resources>

@@ -38,4 +38,9 @@
     <string name="webrtc_warn_reject">拒绝</string>
     <string name="webrtc_warn_allow">允许</string>
     <string name="header_2_space">\u3000\u3000</string>
+
+    <string name="notice_stopped_visiting">已停止访问该页面</string>
+    <string name="notice_block_risk_content">该页面可能包含高危内容，已为您拦截</string>
+    <string name="notice_continue_to_visit">继续访问</string>
+    <string name="notice_exit">退出</string>
 </resources>

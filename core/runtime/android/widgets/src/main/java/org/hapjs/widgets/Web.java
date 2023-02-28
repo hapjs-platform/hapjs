@@ -5,6 +5,7 @@
 
 package org.hapjs.widgets;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
@@ -12,16 +13,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import androidx.collection.ArraySet;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.collection.ArraySet;
+
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.AcceptLanguageUtils;
@@ -42,6 +45,13 @@ import org.hapjs.widgets.view.NestedWebView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 
 @WidgetAnnotation(
         name = Web.WIDGET_NAME,
@@ -86,6 +96,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private static final String SHOW_LOADING_DIALOG = "showloadingdialog";
     private static final String INTERCEPT_URL = "intercepturl";
     private static final String USER_AGENT = "useragent";
+    private static final String WHITE_DOMAIN = "whitedomain";
 
     private static final String KEY_STATE = "state";
     // set cookie
@@ -115,6 +126,10 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private boolean mPageLoadStart = false;
     private String mUserAgent;
     private LinkedList<WebPostMsg> mPendingMessages = new LinkedList<>();
+
+    private boolean webNoticeShowing = false;
+    private String lastUrl;
+    private ArraySet<String> mWhiteDomains = new ArraySet<>();
 
     public Web(
             HapEngine hapEngine,
@@ -266,6 +281,29 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                 mTrustedSrc = "\'" + url + "\'";
                 if (!TextUtils.isEmpty(mTrustedSrc)) {
                     mTrustedUrls.add(mTrustedSrc);
+                }
+                return true;
+            case WHITE_DOMAIN:
+                mWhiteDomains.clear();
+                if (attribute instanceof JSONArray) {
+                    JSONArray jsonArray = (JSONArray) attribute;
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        try {
+                            Object whiteDomain = jsonArray.get(i);
+                            if (whiteDomain instanceof JSONObject) {
+                                JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+                                String domain = jsonObject.getString("source");
+                                if(domain != null) {
+                                    domain = domain.replace("\\*", "*");
+                                    mWhiteDomains.add(domain);
+                                }
+                            } else {
+                                mWhiteDomains.add(jsonArray.getString(i));
+                            }
+                        } catch (JSONException e) {
+                            Log.e(TAG, "apply white domain attr failed ", e);
+                        }
+                    }
                 }
                 return true;
             case TRUSTED_URL:
@@ -521,8 +559,19 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         return super.removeEvent(event);
     }
 
-
     public void loadUrl(String url) {
+        if (TextUtils.isEmpty(url) || mHost == null) {
+            return;
+        }
+        //检查是否在白名单
+        if(mWhiteDomains.size() > 0 && !compareWhiteDomain(mWhiteDomains, url)) {
+            showWebNotice(url);
+        } else {
+            realLoadUrl(url);
+        }
+    }
+
+    public void realLoadUrl(String url) {
         if (TextUtils.isEmpty(url) || mHost == null) {
             return;
         }
@@ -535,6 +584,90 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
         String acceptLanguage = AcceptLanguageUtils.getAcceptLanguage();
         headers.put("Accept-Language", acceptLanguage);
         mHost.loadUrl(url, headers);
+    }
+
+
+    private boolean compareWhiteDomain(ArraySet<String> whiteDomains, String url) {
+        try {
+            URL mUrl = new URL(url);
+            String domain = mUrl.getHost();
+            String[] domainDetail = domain.split("\\.");
+            Iterator<String> it = whiteDomains.iterator();
+            while(it.hasNext()) {
+                String whiteDomain = it.next();
+                String[] whiteDomainDetail = whiteDomain.split("\\.");
+                if(domainDetail.length >= whiteDomainDetail.length) {
+                    int j = domainDetail.length - 1;
+                    for(int i = whiteDomainDetail.length - 1; i >= 0; i--) {
+                        if(i == 0) {
+                            if("*".equals(whiteDomainDetail[i])) {
+                                return true;
+                            } else if (domainDetail[j].equals(whiteDomainDetail[i]) &&
+                                    domainDetail.length == whiteDomainDetail.length) {
+                                return true;
+                            }
+                        }
+                        if(!"*".equals(whiteDomainDetail[i]) && !domainDetail[j].equals(whiteDomainDetail[i])) {
+                            break;
+                        }
+                        j--;
+                    }
+                }
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void showWebNotice(String url) {
+        //attr在create addchild vdom都会设置 重复加载三次url 防止重复弹框
+        if(webNoticeShowing && lastUrl != null && lastUrl.equals(url)) {
+            return;
+        }
+        webNoticeShowing = true;
+        lastUrl = url;
+        View noticeView = View.inflate(mContext,R.layout.web_notice_view,null);
+        ViewGroup root = (ViewGroup)((Activity)mContext).getWindow().getDecorView();
+        root.addView(noticeView);
+        TextView tvContinueToVisit = noticeView.findViewById(R.id.tv_continue_to_visit);
+        ImageView ivCancel = noticeView.findViewById(R.id.iv_cancel);
+        TextView tvExit = noticeView.findViewById(R.id.tv_exit);
+        tvContinueToVisit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //container.setVisibility(View.VISIBLE);
+                root.removeView(noticeView);
+                webNoticeShowing = false;
+                realLoadUrl(url);
+            }
+        });
+        ivCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHost != null) {
+                    root.removeView(noticeView);
+                    webNoticeShowing = false;
+                    if(mContext instanceof Activity) {
+                        Activity activity = (Activity)mContext;
+                        activity.onBackPressed();
+                    }
+                }
+            }
+        });
+        tvExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mHost != null) {
+                    root.removeView(noticeView);
+                    webNoticeShowing = false;
+                    if(mContext instanceof Activity) {
+                        Activity activity = (Activity)mContext;
+                        activity.onBackPressed();
+                    }
+                }
+            }
+        });
     }
 
     public void reload() {
