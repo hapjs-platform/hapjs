@@ -127,8 +127,8 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private String mUserAgent;
     private LinkedList<WebPostMsg> mPendingMessages = new LinkedList<>();
 
-    private boolean webNoticeShowing = false;
-    private String lastUrl;
+    private boolean mWebNoticeShowing = false;
+    private String mNoticeLastUrl;
     private ArraySet<String> mWhiteDomains = new ArraySet<>();
 
     public Web(
@@ -622,11 +622,11 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
 
     private void showWebNotice(String url) {
         //attr在create addchild vdom都会设置 重复加载三次url 防止重复弹框
-        if(webNoticeShowing && lastUrl != null && lastUrl.equals(url)) {
+        if(mWebNoticeShowing && mNoticeLastUrl != null && mNoticeLastUrl.equals(url)) {
             return;
         }
-        webNoticeShowing = true;
-        lastUrl = url;
+        mWebNoticeShowing = true;
+        mNoticeLastUrl = url;
         View noticeView = View.inflate(mContext,R.layout.web_notice_view,null);
         ViewGroup root = (ViewGroup)((Activity)mContext).getWindow().getDecorView();
         root.addView(noticeView);
@@ -638,7 +638,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
             public void onClick(View v) {
                 //container.setVisibility(View.VISIBLE);
                 root.removeView(noticeView);
-                webNoticeShowing = false;
+                mWebNoticeShowing = false;
                 realLoadUrl(url);
             }
         });
@@ -647,7 +647,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
             public void onClick(View v) {
                 if(mHost != null) {
                     root.removeView(noticeView);
-                    webNoticeShowing = false;
+                    mWebNoticeShowing = false;
                     if(mContext instanceof Activity) {
                         Activity activity = (Activity)mContext;
                         activity.onBackPressed();
@@ -660,7 +660,7 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
             public void onClick(View v) {
                 if(mHost != null) {
                     root.removeView(noticeView);
-                    webNoticeShowing = false;
+                    mWebNoticeShowing = false;
                     if(mContext instanceof Activity) {
                         Activity activity = (Activity)mContext;
                         activity.onBackPressed();

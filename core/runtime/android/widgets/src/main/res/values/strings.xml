@@ -42,6 +42,6 @@
 
     <string name="notice_stopped_visiting">Stopped visiting this page</string>
     <string name="notice_block_risk_content">This page may contain high risk content and has been blocked for you</string>
-    <string name="notice_continue_to_visit">continue_to_visit</string>
-    <string name="notice_exit">exit</string>
+    <string name="notice_continue_to_visit">Continue to visit</string>
+    <string name="notice_exit">Exit</string>
 </resources>
