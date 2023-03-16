@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -70,7 +70,9 @@ class XWatcher {
           } else if (typeof key !== 'symbol' && key[0] !== '_') {
             // 对象被Proxy代理后，原本访问[Symbol.toPrimitive]属性也会被劫持，即使该对象并未明确定义该属性
             // computed或者渲染watcher，则触发warn
-            console.warn(`请确认VM的data/public/protected/private中定义了属性：${key}`)
+            console.warn(
+              `### App Framework ### 请确认VM的data/public/protected/private中定义了属性：${key}`
+            )
           }
         }
         return target[key]
@@ -85,7 +87,7 @@ class XWatcher {
   get() {
     XLinker.pushTarget(this)
     // console.trace(`### App Framework ### XLinker pushTarget ${this.id}`)
-    const value = this.getter.call(this.vmGetter, this.vm)
+    const value = this.active ? this.getter.call(this.vmGetter, this.vm) : undefined
     XLinker.popTarget()
     // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
     this.clearLink()

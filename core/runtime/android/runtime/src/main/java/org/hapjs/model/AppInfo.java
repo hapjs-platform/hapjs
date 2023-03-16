@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,12 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.hapjs.bridge.FitWidescreenProvider;
 import org.hapjs.cache.Cache;
 import org.hapjs.cache.utils.PackageUtils;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.runtime.ConfigurationManager;
 import org.hapjs.runtime.LocaleResourcesParser;
+import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.resource.ResourceManagerFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -142,6 +145,10 @@ public class AppInfo {
         JSONObject displayObject = manifestObject.optJSONObject(KEY_DISPLAY);
         if (displayObject != null) {
             appInfo.mDisplayInfo = DisplayInfo.parse(displayObject);
+            String mode = appInfo.mDisplayInfo.getFitMode();
+            FitWidescreenProvider provider = ProviderManager.getDefault().getProvider(FitWidescreenProvider.NAME);
+            String fitMode = provider.getFitMode(appInfo.getPackage(), mode);
+            appInfo.mDisplayInfo.setFitMode(fitMode);
         }
         JSONArray subpackageObject = manifestObject.optJSONArray(KEY_SUBPACKAGES);
         appInfo.mSubpackageInfos =

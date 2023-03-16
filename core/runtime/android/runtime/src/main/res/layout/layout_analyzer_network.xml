@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/layout_analyzer_console_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ic_analyzer_panel_top_bg"
+    android:clickable="true"
+    android:focusable="true">
+
+    <RelativeLayout
+        android:id="@+id/btn_analyzer_network_ctl_line"
+        android:layout_width="match_parent"
+        android:layout_height="26dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <View
+            android:layout_width="52dp"
+            android:layout_height="5dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/ic_analyzer_sliding_panel_line" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/network_title_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/btn_analyzer_network_ctl_line">
+        <LinearLayout
+            android:id="@+id/network_detail_title_container"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:gravity="center_vertical"
+            android:paddingStart="7dp"
+            android:paddingEnd="0dp"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:id="@+id/network_detail_back_btn"
+                android:layout_width="32dp"
+                android:layout_height="match_parent"
+                android:gravity="center">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="17dp"
+                    app:srcCompat="@drawable/ic_analyzer_back" />
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:text="@string/analyzer_net_list_name"
+                android:textColor="#fff"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/network_overview_title_container"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:lines="1"
+                android:text="@string/analyzer_net_list_name"
+                android:textColor="#fff"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:maxLines="1"
+                android:text="@string/analyzer_net_list_type"
+                android:textColor="#fff" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:maxLines="1"
+                android:text="@string/analyzer_net_list_size"
+                android:textColor="#fff" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:maxLines="1"
+                android:text="@string/analyzer_net_list_time"
+                android:textColor="#fff" />
+
+            <TextView
+                android:layout_width="62dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:gravity="start"
+                android:maxLines="1"
+                android:text="@string/analyzer_net_list_waterfall"
+                android:textColor="#fff" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/analyzer_network_list_detail_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/network_title_container">
+
+        <org.hapjs.analyzer.views.EmptyRecyclerView
+            android:id="@+id/analyzer_network_item_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80505050" />
+
+        <org.hapjs.analyzer.views.NetworkDetailView
+            android:id="@+id/network_content_detail"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/analyzer_log_empty_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/analyzer_network_list_detail_container"
+        app:srcCompat="@drawable/ic_analyzer_log_empty" />
+
+    <TextView
+        android:id="@+id/btn_network_retry_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="114dp"
+        android:paddingStart="26dp"
+        android:paddingEnd="26dp"
+        android:textColor="#BFBFBF"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/network_title_container" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

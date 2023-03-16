@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,14 +9,11 @@ import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.util.Log;
 import org.hapjs.card.sdk.utils.CardThemeUtils;
-import org.hapjs.common.json.JSONObject;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.render.Page;
-import org.hapjs.render.vdom.DocAnimator;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
-import org.json.JSONException;
 
 public class Attributes {
 
@@ -25,104 +22,83 @@ public class Attributes {
     private Attributes() {
     }
 
-    public static int getPageOpenEnterAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_OPEN_ENTER)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_OPEN_ENTER);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageOpenEnterAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_OPEN_ENTER;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageCloseEnterAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_CLOSE_ENTER)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_CLOSE_ENTER);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageCloseEnterAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_CLOSE_ENTER;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageCloseExitAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_CLOSE_EXIT)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_CLOSE_EXIT);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageCloseExitAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_CLOSE_EXIT;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
-    public static int getPageOpenExitAnimation(JSONObject animationObj, int defValue) {
-        if (animationObj == null || !animationObj.has(PageAnimation.ACTION_OPEN_EXIT)) {
-            return defValue;
-        }
-        String temp = null;
-        try {
-            Object obj = animationObj.get(PageAnimation.ACTION_OPEN_EXIT);
-            if (obj instanceof String) {
-                temp = obj.toString().trim();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "getPageOpenExitAnimation: ", e);
-            return defValue;
-        }
-        if (PageAnimation.SLIDE.equalsIgnoreCase(temp)) {
-            return DocAnimator.TYPE_PAGE_OPEN_EXIT;
-        } else if (PageAnimation.NONE.equalsIgnoreCase(temp)) {
-            // 0表示无动画
-            return 0;
-        }
-        return defValue;
-    }
-
     public static int getInt(HapEngine hapEngine, Object value) {
         return getInt(hapEngine, value, 0);
     }
 
     public static int getInt(HapEngine hapEngine, Object value, int defValue) {
         return Math.round(getFloat(hapEngine, value, defValue));
+    }
+
+    public static int getFoldInt(HapEngine hapEngine, Object value, int defValue, boolean isUseFold) {
+        return Math.round(getFoldFloat(hapEngine, value, defValue, isUseFold));
+    }
+
+    public static float getFoldFloat(HapEngine hapEngine, Object value, float defValue, boolean isUseFold) {
+        if (value == null || "".equals(value)) {
+            return defValue;
+        }
+        String temp = value.toString().trim();
+        if (temp.startsWith(CardThemeUtils.KEY_THEME)) {
+            String themeValue = CardThemeUtils.getThemeValue(temp);
+            if (!TextUtils.isEmpty(themeValue)) {
+                temp = themeValue;
+            } else {
+                return defValue;
+            }
+        }
+        try {
+            //px
+            if (temp.endsWith(Unit.PX)) {
+                temp = temp.substring(0, temp.length() - Unit.PX.length());
+                float result = Float.parseFloat(temp);
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.getFoldRealPxByWidth(result, hapEngine.getDesignWidth(), isUseFold);
+            }
+
+            //dp
+            if (temp.endsWith(Unit.DP)) {
+                temp = temp.substring(0, temp.length() - Unit.DP.length());
+                float result = Float.parseFloat(temp);
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.dip2Pixel(hapEngine.getContext(), (int) result);
+            }
+
+            //default
+            return Float.parseFloat(temp);
+        } catch (Exception e) {
+            Log.e(TAG, "Attribute get float error: " + temp, e);
+        }
+        return defValue;
+    }
+
+    public static int getFoldFontSize(HapEngine hapEngine, Page page, Object value, boolean isUseFold) {
+        return getFoldFontSize(hapEngine, page, value, 0, isUseFold);
+    }
+
+    /**
+     * @param hapEngine
+     * @param page
+     * @param value
+     * @param defValue
+     * @return
+     */
+    public static int getFoldFontSize(HapEngine hapEngine, Page page, Object value, int defValue, boolean isUseFold) {
+        if (hapEngine == null || page == null) {
+            return defValue;
+        }
+        FontSizeProvider provider = ProviderManager.getDefault().getProvider(FontSizeProvider.NAME);
+        float size = provider.getBestFontSize(hapEngine.getContext(), getFoldFloat(hapEngine, value, defValue, isUseFold));
+        if (page.isTextSizeAdjustAuto()) {
+            Configuration configuration = hapEngine.getContext().getResources().getConfiguration();
+            size *= configuration.fontScale;
+        }
+
+        return Math.round(size);
     }
 
     public static float getFloat(HapEngine hapEngine, Object value) {
@@ -423,6 +399,7 @@ public class Attributes {
         String TYPE = "type";
         String TEXT_OVERFLOW = "textOverflow";
         String TEXT_INDENT = "textIndent";
+        String LETTER_SPACING = "letterSpacing";
 
         String NAME = "name";
         String VALUE = "value";
@@ -432,6 +409,7 @@ public class Attributes {
         String OBJECT_FIT = "objectFit";
         String ALT_OBJECT_FIT = "altObjectFit";
         String SRC = "src";
+        String SOURCE = "source";
         String ALT = "alt";
 
         String INDEX = "index";
@@ -478,6 +456,7 @@ public class Attributes {
 
         String SCROLL_PAGE = "scrollpage";
         String COLUMNS = "columns";
+        String FOCUS_BEHAVIOR = "focusbehavior";
 
         String COLUMN_SPAN = "columnSpan";
 
@@ -527,6 +506,10 @@ public class Attributes {
         String TELEPHONE = "tel";
     }
 
+    public interface EventType {
+        String SHORTCUT = "shortcut";
+    }
+
     public interface AutoComplete {
         String ON = "on";
         String OFF = "off";
@@ -564,12 +547,16 @@ public class Attributes {
         String CHANGE = "change";
         String RESIZE = "resize";
 
+        String PAGE_SPLIT = "splitpage";
+        String PAGE_CHANGED = "pagechanged";
+
         // list
         String SCROLL = "scroll";
         String SCROLL_BOTTOM = "scrollbottom";
         String SCROLL_TOP = "scrolltop";
         String SCROLL_END = "scrollend";
         String SCROLL_TOUCH_UP = "scrolltouchup";
+        String SELECTED = "selected";
 
         // refresh
         String REFRESH = "refresh";
@@ -690,5 +677,10 @@ public class Attributes {
     public interface OverflowType {
         String VISIBLE = "visible";
         String HIDDEN = "hidden";
+    }
+
+    public interface FocusBehavior {
+        String ALIGNED = "aligned";
+        String EDGED = "edged";
     }
 }

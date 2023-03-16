@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,16 +32,18 @@ import org.hapjs.card.api.InstallListener;
 import org.hapjs.card.sdk.utils.CardConfigUtils;
 import org.hapjs.card.support.utils.CardRuntimeErrorManager;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.SimpleActivityLifecycleCallbacks;
 import org.hapjs.io.AssetSource;
-import org.hapjs.io.Source;
 import org.hapjs.logging.LogHelper;
 import org.hapjs.logging.RuntimeLogManager;
+import org.hapjs.io.JavascriptReader;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.IHybridViewHolder;
 import org.hapjs.render.MainThreadFrameWorker;
 import org.hapjs.render.Page;
 import org.hapjs.render.RenderAction;
 import org.hapjs.render.RootView;
+import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ResourceConfig;
@@ -92,7 +94,7 @@ public class CardView extends RootView
                         return false;
                     }
 
-                    applyAction(action);
+                    applyAction(getDocument(), action);
                     return true;
                 }
             };
@@ -142,10 +144,17 @@ public class CardView extends RootView
     }
 
     @Override
-    protected Source getJsAppSource() {
-        return mMode == HapEngine.Mode.CARD
-                ? new AssetSource(getContext(), "app/card.js")
-                : super.getJsAppSource();
+    protected boolean hasAppResourcesPreloaded(String pkg) {
+        return false;
+    }
+
+    @Override
+    protected String getAppJs() {
+        if (mMode == HapEngine.Mode.CARD) {
+            return JavascriptReader.get().read(new AssetSource(getContext(), "app/card.js"));
+        } else {
+            return super.getAppJs();
+        }
     }
 
     @Override
@@ -429,15 +438,10 @@ public class CardView extends RootView
     private void registerLifecycleCallback() {
         unregisterLifecycleCallback();
         mActivityLifecycleCallbacks =
-                new Application.ActivityLifecycleCallbacks() {
+                new SimpleActivityLifecycleCallbacks() {
                     private boolean mStarted;
                     private boolean mResumed;
                     private boolean mDestroyed;
-
-                    @Override
-                    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-                        // ignore
-                    }
 
                     @Override
                     public void onActivityStarted(Activity activity) {
@@ -489,11 +493,6 @@ public class CardView extends RootView
                             manager.onStop();
                         }
                         mStarted = false;
-                    }
-
-                    @Override
-                    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-                        // ignore
                     }
 
                     @Override
@@ -584,7 +583,7 @@ public class CardView extends RootView
     }
 
     @Override
-    public void applyActions() {
+    public void applyActions(VDocument document, Page page) {
         // 将 applyAction 的任务分解成小的批次, 防止阻塞主应用的UI线程任务
         mApplyActionWorker.start();
     }

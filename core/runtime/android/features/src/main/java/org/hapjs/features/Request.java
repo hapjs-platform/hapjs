@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.features;
 
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -155,6 +156,21 @@ public class Request extends AbstractRequest {
             description = TextUtils.isEmpty(description) ? fileName : description;
         }
 
+        NetworkReportManager.getInstance().reportNetwork(getName(), url);
+        DownloadManager.Request downloadRequest =
+                buildDownloadRequest(
+                        request.getApplicationContext(),
+                        Uri.parse(url),
+                        destinationUri,
+                        jsonHeader,
+                        description);
+
+        Activity activity = request.getNativeInterface().getActivity();
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            request.getCallback().callback(new Response(Response.CODE_GENERIC_ERROR, "app has exited."));
+            return;
+        }
+
         long downloadId;
         synchronized (mCallbackLock) {
             request.getNativeInterface().getResidentManager().postRegisterFeature(this);
@@ -164,17 +180,8 @@ public class Request extends AbstractRequest {
                 putCallbackContext(mResidentCompleteCallback);
             }
 
-            NetworkReportManager.getInstance().reportNetwork(getName(), url);
-            DownloadManager.Request downloadRequest =
-                    buildDownloadRequest(
-                            request.getApplicationContext(),
-                            Uri.parse(url),
-                            destinationUri,
-                            jsonHeader,
-                            description);
-            Context context = request.getNativeInterface().getActivity();
             DownloadManager downloadManager =
-                    (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+                    (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
             downloadId = downloadManager.enqueue(downloadRequest);
 
             // Listening for loading tasks.
@@ -361,7 +368,8 @@ public class Request extends AbstractRequest {
             File dest = FileHelper.generateAvailableFile(fileName, downloadDir);
             boolean result = FileUtils.saveToFile(in, dest);
             if (result) {
-                downloadManager.remove(downloadId);
+
+                Executors.io().execute(() -> downloadManager.remove(downloadId));
                 return Uri.fromFile(dest);
             }
         } catch (IOException e) {

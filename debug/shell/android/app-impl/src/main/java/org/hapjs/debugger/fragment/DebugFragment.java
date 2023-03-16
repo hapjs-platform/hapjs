@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,20 +11,41 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ListPopupWindow;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import java.util.List;
+
 import org.hapjs.debug.log.DebuggerLogUtil;
+import org.hapjs.debugger.AppLaunchTestActivity;
+import org.hapjs.debugger.SignatureActivity;
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.pm.PackageInfo;
@@ -33,7 +54,9 @@ import org.hapjs.debugger.server.Server.PlatformInfo;
 import org.hapjs.debugger.utils.HttpUtils;
 import org.hapjs.debugger.utils.PreferenceUtils;
 
-public abstract class DebugFragment extends Fragment {
+import java.util.List;
+
+public abstract class DebugFragment extends Fragment implements AdapterView.OnItemClickListener {
     protected static final int PERMISSION_CODE_READ_EXTERNAL_STORAGE = 10001;
     protected static final int PERMISSION_CODE_READ_PHONE_STATE = 10002;
     protected static final int REQUEST_CODE_BARCODE = 20001;
@@ -46,6 +69,14 @@ public abstract class DebugFragment extends Fragment {
      * 默认IDE对应的平台
      */
     protected static final String DEFAULT_PLATFORM_PACKAGE = "org.hapjs.mockup";
+
+    private View mDebugHintView;
+    protected TextView mScanInstallBtn;
+    protected TextView mLocalInstallBtn;
+    protected TextView mUpdateOnlineBtn;
+    protected TextView mStartDebugBtn;
+    protected Switch mUsbDebugSwitch;
+
     private static final String TAG = "DebugFragment";
     private static final String EXTRA_IDE_PATH = "path";
     private static final String EXTRA_IDE_DEBUG = "debug";
@@ -58,6 +89,115 @@ public abstract class DebugFragment extends Fragment {
     private AlertDialog mGetRpkErrorDialog;
     private Uri mPendingPackageUri;
     private Server mServer;
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = setupViews(inflater, container);
+        setupServer();
+        return view;
+    }
+
+    protected abstract int getLayoutResources();
+
+    protected abstract void setupDebug();
+
+    protected View setupViews(LayoutInflater inflater, ViewGroup container) {
+        View view = inflater.inflate(getLayoutResources(), container, false);
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int id = v.getId();
+                if (id == R.id.btn_scan_install) {
+                    mScanInstallBtn.setText(R.string.btn_scan_installing);
+                    startScanner();
+                } else if (id == R.id.btn_local_install) {
+                    mLocalInstallBtn.setText(R.string.btn_local_installing);
+                    pickPackage();
+                } else if (id == R.id.btn_update_online) {
+                    mUpdateOnlineBtn.setText(R.string.btn_updating_online);
+                    updateOnline();
+                } else if (id == R.id.btn_start_debugging) {
+                    prepareDebugging();
+                }
+            }
+        };
+
+        mScanInstallBtn = view.findViewById(R.id.btn_scan_install);
+        mLocalInstallBtn = view.findViewById(R.id.btn_local_install);
+        mUpdateOnlineBtn = view.findViewById(R.id.btn_update_online);
+        mStartDebugBtn = view.findViewById(R.id.btn_start_debugging);
+
+        mScanInstallBtn.setOnClickListener(clickListener);
+        mLocalInstallBtn.setOnClickListener(clickListener);
+        mUpdateOnlineBtn.setOnClickListener(clickListener);
+        mStartDebugBtn.setOnClickListener(clickListener);
+
+        mDebugHintView = view.findViewById(R.id.debug_hint);
+        mDebugHintView.setOnClickListener(v -> showDebugHint(mDebugHintView));
+
+        mUsbDebugSwitch = view.findViewById(R.id.usb_debug_switch);
+        mUsbDebugSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                setInstallRpkActionsLayout(isChecked);
+                PreferenceUtils.setUseADB(getActivity(), isChecked);
+                if (isChecked) {
+                    requestReadPhoneStatePermissionIfNeeded();
+                }
+                setSwitchStateText(view, R.id.usb_state_text, isChecked);
+            }
+        });
+        mUsbDebugSwitch.setChecked(PreferenceUtils.isUseADB(getActivity()));
+        setSwitchStateText(view, R.id.usb_state_text, PreferenceUtils.isUseADB(getActivity()));
+        view.findViewById(R.id.launch_app_test_layout).setOnClickListener(v -> startLaunchTestActivity());
+        view.findViewById(R.id.get_sign_layout).setOnClickListener(v -> startSignatureActivity());
+        return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        setupDebug();
+
+        if (!PreferenceUtils.hasShownDebugHint(getActivity())) {
+            Handler handler = new Handler();
+            handler.post(() -> {
+                PopupWindow popupWindow = showDebugHint(mDebugHintView);
+                handler.postDelayed(() -> {
+                    if (popupWindow.isShowing()) {
+                        popupWindow.dismiss();
+                    }
+                }, 6000);
+            });
+        }
+    }
+
+    protected void setSwitchStateText(View ancestor, int id, boolean enable) {
+        ((TextView) ancestor.findViewById(id)).setText(enable ? "ON" : "OFF");
+    }
+
+    private void setInstallRpkActionsLayout(boolean isUsbEnable) {
+        if (!isUsbEnable) {
+            mScanInstallBtn.setVisibility(View.VISIBLE);
+            FrameLayout.LayoutParams localInstallParams = (FrameLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
+            localInstallParams.gravity = Gravity.CENTER;
+            mLocalInstallBtn.setLayoutParams(localInstallParams);
+            FrameLayout.LayoutParams updateOnlineParams = (FrameLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
+            updateOnlineParams.gravity = Gravity.END;
+            mUpdateOnlineBtn.setLayoutParams(updateOnlineParams);
+        } else {
+            mScanInstallBtn.setVisibility(View.GONE);
+            FrameLayout.LayoutParams localInstallParams = (FrameLayout.LayoutParams) mLocalInstallBtn.getLayoutParams();
+            localInstallParams.gravity = Gravity.START;
+            mLocalInstallBtn.setLayoutParams(localInstallParams);
+            FrameLayout.LayoutParams updateOnlineParams = (FrameLayout.LayoutParams) mUpdateOnlineBtn.getLayoutParams();
+            updateOnlineParams.gravity = Gravity.CENTER;
+            mUpdateOnlineBtn.setLayoutParams(updateOnlineParams);
+        }
+    }
+
 
     public void onNewIntent(Intent intent) {
         handleIDERequest(intent);
@@ -90,6 +230,102 @@ public abstract class DebugFragment extends Fragment {
         }
         mServer.stop();
     }
+
+    protected ListPopupWindow handleSpinnerIconClick(ListPopupWindow oldSpinner, ImageView spinnerIcon,
+                                                     int anchorRes, List<String> content, int selectedIndex, int arrowDownRes, int arrowUpRes,
+                                                     int width, int height, int verticalOffSet) {
+        if (oldSpinner != null && oldSpinner.isShowing()) {
+            oldSpinner.dismiss();
+            spinnerIcon.setImageResource(arrowDownRes);
+            return null;
+        } else {
+            spinnerIcon.setImageResource(arrowUpRes);
+            ListPopupWindow spinner = new ListPopupWindow(getActivity());
+            spinner.setOnDismissListener(() -> {
+                spinnerIcon.setImageResource(arrowDownRes);
+            });
+            spinner.setBackgroundDrawable(getResources().getDrawable(R.drawable.platform_popup_bg));
+            spinner.setAnchorView(getActivity().findViewById(anchorRes));
+            spinner.setWidth(width);
+            spinner.setHeight(height);
+            spinner.setVerticalOffset(verticalOffSet);
+            spinner.setOnItemClickListener(this);
+            spinner.setModal(true);
+            spinner.setAdapter(new BaseAdapter() {
+                @Override
+                public int getCount() {
+                    return content.size();
+                }
+
+                @Override
+                public Object getItem(int position) {
+                    return null;
+                }
+
+                @Override
+                public long getItemId(int position) {
+                    return position;
+                }
+
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View itemView = convertView;
+                    if (itemView == null) {
+                        itemView = LayoutInflater.from(getContext()).inflate(R.layout.platform_spinner_item, parent, false);
+                    }
+
+                    int paddingTop = (int) getContext().getResources().getDimension(
+                            position == 0 ? R.dimen.platform_popup_item_padding_top_first : R.dimen.platform_popup_item_padding_top);
+                    int paddingBottom = (int) getContext().getResources().getDimension(
+                            position == getCount() - 1 ? R.dimen.platform_popup_item_padding_bottom_last : R.dimen.platform_popup_item_padding_bottom);
+                    itemView.setPadding(itemView.getPaddingLeft(), paddingTop, itemView.getPaddingRight(), paddingBottom);
+
+                    boolean selected = position == selectedIndex;
+                    itemView.findViewById(R.id.selected_hint_icon).setVisibility(selected ? View.VISIBLE : View.INVISIBLE);
+                    int platformTextColor = getContext().getResources().getColor(selected
+                            ? R.color.platform_spinner_text_selected_color : R.color.platform_spinner_text_unselected_color);
+                    ((TextView) itemView.findViewById(R.id.platform_text)).setTextColor(platformTextColor);
+                    ((TextView) itemView.findViewById(R.id.platform_text)).setText(content.get(position));
+
+                    return itemView;
+                }
+            });
+            spinner.show();
+            spinner.getListView().setSelector(new ColorDrawable());
+            return spinner;
+        }
+    }
+
+    protected PopupWindow showDebugHint(View debugHintView) {
+        String hintText = getDebugHintText();
+        if (TextUtils.isEmpty(hintText)) {
+            return null;
+        }
+
+        PopupWindow popupWindow = new PopupWindow(getActivity());
+        popupWindow.setBackgroundDrawable(new ColorDrawable());
+        View content = LayoutInflater.from(getActivity()).inflate(R.layout.debug_hint_popup_content, null);
+        ((TextView) content.findViewById(R.id.hint_text)).setText(hintText);
+        int[] anchorLoc = new int[2];
+        debugHintView.getLocationOnScreen(anchorLoc);
+        View triangle = content.findViewById(R.id.triangle);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) triangle.getLayoutParams();
+        DisplayMetrics displayMetrics = getActivity().getResources().getDisplayMetrics();
+        params.rightMargin = displayMetrics.widthPixels - anchorLoc[0] - debugHintView.getWidth() / 2
+                - getActivity().getResources().getDrawable(R.drawable.triangle).getIntrinsicWidth() / 2;
+        triangle.setLayoutParams(params);
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setFocusable(true);
+        popupWindow.setContentView(content);
+        popupWindow.setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setWidth(ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.showAsDropDown(debugHintView);
+
+        PreferenceUtils.setHasShownDebugHint(getActivity());
+        return popupWindow;
+    }
+
+    protected abstract String getDebugHintText();
 
     protected void showUninstallDialog(final String pkg) {
         UninstallDialogFragment fragment = UninstallDialogFragment.newInstance(pkg);
@@ -187,6 +423,14 @@ public abstract class DebugFragment extends Fragment {
         DebuggerLogUtil.init(getContext().getApplicationContext(), "");
     }
 
+    protected void startLaunchTestActivity() {
+        startActivity(new Intent(getActivity(), AppLaunchTestActivity.class));
+    }
+
+    protected void startSignatureActivity() {
+        startActivity(new Intent(getActivity(), SignatureActivity.class));
+    }
+
     protected void startScanner() {
         Intent intent = new Intent();
         intent.setPackage(PreferenceUtils.getPlatformPackage(getActivity()));
@@ -230,7 +474,7 @@ public abstract class DebugFragment extends Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(
                 getActivity(), Manifest.permission.READ_PHONE_STATE)) {
-            requestPermissions(new String[] {Manifest.permission.READ_PHONE_STATE},
+            requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE},
                     PERMISSION_CODE_READ_PHONE_STATE);
         }
     }
@@ -293,13 +537,30 @@ public abstract class DebugFragment extends Fragment {
                         getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     mPendingPackageUri = uri;
                     requestPermissions(
-                            new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             PERMISSION_CODE_READ_EXTERNAL_STORAGE);
                     return;
                 }
 
                 AppDebugManager.getInstance(getActivity()).installLocally(uri);
             }
+        }
+
+        if (resultCode != Activity.RESULT_OK) {
+            resetButtonTextView();
+        }
+    }
+
+    protected void resetButtonTextView() {
+        if (getActivity() != null && !getActivity().isFinishing()) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mScanInstallBtn.setText(R.string.btn_scan_install);
+                    mLocalInstallBtn.setText(R.string.btn_local_install);
+                    mUpdateOnlineBtn.setText(R.string.btn_update_online);
+                }
+            });
         }
     }
 

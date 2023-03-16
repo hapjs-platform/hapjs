@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -190,7 +190,7 @@ function compile(html, type, scenario) {
                 }
 
                 if (v.log) {
-                  console.warn('### App Parser ###', v.log)
+                  console.warn('### App Parser ### ', v.log)
                 }
               }
             })
@@ -238,7 +238,7 @@ function compile(html, type, scenario) {
       const xtag = isx ? tag : xTag(tag)
       const node = bufArray.shift()
       if (node.type !== xtag) {
-        console.error('### App Parser ### 结束标签不匹配:', tag)
+        console.error('### App Parser ### 结束标签不匹配：', tag)
       }
 
       // 当有缓存source资源时于于video补上src资源

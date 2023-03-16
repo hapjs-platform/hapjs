@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,4 +38,5 @@ public interface RuntimePermissionProvider {
             boolean enableCheckBox);
 
     boolean isHidePermissionDialog(Activity activity, Dialog dialog);
+    int[] getPermissionsMode(String pkg, String[] permissions);
 }

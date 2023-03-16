@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -104,7 +104,7 @@ class XExecutor {
       }
 
       if (++taskLoopIndex > this.warnSize) {
-        console.warn(`### App Framework ### XExecutor._execSync() 循环次数已达：${taskLoopIndex}`)
+        console.warn(`### App Framework ### 页面元素更新循环次数已达：${taskLoopIndex}`)
       }
     }
 

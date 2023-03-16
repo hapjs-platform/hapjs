@@ -1,20 +1,21 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.widgets.view.list;
 
 import android.view.View;
-import androidx.recyclerview.widget.FlexRecyclerView;
+
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public interface FlexLayoutManager {
     int DEFAULT_COLUMN_COUNT = 1;
 
-    FlexRecyclerView getFlexRecyclerView();
+    RecyclerViewAdapter getFlexRecyclerView();
 
-    void setFlexRecyclerView(FlexRecyclerView flexRecyclerView);
+    void setFlexRecyclerView(RecyclerViewAdapter flexRecyclerView);
 
     RecyclerView.LayoutManager getRealLayoutManager();
 
@@ -53,4 +54,6 @@ public interface FlexLayoutManager {
     View getFlexChildAt(int position);
 
     int getFlexChildPosition(View view);
+
+    void setSpanSizeLookup(GridLayoutManager.SpanSizeLookup spanSizeLookup);
 }

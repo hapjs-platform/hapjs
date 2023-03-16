@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -114,7 +114,7 @@ function HtmlParser(html, handler) {
     }
 
     if (html === last) {
-      console.error('### App Parser ### 解析错误: ' + html)
+      console.error('### App Parser ### 解析错误：' + html)
     }
     last = html
   }

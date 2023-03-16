@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -108,16 +108,21 @@ public class ShortcutUtils {
         }
 
         PackageManager pm = context.getPackageManager();
-        List<PackageInfo> packages = pm.getInstalledPackages(0);
-        for (PackageInfo pi : packages) {
-            for (String packageName : nativePackages) {
-                if (pi.packageName.equals(packageName)) {
-                    return true;
+        boolean hasInstalled = false;
+        for (String nativePkg : nativePackages) {
+            try {
+                //flag 0 means packageInfo only contains versionCode and versionName.
+                PackageInfo packageInfo = pm.getPackageInfo(nativePkg, 0);
+                if (packageInfo != null) {
+                    hasInstalled = true;
+                    break;
                 }
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.d(TAG, nativePkg+" not installed.", e);
             }
         }
 
-        return false;
+        return hasInstalled;
     }
 
     public static boolean hasShortcutInstalled(Context context, String pkg) {

@@ -123,8 +123,12 @@ public class HttpUtils {
     }
 
     public static String getDebugServer(Context context) {
-        return PreferenceUtils.isUseADB(context)
-                ? HttpUtils.LOCAL_SERVER : PreferenceUtils.getServer(context);
+        String server = PreferenceUtils.isUseADB(context) ?
+                HttpUtils.LOCAL_SERVER : PreferenceUtils.getServer(context);
+        if (TextUtils.isEmpty(server) && PreferenceUtils.isUseAnalyzer(context)) {
+            server = HttpUtils.LOCAL_SERVER;
+        }
+        return server;
     }
 
     private static int getPlatformVersion(Context context) {

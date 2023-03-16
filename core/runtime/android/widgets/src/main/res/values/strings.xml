@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -33,10 +33,10 @@
     <string name="web_loading_name">loading&#8230;</string>
 
     <string name="webrtc_warn_title">Ask for the permission</string>
-    <string name="webrtc_warn_single_permission"><xliff:g id="origin">%s</xliff:g>wants to know your %s</string>
-    <string name="webrtc_warn_double_permission"><xliff:g id="origin">%s</xliff:g>wants to know your %s and %s</string>
+    <string name="webrtc_warn_permission_camera"><xliff:g id="origin">%s</xliff:g> wants to know your camera</string>
+    <string name="webrtc_warn_permission_microphone"><xliff:g id="origin">%s</xliff:g> wants to know your microphone</string>
+    <string name="webrtc_warn_permission_camera_and_microphone"><xliff:g id="origin">%s</xliff:g> wants to know your camera and microphone</string>
     <string name="webrtc_warn_reject">Decline</string>
     <string name="webrtc_warn_allow">Allow</string>
-    <string name="webrtc_warn_camera">camera</string>
-    <string name="webrtc_warn_microphone">microphone</string>
+    <string name="header_2_space">\u3000\u3000</string>
 </resources>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,6 +9,7 @@ import { $camelize } from 'src/shared/util'
 import { NodeRef, NodeType } from './nodes/definition'
 import { getListener, getDocumentNodeByRef, removeDocument, getNodeStyleObjectId } from './model'
 import { classAttrToClassList } from './util'
+import $validateStyle from './validator'
 
 // 原生组件映射表
 const nativeComponentMap = {}
@@ -144,7 +145,7 @@ function setNodeInlineStyle(node, value) {
  * @returns {Object} - 样式对象，属性名为驼峰式命名
  */
 function cssText2StyleObject(cssText) {
-  const styleObj = {}
+  let styleObj = {}
   const rules = cssText.split(';')
   rules
     .filter(rule => rule.trim()) // 忽略空白的规则
@@ -153,7 +154,9 @@ function cssText2StyleObject(cssText) {
       let key = rule.substring(0, colonIdx).trim()
       key = $camelize(key)
       const value = rule.substring(colonIdx + 1).trim()
-      styleObj[key] = value
+      // 校验并转换部分动态更新的样式
+      const subStyle = $validateStyle(key, value)
+      styleObj = Object.assign(styleObj, subStyle || {})
     })
   console.trace(`### App Runtime ### 元素的样式转换：${cssText} 为${JSON.stringify(styleObj)}`)
   return styleObj
@@ -166,7 +169,8 @@ function getNodeAsJSON(
   node,
   includeChildren = true,
   includeStyleObject = false,
-  includeMergedStyle = false
+  includeMergedStyle = false,
+  includeCustomDirective = false
 ) {
   if (node.nodeType === NodeType.ELEMENT) {
     // 元素节点：返回对象
@@ -215,6 +219,23 @@ function getNodeAsJSON(
       const style = getNodeMergedStyleAsObject(node)
       if (style && Object.keys(style).length) {
         hash.style = style
+      }
+    }
+
+    // 自定义指令，处理节点上需要触发的钩子函数
+    const dirList = node._directives || []
+    if (includeCustomDirective && dirList.length) {
+      // 节点上存在自定义指令，才设置hooks，减少渲染指令长度
+      hash.hooks = []
+      // 遍历节点上的自定义指令列表
+      for (let i = 0, len = dirList.length; i < len; i++) {
+        const callbacks = Object.keys(dirList[i].callbacks)
+        for (let j = 0, len = callbacks.length; j < len; j++) {
+          // 将需要触发的指令回调名称去重后存入hooks
+          if (hash.hooks.indexOf(callbacks[j]) === -1) {
+            hash.hooks.push(callbacks[j])
+          }
+        }
       }
     }
 

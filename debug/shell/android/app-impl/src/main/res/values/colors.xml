@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -9,4 +9,15 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="floatingBg">#AD000000</color>
+    <color name="mode_selected_color">#FF000000</color>
+    <color name="mode_unselected_color">#FF2A2A2A</color>
+    <color name="platform_spinner_text_selected_color">#FF579CF8</color>
+    <color name="platform_spinner_text_unselected_color">#4D000000</color>
+    <color name="press_bg">#10000000</color>
+    <color name="btn_install_text_color">#FF579CF8</color>
+    <color name="btn_text_color">#FFFFFFFF</color>
+
+    <color name="btn_blur_color">#803DC0FF</color>
+    <color name="spinner_blur_color">#1F0E111E</color>
 </resources>

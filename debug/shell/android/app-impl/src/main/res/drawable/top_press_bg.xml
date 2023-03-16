@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+
+            <solid android:color="@color/press_bg" />
+            <corners
+                android:topLeftRadius="16dp"
+                android:topRightRadius="16dp" />
+
+        </shape>
+    </item>
+</selector>

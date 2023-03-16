@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -208,7 +208,7 @@ export function setElementMatchedCssRule(node, ruleName, editCssPropertyList) {
     console.warn(`### App Runtime ### 更新样式:该平台版本仅支持更新内联样式，不支持：${ruleName}`)
   }
 }
-
+const logOnceSet = new Set()
 /**
  * UI节点
  */
@@ -250,12 +250,18 @@ class DomElement extends DomTag {
   }
 
   get type() {
-    console.warn(`### App Runtime ### type属性将被废弃，不推荐使用`)
+    if (!logOnceSet.has('type')) {
+      console.warn(`### App Runtime ### type属性将被废弃，不推荐使用`)
+      logOnceSet.add('type')
+    }
     return this._type
   }
 
   get id() {
-    console.warn(`### App Runtime ### id属性将被废弃，不推荐使用`)
+    if (!logOnceSet.has('id')) {
+      console.warn(`### App Runtime ### id属性将被废弃，不推荐使用`)
+      logOnceSet.add('id')
+    }
     const attr = getNodeAttributesAsObject(this)
     return attr && attr.id
   }
@@ -265,7 +271,10 @@ class DomElement extends DomTag {
   }
 
   get attr() {
-    console.warn(`### App Runtime ### attr属性将被废弃，不推荐使用`)
+    if (!logOnceSet.has('attr')) {
+      console.warn(`### App Runtime ### attr属性将被废弃，不推荐使用`)
+      logOnceSet.add('attr')
+    }
     return getNodeAttributesAsObject(this)
   }
 

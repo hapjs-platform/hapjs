@@ -777,7 +777,10 @@ public class Video extends CallbackHybridFeature {
     }
 
     private String getFileName(String uri) {
-        int index = uri.lastIndexOf('/');
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf('/');
+        }
         if (index > 0 && index < uri.length() - 1) {
             return uri.substring(index + 1);
         } else {

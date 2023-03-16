@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,17 +7,28 @@ package org.hapjs.widgets;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.DynamicDrawableSpan;
+import android.text.style.ImageSpan;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatDelegate;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.facebook.common.references.CloseableReference;
+import com.facebook.imagepipeline.image.CloseableImage;
+
 import org.hapjs.bridge.annotation.WidgetAnnotation;
+import org.hapjs.common.utils.BitmapUtils;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
 import org.hapjs.component.Component;
@@ -33,6 +44,7 @@ import org.hapjs.runtime.HapConfiguration;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.system.SysOpProvider;
+import org.hapjs.widgets.text.Text;
 import org.hapjs.widgets.view.image.FlexImageView;
 import org.json.JSONObject;
 
@@ -45,8 +57,9 @@ import org.json.JSONObject;
                 Component.METHOD_FOCUS,
                 Image.METHOD_START_ANIMATION,
                 Image.METHOD_STOP_ANIMAION
-        })
-public class Image extends Component<FlexImageView> implements Autoplay {
+        }
+)
+public class Image extends Component<FlexImageView> implements Autoplay, InnerSpannable {
 
     protected static final String WIDGET_NAME = "image";
     protected static final String RESULT_WIDTH = "width";
@@ -74,6 +87,23 @@ public class Image extends Component<FlexImageView> implements Autoplay {
     private boolean mHasSetForceDark = false;
     private OnConfigurationListener mConfigurationListener;
 
+    private static final String STYLE_ALIGN = "align";
+    private static final String ALIGN_BOTTOM = "bottom";
+    private static final String ALIGN_BASELINE = "baseline";
+
+    private Text mParentText;
+    private SpannableString mSpannable;
+    private boolean mIsImageSpan = false;
+    private boolean mSetImageBlur = false;
+
+    private static final int DEFAULT_ADAPTIVE_BANNER_PADDING = 400;
+
+    private String mSrcStr;
+    private String mAltStr;
+    private int mImgWidth;
+    private int mImgHeight;
+    private int mVerticalAlignment = DynamicDrawableSpan.ALIGN_BASELINE;
+
     public Image(
             HapEngine hapEngine,
             Context context,
@@ -82,6 +112,11 @@ public class Image extends Component<FlexImageView> implements Autoplay {
             RenderEventCallback callback,
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
+        mParentText = getParentText();
+        if (mParentText != null) {
+            mIsImageSpan = true;
+            return;
+        }
         mConfigurationListener = new OnConfigurationListener(this);
         ConfigurationManager.getInstance().addListener(mConfigurationListener);
     }
@@ -92,6 +127,10 @@ public class Image extends Component<FlexImageView> implements Autoplay {
 
     @Override
     protected FlexImageView createViewImpl() {
+        if (mIsImageSpan) {
+            // just a spannable.
+            return null;
+        }
         FlexImageView imageView = new FlexImageView(mContext);
         imageView.setComponent(this);
 
@@ -130,11 +169,15 @@ public class Image extends Component<FlexImageView> implements Autoplay {
 
     @Override
     protected boolean setAttribute(String key, Object attribute) {
+        if (mIsImageSpan) {
+            return setImageSpanAttribute(key, attribute);
+        }
         switch (key) {
             case Attributes.Style.SRC:
                 mIsSrcInit = true;
                 String src = Attributes.getString(attribute);
                 setSrc(src);
+                setImageBlur();
                 return true;
             case Attributes.Style.RESIZE_MODE:
             case Attributes.Style.OBJECT_FIT:
@@ -187,6 +230,121 @@ public class Image extends Component<FlexImageView> implements Autoplay {
                 break;
         }
         return super.setAttribute(key, attribute);
+    }
+
+    private boolean setImageSpanAttribute(String key, Object attribute) {
+        switch (key) {
+            case Attributes.Style.SRC:
+                String srcStr = Attributes.getString(attribute);
+                setImageSpanSrc(srcStr);
+                return true;
+            case Attributes.Style.ALT:
+                String altStr = Attributes.getString(attribute, "");
+                setImageSpanAlt(altStr);
+                return true;
+            case Attributes.Style.WIDTH:
+                String widthStr = Attributes.getString(attribute);
+                setImageSpanWidth(widthStr);
+                return true;
+            case Attributes.Style.HEIGHT:
+                String heightStr = Attributes.getString(attribute);
+                setImageSpanHeight(heightStr);
+                return true;
+            case STYLE_ALIGN:
+                String alignStr = Attributes.getString(attribute);
+                setImageSpanAlign(alignStr);
+                return true;
+        }
+        return false;
+    }
+
+    private void setImageSpanSrc(String srcStr) {
+        if (TextUtils.equals(mSrcStr, srcStr)) {
+            return;
+        }
+        mSrcStr = srcStr;
+        applySpannable();
+    }
+
+    private void setImageSpanAlt(String altStr) {
+        if (TextUtils.equals(mAltStr, altStr)) {
+            return;
+        }
+        mAltStr = altStr;
+        applySpannable();
+    }
+
+    @Override
+    public void setWidth(String widthStr) {
+        super.setWidth(widthStr);
+        //折叠屏自适应模式下banner图增加高斯模糊背景
+        //父布局直接为swiper时需要通过设置padding来缩小图片尺寸
+        if (isComponentAdaptiveEnable() && getParentSwiper() != null) {
+            if (mAdaptiveBeforeWidth > 0 || getWidth() == ViewGroup.LayoutParams.MATCH_PARENT) {
+                Swiper swiper = getParentSwiper();
+                swiper.setPadding(Attributes.Style.PADDING_LEFT, DEFAULT_ADAPTIVE_BANNER_PADDING);
+                swiper.setPadding(Attributes.Style.PADDING_RIGHT, DEFAULT_ADAPTIVE_BANNER_PADDING);
+                swiper.setRealPadding();
+                mSetImageBlur = true;
+                setImageBlur();
+            }
+        }
+    }
+
+    private void setImageBlur() {
+        if (isComponentAdaptiveEnable() && getParentSwiper() != null) {
+            if (mHost.getSource() != null && mSetImageBlur) {
+                getParentSwiper().setBackgroundImage(mHost.getSource(), true);
+                getParentSwiper().applyBackground();
+            }
+        }
+    }
+
+    private Swiper getParentSwiper(){
+        if (mParent instanceof Swiper) {
+            return (Swiper) mParent;
+        } else if (mParent != null) {
+            Container parentParent = mParent.getParent();
+            if (parentParent instanceof Swiper) {
+                return (Swiper) parentParent;
+            }
+        }
+        return null;
+    }
+
+    private void setImageSpanWidth(String widthStr) {
+        int width = Attributes.getInt(mHapEngine, widthStr, 0);
+        if (mImgWidth == width) {
+            return;
+        }
+        mImgWidth = width;
+        if (mImgWidth > 0 && mImgHeight > 0) {
+            applySpannable();
+        }
+    }
+
+    private void setImageSpanHeight(String heightStr) {
+        int height = Attributes.getInt(mHapEngine, heightStr, 0);
+        if (mImgHeight == height) {
+            return;
+        }
+        mImgHeight = height;
+        if (mImgWidth > 0 && mImgHeight > 0) {
+            applySpannable();
+        }
+    }
+
+    private void setImageSpanAlign(String alignStr) {
+        int align = mVerticalAlignment;
+        if (TextUtils.equals(alignStr, ALIGN_BOTTOM)) {
+            align = DynamicDrawableSpan.ALIGN_BOTTOM;
+        } else if (TextUtils.equals(alignStr, ALIGN_BASELINE)) {
+            align = DynamicDrawableSpan.ALIGN_BASELINE;
+        }
+        if (align != mVerticalAlignment) {
+            mVerticalAlignment = align;
+            applySpannable();
+        }
     }
 
     /**
@@ -291,6 +449,9 @@ public class Image extends Component<FlexImageView> implements Autoplay {
     }
 
     public void invokeMethod(String methodName, Map<String, Object> args) {
+        if (mIsImageSpan) {
+            return;
+        }
         super.invokeMethod(methodName, args);
         if (METHOD_START_ANIMATION.equals(methodName)) {
             startAnimation();
@@ -329,8 +490,88 @@ public class Image extends Component<FlexImageView> implements Autoplay {
     }
 
     @Override
+    public void applySpannable() {
+        if (TextUtils.isEmpty(mAltStr) || TextUtils.isEmpty(mSrcStr)) {
+            return;
+        }
+        mSpannable = new SpannableString(mAltStr);
+
+        Uri srcUri = tryParseUri(mSrcStr);
+        if (isImageSpanSrcSupported(srcUri)) {
+            BitmapUtils.fetchBitmapForImageSpan(srcUri, new BitmapUtils.BitmapLoadCallback() {
+                @Override
+                public void onLoadSuccess(CloseableReference<CloseableImage> reference, Bitmap bitmap) {
+                    Bitmap imageSpanBitmap = bitmap;
+                    if (mImgWidth > 0 && mImgHeight > 0) {
+                        // fresco不能将图片大小精确的调整到指定宽高，需要手动调整
+                        imageSpanBitmap = BitmapUtils.resizeBitmap(bitmap, mImgWidth, mImgHeight);
+                    }
+                    ImageSpan imageSpan = new ImageSpan(mContext, imageSpanBitmap, mVerticalAlignment);
+                    mSpannable.setSpan(imageSpan, 0, TextUtils.isEmpty(mAltStr) ? 0 : mAltStr.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    applyParentSpannable();
+                }
+
+                @Override
+                public void onLoadFailure() {
+                    Object[] spansToRemove = mSpannable.getSpans(0, mSpannable.length(), ImageSpan.class);
+                    if (spansToRemove != null && spansToRemove.length > 0) {
+                        for (Object span : spansToRemove) {
+                            mSpannable.removeSpan(span);
+                        }
+                        applyParentSpannable();
+                    }
+                }
+            }, mImgWidth, mImgHeight);
+        }
+    }
+
+    private boolean isImageSpanSrcSupported(Uri uri) {
+        if (uri == null) {
+            return false;
+        }
+        boolean isSupported = false;
+        String lastPathSegment = uri.getLastPathSegment();
+        if (lastPathSegment != null) {
+            lastPathSegment = lastPathSegment.toLowerCase();
+            if (lastPathSegment.endsWith(".jpg") || lastPathSegment.endsWith(".jpeg")) {
+                isSupported = true;
+            } else if (lastPathSegment.endsWith(".png")) {
+                isSupported = true;
+            } else if (lastPathSegment.endsWith(".webp")) {
+                isSupported = true;
+            } else if (lastPathSegment.endsWith(".svg")) {
+                isSupported = true;
+            }
+        }
+        return isSupported;
+    }
+
+    @Override
+    public Spannable getSpannable() {
+        return mSpannable;
+    }
+
+    private Text getParentText() {
+        Container parent = mParent;
+        while (parent != null && !(parent instanceof Text)) {
+            parent = parent.getParent();
+        }
+        return parent == null ? null : (Text) parent;
+    }
+
+    private void applyParentSpannable() {
+        if (mParentText != null) {
+            mParentText.setDirty(true);
+            mParentText.updateSpannable();
+        }
+    }
+
+    @Override
     public void destroy() {
         super.destroy();
+        if (mIsImageSpan) {
+            return;
+        }
         ConfigurationManager.getInstance().removeListener(mConfigurationListener);
     }
 

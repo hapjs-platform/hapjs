@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -14,13 +14,17 @@
     <string name="btn_local_install">install with file</string>
     <string name="btn_update_online">update online</string>
     <string name="btn_start_debug">start debugging</string>
+    <string name="btn_debug_hint">debug hint</string>
 
     <string name="btn_scan_installing">installing by barcode...</string>
     <string name="btn_local_installing">installing with file...</string>
     <string name="btn_updating_online">updating online...</string>
 
+    <string name="launch_app_test_detail">Launch quick app with parameters or by deeplink</string>
+    <string name="get_sign_detail">Get signature of Android app or quick app</string>
+
     <string name="hint_fail_to_bind_service">Can not start [Quick App Preview],please grant the permission of [Startup]/[Autostart] to [Quick App Preview] on the relevant settings page of system permission management, or open it Manual.</string>
-    <string name="hint_no_response">if [START DEBUGGING] button has no response, please grant the permissions of [Startup]/[Autostart] and [Backupgroud pop-ups] to [Quick Apps Preview] on the relevant settings page of system permission management.</string>
+    <string name="hint_no_response">If \"START DEBUGGING\" button has no response, please grant the permissions of \"Startup\"/\"Autostart\" and \"Backupgroud pop-ups\" to \"%1$s\" on the relevant settings page of system permission management.</string>
 
     <string name="dlg_uninstall_title">Uninstall</string>
     <string name="dlg_uninstall_msg">You\'ve installed a higher version of Platform Preview. Please uninstall and then download and install.</string>
@@ -69,8 +73,8 @@
     <string name="dlg_universal_scan_confirm_title">Do you want to enable Instant Apps?</string>
 
     <string name="text_mode">Runtime Mode: </string>
-    <string name="text_mode_application">Application</string>
-    <string name="text_mode_card">Card</string>
+    <string name="text_mode_application">Application Mode</string>
+    <string name="text_mode_card">Card Mode</string>
 
     <string name="hint_choose_platform">Choose runtime platform</string>
     <string name="hint_choose_card">Choose card</string>
@@ -80,10 +84,10 @@
     <string name="text_platform_version_name">Platform Version name: %s</string>
     <string name="text_platform_version_beta">beta</string>
     <string name="text_enable_usb_debug">Enable USB debug</string>
-    <string name="text_framework">Runtime framework: </string>
+    <string name="text_enable_analyzer">Enable Analyzer Panel</string>
+    <string name="text_framework">Runtime framework: %s</string>
     <string name="text_version_not_support_card">The version is too low to support card: %s</string>
-    <string name="text_platform_hint_app">Please install Quick AppsPreview</string>
-    <string name="text_platform_hint_card">Please install Quick AppsPreview and allow Debugger
+    <string name="text_platform_hint">Please install Quick AppsPreview in [Platform Download] and allow Debugger
         automatic starting</string>
 
     <string name="setting_category_general">General</string>
@@ -104,17 +108,33 @@
     <string name="setting_item_signature_title">Get app\'s signature</string>
     <string name="setting_item_set_params_hint">Example: /pageName?key=value or key=value</string>
     <string name="toast_params_illegal">Params cannot contain \"__DEBUG_PARAMS__\"</string>
+    <string name="setting_category_help">Help</string>
+    <string name="setting_item_feedback">Feedback</string>
+    <string name="setting_item_instruction">Instructions</string>
+    <string name="setting_item_faq">FAQ</string>
+    <string name="setting_item_doc">Document</string>
+
+    <string name="setting_item_server_key" translatable="false">setting_item_server</string>
+    <string name="setting_item_params_key" translatable="false">setting_item_params</string>
+    <string name="setting_item_wait_connect_key" translatable="false">setting_item_wait_connect</string>
+    <string name="setting_item_web_debug_key" translatable="false">setting_item_web_debug</string>
+    <string name="setting_item_reload_key" translatable="false">setting_item_reload</string>
+    <string name="setting_item_feedback_key" translatable="false">setting_item_feedback</string>
+    <string name="setting_item_instruction_key" translatable="false">setting_item_instruction</string>
+    <string name="setting_item_faq_key" translatable="false">setting_item_faq</string>
+    <string name="setting_item_doc_key" translatable="false">setting_item_doc</string>
 
     <string name="hint_launch_package">Quick app package name</string>
     <string name="hint_launch_path">Quick app page path</string>
     <string name="hint_launch_deeplink">Quick app deeplink</string>
     <string name="btn_launch_app">Launch</string>
     <string name="menu_label_launch_app_test">Launch App Test</string>
-    <string name="text_keyword_title">Page path launch test</string>
-    <string name="text_keyword_desc">This function supports test page redirecting, such as keyword redirecting.
-        Please enter package name and page name of your quick app\n(example: com.test.app and /pageName?key=value)</string>
-    <string name="text_deeplink_title">Deeplink launch test</string>
-    <string name="text_deeplink_desc">Please enter deeplink url\n(example: http://hapjs.org/app/com.test.app)</string>
+    <string name="launch_page_test_title">Page path launch test</string>
+    <string name="launch_page_test_desc">This function supports test page redirecting, such as keyword redirecting.</string>
+    <string name="launch_page_pkg_hint">Please enter package name of your quick app. For example: com.test.app</string>
+    <string name="launch_page_page_hint">Please enter page name of your quick app. For example: /pageName?key=value</string>
+    <string name="launch_by_deeplink_title">Deeplink launch test</string>
+    <string name="launch_by_deeplink_desc">Deeplink url. For example: http://hapjs.org/app/com.test.app</string>
     <string name="toast_no_package">Please enter package name! </string>
     <string name="toast_no_deeplink">Please enter deeplink url! </string>
     <string name="toast_wrong_deeplink">Deeplink format is invalid!</string>
@@ -126,10 +146,14 @@
     <string name="btn_choose_apk_file">Choose apk</string>
     <string name="btn_choose_rpk_file">Choose rpk/rpks</string>
     <string name="btn_choose_pem_file">Choose PEM</string>
+    <string name="btn_copy">Copy</string>
     <string name="btn_copy_md5">Copy MD5</string>
     <string name="btn_copy_sha256">Copy SHA-256</string>
     <string name="btn_copy_sign">Copy sign</string>
     <string name="btn_copy_sms_hash">Copy SMS Hash</string>
+    <string name="tab_native_app">Android app</string>
+    <string name="tab_quick_app">Quick app</string>
+    <string name="tab_pem">PEM file</string>
     <string name="title_get_native_app_sign">Get native app\'s sign</string>
     <string name="title_get_rpk_sign">Get quick app\'s sign</string>
     <string name="title_get_pem_sign">Get sign from PEM</string>
@@ -145,4 +169,6 @@
     <string name="toast_copy_to_clipboard_succ">Copy to clipboard successfully</string>
     <string name="toast_get_signature_fail">Failed to get signature</string>
     <string name="toast_app_not_install">The App is not installed</string>
+    <string name="toast_invalid_pem">Invalid PEM file</string>
+    <string name="str_save">Save</string>
 </resources>

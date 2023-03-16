@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -359,6 +359,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         startIntent.putExtra(RuntimeActivity.EXTRA_APP, pkg);
         String source = Source.currentSourceString();
         startIntent.putExtra(RuntimeActivity.EXTRA_SOURCE, source);
+        startIntent.setPackage(context.getPackageName());
         PendingIntent pendingIntent =
                 PendingIntent.getActivity(
                         context, requestCode, startIntent, PendingIntent.FLAG_UPDATE_CURRENT);

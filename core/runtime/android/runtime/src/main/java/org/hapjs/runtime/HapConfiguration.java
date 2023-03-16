@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,19 +7,21 @@ package org.hapjs.runtime;
 
 import android.content.Context;
 import android.content.res.Configuration;
+
 import java.util.Locale;
 
 public class HapConfiguration {
 
-    private int mLastUiMode;
-
     private int mUiMode;
+    private int mLastUiMode;
 
     private Locale mLocale;
 
     private int mOrientation;
-
     private int mLastOrientation;
+
+    private double mScreenSize;
+    private double mLastScreenSize;
 
     public HapConfiguration() {
         mLocale = Locale.getDefault();
@@ -29,6 +31,9 @@ public class HapConfiguration {
                         & Configuration.UI_MODE_NIGHT_MASK);
         mLastUiMode = mUiMode;
         mOrientation = context.getResources().getConfiguration().orientation;
+        mLastOrientation = mOrientation;
+        mScreenSize = context.getResources().getConfiguration().screenWidthDp;
+        mLastScreenSize = mScreenSize;
     }
 
     public int getUiMode() {
@@ -71,6 +76,23 @@ public class HapConfiguration {
         mLastOrientation = lastOrientation;
     }
 
+    public double getScreenSize() {
+        return mScreenSize;
+    }
+
+    public void setScreenSize(double mScreenSize) {
+        this.mScreenSize = mScreenSize;
+    }
+
+    public double getLastScreenSize() {
+        return mLastScreenSize;
+    }
+
+    public void setLastScreenSize(double mLastScreenSize) {
+        this.mLastScreenSize = mLastScreenSize;
+    }
+
+
     @Override
     public String toString() {
         return "Locale:"
@@ -79,8 +101,10 @@ public class HapConfiguration {
                 + mUiMode
                 + " LastUiMode:"
                 + mLastUiMode
-                + " mOrientation:"
-                + mOrientation;
+                + " Orientation:"
+                + mOrientation
+                + " ScreenSize:"
+                + mScreenSize;
     }
 
     public HapConfiguration obtain() {
@@ -90,6 +114,8 @@ public class HapConfiguration {
         configuration.mLastUiMode = mLastUiMode;
         configuration.mOrientation = mOrientation;
         configuration.mLastOrientation = mLastOrientation;
+        configuration.mScreenSize = mScreenSize;
+        configuration.mLastScreenSize = mLastScreenSize;
         return configuration;
     }
 }

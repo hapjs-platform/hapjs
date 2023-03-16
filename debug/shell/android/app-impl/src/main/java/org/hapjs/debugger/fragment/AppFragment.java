@@ -1,8 +1,7 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package org.hapjs.debugger.fragment;
 
 import android.app.Activity;
@@ -15,7 +14,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -23,20 +21,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListPopupWindow;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.appcompat.widget.SwitchCompat;
-import java.util.ArrayList;
-import java.util.List;
+
 import org.hapjs.debug.log.DebuggerLogUtil;
-import org.hapjs.debugger.DebuggerApplication;
-import org.hapjs.debugger.HintSpinnerAdapter;
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.server.Server;
@@ -44,7 +39,10 @@ import org.hapjs.debugger.utils.AppUtils;
 import org.hapjs.debugger.utils.HttpUtils;
 import org.hapjs.debugger.utils.PreferenceUtils;
 
-public class AppFragment extends DebugFragment implements AdapterView.OnItemSelectedListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class AppFragment extends DebugFragment implements AdapterView.OnItemClickListener {
 
     private static final String TAG = "AppFragment";
     private static final String KEY_RPK_ADDRESS = "rpk_address";
@@ -53,21 +51,30 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
     private static final String URL_HTTPS_PREFIX = "https";
     private static final String KEY_CUSTOM_VALUE = "customValue";
     private static final String SCAN_TARGET_SKELETON = "skeleton";
-    private TextView mTxtDebuggablePackage;
+    private static final int SUPPORT_ANALYZER_PLATFORM_VERSION = 1100;
+
+    private TextView mDebuggablePkgNameTv;
+    private TextView mDebuggablePkgTv;
+    private View mDebugPkgInfoLayout;
+    private View mNoDebugPkgView;
+
     private TextView mPlatformVersionTv;
     private TextView mPlatformVersionNameTv;
-    private TextView mPlatformTv;
+    private TextView mPlatformNameTv;
+    private TextView mPlatformPkgTv;
     private TextView mCustomValueTv;
-    private Button mScanInstallBtn;
-    private Button mLocalInstallBtn;
-    private Button mUpdateOnlineBtn;
-    private Button mStartDebugBtn;
-    private SwitchCompat mUsbDebugSwitch;
-    private AppCompatSpinner mPlatformSpinner;
-    private ArrayAdapter<String> mArrayAdapter;
+
+    private Switch mAnalyzerEnableSwitch;
+    private View mAnalyzerContainer;
+
+    private ImageView mPlatformSpinnerIcon;
+    private ListPopupWindow mPlatformSpinner;
+
     private List<String> mDisplayedPlatforms = new ArrayList<String>();
     private List<String> mPlatformPackages = new ArrayList<String>();
     private AlertDialog mConfirmDialog;
+
+    private String mPlatformOfLastInstallation;
 
     public AppFragment() {
         super();
@@ -76,83 +83,78 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = setupViews(inflater, container);
-        setupDebug();
-        setupServer();
+        View view = super.onCreateView(inflater, container, savedInstanceState);
         setupDebuggerLogUtil();
         return view;
     }
 
-    private View setupViews(LayoutInflater inflater, @Nullable ViewGroup container) {
-        View view = inflater.inflate(R.layout.content_main, container, false);
-        View.OnClickListener clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.getId() == R.id.btnScanInstall) {
-                    mScanInstallBtn.setText(R.string.btn_scan_installing);
-                    startScanner();
-                } else if (v.getId() == R.id.btnLocalInstall) {
-                    mLocalInstallBtn.setText(R.string.btn_local_installing);
-                    pickPackage();
-                } else if (v.getId() == R.id.btnUpdateOnline) {
-                    mUpdateOnlineBtn.setText(R.string.btn_updating_online);
-                    updateOnline();
-                } else if (v.getId() == R.id.btnStartDebugging) {
-                    DebuggerLogUtil.resetTraceId();
-                    DebuggerLogUtil.logMessage("DEBUGGER_TOUCHED_START");
-                    prepareDebugging();
-                }
-            }
-        };
+    @Override
+    protected int getLayoutResources() {
+        return R.layout.content_app;
+    }
 
-        mTxtDebuggablePackage = view.findViewById(R.id.txtDebuggablePackage);
-        mPlatformTv = view.findViewById(R.id.text_platform);
+    @Override
+    protected View setupViews(LayoutInflater inflater, @Nullable ViewGroup container) {
+        View view = super.setupViews(inflater, container);
+
+        mDebuggablePkgNameTv = view.findViewById(R.id.txt_debuggable_pkg_name);
+        mDebuggablePkgTv = view.findViewById(R.id.txt_debuggable_pkg);
+        mDebugPkgInfoLayout = view.findViewById(R.id.debug_pkg_info_layout);
+        mNoDebugPkgView = view.findViewById(R.id.txt_no_debuggable_pkg);
+
+        mPlatformNameTv = view.findViewById(R.id.platform_name);
+        mPlatformPkgTv = view.findViewById(R.id.platform_pkg);
         mPlatformVersionTv = view.findViewById(R.id.platform_version_text);
         mPlatformVersionNameTv = view.findViewById(R.id.platform_version_name_text);
         mCustomValueTv = view.findViewById(R.id.custom_value_text);
 
-        mScanInstallBtn = view.findViewById(R.id.btnScanInstall);
-        mLocalInstallBtn = view.findViewById(R.id.btnLocalInstall);
-        mUpdateOnlineBtn = view.findViewById(R.id.btnUpdateOnline);
-        mStartDebugBtn = view.findViewById(R.id.btnStartDebugging);
+        mPlatformSpinnerIcon = view.findViewById(R.id.platform_spinner_icon);
+        mPlatformSpinnerIcon.setVisibility(View.GONE);
+        mPlatformSpinnerIcon.setOnClickListener(v ->
+                mPlatformSpinner = handleSpinnerIconClick(mPlatformSpinner, mPlatformSpinnerIcon,
+                        R.id.platform_info_primary_layout, mDisplayedPlatforms, getSelectedPlatformIndex(),
+                        R.drawable.arrow_down, R.drawable.arrow_up,
+                        (int) getResources().getDimension(R.dimen.platform_popup_width),
+                        ListPopupWindow.WRAP_CONTENT,
+                        0));
 
-        mScanInstallBtn.setOnClickListener(clickListener);
-        mLocalInstallBtn.setOnClickListener(clickListener);
-        mUpdateOnlineBtn.setOnClickListener(clickListener);
-        mStartDebugBtn.setOnClickListener(clickListener);
-
-        mPlatformSpinner = view.findViewById(R.id.platform_spinner);
-        mArrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.item_spinner_select, mDisplayedPlatforms);
-        mArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        HintSpinnerAdapter adapter = new HintSpinnerAdapter(mArrayAdapter, R.layout.item_hint, getActivity());
-        mPlatformSpinner.setAdapter(adapter);
-        mPlatformSpinner.setOnItemSelectedListener(this);
-
-        mUsbDebugSwitch = ((SwitchCompat) view.findViewById(R.id.usb_debug_switch));
-        mUsbDebugSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mAnalyzerContainer = view.findViewById(R.id.analyzer_container);
+        mAnalyzerEnableSwitch = view.findViewById(R.id.analyzer_enable);
+        mAnalyzerEnableSwitch.setChecked(PreferenceUtils.isUseAnalyzer(getActivity()));
+        mAnalyzerEnableSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mScanInstallBtn.setVisibility(isChecked ? View.GONE : View.VISIBLE);
-                PreferenceUtils.setUseADB(getActivity(), isChecked);
-                if (isChecked) {
-                    requestReadPhoneStatePermissionIfNeeded();
-                }
+                PreferenceUtils.setUseAnalyzer(getActivity(), isChecked);
+                setSwitchStateText(view, R.id.analyzer_state_text, isChecked);
             }
         });
-        mUsbDebugSwitch.setChecked(PreferenceUtils.isUseADB(getActivity()));
-        addHintView(view);
+        setSwitchStateText(view, R.id.analyzer_state_text, mAnalyzerEnableSwitch.isChecked());
+
         return view;
     }
 
-    private void addHintView(View view) {
-        if (view != null && view instanceof ViewGroup) {
-            TextView textView = new TextView(getContext());
-            textView.setText(R.string.hint_no_response);
-            ((ViewGroup) view).addView(textView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
+    private int getSelectedPlatformIndex() {
+        if (!mPlatformPackages.isEmpty()) {
+            String selectedPlatform = PreferenceUtils.getPlatformPackage(getActivity());
+            for (int i = 0; i < mPlatformPackages.size(); ++i) {
+                if (TextUtils.equals(mPlatformPackages.get(i), selectedPlatform)) {
+                    return i;
+                }
+            }
         }
+        return -1;
     }
 
+    @Override
+    protected String getDebugHintText() {
+        CharSequence platformName = mPlatformNameTv.getText();
+        if (TextUtils.isEmpty(platformName)) {
+            return null;
+        }
+        return getContext().getString(R.string.hint_no_response, platformName);
+    }
+
+    @Override
     protected void setupDebug() {
         AppDebugManager.getInstance(getActivity()).setDebugListener(new AppDebugListener() {
             @Override
@@ -170,8 +172,9 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
 
             @Override
             protected void onInstallSuccess(String pkg) {
-
                 PreferenceUtils.setDebugPackage(getActivity(), pkg);
+                mPlatformOfLastInstallation = PreferenceUtils.getPlatformPackage(getActivity());
+                getActivity().runOnUiThread(() -> setupDebugPkgViews(mPlatformOfLastInstallation));
                 if (isNeedDebug()) {
                     DebuggerLogUtil.resetTraceId();
                     DebuggerLogUtil.logMessage("DEBUGGER_DEBUG_IN_INSTALL_SUCCESS");
@@ -196,22 +199,20 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
         super.onStart();
         //通用扫码打开快应用时根据platform_pkg参数设置打开快应用的引擎平台
         setupPlatformPackage(getActivity().getIntent());
-        String pkg = PreferenceUtils.getDebugPackage(getActivity());
-        if (!TextUtils.isEmpty(pkg)) {
-            mTxtDebuggablePackage.setText(pkg);
-        }
 
         mPlatformPackages = AppDebugManager.getInstance(getActivity()).getPlatformPackages();
+        mDisplayedPlatforms = new ArrayList<>();
         if (mPlatformPackages.size() == 0) {
-            enableButtons(false);
-            mPlatformSpinner.setVisibility(View.GONE);
-            mPlatformTv.setVisibility(View.VISIBLE);
-            mPlatformTv.setMovementMethod(LinkMovementMethod.getInstance());
-            mPlatformTv.setText(makePlatformMissingMessage());
+            refreshButtons(false);
+            mPlatformSpinnerIcon.setVisibility(View.GONE);
+            mPlatformNameTv.setVisibility(View.VISIBLE);
+            mPlatformNameTv.setMovementMethod(LinkMovementMethod.getInstance());
+            mPlatformNameTv.setText(getDebugHintText());
+            mPlatformPkgTv.setVisibility(View.GONE);
+            setupDebugPkgViews(null);
             return;
         }
 
-        mArrayAdapter.clear();
         for (String packageName : mPlatformPackages) {
             final PackageManager pm = getActivity().getApplicationContext().getPackageManager();
             ApplicationInfo ai;
@@ -220,47 +221,42 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
             } catch (final PackageManager.NameNotFoundException e) {
                 ai = null;
             }
-            String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "unknown: ");
+            String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "unknown");
             String displayPlatform = applicationName + " (" + packageName + ") ";
             mDisplayedPlatforms.add(displayPlatform);
         }
-        mArrayAdapter.notifyDataSetChanged();
 
         if (mPlatformPackages.size() == 1) {
             //if there is only one platform, we choose it and don't show the Spinner
-            String platformPackage = mPlatformPackages.get(0);
-
-            mPlatformSpinner.setVisibility(View.GONE);
-            mPlatformTv.setVisibility(View.VISIBLE);
-            PreferenceUtils.setPlatformPackage(getActivity(), platformPackage);
-            mPlatformTv.setText(mDisplayedPlatforms.get(0));
-            setupPlatformInfo(platformPackage);
-            enableButtons(true);
+            mPlatformSpinnerIcon.setVisibility(View.GONE);
+            setupPlatformInfo(mPlatformPackages.get(0));
+            PreferenceUtils.setPlatformPackage(getActivity(), mPlatformPackages.get(0));
+            refreshButtons(true);
             handleIDERequest(getActivity().getIntent());
             handleUniversalScanRequest(getActivity().getIntent());
             return;
         }
 
         String platformPackage = PreferenceUtils.getPlatformPackage(getActivity());
-        if (TextUtils.isEmpty(platformPackage) && mPlatformPackages.size() > 1) {
+        if (TextUtils.isEmpty(platformPackage) || !mPlatformPackages.contains(platformPackage)) {
             if (mPlatformPackages.contains(DEFAULT_PLATFORM_PACKAGE)) {
-                int position = mPlatformPackages.indexOf(DEFAULT_PLATFORM_PACKAGE) + 1;
-                resetOnItemSelectedListener(getActivity().getIntent(), DEFAULT_PLATFORM_PACKAGE);
-                mPlatformSpinner.setSelection(position);
-                handleIDERequest(getActivity().getIntent());
-                return;
+                platformPackage = DEFAULT_PLATFORM_PACKAGE;
+            } else {
+                platformPackage = mPlatformPackages.get(0);
             }
+            PreferenceUtils.setPlatformPackage(getActivity(), platformPackage);
         }
+
         if (TextUtils.isEmpty(platformPackage)) {
-            enableButtons(false);
+            refreshButtons(false);
             return;
         }
 
+        mPlatformSpinnerIcon.setVisibility(View.VISIBLE);
         setupPlatformInfo(platformPackage);
         for (int i = 0; i < mPlatformPackages.size(); i++) {
             if (platformPackage.equals(mPlatformPackages.get(i))) {
                 resetOnItemSelectedListener(getActivity().getIntent(), platformPackage);
-                mPlatformSpinner.setSelection(i + 1, true);
                 break;
             }
         }
@@ -270,14 +266,13 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
         handleIDERequest(getActivity().getIntent());
     }
 
-    protected SpannableStringBuilder makePlatformMissingMessage() {
-        return new SpannableStringBuilder(getResources().getString(R.string.text_platform_hint_app));
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
         AppDebugManager.getInstance(getActivity()).unbindDebugService();
+        if (mPlatformSpinner != null && mPlatformSpinner.isShowing()) {
+            mPlatformSpinner.dismiss();
+        }
     }
 
     private void setupPlatformPackage(Intent intent) {
@@ -335,23 +330,19 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
             final Uri uri = intent.getData();
             String rpkAddress = uri.getQueryParameter(KEY_RPK_ADDRESS);
             if (!TextUtils.isEmpty(rpkAddress)) {
-                mPlatformSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                mPlatformSpinner.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Log.i(TAG, "resetOnItemSelectedListener--onItemSelected()");
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Log.i(TAG, "resetOnItemSelectedListener--onItemClick()");
                         PreferenceUtils.setPlatformPackage(getActivity(), platformPackage);
                         setupPlatformInfo(platformPackage);
-                        enableButtons(true);
+                        refreshButtons(true);
                         //由于OnItemSelected方法回调时间不确定， 需在调用handleUniversalScanRequest(intent)
                         //方法前先解绑旧的DebugService。
                         AppDebugManager.getInstance(getActivity()).unbindDebugService();
-                        mPlatformSpinner.setOnItemSelectedListener(AppFragment.this);
+                        mPlatformSpinner.setOnItemClickListener(AppFragment.this);
                         handleUniversalScanRequest(intent);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
+                        mPlatformSpinner.dismiss();
                     }
                 });
             }
@@ -411,8 +402,15 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
 
     private void setupPlatformInfo(String platformPackage) {
         try {
+            mPlatformPkgTv.setVisibility(View.VISIBLE);
+            mPlatformPkgTv.setText(" (" + platformPackage + ")");
+
             ApplicationInfo appInfo = getActivity().getPackageManager()
                     .getApplicationInfo(platformPackage, PackageManager.GET_META_DATA);
+            CharSequence platformName = getActivity().getPackageManager().getApplicationLabel(appInfo);
+            mPlatformNameTv.setVisibility(View.VISIBLE);
+            mPlatformNameTv.setText(platformName);
+
             int version = appInfo.metaData.getInt("platformVersion");
             float versionName = appInfo.metaData.getFloat("platformVersionName");
             String customValue = appInfo.metaData.getString(KEY_CUSTOM_VALUE);
@@ -443,16 +441,52 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
             mPlatformVersionNameTv.setVisibility(View.VISIBLE);
             mPlatformVersionNameTv.setText(platformVersionName);
             AppDebugManager.setCurrentPlatformVersion(version);
+
+            if (version < SUPPORT_ANALYZER_PLATFORM_VERSION) {
+                mAnalyzerContainer.setVisibility(View.GONE);
+                PreferenceUtils.setUseAnalyzer(getContext(), false);
+            } else {
+                mAnalyzerContainer.setVisibility(View.VISIBLE);
+                PreferenceUtils.setUseAnalyzer(getContext(), mAnalyzerEnableSwitch.isChecked());
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Platform not found: ", e);
         }
+        setupDebugPkgViews(platformPackage);
     }
 
-    private void enableButtons(boolean enable) {
-        mScanInstallBtn.setEnabled(enable);
-        mLocalInstallBtn.setEnabled(enable);
-        mUpdateOnlineBtn.setEnabled(enable);
-        mStartDebugBtn.setEnabled(enable);
+    private void setupDebugPkgViews(String selectedPlatform) {
+        String pkg = PreferenceUtils.getDebugPackage(getActivity());
+        mStartDebugBtn.setEnabled(!TextUtils.isEmpty(selectedPlatform) && !TextUtils.isEmpty(pkg));
+
+        if (!TextUtils.isEmpty(pkg)) {
+            mDebugPkgInfoLayout.setVisibility(View.VISIBLE);
+            mNoDebugPkgView.setVisibility(View.GONE);
+
+            mDebuggablePkgTv.setText(pkg);
+            org.hapjs.debugger.pm.PackageInfo pkgInfo = null;
+            if (!TextUtils.isEmpty(selectedPlatform) && selectedPlatform.equals(mPlatformOfLastInstallation)) {
+                pkgInfo = AppDebugManager.getInstance(getActivity()).getPackageInfo(pkg);
+            }
+            if (pkgInfo != null) {
+                mDebuggablePkgNameTv.setVisibility(View.VISIBLE);
+                mDebuggablePkgNameTv.setText(String.format("%s (%s)",
+                        pkgInfo.getName(), pkgInfo.getVersionName()));
+            } else {
+                mDebuggablePkgNameTv.setVisibility(View.GONE);
+            }
+        } else {
+            mDebugPkgInfoLayout.setVisibility(View.GONE);
+            mNoDebugPkgView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void refreshButtons(boolean hasSelectedPlatform) {
+        mScanInstallBtn.setEnabled(hasSelectedPlatform);
+        mLocalInstallBtn.setEnabled(hasSelectedPlatform);
+        mUpdateOnlineBtn.setEnabled(hasSelectedPlatform);
+        mStartDebugBtn.setEnabled(hasSelectedPlatform
+                && !TextUtils.isEmpty(PreferenceUtils.getDebugPackage(getActivity())));
     }
 
     @Override
@@ -514,46 +548,18 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemSele
     }
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (position < 1) {
-            return;
-        }
-        Log.i(TAG, "onItemSelected()");
-        String platformPackage = mPlatformPackages.get(position - 1);
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Log.i(TAG, "onItemClick()");
+        String platformPackage = mPlatformPackages.get(position);
         selectPlatform(platformPackage);
+        mPlatformSpinner.dismiss();
     }
 
     private void selectPlatform(String platformPackage) {
         PreferenceUtils.setPlatformPackage(getActivity(), platformPackage);
         setupPlatformInfo(platformPackage);
-        enableButtons(true);
+        refreshButtons(true);
         //now we have a new runtime platform, so unbind previous one
         AppDebugManager.getInstance(getActivity()).unbindDebugService();
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-        //ignore
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode != Activity.RESULT_OK) {
-            resetButtonTextView();
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private void resetButtonTextView() {
-        if (getActivity() != null && !getActivity().isFinishing()) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mScanInstallBtn.setText(R.string.btn_scan_install);
-                    mLocalInstallBtn.setText(R.string.btn_local_install);
-                    mUpdateOnlineBtn.setText(R.string.btn_update_online);
-                }
-            });
-        }
     }
 }

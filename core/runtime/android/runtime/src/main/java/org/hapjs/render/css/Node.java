@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -159,11 +159,17 @@ public abstract class Node {
     }
 
     public void appendChild(Node node) {
-        mChildren.add(node);
+        synchronized (mChildren) {
+            if (!mChildren.contains(node)) {
+                mChildren.add(node);
+            }
+        }
     }
 
     public void removeChild(Node node) {
-        mChildren.remove(node);
+        synchronized (mChildren) {
+            mChildren.remove(node);
+        }
     }
 
     public synchronized void setRestyling(boolean restyling) {

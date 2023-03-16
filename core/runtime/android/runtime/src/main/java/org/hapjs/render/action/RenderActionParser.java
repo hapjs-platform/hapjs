@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -80,10 +80,16 @@ class RenderActionParser {
                 if (DebugUtils.DBG) {
                     DebugUtils.endRecord("JsToNative_generateDom");
                 }
+                if(args.length() != 0){
+                    parseJsCallback(args.getJSONObject(0),action);
+                }
                 action.action = VDomChangeAction.ACTION_CREATE_FINISH;
                 break;
             }
             case "updateFinish": {
+                if(args.length() != 0){
+                    parseJsCallback(args.getJSONObject(0),action);
+                }
                 action.action = VDomChangeAction.ACTION_UPDATE_FINISH;
                 break;
             }
@@ -270,10 +276,13 @@ class RenderActionParser {
         action.styles.putAll(node.calFinalStyle(matchedStyles).convertStyleProps());
 
         if (updateChild) {
-            for (RenderActionNode child : node.getChildren()) {
-                VDomChangeAction childAction = new VDomChangeAction();
-                updateStyles(child, childAction, true);
-                action.children.add(childAction);
+            // SynchronizedList 在增强for循环中是非线程安全的，需要同步
+            synchronized (node.getChildren()){
+                for (RenderActionNode child : node.getChildren()) {
+                    VDomChangeAction childAction = new VDomChangeAction();
+                    updateStyles(child, childAction, true);
+                    action.children.add(childAction);
+                }
             }
         }
     }
@@ -291,9 +300,7 @@ class RenderActionParser {
                                 oldParent.removeChild(node); // 需要更新父节点，从旧父节点中移除
                             }
                             node.setParent(parent);
-                            if (!parent.getChildren().contains(node)) { // 已存在，不重复添加
-                                parent.appendChild(node); // 这里目前不需要关心顺序
-                            }
+                            parent.appendChild(node); // 这里目前不需要关心顺序
                         }
                     } else {
                         // 如果没有获取到父节点，设置当前节点为脏节点
@@ -383,6 +390,7 @@ class RenderActionParser {
         parseTagName(eleInfo, action);
         parseAttr(eleInfo, action);
         parseEvent(eleInfo, action);
+        parseHooks(eleInfo,action);
 
         // create node
         createRenderActionNode(document, action, eleInfo);
@@ -478,6 +486,23 @@ class RenderActionParser {
             String key = (String) keys.next();
             Object value = getTransformedJSONObject(jsObj, key);
             action.scrolls.put(key, value);
+        }
+    }
+
+    private static void parseHooks(JSONObject eleInfo, VDomChangeAction action) throws JSONException {
+        if (eleInfo.has("hooks")) {
+            JSONArray arr = eleInfo.getJSONArray("hooks");
+            final int N = arr.length();
+            for (int i = 0; i < N; i++) {
+                action.hooks.add(arr.getString(i));
+            }
+        }
+    }
+
+
+    private static void parseJsCallback(JSONObject eleInfo, VDomChangeAction action) throws JSONException {
+        if (eleInfo.has("jsCallbacks")) {
+            action.jsCallbacks = eleInfo.getBoolean("jsCallbacks");
         }
     }
 

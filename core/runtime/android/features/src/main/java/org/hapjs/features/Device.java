@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import android.view.Display;
+import android.view.WindowManager;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.Request;
@@ -144,6 +147,8 @@ public class Device extends FeatureExtension {
     protected static final String RESULT_DEVICE_TYPE = "deviceType";
     protected static final String RESULT_STATUS_BAR_HEIGHT = "statusBarHeight";
     protected static final String RESULT_CUTOUT = "cutout";
+    protected static final String RESULT_SCREEN_REFRESH_RATE = "screenRefreshRate";
+
     protected static final String RESULT_ADVERTISING_ID = "advertisingId";
     protected static final String RESULT_USER_ID = "userId";
     protected static final String RESULT_SERIAL = "serial";
@@ -257,6 +262,8 @@ public class Device extends FeatureExtension {
         info.put(RESULT_WINDOW_HEIGHT, windowHeight);
         info.put(RESULT_CUTOUT, getCutoutInfo(request));
         info.put(RESULT_DEVICE_TYPE, BuildConfig.FLAVOR);
+        Display display = activity.getWindowManager().getDefaultDisplay();
+        info.put(RESULT_SCREEN_REFRESH_RATE, display.getRefreshRate());
         return info;
     }
 
@@ -420,7 +427,10 @@ public class Device extends FeatureExtension {
 
     private Response getSerial(Request request) throws JSONException {
         String serial;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            //Starting with Android API level 29(Q),third part App not allowed to get SN.
+            return new Response(Response.CODE_GENERIC_ERROR, "getSerial fail，not allowed to get SN starting with Android Q");
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
                 serial = Build.getSerial();
             } catch (SecurityException e) {
@@ -499,8 +509,8 @@ public class Device extends FeatureExtension {
                             }
 
                             @Override
-                            public void onPermissionReject(int reason) {
-                                request.getCallback().callback(Response.USER_DENIED);
+                            public void onPermissionReject(int reason, boolean dontDisturb) {
+                                request.getCallback().callback(Response.getUserDeniedResponse(dontDisturb));
                             }
                         });
     }

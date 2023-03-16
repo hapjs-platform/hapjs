@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import okhttp3.Call;
@@ -92,6 +93,8 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
         }
         return null;
     }
+
+    private final WeakHashMap<Call, Request> mRequestMap = new WeakHashMap<>();
 
     @Override
     protected Response invokeInner(Request request)
@@ -165,34 +168,11 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
         requestTag.setRequestHashcode(this.hashCode());
         requestBuilder.tag(RequestTag.class, requestTag);
         OkHttpClient okHttpClient = HttpConfig.get().getOkHttpClient();
-        okHttpClient
-                .newCall(requestBuilder.build())
-                .enqueue(
-                        new CallbackImpl(request, responseType) {
-
-                            @Override
-                            public void onFailure(Call call, IOException e) {
-                                super.onFailure(call, e);
-                                if (isResident()) {
-                                    request
-                                            .getNativeInterface()
-                                            .getResidentManager()
-                                            .postUnregisterFeature(AbstractRequest.this);
-                                }
-                            }
-
-                            @Override
-                            public void onResponse(Call call, okhttp3.Response response)
-                                    throws IOException {
-                                super.onResponse(call, response);
-                                if (isResident()) {
-                                    request
-                                            .getNativeInterface()
-                                            .getResidentManager()
-                                            .postUnregisterFeature(AbstractRequest.this);
-                                }
-                            }
-                        });
+        Call call = okHttpClient.newCall(requestBuilder.build());
+        synchronized (mRequestMap) {
+            mRequestMap.put(call, request);
+        }
+        call.enqueue(new CallbackImpl(responseType));
     }
 
     private okhttp3.Request.Builder getGetRequest(
@@ -369,33 +349,58 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
                     call.cancel();
                 }
             }
+
+            synchronized (mRequestMap) {
+                mRequestMap.clear();
+            }
         }
     }
 
-    private static class CallbackImpl implements Callback {
-        private final Request request;
+    private class CallbackImpl implements Callback {
         private final String responseType;
 
-        CallbackImpl(Request request, String responseType) {
-            this.request = request;
+        CallbackImpl(String responseType) {
             this.responseType = responseType;
+        }
+
+        private Request getRequest(Call call) {
+            synchronized (mRequestMap) {
+                return mRequestMap.get(call);
+            }
         }
 
         @Override
         public void onFailure(Call call, IOException e) {
+            Request request = getRequest(call);
+            if (request == null) {
+                Log.w(TAG, "request not found");
+                return;
+            }
+
             Log.e(TAG, "Fail to invoke: " + request.getAction(), e);
             Response response = new Response(CODE_NETWORK_ERROR, e.getMessage());
             request.getCallback().callback(response);
+
+            if (isResident()) {
+                request.getNativeInterface().getResidentManager()
+                        .postUnregisterFeature(AbstractRequest.this);
+            }
         }
 
         @Override
         public void onResponse(Call call, okhttp3.Response response) throws IOException {
+            Request request = getRequest(call);
+            if (request == null) {
+                Log.w(TAG, "request not found");
+                return;
+            }
+
             SerializeObject result;
             try {
                 result = new JavaSerializeObject();
                 result.put(RESULT_KEY_CODE, response.code());
                 result.put(RESULT_KEY_HEADERS, RequestHelper.parseHeaders(response.headers()));
-                parseData(result, response, responseType);
+                parseData(request, result, response, responseType);
                 request.getCallback().callback(new Response(result));
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse data: ", e);
@@ -404,17 +409,14 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
             } finally {
                 FileUtils.closeQuietly(response);
             }
-        }
 
-        private String parseData(okhttp3.Response response) throws IOException {
-            if (isFileResponse(response)) {
-                return parseFile(response);
-            } else {
-                return response.body() == null ? null : response.body().string();
+            if (isResident()) {
+                request.getNativeInterface().getResidentManager()
+                        .postUnregisterFeature(AbstractRequest.this);
             }
         }
 
-        private void parseData(SerializeObject result, okhttp3.Response response,
+        private void parseData(Request request, SerializeObject result, okhttp3.Response response,
                                String responseType)
                 throws IOException {
             if (response == null || response.body() == null) {
@@ -434,13 +436,13 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
             } else if (RESPONSE_TYPE_ARRAYBUFFER.equalsIgnoreCase(responseType)) {
                 result.put(RESULT_KEY_DATA, new ArrayBuffer(response.body().bytes()));
             } else if (RESPONSE_TYPE_FILE.equalsIgnoreCase(responseType)) {
-                result.put(RESULT_KEY_DATA, parseFile(response));
+                result.put(RESULT_KEY_DATA, parseFile(request, response));
             } else {
-                result.put(RESULT_KEY_DATA, parseData(response));
+                result.put(RESULT_KEY_DATA, parseData(request, response));
             }
         }
 
-        private String parseFile(okhttp3.Response response) throws IOException {
+        private String parseFile(Request request, okhttp3.Response response) throws IOException {
             if (HapEngine.getInstance(request.getApplicationContext().getPackage()).isCardMode()) {
                 throw new IOException("Not support request file on card mode!");
             }
@@ -457,6 +459,14 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
                 throw new IOException("save file error");
             }
             return request.getApplicationContext().getInternalUri(file);
+        }
+
+        private String parseData(Request request, okhttp3.Response response) throws IOException {
+            if (isFileResponse(response)) {
+                return parseFile(request, response);
+            } else {
+                return response.body() == null ? null : response.body().string();
+            }
         }
 
         private boolean isFileResponse(okhttp3.Response response) {

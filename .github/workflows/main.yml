@@ -15,8 +15,8 @@ jobs:
     container: gengjiawen/android-ndk:qa-2020-07-31
     steps:
       - uses: actions/checkout@v2
-      # 构建程序 打包
+        # 构建程序 打包
       - run: |
           cd ./mockup/platform/android
-          ./gradlew assembleRelease
-          ./gradlew assembleDebug
+          ./gradlew clean assemblePhoneDebug assemblePhoneRelease
+          ./gradlew clean assembleTvDebug assembleTvRelease

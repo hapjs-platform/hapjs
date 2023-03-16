@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -10,12 +10,14 @@
     android:layout_height="wrap_content"
     android:background="@color/prompt_loading_view_bg_color"
     android:gravity="center"
+    android:importantForAccessibility="no"
     android:orientation="vertical">
 
     <ProgressBar
         android:id="@+id/loading_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
         android:indeterminateTint="@color/prompt_loading_color"
         android:max="10000" />
 
@@ -27,6 +29,7 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:text="@string/loading_hint"
+        android:importantForAccessibility="no"
         android:textColor="@android:color/white"
         android:textSize="14sp" />
 

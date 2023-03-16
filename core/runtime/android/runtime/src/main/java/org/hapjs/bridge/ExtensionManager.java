@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.executors.Executor;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.FeatureInnerBridge;
 import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.model.AppInfo;
 import org.hapjs.model.CardInfo;
@@ -44,6 +45,7 @@ public class ExtensionManager {
      * callback would be set as -1 when unset event
      */
     private static final String UNSET_JS_CALLBACK = "-1";
+
     protected Context mContext;
     protected FeatureBridge mFeatureBridge;
     protected ModuleBridge mModuleBridge;
@@ -52,6 +54,8 @@ public class ExtensionManager {
     private JsThread mJsThread;
     private WidgetBridge mWidgetBridge;
     private V8Object mRegisteredInterface;
+
+    private FeatureInvokeListener mFeatureInvokeListener;
 
     public ExtensionManager(JsThread jsThread, Context context) {
         mJsThread = jsThread;
@@ -157,27 +161,13 @@ public class ExtensionManager {
         RuntimeLogManager.getDefault()
                 .logFeatureInvoke(mHybridManager.getApplicationContext().getPackage(), name,
                         action);
+        if (mFeatureInvokeListener != null) {
+            mFeatureInvokeListener.invoke(name, action, rawParams, jsCallback, instanceId);
+        }
         return onInvoke(name, action, rawParams, jsCallback, instanceId, null);
     }
 
-    public Response invokeWithCallback(
-            String name,
-            String action,
-            Object rawParams,
-            String jsCallback,
-            int instanceId,
-            Callback realCallback) {
-        if (null == mHybridManager) {
-            Log.e(TAG, "invokeWithCallback error mHybridManager null.");
-            return null;
-        }
-        RuntimeLogManager.getDefault()
-                .logFeatureInvoke(mHybridManager.getApplicationContext().getPackage(), name,
-                        action);
-        return onInvoke(name, action, rawParams, jsCallback, instanceId, realCallback);
-    }
-
-    private Response onInvoke(
+    public Response onInvoke(
             String name,
             String action,
             Object rawParams,
@@ -185,6 +175,7 @@ public class ExtensionManager {
             int instanceId,
             Callback realCallback) {
         AbstractExtension f = null;
+        String pkg = mHybridManager.getApplicationContext().getPackage();
         if (isFeatureAvailable(name)) {
             f = mFeatureBridge.getExtension(name);
             // Operating environment does not meet the requirements
@@ -193,7 +184,8 @@ public class ExtensionManager {
                         new Response(
                                 Response.CODE_PERMISSION_ERROR,
                                 "Refuse to use this interfaces in background: " + name);
-                callback(response, jsCallback);
+                callback(response, jsCallback, realCallback);
+                RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
                 return response;
             }
         }
@@ -208,7 +200,8 @@ public class ExtensionManager {
             String err = "Extension not available: " + name;
             Log.e(TAG, err);
             Response response = new Response(Response.CODE_PERMISSION_ERROR, err);
-            callback(response, jsCallback);
+            callback(response, jsCallback, realCallback);
+            RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
             return response;
         }
 
@@ -216,14 +209,19 @@ public class ExtensionManager {
 
         Extension.Mode mode = f.getInvocationMode(request);
         if (mode == Extension.Mode.SYNC) {
+            Response response = f.invoke(request);
+            if (FeatureInnerBridge.H5_JS_CALLBACK.equals(jsCallback)) {
+                if (realCallback != null) {
+                    realCallback.callback(response);
+                }
+            }
+            RuntimeLogManager.getDefault().logFeatureResult(pkg, name, action, response);
+            return response;
+        } else if (mode == Extension.Mode.SYNC_CALLBACK) {
+            setCallbackToRequest(pkg, name, action, jsCallback, realCallback, request, mode);
             return f.invoke(request);
         } else {
-            if (null != realCallback) {
-                request.setCallback(realCallback);
-            } else {
-                Callback callback = new Callback(this, jsCallback, mode);
-                request.setCallback(callback);
-            }
+            setCallbackToRequest(pkg, name, action, jsCallback, realCallback, request, mode);
             Executor executor = f.getExecutor(request);
             executor = executor == null ? Executors.io() : executor;
             new AsyncInvocation(f, request, executor).execute();
@@ -235,6 +233,14 @@ public class ExtensionManager {
         }
     }
 
+    private void setCallbackToRequest(String pkg, String name, String action, String jsCallback, Callback realCallback, Request request, Extension.Mode mode) {
+        if (null != realCallback) {
+            request.setCallback(new CallbackWrapper(pkg, name, action, realCallback));
+        } else {
+            Callback callback = new Callback(this, jsCallback, mode);
+            request.setCallback(new CallbackWrapper(pkg, name, action, callback));
+        }
+    }
     public void dispose() {
         JsUtils.release(mRegisteredInterface);
         mRegisteredInterface = null;
@@ -254,8 +260,18 @@ public class ExtensionManager {
     }
 
     public void callback(Response response, String jsCallback) {
+        callback(response, jsCallback, null);
+    }
+
+    public void callback(Response response, String jsCallback, Callback realCallback) {
         if (response != null && isValidCallback(jsCallback)) {
-            SINGLE_THREAD_EXECUTOR.execute(new JsInvocation(response, jsCallback));
+            if (FeatureInnerBridge.H5_JS_CALLBACK.equals(jsCallback)) {
+                if (realCallback != null) {
+                    realCallback.callback(response);
+                }
+            } else {
+                SINGLE_THREAD_EXECUTOR.execute(new JsInvocation(response, jsCallback));
+            }
         }
     }
 
@@ -337,20 +353,26 @@ public class ExtensionManager {
             }
 
             @Override
-            public void onPermissionReject(int reason) {
+            public void onPermissionReject(int reason, boolean dontDisturb) {
                 switch (reason) {
                     case Response.CODE_TOO_MANY_REQUEST:
                         mRequest.getCallback().callback(Response.TOO_MANY_REQUEST);
                         break;
                     case Response.CODE_USER_DENIED:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
-                        break;
                     default:
-                        mRequest.getCallback().callback(Response.USER_DENIED);
+                        mRequest.getCallback().callback(Response.getUserDeniedResponse(dontDisturb));
                         break;
                 }
             }
         }
+    }
+
+    public void setFeatureInvokeListener(FeatureInvokeListener listener) {
+        this.mFeatureInvokeListener = listener;
+    }
+
+    public FeatureInvokeListener getFeatureInvokeListener() {
+        return mFeatureInvokeListener;
     }
 
     private class JsInvocation implements Runnable {
@@ -406,5 +428,12 @@ public class ExtensionManager {
             super.onDestroy();
             disposeFeature(true, this);
         }
+    }
+    public HybridManager getHybridManager() {
+        return mHybridManager;
+    }
+
+    public JsThread getJsThread() {
+        return mJsThread;
     }
 }

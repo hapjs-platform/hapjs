@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,9 +10,11 @@ import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Context;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -40,11 +42,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+
 @FeatureExtensionAnnotation(
         name = Alarm.FEATURE_NAME,
         actions = {
                 @ActionAnnotation(name = Alarm.ACTION_SET_ALARM, mode = FeatureExtension.Mode.ASYNC),
-                @ActionAnnotation(name = Alarm.ACTION_GET_PROVIDER, mode = FeatureExtension.Mode.SYNC)
+                @ActionAnnotation(name = Alarm.ACTION_GET_PROVIDER, mode = FeatureExtension.Mode.SYNC),
+                @ActionAnnotation(name = Alarm.ACTION_IS_AVAILABLE, mode = FeatureExtension.Mode.ASYNC)
         })
 public class Alarm extends FeatureExtension {
     public static final String PARAM_HOUR = "hour";
@@ -53,9 +65,11 @@ public class Alarm extends FeatureExtension {
     public static final String PARAM_DAYS = "days";
     public static final String PARAM_VIBRATE = "vibrate";
     public static final String PARAM_RINGTONE = "ringtone";
+    public static final String PARAM_IS_AVAILABLE = "isAvailable";
     protected static final String FEATURE_NAME = "system.alarm";
     protected static final String ACTION_SET_ALARM = "setAlarm";
     protected static final String ACTION_GET_PROVIDER = "getProvider";
+    protected static final String ACTION_IS_AVAILABLE = "isAvailable";
     private static final String TAG = "AlarmFeature";
     private static final int PARAM_DEFAULT = -1;
     private List<Dialog> mDialogs;
@@ -77,15 +91,39 @@ public class Alarm extends FeatureExtension {
 
             case ACTION_GET_PROVIDER:
                 return new Response(getProvider());
+            case ACTION_IS_AVAILABLE:
+                invokeIsAvailable(request);
+                break;
             default:
                 break;
         }
         return null;
     }
 
+    private void invokeIsAvailable(Request request) {
+        Activity activity = request.getNativeInterface().getActivity();
+        boolean isInstalled = isAvailable(activity);
+        JSONObject result = new JSONObject();
+        try {
+            result.put(PARAM_IS_AVAILABLE, isInstalled);
+        } catch (JSONException e) {
+            Log.e(TAG, "invokeIsAvailable put result error!");
+        }
+        request.getCallback().callback(new Response(result));
+    }
+
+    public boolean isAvailable(Context context) {
+        return true;
+    }
+
     private void setAlarm(final Request request) throws JSONException {
         final Activity activity = request.getNativeInterface().getActivity();
         final JSONObject jsonParams = request.getJSONParams(); // throw JSONException here.
+        if (!isAvailable(activity)) {
+            Response response = new Response(Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
         final ParamHolder paramHolder = new ParamHolder();
         Response response = checkAndHoldParams(request, jsonParams, paramHolder);
         if (response != null) { // null means no error response return,check passed.
@@ -135,7 +173,7 @@ public class Alarm extends FeatureExtension {
                                                         request.getCallback().callback(response);
                                                     });
                                 } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                                    request.getCallback().callback(Response.USER_DENIED);
+                                    request.getCallback().callback(Response.getUserDeniedResponse(false));
                                 }
                             }
                         },
@@ -270,20 +308,26 @@ public class Alarm extends FeatureExtension {
                 }
             }
 
+            String relativeFolderName = File.separator +activity.getApplication().getPackageName() + File.separator;
+            String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+            String fileMD5Name = fileMD5 + "." + extension;
             Cursor cursor = null;
             try {
-                cursor =
-                        activity
-                                .getContentResolver()
-                                .query(
-                                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                        new String[] {MediaStore.MediaColumns._ID},
-                                        // care only _id .
-                                        MediaStore.Audio.Media.DATA + "=?",
-                                        new String[] {destFile.getAbsolutePath()},
-                                        null);
-                if (cursor != null
-                        && cursor.moveToFirst()) { // return file uri if audio file exists.
+                String selection;
+                String[] selectionArgs;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    selection = MediaStore.Audio.Media.RELATIVE_PATH + "=? AND "
+                            + MediaStore.Audio.Media.DISPLAY_NAME + "=?";
+                    selectionArgs = new String[]{Environment.DIRECTORY_RINGTONES + relativeFolderName, fileMD5Name};
+                } else {
+                    selection = MediaStore.Audio.Media.DATA + "=?";
+                    selectionArgs = new String[]{destFile.getAbsolutePath()};
+                }
+
+                cursor = activity.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        new String[]{MediaStore.MediaColumns._ID},//care only _id .
+                        selection, selectionArgs, null);
+                if (cursor != null && cursor.moveToFirst()) {//return file uri if audio file exists.
                     int index = cursor.getColumnIndex(MediaStore.MediaColumns._ID);
                     if (index > -1) {
                         int ringtoneID = cursor.getInt(index);
@@ -299,8 +343,8 @@ public class Alarm extends FeatureExtension {
                 }
             }
 
-            // run here means never inserted to media store before.
-            Uri ringtoneUri = insertMediaStore(activity, fileName, destFile.getAbsolutePath());
+            //run here means never inserted to media store before.
+            Uri ringtoneUri = insertMediaStore(activity, fileName, relativeFolderName, fileMD5Name, destFile);
             if (ringtoneUri != null) {
                 holder.ringtone = ringtoneUri.toString();
                 return null;
@@ -357,25 +401,50 @@ public class Alarm extends FeatureExtension {
         }
     }
 
-    // insert into MediaStore.
-    private Uri insertMediaStore(Activity activity, String displayName, String filePath) {
+    //insert into MediaStore.
+    private Uri insertMediaStore(Activity activity, String displayName, String relativeFolderName,
+                                 String fileMD5Name, File destFile) {
         ContentValues values = new ContentValues();
-        values.put(MediaStore.Audio.Media.DATA, filePath);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Audio.Media.RELATIVE_PATH, Environment.DIRECTORY_RINGTONES + relativeFolderName);
+            values.put(MediaStore.Audio.Media.DISPLAY_NAME, fileMD5Name);
+        } else {
+            values.put(MediaStore.Audio.Media.DATA, destFile.getAbsolutePath());
+            values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
+        }
         values.put(MediaStore.Audio.Media.IS_ALARM, true);
-        values.put(
-                MediaStore.Audio.Media.MIME_TYPE,
-                URLConnection.guessContentTypeFromName(displayName));
-        values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
-        values.put(MediaStore.Audio.Media.TITLE,
-                FileUtils.getFileNameWithoutExtension(displayName));
-        return activity
-                .getContentResolver()
-                .insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        values.put(MediaStore.Audio.Media.MIME_TYPE, URLConnection.guessContentTypeFromName(displayName));
+        values.put(MediaStore.Audio.Media.TITLE, FileUtils.getFileNameWithoutExtension(displayName));
+        Uri mediaUri = activity.getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            OutputStream output = null;
+            InputStream input = null;
+            try {
+                output = activity.getApplication().getContentResolver().openOutputStream(mediaUri);
+                input = new FileInputStream(destFile);
+                if (output == null) {
+                    return null;
+                }
+                byte[] buffer = new byte[4 * 1024];
+                for (int length; (length = input.read(buffer)) != -1; ) {
+                    output.write(buffer, 0, length);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "failed to save ringtone file");
+                return null;
+            } finally {
+                FileUtils.closeQuietly(output, input);
+            }
+        }
+        return mediaUri;
     }
 
     // file name with suffix.
     private String getFileName(String uri) {
-        int index = uri.lastIndexOf("/");
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf("/");
+        }
         if (index > 0) {
             return uri.substring(index + 1);
         } else {

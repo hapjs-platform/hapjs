@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="rectangle">
+
+            <solid android:color="#FF579CF8" />
+            <corners android:radius="16dp" />
+
+        </shape>
+    </item>
+    <item android:drawable="@drawable/hint_popup_bg"
+        android:gravity="end|bottom"/>
+</layer-list>

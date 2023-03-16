@@ -1,39 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <PreferenceCategory
-        android:key="setting_category_general"
-        android:title="@string/setting_category_general">
-        <EditTextPreference
-            android:key="setting_item_server"
-            android:title="@string/setting_item_server_title" />
+        android:layout="@layout/preference_category"
+        android:textColor="#323232"
+        android:title="@string/setting_category_general"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="false">
+        <org.hapjs.debugger.widget.CustomEditTextPreference
+            android:icon="@mipmap/ic_forward"
+            android:key="@string/setting_item_server_key"
+            android:layout="@layout/preference_edittext"
+            android:title="@string/setting_item_server_title"
+            app:dialogLayout="@layout/preference_edit_text_dialog" />
     </PreferenceCategory>
+
     <PreferenceCategory
-        android:key="setting_category_inspect"
-        android:title="@string/setting_category_inspect">
-        <ListPreference
-            android:defaultValue="@string/setting_item_reload_app_value"
-            android:dialogTitle="@string/setting_item_reload_strategy"
-            android:entries="@array/strategies"
-            android:entryValues="@array/strategy_values"
-            android:key="setting_item_reload"
-            android:title="@string/setting_item_reload_strategy" />
-        <CheckBoxPreference
-            android:key="setting_item_wait_connect"
+        android:layout="@layout/preference_category"
+        android:title="@string/setting_category_inspect"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="false">
+        <org.hapjs.debugger.widget.CustomEditTextPreference
+            android:hint="@string/setting_item_set_params_hint"
+            android:icon="@mipmap/ic_forward"
+            android:key="@string/setting_item_params_key"
+            android:layout="@layout/preference_edittext"
+            android:title="@string/setting_item_set_params_title"
+            app:dialogLayout="@layout/preference_edit_text_dialog" />
+        <SwitchPreference
+            android:key="@string/setting_item_wait_connect_key"
+            android:layout="@layout/preference_switch"
             android:summary="@string/setting_item_wait_devtools_summary"
             android:title="@string/setting_item_wait_devtools_title" />
-        <CheckBoxPreference
-            android:key="setting_item_web_debug"
+        <SwitchPreference
+            android:key="@string/setting_item_web_debug_key"
+            android:layout="@layout/preference_switch"
             android:summary="@string/setting_item_web_debug_summary"
             android:title="@string/setting_item_web_debug_title" />
-        <EditTextPreference
-            android:hint="@string/setting_item_set_params_hint"
-            android:key="setting_item_params"
-            android:title="@string/setting_item_set_params_title" />
+        <org.hapjs.debugger.widget.CustomListPreference
+            android:defaultValue="@string/setting_item_reload_app_value"
+            android:key="@string/setting_item_reload_key"
+            android:layout="@layout/preference_list"
+            android:title="@string/setting_item_reload_strategy"
+            app:entries="@array/strategies"
+            app:entryValues="@array/strategy_values" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="@string/setting_category_help"
+        app:allowDividerAbove="false"
+        app:allowDividerBelow="false">
+        <Preference
+            android:key="@string/setting_item_feedback_key"
+            android:title="@string/setting_item_feedback"
+            app:icon="@mipmap/ic_forward"
+            app:layout="@layout/preference_edittext" />
+        <Preference
+            android:icon="@mipmap/ic_forward"
+            android:key="@string/setting_item_instruction_key"
+            android:layout="@layout/preference_edittext"
+            android:title="@string/setting_item_instruction" />
+        <Preference
+            android:icon="@mipmap/ic_forward"
+            android:key="@string/setting_item_faq_key"
+            android:layout="@layout/preference_edittext"
+            android:title="@string/setting_item_faq" />
+        <Preference
+            android:icon="@mipmap/ic_forward"
+            android:key="@string/setting_item_doc_key"
+            android:layout="@layout/preference_edittext"
+            android:title="@string/setting_item_doc" />
     </PreferenceCategory>
 </PreferenceScreen>

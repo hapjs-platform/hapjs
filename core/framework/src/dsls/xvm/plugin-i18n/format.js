@@ -96,12 +96,12 @@ export function compile(tokens, values) {
           compiled.push(values[token.value])
         } else {
           console.warn(
-            `i18n：Type of token '${token.type}' and format of value '${mode}' don't match!`
+            `### App Framework ### i18n：Type of token '${token.type}' and format of value '${mode}' don't match!`
           )
         }
         break
       case 'unknown':
-        console.warn(`i18n：Detect 'unknown' type of token!`)
+        console.warn(`### App Framework ### i18n：Detect 'unknown' type of token!`)
         break
     }
     index++

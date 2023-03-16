@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,8 @@ import java.util.Map;
 
 public interface LogProvider {
     String NAME = "log";
+    String KEY_RPK_VERSION = "rpk_version";
+    String KEY_RPK_PACKAGE = "rpk_package";
 
     void logCountEvent(String appPackage, String category, String key);
 

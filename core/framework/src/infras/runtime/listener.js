@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -33,10 +33,12 @@ class Listener {
    * @param callback
    * @returns {*}
    */
-  createFinish(callback) {
+  createFinish(callback, hasCallbacks) {
     console.trace('### App Runtime ### createFinish---- ')
 
-    const result = this.streamer.over(this.id, [_createAction('createFinish')], callback)
+    const args = []
+    args.push({ jsCallbacks: hasCallbacks })
+    const result = this.streamer.over(this.id, [_createAction('createFinish', args)], callback)
     this.resetActionLen()
     return result
   }
@@ -46,10 +48,12 @@ class Listener {
    * @param callback
    * @returns {*}
    */
-  updateFinish(callback) {
+  updateFinish(callback, hasCallbacks) {
     console.trace('### App Runtime ### updateFinish---- ')
 
-    const result = this.streamer.over(this.id, [_createAction('updateFinish')], callback)
+    const args = []
+    args.push({ jsCallbacks: hasCallbacks })
+    const result = this.streamer.over(this.id, [_createAction('updateFinish', args)], callback)
     this.resetActionLen()
     return result
   }
@@ -60,7 +64,7 @@ class Listener {
    * @returns {undefined|number}
    */
   createBody(node) {
-    const body = getNodeAsJSON(node, true, true, false)
+    const body = getNodeAsJSON(node, true, true, false, true)
     const children = body.children
     delete body.children
     const actions = [_createAction('createBody', [body])]
@@ -123,7 +127,7 @@ class Listener {
       index = -1
     }
     return this.addActions(
-      _createAction('addElement', [ref, getNodeAsJSON(node, true, true, false), index])
+      _createAction('addElement', [ref, getNodeAsJSON(node, true, true, false, true), index])
     )
   }
 

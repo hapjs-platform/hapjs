@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -56,7 +56,9 @@ function bindElement(vm, el, template) {
   setVmId(vm, el, template.attr.id, vm)
   setAttr(vm, el, template.attr)
   setAttrClass(vm, el, template.classList)
+  setExternalClasses(vm, el, template.classList)
   setAttrStyle(vm, el, template.style)
+  setCustomDirectives(vm, el, template)
 
   bindEvents(vm, el, template.events) // 绑定事件
 }
@@ -86,6 +88,8 @@ function bindSubVm(vm, subVm, template, repeatItem) {
     delete template.attr.$listeners
   }
 
+  mergeExternalClasses(options, template, subVm, vm)
+
   const repeatItemAttr = isPlainObject(repeatItem) ? repeatItem : {}
   Object.assign(subVm._attrs, template.attr || {}, repeatItemAttr)
 
@@ -106,6 +110,96 @@ function bindSubVm(vm, subVm, template, repeatItem) {
 
   mergeProps(subVm._attrs, options.props, vm, subVm)
   mergeAttrs(subVm._attrs, options.props, vm, subVm)
+}
+
+/**
+ * 在_externalClasses中保存父组件中样式定义
+ * @param {Object} options
+ * @param {Object} template
+ * @param {Object} subVm
+ * @param {Object} vm
+ * @returns
+ */
+function mergeExternalClasses(options, template, subVm, vm) {
+  const subExternalClassesDefine = options.externalClasses
+  const styleDefine = vm._options && vm._options.style
+  if (!subExternalClassesDefine || !styleDefine) {
+    return
+  }
+
+  if (!Array.isArray(subExternalClassesDefine)) {
+    console.error(`### App Framework ### 组件 ${subVm._type} 选项 externalClasses 必须为数组类型`)
+    return
+  }
+
+  subVm._externalClasses = {}
+  subExternalClassesDefine.forEach(className => {
+    const attrName = $camelize(className)
+    const isProps = options.props && options.props[attrName]
+    const value = template.attr && template.attr[attrName]
+    // props中接收的值，此处不能再使用
+    if (!isProps && value) {
+      const classSelector = '.' + className
+      if (typeof value === 'function') {
+        // 传递样式为变量，响应式更新
+        ;(function() {
+          const watcher = watch(vm, value, function(v) {
+            assignExternalClasses(v, classSelector, subVm, vm)
+          })
+          subVm._parentWatchers.push(watcher)
+          assignExternalClasses(watcher.value, classSelector, subVm, vm)
+        })()
+      } else {
+        assignExternalClasses(value, classSelector, subVm, vm)
+      }
+      defineReactive(subVm._externalClasses, classSelector, subVm._externalClasses[classSelector])
+    }
+  })
+
+  /**
+   * 将父组件中样式定义传递给自定义组件，样式重复则后定义的优先
+   * @param {String} value 自定义组件<comp xxx="yyy">中yyy部分
+   * @param {String} classSelector 自定义组件<comp xxx="yyy">中xxx部分
+   * @param {Object} subExtClassesVal 自定义组件_externalClasses样式记录
+   * @param {Object} vm 父组件vm
+   */
+  function assignExternalClasses(value, classSelector, subVm, vm) {
+    // 拿到父组件中样式定义顺序，样式重复则以后定义的为准
+    const classArr = value.trim().split(' ')
+    const styleArr = Object.getOwnPropertyNames(styleDefine)
+    let idx = -1
+    let curIdx
+    const subExtClassesVal = {}
+    classArr.forEach(val => {
+      const selector = '.' + val
+      const styleVal = styleDefine[selector]
+      if (vm._externalClasses && vm._externalClasses[selector]) {
+        // 高阶组件定义了externalClasses则一直往下传，并响应式更新
+        const calc = () => {
+          return vm._externalClasses[selector]
+        }
+        watch(vm, calc, function(v) {
+          const newSubExtClassesVal = {}
+          Object.assign(newSubExtClassesVal, vm._externalClasses[selector])
+          subVm._externalClasses[classSelector] = newSubExtClassesVal
+        })
+        Object.assign(subExtClassesVal, vm._externalClasses[selector])
+      } else if (styleVal) {
+        curIdx = styleArr.indexOf(selector)
+        Object.keys(styleVal).forEach(classObj => {
+          if (!subExtClassesVal[classObj] || curIdx > idx) {
+            subExtClassesVal[classObj] = styleVal[classObj]
+          }
+        })
+        idx = curIdx
+      } else {
+        console.warn(
+          `### App Framework ### 组件 ${subVm._type} 选项 externalClasses 中传递的 ${classSelector}: ${val} 样式在父组件 ${vm._type} 中未找到定义`
+        )
+      }
+    })
+    subVm._externalClasses[classSelector] = subExtClassesVal
+  }
 }
 
 /**
@@ -144,10 +238,12 @@ function mergeProps(attrs, props, vm, subVm) {
   if (!attrs) {
     return
   }
-  if (attrs && !props) {
-    console.warn(
-      `### App Framework ### 组件${subVm._type} 中无props属性，放弃属性校验；推荐增加props属性`
-    )
+  if (!props) {
+    if (Object.keys(attrs).length !== 0) {
+      console.warn(
+        `### App Framework ### 组件${subVm._type}中无props属性，放弃属性校验；推荐增加props属性`
+      )
+    }
     for (const key in attrs) {
       let targetFunction
       if (attrs[key] && attrs[key].targetFunction) {
@@ -208,7 +304,7 @@ function initProps(key, value, vm, subVm, absent, prop) {
       defineReactive(_props, key, watcherValue, () => {
         if (!isUpdatingChildComponent) {
           console.error(
-            `### App Framework ### 组件${subVm._type} 禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
+            `### App Framework ### 组件${subVm._type}禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
           )
         }
       })
@@ -217,7 +313,7 @@ function initProps(key, value, vm, subVm, absent, prop) {
     value = validateProp(key, value, absent, prop, subVm)
     defineReactive(_props, key, value, () => {
       console.error(
-        `### App Framework ### 组件${subVm._type} 禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
+        `### App Framework ### 组件${subVm._type}禁止修改props中的：${key}!如需改变，请额外在data中使用另一个名称声明`
       )
     })
   }
@@ -320,8 +416,8 @@ function mergeAttrs(attrs, props, vm, subVm) {
   }
   const reservedAttr = ['id', 'tid']
   for (const key in attrs) {
-    // props未定义或props已定义但不包含该变量
-    if (!props || (!props.hasOwnProperty(key) && reservedAttr.indexOf(key) === -1)) {
+    // props 未定义或 props 已定义但不包含该变量
+    if ((!props || !props.hasOwnProperty(key)) && reservedAttr.indexOf(key) === -1) {
       // targetVm 和 targetFunction 用来确保响应式数据更新正确
       let targetFunction
       if (attrs[key] && attrs[key].targetFunction) {
@@ -333,11 +429,6 @@ function mergeAttrs(attrs, props, vm, subVm) {
         targetFunction = attrs[key]
       }
       initAttrs(key, targetFunction, vm, subVm, props)
-      if (props && reservedAttr.indexOf(key) === -1) {
-        console.warn(
-          `### App Framework ### 组件${subVm._type} 属性'${key}'未在props定义，可通过 $attrs 访问 `
-        )
-      }
     }
   }
 }
@@ -360,17 +451,21 @@ function initAttrs(key, value, vm, subVm, props) {
 
   if (isReservedAttr(key)) {
     console.warn(
-      `### App Framework ### 组件${subVm._type}中属性 '${key}' 是保留字, 可能会导致应用运行异常`
+      `### App Framework ### 组件 ${subVm._type} 中属性 '${key}' 是保留字, 可能会导致应用运行异常`
     )
   }
   if (typeof value === 'function') {
-    ;(function() {
-      const watcher = watch(vm, value, function(v) {
-        _$attrs[key] = v
-      })
-      subVm._parentWatchers.push(watcher)
-      defineReactive(_$attrs, key, watcher.value)
-    })()
+    try {
+      ;(function() {
+        const watcher = watch(vm, value, function(v) {
+          _$attrs[key] = v
+        })
+        subVm._parentWatchers.push(watcher)
+        defineReactive(_$attrs, key, watcher.value)
+      })()
+    } catch (err) {
+      console.error(`### App Framework ### ${err}`)
+    }
   } else {
     defineReactive(_$attrs, key, value)
   }
@@ -633,6 +728,55 @@ function setAttrClass(vm, el, classList) {
 }
 
 /**
+ * externalClasses赋予的样式值变化时，响应式更新节点
+ * @param {Object} vm
+ * @param {Object} el
+ * @param {Array || String} classList
+ * @returns
+ */
+function setExternalClasses(vm, el, classList) {
+  if (
+    !vm._externalClasses ||
+    !Object.keys(vm._externalClasses).length ||
+    typeof classList === 'function'
+  ) {
+    return
+  }
+
+  if (!Array.isArray(classList)) {
+    bindExtClasses(vm, el, '.' + classList)
+  } else {
+    classList.forEach(className => {
+      bindExtClasses(vm, el, '.' + className)
+    })
+  }
+}
+
+/**
+ * vm._externalClasses中样式值变化时通知节点更新
+ * @param {*} vm
+ * @param {*} el
+ * @param {String} className
+ */
+function bindExtClasses(vm, el, className) {
+  if (vm._externalClasses[className]) {
+    const calc = () => {
+      return vm._externalClasses[className]
+    }
+    watch(
+      vm,
+      calc,
+      value => {
+        Object.keys(value).forEach(key => {
+          updateNodeProperties(el, 'style', key, value[key])
+        })
+      },
+      el
+    )
+  }
+}
+
+/**
  * 给element绑定內联样式
  * @param vm
  * @param el
@@ -643,6 +787,66 @@ function setAttrStyle(vm, el, style) {
     bindDir(vm, el, 'styles', style)
   } else {
     bindDir(vm, el, 'style', style)
+  }
+}
+
+/**
+ * 给element绑定自定义指令
+ * @param vm 节点所在的vm
+ * @param el 触发指令的节点
+ * @param data 节点描述信息
+ */
+function setCustomDirectives(vm, el, data) {
+  // directives：节点自带的指令信息
+  // appendDirectives：页面传递给自定义组件根节点的指令信息
+  const { directives, appendDirectives } = data
+
+  // 节点上不存在自定义指令信息则跳过
+  if (!directives && !appendDirectives) return
+
+  // 节点上存在自定义指令，则初始化_directives
+  el._directives = []
+
+  // 合并节点的directives和appendDirectives
+  const allDirs = [].concat(directives, appendDirectives)
+  let curVm = vm
+  for (let i = 0, len = allDirs.length; i < len; i++) {
+    const elDir = allDirs[i]
+    if (!elDir) continue
+
+    // 组件根节点处理：如果当前节点是组件的根节点，并且当前vm中没有定义节点的指令信息
+    if (el === vm._rootElement && !vm._directives[elDir.name]) {
+      // 则取父vm为自定义指令的context
+      curVm = vm._parent
+    }
+
+    const vmDirs = curVm._directives
+    // 节点自定义指令名称在vm上有定义
+    if (vmDirs[elDir.name]) {
+      const dirInfo = {
+        name: elDir.name,
+        callbacks: vmDirs[elDir.name]
+      }
+      if (typeof elDir.value === 'function') {
+        // 指令绑定的值为动态变量时：标记useDynamic为true，创建函数观察器，返回当前计算值
+        dirInfo.useDynamic = true
+        dirInfo.value = watch(curVm, elDir.value, undefined, el)
+      } else {
+        dirInfo.useDynamic = false
+        // 指令绑定的值非动态变量，直接返回
+        dirInfo.value = elDir.value
+      }
+      // 将当前指令信息push到节点_directives中
+      el._directives.push(dirInfo)
+
+      const directivesContext = vm._root._directivesContext
+      directivesContext[el.ref] = {}
+      // 记录当前节点自定义指令的vm上下文
+      directivesContext[el.ref][elDir.name] = curVm
+
+      // 为节点绑定原生方法
+      context.quickapp.dock.bindComponentMethods(curVm._page || {}, el)
+    }
   }
 }
 
@@ -668,7 +872,7 @@ function bindEvents(vm, el, events) {
       // 之前initState函数已经将自定义函数添加到vm中
       handler = vm[handler]
       if (!handler) {
-        console.warn(`### App Framework ### 没有找到回调事件 "${type}".`)
+        console.warn(`### App Framework ### 没有找到回调事件 '${type}'`)
       }
     }
 
@@ -676,7 +880,7 @@ function bindEvents(vm, el, events) {
       console.trace(`### App Framework ### 绑定回调事件---- ${type}`)
       nodeAddEventListener(el, type, $bind(handler, vm), false)
     } else {
-      console.warn(`### App Framework ### 回调事件 "${type}" 必须是函数`)
+      console.warn(`### App Framework ### 回调事件 '${type}' 必须是函数`)
     }
   }
 }
@@ -774,7 +978,7 @@ function watch(vm, calc, callback, node) {
       return
     }
     // 执行回调
-    callback(value)
+    callback && callback(value)
   })
   bindNodeWatcher(node, watcher)
   // 返回当前calc函数的计算结果

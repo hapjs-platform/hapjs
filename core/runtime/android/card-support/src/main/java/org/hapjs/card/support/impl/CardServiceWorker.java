@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -35,6 +35,7 @@ import org.hapjs.card.sdk.utils.CardThemeUtils;
 import org.hapjs.card.support.CardInstaller;
 import org.hapjs.card.support.impl.debug.CardDebugControllerImpl;
 import org.hapjs.card.support.utils.CardRuntimeErrorManager;
+import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.component.ComponentManager;
 import org.hapjs.component.view.ScrollView;
 import org.hapjs.logging.CardLogManager;
@@ -100,12 +101,14 @@ public class CardServiceWorker implements CardService {
     }
 
     private void preloadSoLibrary() {
-        try {
-            SoLoader.loadLibrary("yoga");
-            ImagePipelineNativeLoader.load();
-        } catch (Exception e) {
-            Log.e(TAG, "init: ", e);
-        }
+        FrescoUtils.addInitializedCallback(() -> {
+            try {
+                SoLoader.loadLibrary("yoga");
+                ImagePipelineNativeLoader.load();
+            } catch (Exception e) {
+                Log.e(TAG, "init: ", e);
+            }
+        });
     }
 
     private void preloadScrollView(Context context) {

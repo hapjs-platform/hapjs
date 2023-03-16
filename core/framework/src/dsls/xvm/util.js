@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { isFunction, isPlainObject, isReserved, isObject } from 'src/shared/util'
+import { isFunction, isPlainObject, isReserved } from 'src/shared/util'
 
 /**
  * 定义属性
@@ -312,22 +312,18 @@ function assertType(value, type) {
   }
 }
 
-function checkElement(params, key) {
-  if (!isObject(params)) {
+/**
+ * 按添加key的顺序复制对象
+ */
+function assignObjectInOrder(target, source) {
+  if (!source) {
     return
   }
 
-  // 禁止对DOM元素做数据驱动的改造
-  if ($own(params, '_nodeType')) {
-    throw new Error(`this.${key}新赋值对象${params}为DOM元素，禁止做数据驱动 `)
-  }
-  for (const i in params) {
-    if (isObject(params[i]) && $own(params[i], '_nodeType')) {
-      throw new Error(`this.${key}新赋值对象中${i}:${params[i]}为DOM元素，禁止做数据驱动`)
-    } else if (isObject(params[i])) {
-      checkElement(params[i], key)
-    }
-  }
+  Object.keys(source).forEach(key => {
+    if (target[key]) delete target[key]
+    target[key] = source[key]
+  })
 }
 
 export {
@@ -347,6 +343,6 @@ export {
   getType,
   assertType,
   getTypeIndex,
-  arrayMethods,
-  checkElement
+  assignObjectInOrder,
+  arrayMethods
 }

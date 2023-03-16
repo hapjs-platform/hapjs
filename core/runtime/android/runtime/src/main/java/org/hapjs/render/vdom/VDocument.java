@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,6 +7,7 @@ package org.hapjs.render.vdom;
 
 import android.util.Log;
 import java.util.HashMap;
+import org.hapjs.render.MultiWindowManager;
 
 public class VDocument extends VGroup {
 
@@ -31,14 +32,22 @@ public class VDocument extends VGroup {
         return mIdToEles.get(id);
     }
 
-    public void attachChildren(
-            boolean open, int animType, DocComponent.PageEnterListener pageEnterListener) {
-        mDocComponent.attachChildren(open, animType, pageEnterListener);
+    public void attachChildren(boolean open, int animType, DocComponent.PageEnterListener pageEnterListener) {
+        this.attachChildren(open, animType, null, pageEnterListener);
+    }
+
+    public void attachChildren(boolean open, int animType, MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo,
+        DocComponent.PageEnterListener pageEnterListener) {
+        mDocComponent.attachChildren(open, animType, extraInfo, pageEnterListener);
     }
 
     public void detachChildren(
             int animType, DocComponent.PageExitListener pageExitListener, boolean open) {
         mDocComponent.detachChildren(animType, pageExitListener, open);
+    }
+
+    public void moveChildren(int animType, DocComponent.PageMoveListener pageMoveListener) {
+        mDocComponent.moveChildren(animType, pageMoveListener);
     }
 
     void onAddElement(VElement ele) {

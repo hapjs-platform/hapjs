@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -34,6 +34,7 @@ import org.hapjs.component.constants.Attributes;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.A;
+import org.hapjs.widgets.Image;
 import org.hapjs.widgets.Span;
 import org.hapjs.widgets.view.text.LineHeightSpan;
 import org.hapjs.widgets.view.text.TextDecoration;
@@ -187,6 +188,12 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             } else if (child instanceof A) {
                 A a = (A) child;
                 stringBuilder.append(a.applySpannable());
+            } else if (child instanceof Image) {
+                Image image = (Image) child;
+                Spannable imageSpannable = image.getSpannable();
+                if (imageSpannable != null) {
+                    stringBuilder.append(imageSpannable);
+                }
             }
         }
         // To ensure the line_height attribute take effect, apply it globally
@@ -246,7 +253,7 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             throw new IllegalArgumentException("Cannot add a null child component to Container");
         }
 
-        if (!(child instanceof Span || child instanceof A)) {
+        if (!(child instanceof Span || child instanceof A || child instanceof Image)) {
             Log.w(TAG, "text not support child:" + child.getClass().getSimpleName());
             return;
         }
@@ -265,6 +272,9 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             mChildren.remove(child);
             mTextSpan.setDirty(true);
         } else if (child instanceof A) {
+            mChildren.remove(child);
+            mTextSpan.setDirty(true);
+        } else if (child instanceof Image) {
             mChildren.remove(child);
             mTextSpan.setDirty(true);
         }
@@ -326,6 +336,10 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
             case FONT_FAMILY_DESC:
                 String fontFamily = Attributes.getString(attribute, null);
                 setFontFamily(fontFamily);
+                return true;
+            case Attributes.Style.LETTER_SPACING:
+                String letterSpacing = Attributes.getString(attribute, null);
+                parseLetterSpacing(letterSpacing);
                 return true;
             default:
                 break;
@@ -622,6 +636,28 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
                         }
                     }
                 });
+    }
+    private void parseLetterSpacing(String letterspacing) {
+        if (letterspacing == null) {
+            return;
+        } else if (letterspacing.endsWith("normal")) {
+            setLetterSpacing(0.0f);
+        } else if (letterspacing.endsWith("dp")) {
+            float dp = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            setLetterSpacing(dp/getFontSize());
+        } else if (letterspacing.endsWith("px")) {
+            float px = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            setLetterSpacing(px/getFontSize());
+        } else if (letterspacing.endsWith("%")) {
+            float percent = Attributes.getPercent(letterspacing, 0);
+            setLetterSpacing(percent * getFontSize()/100);
+        }
+    }
+
+    private void setLetterSpacing(float spacing) {
+        mTextSpan.setLetterSpacing(spacing);
+        mLayoutBuilder.setLetterSpacing(spacing);
+        updateSpannable();
     }
 
     public TextSpan getTextSpan() {

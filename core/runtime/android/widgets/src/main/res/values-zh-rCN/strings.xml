@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -32,10 +32,10 @@
     <string name="web_loading_name">正在载入&#8230;</string>
 
     <string name="webrtc_warn_title">权限申请</string>
-    <string name="webrtc_warn_single_permission"><xliff:g id="origin">%s</xliff:g>想使用您的%s</string>
-    <string name="webrtc_warn_double_permission"><xliff:g id="origin">%s</xliff:g>想使用您的%s和%s</string>
+    <string name="webrtc_warn_permission_camera"><xliff:g id="origin">%s</xliff:g>想使用您的相机</string>
+    <string name="webrtc_warn_permission_microphone"><xliff:g id="origin">%s</xliff:g>想使用您的麦克风</string>
+    <string name="webrtc_warn_permission_camera_and_microphone"><xliff:g id="origin">%s</xliff:g>想使用您的相机和麦克风</string>
     <string name="webrtc_warn_reject">拒绝</string>
     <string name="webrtc_warn_allow">允许</string>
-    <string name="webrtc_warn_camera">相机</string>
-    <string name="webrtc_warn_microphone">麦克风</string>
+    <string name="header_2_space">\u3000\u3000</string>
 </resources>

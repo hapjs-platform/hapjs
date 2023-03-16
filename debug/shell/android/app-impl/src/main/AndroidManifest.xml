@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -60,27 +60,32 @@
         <activity
             android:name="org.hapjs.debugger.SettingsActivity"
             android:label="@string/activity_settings_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/dialog_style" />
         <activity
             android:name="org.hapjs.debugger.card.CardActivity"
             android:label="@string/text_mode_card"
             android:launchMode="singleTask"
             android:process=":card"
-            android:taskAffinity=":card" />
+            android:taskAffinity=":card"
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name="org.hapjs.debugger.AppLaunchTestActivity"
-            android:label="@string/menu_label_launch_app_test" />
+            android:label="@string/menu_label_launch_app_test"
+            android:theme="@style/dialog_style"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name="org.hapjs.debugger.SignatureActivity"
             android:label="@string/get_signature_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/dialog_style"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name="org.hapjs.debugger.InstalledAppActivity"
+            android:exported="true"
             android:label="@string/choose_app_label"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.InstalledApp" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

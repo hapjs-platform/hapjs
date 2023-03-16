@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.hapjs.common.resident.ResidentManager;
+import org.hapjs.common.utils.ReflectUtils;
 import org.hapjs.debug.DebugUtils;
 import org.hapjs.model.CardInfo;
 import org.hapjs.render.Page;
@@ -318,7 +319,11 @@ public class HybridManager implements HybridView.OnVisibilityChangedListener {
         if (!mChangeVisibilityManually) {
             if (!oldVisible && visible) {
                 onStart();
-                onResume();
+                // NFC: Foreground dispatch can only be enabled when RuntimeActivity is resumed
+                // so, cannot call HybridManager.onResume() ahead of RuntimeActivity.onResume()
+                if (isResumed(getActivity())) {
+                    onResume();
+                }
             } else if (oldVisible && !visible) {
                 onPause();
                 onStop();
@@ -328,5 +333,14 @@ public class HybridManager implements HybridView.OnVisibilityChangedListener {
 
     public void changeVisibilityManually(boolean enable) {
         mChangeVisibilityManually = enable;
+    }
+
+    private boolean isResumed(Activity activity) {
+        Object obj = ReflectUtils.invokeMethod(Activity.class.getName(), activity,
+                "isResumed", null, null);
+        if (null != obj) {
+            return (boolean) obj;
+        }
+        return false;
     }
 }

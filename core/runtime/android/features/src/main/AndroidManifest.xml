@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -42,13 +42,18 @@
         android:name="android.hardware.camera.flash"
         android:required="false" />
 
+    <uses-permission android:name="MediaStore.Images.Media.INTERNAL_CONTENT_URI"/>
+    <uses-permission android:name="MediaStore.Images.Media.EXTERNAL_CONTENT_URI"/>
+
     <!--android 9.0上使用前台服务，需要添加权限-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <application
-        android:allowBackup="true"
-        android:label="@string/app_name"
-        android:supportsRtl="true">
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
+
+    <application android:allowBackup="true"
+                 android:label="@string/app_name"
+                 android:supportsRtl="true">
 
         <activity
             android:name=".barcode.CaptureActivity"

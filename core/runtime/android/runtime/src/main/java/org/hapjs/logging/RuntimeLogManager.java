@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import org.hapjs.bridge.Request;
+import org.hapjs.bridge.Response;
 import org.hapjs.cache.CacheStorage;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.json.JSONObject;
@@ -58,6 +59,7 @@ public class RuntimeLogManager {
     private static final String CATEGORY_PAGE_RENDER = "pageRender";
     private static final String CATEGORY_PAGE_ERROR = "pageError";
     private static final String CATEGORY_FEATURE_INVOKE = "featureInvoke";
+    public static final String CATEGORY_FEATURE_RESULT = "featureResult";
     private static final String CATEGORY_PERMISSION = "permission";
     private static final String CATEGORY_EXTERNAL_CALL = "externalCall";
     private static final String CATEGORY_CARD = "card";
@@ -86,6 +88,8 @@ public class RuntimeLogManager {
     private static final String KEY_MENU_BAR_SHARE_RESULT = "menuBarShareResult";
     private static final String KEY_MENU_BAR_SHARE_ERROR = "menuBarShareError";
     private static final String KEY_MENU_BAR_SHARE_CANCEL = "menuBarShareCancel";
+    private static final String KEY_ILLEGAL_ACCESS_FILE = "illegalAccessFile";
+
     private static final String PARAM_TIME_START = "startTime";
     private static final String PARAM_TIME_END = "endTime";
     private static final String PARAM_ACTION = "action";
@@ -116,6 +120,8 @@ public class RuntimeLogManager {
     private static final String PARAM_TASK_NAME = "taskName";
     private static final String PARAM_TASK_COST = "taskCost";
     private static final String PARAM_MENU_BAR_SHARE_PLATFORM = "menuBarSharePlatform";
+    private static final String PARAM_FILE_PATH = "file_path";
+
     private static final String STATE_APP_LOAD = "appLoad";
     private static final String STATE_PAGE_VIEW = "pageView";
     private static final String STATE_PAGE_LOAD = "pageLoad";
@@ -125,18 +131,33 @@ public class RuntimeLogManager {
     private static final String STATE_PHONE_PROMPT_DELETE = "phonePromptDelete";
     private static final String STATE_APP_JS_LOAD = "appJsLoad";
     private static final String STATE_LAUNCHER_ACTIVITY_CREATE = "launcherActivityCreate";
+    public static final String KEY_APP_EVENT_READERDIV_CLICK = "readerdivClick";
+    public static final String KEY_APP_EVENT_RADERDIV_AD_SHOW = "readerdivAdShow";
     private static final String KEY_APP_ROUTER_DIALOG_SHOW = "routerDialogShow";
     private static final String KEY_APP_ROUTER_DIALOG_CLICK = "routerDialogClick";
     private LogProvider mProvider;
     public static final String PARAM_OUTER_APP_SOURCE_H5 = "sourceH5";
-    public static final String PARAM_ROUTER_APP_FAIL_MSG = "failureMsg";
-
+    public static final String PARAM_ROUTER_APP_RESULT_DESC = "result_desc";
     public static final String PARAM_ROUTER_RPK_FROM = "routerRpkFrom";
     public static final String PARAM_ROUTER_RPK_RESULT = "routerRpkResult";
     public static final String PARAM_ROUTER_RPK_TARGET = "target_pkg";
     public static final String KEY_RPK_ROUTER_RPK = "routerRpk";
     public static final String KEY_APP_ROUTER_RPK_DIALOG_SHOW = "routerRpkDialogShow";
     public static final String KEY_APP_ROUTER_RPK_DIALOG_CLICK = "routerRpkDialogClick";
+    // share button
+    public static final String KEY_APP_SHARE_BUTTON_SHOW = "shareButtonShow";
+    public static final String KEY_APP_SHARE_BUTTON_CLICK = "shareButtonClick";
+    //shortcut tips
+    public static final String KEY_APP_EVENT_BUTTON_SHOW = "eventbuttonShow";
+    public static final String KEY_APP_EVENT_BUTTON_CLICK = "eventbuttonClick";
+    public static final String KEY_APP_EVENT_BUTTON_OPACITY = "eventbuttonOpacity";
+    public static final String KEY_APP_EVENT_BUTTON_TIPS_SHOW = "eventbuttonTipsShow";
+
+    //feature result
+    public static final String PARAM_FEATURE_NAME = "feature";
+    public static final String PARAM_FEATURE_ACTION = "action";
+    public static final String PARAM_FEATURE_RESULT = "featureResult";
+
     private Map<Object, Object> mStates;
     private Object mStateLock;
 
@@ -247,7 +268,7 @@ public class RuntimeLogManager {
             String nativeActivity,
             String routerAppFrom,
             boolean result,
-            String failureMsg,
+            String resultDesc,
             String sourceH5) {
         if (mProvider == null) {
             return;
@@ -258,9 +279,7 @@ public class RuntimeLogManager {
         params.put(PARAM_NATIVE_ACTIVITY, nativeActivity);
         params.put(PARAM_ROUTER_NATIVE_FROM, routerAppFrom);
         params.put(PARAM_ROUTER_NATIVE_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
-        if (!TextUtils.isEmpty(failureMsg)) {
-            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
-        }
+        params.put(PARAM_ROUTER_APP_RESULT_DESC, resultDesc);
         if (!TextUtils.isEmpty(sourceH5)) {
             params.put(PARAM_OUTER_APP_SOURCE_H5, sourceH5);
         }
@@ -286,7 +305,7 @@ public class RuntimeLogManager {
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_APP_ROUTER_DIALOG_CLICK, params);
     }
 
-    public void logRouterQuickApp(String pkg, String targetPkg, String routerFrom, boolean result, String failureMsg) {
+    public void logRouterQuickApp(String pkg, String targetPkg, String routerFrom, boolean result, String resultDesc) {
         if (mProvider == null) {
             return;
         }
@@ -294,9 +313,7 @@ public class RuntimeLogManager {
         params.put(PARAM_ROUTER_RPK_TARGET, targetPkg);
         params.put(PARAM_ROUTER_RPK_FROM, routerFrom);
         params.put(PARAM_ROUTER_RPK_RESULT, result ? VALUE_SUCCESS : VALUE_FAIL);
-        if (!TextUtils.isEmpty(failureMsg)) {
-            params.put(PARAM_ROUTER_APP_FAIL_MSG, failureMsg);
-        }
+        params.put(PARAM_ROUTER_APP_RESULT_DESC, resultDesc);
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_RPK_ROUTER_RPK, params);
     }
 
@@ -548,6 +565,17 @@ public class RuntimeLogManager {
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_ACTION, action);
         mProvider.logCountEvent(pkg, CATEGORY_FEATURE_INVOKE, feature, params);
+    }
+
+    public void logFeatureResult(String pkg, String feature, String action, Response response) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_FEATURE_NAME, feature);
+        params.put(PARAM_FEATURE_ACTION, action);
+        params.put(PARAM_FEATURE_RESULT, String.valueOf(response != null ? response.getCode() : -1));
+        mProvider.logCountEvent(pkg, CATEGORY_FEATURE_RESULT, CATEGORY_FEATURE_RESULT, params);
     }
 
     public void logPermissionPrompt(
@@ -1009,6 +1037,15 @@ public class RuntimeLogManager {
 
     private static class Holder {
         static final RuntimeLogManager INSTANCE = new RuntimeLogManager();
+    }
+
+    public void recordIllegalAccessFile(String pkg, String filePath) {
+        if (mProvider == null) {
+            return;
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_FILE_PATH, filePath);
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_ILLEGAL_ACCESS_FILE, params);
     }
 
     private static class DiskUsageTask implements Runnable {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.hapjs.debugger.app.impl.BuildConfig;
+
 public class PreferenceUtils {
     private static final String KEY_SERVER = "server";
     private static final String KEY_RUNTIME_MODE = "runtime_mode";
@@ -17,16 +19,17 @@ public class PreferenceUtils {
     private static final String KEY_PLATFORM_PACKAGE = "platform_package";
     private static final String KEY_RELOAD_PACKAGE = "reload_package";
     private static final String KEY_USE_ADB = "use_adb";
+    private static final String KEY_USE_ANALYZER = "use_analyzer";
     private static final String KEY_WAIT_DEVTOOLS = "wait_devtools";
     private static final String KEY_CARD_HOST_PLATFORM = "debug_card_host_platform";
     private static final String KEY_DEBUG_CARD_PATH = "debug_card_path";
     private static final String KEY_DEBUG_CARD_PACKAGE = "debug_card_package";
-    private static final String KEY_CARD_MODE_ADDED = "card_mode_added";
     private static final String KEY_LAUNCH_PARAMS = "launch_params";
     private static final String KEY_WEB_DEBUG_ENABLED = "web_debug_enabled";
     private static final String KEY_SERIAL_NUMBER = "serial_number";
     //是否为通用扫描预览
     private static final String KEY_UNIVERSAL_SCAN = "universal_scan";
+    private static final String KEY_SHOW_DEBUG_HINT_VERSION = "show_debug_hint_version";
 
     public static String getServer(Context context) {
         return getPreference(context).getString(KEY_SERVER, "");
@@ -68,6 +71,14 @@ public class PreferenceUtils {
         getPreference(context).edit().putBoolean(KEY_USE_ADB, useAdbDebug).apply();
     }
 
+    public static boolean isUseAnalyzer(Context context) {
+        return getPreference(context).getBoolean(KEY_USE_ANALYZER, true);
+    }
+
+    public static void setUseAnalyzer(Context context, boolean useAnalyzer) {
+        getPreference(context).edit().putBoolean(KEY_USE_ANALYZER, useAnalyzer).apply();
+    }
+
     public static boolean isWaitDevTools(Context context) {
         return getPreference(context).getBoolean(KEY_WAIT_DEVTOOLS, false);
     }
@@ -104,8 +115,8 @@ public class PreferenceUtils {
         return getPreference(context).getString(KEY_DEBUG_CARD_PACKAGE, "");
     }
 
-    public static void setDebugCardPackage(Context context, String path) {
-        getPreference(context).edit().putString(KEY_DEBUG_CARD_PACKAGE, path).apply();
+    public static void setDebugCardPackage(Context context, String pkg) {
+        getPreference(context).edit().putString(KEY_DEBUG_CARD_PACKAGE, pkg).apply();
     }
 
     public static String getDebugCardPath(Context context) {
@@ -114,14 +125,6 @@ public class PreferenceUtils {
 
     public static void setDebugCardPath(Context context, String path) {
         getPreference(context).edit().putString(KEY_DEBUG_CARD_PATH, path).apply();
-    }
-
-    public static boolean isCardModeAdded(Context context) {
-        return getPreference(context).getBoolean(KEY_CARD_MODE_ADDED, false);
-    }
-
-    public static void setCardModeAdded(Context context, boolean added) {
-        getPreference(context).edit().putBoolean(KEY_CARD_MODE_ADDED, added).apply();
     }
 
     public static void setLaunchParams(Context context, String params) {
@@ -158,5 +161,13 @@ public class PreferenceUtils {
 
     public static boolean isUniversalScan(Context context) {
         return getPreference(context).getBoolean(KEY_UNIVERSAL_SCAN, false);
+    }
+
+    public static void setHasShownDebugHint(Context context) {
+        getPreference(context).edit().putLong(KEY_SHOW_DEBUG_HINT_VERSION, BuildConfig.VERSION_CODE).apply();
+    }
+
+    public static boolean hasShownDebugHint(Context context) {
+        return getPreference(context).getLong(KEY_SHOW_DEBUG_HINT_VERSION, 0) == BuildConfig.VERSION_CODE;
     }
 }

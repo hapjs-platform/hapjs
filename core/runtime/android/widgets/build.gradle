@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,12 +12,16 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:${rootProject.swiperefreshlayoutVersion}"
 
     api "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
-    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.1.0'
+    api 'com.facebook.fbui.textlayoutbuilder:textlayoutbuilder:1.4.0'
+    api 'com.airbnb.android:lottie:3.5.0'
     api "com.google.android.exoplayer:exoplayer-core:${rootProject.exoplayerVersion}"
     api "com.google.android.exoplayer:exoplayer-dash:${rootProject.exoplayerVersion}"
     api "com.google.android.exoplayer:exoplayer-hls:${rootProject.exoplayerVersion}"
 
+    tvApi "androidx.leanback:leanback:1.0.0"
+
     androidTestImplementation project(':runtime')
+
 }
 
 android {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,6 +12,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 public class GestureDelegate implements IGesture, GestureDetector.OnGestureListener {
 
+    private final String TAG ="GestureDelegate";
     private final GestureDetector mGestureDetector;
     private Component mComponent;
     private Context mContext;
@@ -471,7 +473,13 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
                 object.putAll(mouseEvent);
             }
         }
-        fireEvent(eventType, object, immediately);
+        boolean isConsume = false;
+        if (null != mComponent) {
+            isConsume = mComponent.preConsumeEvent(eventType, object, immediately);
+        }
+        if (!isConsume) {
+            fireEvent(eventType, object, immediately);
+        }
         return true;
     }
 
@@ -633,7 +641,7 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
         return object;
     }
 
-    private void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
+    public void fireEvent(String eventName, Map<String, Object> data, boolean immediately) {
         if (mRouterManageProvider != null) {
             mRouterManageProvider.recordFireEvent(eventName);
         }
@@ -646,6 +654,27 @@ public class GestureDelegate implements IGesture, GestureDetector.OnGestureListe
             mGestureDispatcher
                     .put(mComponent.getPageId(), mComponent.getRef(), eventName, data, null);
         }
+    }
+
+    public boolean fireClickEvent(MotionEvent motionEvent,boolean immediately) {
+        boolean isTrigger = false;
+        if(null != motionEvent){
+            Map<String, Object> object = new HashMap<>();
+            object.put("touches", buildTouches(motionEvent));
+            List<Map<String, Object>> touchList = (List<Map<String, Object>>) object.get("touches");
+            if (touchList != null && !touchList.isEmpty()) {
+                Map<String, Object> mouseEvent = touchList.get(0);
+                mouseEvent.remove("identifier");
+                object.putAll(mouseEvent);
+                fireEvent(Attributes.Event.CLICK,object,immediately);
+                isTrigger = true;
+            }else {
+                Log.w(TAG,"fireClickEvent motionEvent touchList is null or empty.");
+            }
+        }else {
+            Log.w(TAG,"fireClickEvent motionEvent is null.");
+        }
+        return isTrigger;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -443,6 +443,7 @@ public class Media extends FeatureExtension {
 
     private void getRingtone(Request request) throws JSONException {
         JSONObject jsonParams = request.getJSONParams();
+        Activity activity = request.getNativeInterface().getActivity();
         if (jsonParams == null) {
             request
                     .getCallback()
@@ -450,6 +451,12 @@ public class Media extends FeatureExtension {
             return;
         }
         String type = jsonParams.optString(PARAMS_TYPE);
+        if (TYPE_ALARM.equals(type) && !isAvailable(activity, request.getAction())) {
+            Response response = new Response(
+                    Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
         if (TYPE_RINGTONE.equals(type) || TYPE_NOTIFICATION.equals(type)
                 || TYPE_ALARM.equals(type)) {
             Context context = request.getNativeInterface().getActivity();
@@ -508,6 +515,14 @@ public class Media extends FeatureExtension {
             request.getCallback().callback(response);
             return;
         }
+
+        if (TYPE_ALARM.equals(type) && !isAvailable(activity, request.getAction())) {
+            Response response = new Response(
+                    Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
+
         if (ringtoneUri.endsWith("/")) {
             Response response =
                     new Response(
@@ -540,6 +555,10 @@ public class Media extends FeatureExtension {
                     .getCallback()
                     .callback(new Response(Response.CODE_ILLEGAL_ARGUMENT, "invalid type:" + type));
         }
+    }
+
+    public boolean isAvailable(Context context, String action) {
+        return true;
     }
 
     protected void setActualDefaultRingtone(Context context, int ringType, Uri ringtoneUri) {
@@ -586,7 +605,7 @@ public class Media extends FeatureExtension {
                                         new SetRingtoneTask(request, underUri, type, title).execute();
                                     }
                                 } else {
-                                    request.getCallback().callback(Response.USER_DENIED);
+                                    request.getCallback().callback(Response.getUserDeniedResponse(false));
                                 }
                             }
                         },
@@ -790,7 +809,10 @@ public class Media extends FeatureExtension {
     }
 
     private String getFileName(String uri) {
-        int index = uri.lastIndexOf("/");
+        int index = 0;
+        if (uri != null) {
+            index = uri.lastIndexOf("/");
+        }
         if (index > 0) {
             return uri.substring(index + 1);
         } else {

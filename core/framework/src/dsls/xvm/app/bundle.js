@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -22,7 +22,8 @@ import { defineCustomComponent } from './custom'
  * @returns {Error}
  */
 const $bootstrap = function(app, name, config) {
-  console.log(`### App Framework ### 启动App---- ${name}`)
+  console.trace(`### App Framework ### 启动App---- ${name}`)
+
   // 验证页面‘@app-application/xxxx’
   let appName
   if (isApplication(name)) {
@@ -69,7 +70,7 @@ const $bootstrap = function(app, name, config) {
         pluginItem.install(XVm, ...pluginArgs)
         pluginItem._installed = true
       } else {
-        console.warn(`### App Framework ### 插件已安装，不再安装`, JSON.stringify(pluginItem))
+        console.warn(`### App Framework ### 插件已安装，不再安装：`, JSON.stringify(pluginItem))
       }
     }
     app._pluginInstalled = true

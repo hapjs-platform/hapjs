@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,6 +36,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.hapjs.bridge.EnvironmentManager;
 import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.HybridRequest;
@@ -48,7 +51,6 @@ import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.common.utils.LogUtils;
 import org.hapjs.common.utils.RouterUtils;
-import org.hapjs.common.utils.UriUtils;
 import org.hapjs.component.ComponentRegistry;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
@@ -58,7 +60,6 @@ import org.hapjs.io.AssetSource;
 import org.hapjs.io.FileSource;
 import org.hapjs.io.JavascriptReader;
 import org.hapjs.io.RpkSource;
-import org.hapjs.io.Source;
 import org.hapjs.io.TextReader;
 import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.model.AppInfo;
@@ -66,9 +67,11 @@ import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.ScreenOrientation;
 import org.hapjs.render.DebugUtils;
 import org.hapjs.render.IdGenerator;
+import org.hapjs.render.MultiWindowManager;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RenderActionPackage;
+import org.hapjs.render.AppResourcesLoader;
 import org.hapjs.render.RootView;
 import org.hapjs.render.VDomChangeAction;
 import org.hapjs.render.action.RenderActionDocument;
@@ -92,6 +95,8 @@ public class JsThread extends HandlerThread {
 
     public static final String CONFIGURATION_TYPE_LOCALE = "locale";
     public static final String CONFIGURATION_TYPE_THEME_MODE = "themeMode";
+    public static final String CONFIGURATION_TYPE_ORIENTATION = "orientation";
+    public static final String CONFIGURATION_TYPE_SCREEN_SIZE = "screenSize";
     public static final String INFRASJS_SNAPSHOT_SO_NAME = "infrasjs_snapshot";
     public static final boolean HAS_INFRASJS_SNAPSHOT;
     private static final String TAG = "JsThread";
@@ -663,8 +668,12 @@ public class JsThread extends HandlerThread {
             // 当thread被block的时候,activity已经stop,不应该发送visible=true事件,
             // 仅发送visible=false事件,在activity变为start时会重新发送visible=true事件
             if (visible && page.getState() == Page.STATE_INITIALIZED && !mBlocked) {
-                if (page.shouldReload()) {
-                    RouterUtils.replace(mPageManager, page.getRequest());
+                if (page.shouldReload() && page.getRequest() != null) {
+                    if (MultiWindowManager.shouldApplyMultiWindowMode(mContext) && page.getIsMultiWindowLeftPage()) {
+                        RouterUtils.replaceLeftPage(mPageManager, page.getRequest());
+                    } else {
+                        RouterUtils.replace(mPageManager, page.getRequest());
+                    }
                     return;
                 }
                 requestFocus();
@@ -735,16 +744,6 @@ public class JsThread extends HandlerThread {
 
     public void loadPage(final Page page) {
         RuntimeLogManager.getDefault().logPageLoadStart(mAppInfo.getPackage(), page.getName());
-        RoutableInfo routableInfo = page.getRoutableInfo();
-        final String jsuri = routableInfo.getUri();
-        final Source jssource;
-        if (UriUtils.isAssetUri(jsuri)) {
-            jssource = new AssetSource(mContext, UriUtils.getAssetPath(jsuri));
-        } else {
-            jssource = new RpkSource(mContext, mAppInfo.getPackage(), jsuri);
-        }
-        final String cssuri = jsuri.replace(".js", ".css.json");
-        final Source csssource = new RpkSource(mContext, mAppInfo.getPackage(), cssuri);
         mMainHandler.obtainMessage(RootView.MSG_LOAD_PAGE_JS_START, page).sendToTarget();
         Executors.io()
                 .execute(
@@ -752,10 +751,10 @@ public class JsThread extends HandlerThread {
                             @Override
                             protected String[] doInBackground() {
                                 mJsChunksManager.registerPageChunks(page);
-                                String js = JavascriptReader.get().read(jssource);
-                                String css = TextReader.get().read(csssource);
-                                parseStyleSheets(css, page);
-                                return new String[] {js, css};
+                                String pageJs = AppResourcesLoader.getPageJs(mContext, mAppInfo.getPackage(), page);
+                                String pageCss = AppResourcesLoader.getPageCss(mContext, mAppInfo.getPackage(), page);
+                                parseStyleSheets(pageCss, page);
+                                return new String[]{pageJs, pageCss};
                             }
 
                             @Override
@@ -769,8 +768,11 @@ public class JsThread extends HandlerThread {
                                 page.setLoadJsResult(result);
                                 mMainHandler.obtainMessage(RootView.MSG_LOAD_PAGE_JS_FINISH, page)
                                         .sendToTarget();
-                                postCreatePage(page, contents[0], jsuri, contents[1]);
-                                Log.d(TAG, "loadPage onPostExecute uri=" + jsuri + " result="
+
+                                RoutableInfo routableInfo = page.getRoutableInfo();
+                                final String jsUri = routableInfo.getUri();
+                                postCreatePage(page, contents[0], jsUri, contents[1]);
+                                Log.d(TAG, "loadPage onPostExecute uri=" + jsUri + " result="
                                         + result);
                             }
                         });
@@ -1061,6 +1063,10 @@ public class JsThread extends HandlerThread {
 
     private void post(Runnable runnable) {
         mHandler.postAtFrontOfQueue(runnable);
+    }
+
+    public void postInJsThread(Runnable runnable) {
+        mHandler.post(runnable);
     }
 
     private void fireEvent(

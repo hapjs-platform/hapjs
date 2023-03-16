@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,9 +16,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:' + rootProject.androidXVersion
+    implementation 'androidx.preference:preference:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:' + rootProject.androidXConstraintlayoutVersion
-    implementation 'com.google.android.material:material:' + rootProject.androidXVersion
+    implementation 'com.google.android.material:material:1.2.1'
     implementation 'com.squareup.okhttp3:okhttp:3.5.0'
 
     // Debugger should no longer compile latest inspector, instead it should compile with 1010
@@ -26,7 +27,9 @@ dependencies {
     implementation fileTree(dir: 'inspector', include: ['*.aar'])
     implementation 'commons-cli:commons-cli:1.2'
     implementation 'com.google.code.findbugs:jsr305:2.0.1'
-    implementation 'androidx.recyclerview:recyclerview:' + rootProject.androidXVersion
+    implementation 'androidx.recyclerview:recyclerview:' + rootProject.recyclerviewVersion
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:' + rootProject.swiperefreshlayoutVersion
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
     implementation project(':debug-log')
     if ('repo' != System.properties['moduleDepsType']) {
         implementation project(':card-common')

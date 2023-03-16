@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,7 +12,7 @@ import static org.hapjs.component.animation.AnimationParser.TAG_SCALE_X;
 import static org.hapjs.component.animation.AnimationParser.TAG_SCALE_Y;
 import static org.hapjs.component.animation.AnimationParser.TAG_TRANSLATE_X;
 import static org.hapjs.component.animation.AnimationParser.TAG_TRANSLATE_Y;
-
+import static org.hapjs.component.animation.AnimationParser.TAG_TRANSLATE_Z;
 import android.text.TextUtils;
 import android.view.View;
 import org.hapjs.component.constants.Attributes;
@@ -31,9 +31,11 @@ public class Transform {
 
     private float mTranslationX = 0.0f;
     private float mTranslationY = 0.0f;
+    private float mTranslationZ = 0.0f;
 
     private float mTranslationXPercent = Float.NaN;
     private float mTranslationYPercent = Float.NaN;
+    private float mTranslationZPercent = Float.NaN;
 
     public Transform() {
     }
@@ -92,6 +94,18 @@ public class Transform {
                 }
             }
         }
+
+        String translationZStr = jsonObj.optString(TAG_TRANSLATE_Z);
+        if (!TextUtils.isEmpty(translationZStr)) {
+            if (translationZStr.endsWith(Attributes.Unit.PERCENT)) {
+                transform.setTranslationZPercent(Attributes.getPercent(translationZStr, Float.NaN));
+            } else {
+                float translationZ = Attributes.getFloat(engine, translationZStr, Float.NaN);
+                if (!Float.isNaN(translationZ)) {
+                    transform.setTranslationZ(translationZ);
+                }
+            }
+        }
         return transform;
     }
 
@@ -104,6 +118,7 @@ public class Transform {
             applyScaleY(transform, view);
             applyTranslationX(transform, view);
             applyTranslationY(transform, view);
+            applyTranslationZ(transform, view);
         }
     }
 
@@ -146,6 +161,12 @@ public class Transform {
     public static void applyTranslationY(Transform transform, View view) {
         if (isParamSafe(transform, view)) {
             view.setTranslationY(transform.getTranslationY());
+        }
+    }
+
+    public static void applyTranslationZ(Transform transform, View view) {
+        if (isParamSafe(transform, view)) {
+            view.setTranslationZ(transform.getTranslationZ());
         }
     }
 
@@ -244,6 +265,14 @@ public class Transform {
         mTranslationY = translationY;
     }
 
+    public float getTranslationZ() {
+        return mTranslationZ;
+    }
+
+    public void setTranslationZ(float translationZ) {
+        mTranslationZ = translationZ;
+    }
+
     public float getTranslationXPercent() {
         return mTranslationXPercent;
     }
@@ -258,5 +287,13 @@ public class Transform {
 
     public void setTranslationYPercent(float translationYPercent) {
         mTranslationYPercent = translationYPercent;
+    }
+
+    public float getTranslationZPercent() {
+        return mTranslationZPercent;
+    }
+
+    public void setTranslationZPercent(float translationZPercent) {
+        mTranslationZPercent = translationZPercent;
     }
 }

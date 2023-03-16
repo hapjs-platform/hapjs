@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -28,7 +28,7 @@ def getPlatformVersionName() {
 
 String PLATFORM_VERSION_TEXT = getPlatformVersionCode()
 String PLATFORM_VERSION_NAME = getPlatformVersionName()
-def JSENV_VERSION = "1.2.6"
+def JSENV_VERSION = "1.2.8"
 
 // add version file
 task addVersionFile(type: Exec) {
@@ -51,6 +51,9 @@ android {
             buildConfigField "int", "platformVersion", PLATFORM_VERSION_TEXT
             buildConfigField "String", "platformVersionName", "\"" + PLATFORM_VERSION_NAME + "\""
         }
+    }
+    defaultConfig {
+        vectorDrawables.useSupportLibrary = true
     }
 }
 
@@ -87,6 +90,8 @@ dependencies {
     api fileTree(dir: 'jsenv-libs', include: [jsenv])
     // api fileTree(include: ['*.aar'], dir: '/yourproject/build/outputs/aar')
     implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
+    implementation "androidx.constraintlayout:constraintlayout:${rootProject.androidXconstraintlayoutVersion}"
+    implementation "com.google.android.material:material:${rootProject.androidXVersion}"
 }
 
 apply plugin: 'com.moowork.node'

@@ -5,8 +5,10 @@
 
 package org.hapjs.runtime;
 
+import android.app.Activity;
 import android.content.Context;
-import android.net.Uri;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
 
 public class DefaultRouterManageProvider implements RouterManageProvider {
 
@@ -16,7 +18,7 @@ public class DefaultRouterManageProvider implements RouterManageProvider {
     }
 
     @Override
-    public boolean inRouterRpkForbiddenList(Context context, String currentPackage,String targetPkg) {
+    public boolean inRouterRpkForbiddenList(Context context, String currentPackage, String targetPkg) {
         return false;
     }
 
@@ -26,12 +28,12 @@ public class DefaultRouterManageProvider implements RouterManageProvider {
     }
 
     @Override
-    public boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg) {
+    public boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg, ResolveInfo info) {
         return false;
     }
 
     @Override
-    public boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg) {
+    public boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg, ResolveInfo info) {
         return false;
     }
 
@@ -46,7 +48,13 @@ public class DefaultRouterManageProvider implements RouterManageProvider {
     }
 
     @Override
-    public boolean inAlipayForbiddenList(Context context, String url) {
+    public boolean inWebpayForbiddenList(Context context, String url) {
         return false;
+    }
+
+    @Override
+    public boolean startActivityIfNeeded(Activity activity, Intent intent, String rpkPkg) {
+        activity.startActivity(intent);
+        return true;
     }
 }

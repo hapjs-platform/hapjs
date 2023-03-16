@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,12 +10,14 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.bridge.AbstractExtension;
 import org.hapjs.bridge.Callback;
 import org.hapjs.bridge.ExtensionManager;
@@ -31,15 +33,19 @@ import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.system.SysOpProvider;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MenubarUtils {
+    private static final String TAG = "MenubarUtils";
 
     public static final String PARAM_PACKAGE = "package";
     public static final String PARAM_PAGE_PATH = "page_path";
     public static final String PARAM_PAGE_PARAMS = "page_params";
+    public static final String PARAM_PLATFORMS = "platforms";
     public static final String MENUBAR_HAS_SHORTCUT_INSTALLED = "has_shortcut_installed";
+    public static final String IS_FROM_SHARE_BUTTON = "is_from_share_button";
     /**
      * same with share key
      */
@@ -47,7 +53,6 @@ public class MenubarUtils {
     protected static final String PARAM_TITLE = "title";
     protected static final String PARAM_SUMMARY = "summary";
     protected static final String PARAM_IMAGE_PATH = "imagePath";
-    private static final String TAG = "MenubarUtils";
     public static boolean mIsNeedResumeUpdate = true;
     /**
      * local menubardata is ever update
@@ -58,24 +63,26 @@ public class MenubarUtils {
             Map<String, String> shareIdMap,
             Map<String, String> extra,
             RootView rootView,
-            ExtensionManager tmpExtentionManager) {
+            ExtensionManager tmpExtentionManager, final ShareCallback shareCallback) {
         if (null == shareIdMap || shareIdMap.size() == 0) {
             Log.e(TAG, "startShare error mShareRpkIconUrl empty or shareIdMap null or shareIdMap"
                     + " is empty share fail or page null.");
             return;
         }
         String title = "";
-        String summery = "";
+        String summary = "";
         String imgPath = "";
         String rpkPkg = "";
         String shareParams = "";
         String shareUrl = "";
         String pageParams = "";
         String pagePath = "";
+        String sharePlatforms = "";
         boolean isShowCurrentPage = false;
+        boolean isFromShareButton = false;
         if (extra != null && !extra.isEmpty()) {
             title = extra.get(DisplayInfo.Style.KEY_MENUBAR_SHARE_TITLE);
-            summery = extra.get(DisplayInfo.Style.KEY_MENUBAR_SHARE_DESCRIPTION);
+            summary = extra.get(DisplayInfo.Style.KEY_MENUBAR_SHARE_DESCRIPTION);
             imgPath = extra.get(DisplayInfo.Style.KEY_MENUBAR_SHARE_ICON);
             rpkPkg = extra.get(PARAM_PACKAGE);
             isShowCurrentPage =
@@ -87,6 +94,10 @@ public class MenubarUtils {
             shareUrl = extra.get(DisplayInfo.Style.PARAM_SHARE_URL);
             pagePath = extra.get(PARAM_PAGE_PATH);
             pageParams = extra.get(PARAM_PAGE_PARAMS);
+            sharePlatforms = extra.get(PARAM_PLATFORMS);
+            if (extra.containsKey(IS_FROM_SHARE_BUTTON)) {
+                isFromShareButton = TextUtils.equals("true", extra.get(IS_FROM_SHARE_BUTTON));
+            }
         }
         ExtensionManager extensionManager = null;
         boolean isChimera = false;
@@ -107,12 +118,15 @@ public class MenubarUtils {
             try {
                 sharejson.put(PARAM_SHARE_TYPE, 0);
                 sharejson.put(PARAM_TITLE, title);
-                sharejson.put(PARAM_SUMMARY, summery);
+                sharejson.put(PARAM_SUMMARY, summary);
                 sharejson.put(PARAM_IMAGE_PATH, imgPath);
+                if (!TextUtils.isEmpty(sharePlatforms)) {
+                    sharejson.put(PARAM_PLATFORMS, new JSONArray(sharePlatforms));
+                }
                 JSONObject paramsJson = null;
-                boolean isShareParasmValid = false;
+                boolean isShareParamsValid = false;
                 if (!TextUtils.isEmpty(shareParams)) {
-                    isShareParasmValid = true;
+                    isShareParamsValid = true;
                     paramsJson = new JSONObject(shareParams);
                 } else {
                     paramsJson = new JSONObject();
@@ -122,8 +136,13 @@ public class MenubarUtils {
                     action = "serviceShare";
                 }
                 urlMainPath = pagePath;
-                JSONObject pageParamsJson = new JSONObject(pageParams);
-                if (isShareParasmValid) {
+                JSONObject pageParamsJson;
+                if (!TextUtils.isEmpty(pageParams)) {
+                    pageParamsJson = new JSONObject(pageParams);
+                } else {
+                    pageParamsJson = new JSONObject();
+                }
+                if (isShareParamsValid) {
                     Iterator<String> iterator = paramsJson.keys();
                     String key;
                     String value;
@@ -173,31 +192,38 @@ public class MenubarUtils {
                         null != shareIdMap.get(SysOpProvider.PARAM_PACKAGE_KEY)
                                 ? shareIdMap.get(SysOpProvider.PARAM_PACKAGE_KEY)
                                 : "");
-                sharejson.put(SysOpProvider.PARAM_MENUBAR_KEY, true);
+                if (isFromShareButton) {
+                    sharejson.put(SysOpProvider.PARAM_MENUBAR_KEY, false);
+                    sharejson.put(SysOpProvider.PARAM_SHAREBUTTON_KEY, true);
+                } else {
+                    sharejson.put(SysOpProvider.PARAM_MENUBAR_KEY, true);
+                    sharejson.put(SysOpProvider.PARAM_SHAREBUTTON_KEY, false);
+                }
             } catch (JSONException e) {
                 Log.e(TAG, "error startToShare msg : " + e.getMessage());
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, "error EncodingException startShare msg : " + e.getMessage());
             }
-            extensionManager.invokeWithCallback(
-                    "service.share",
-                    action,
-                    sharejson.toString(),
-                    "-1",
-                    -1,
-                    new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+            FeatureInnerBridge.invokeWithCallback(extensionManager, "service.share", action, sharejson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+                @Override
+                public void callback(Response response) {
+                    ThreadUtils.runOnUiThread(new Runnable() {
                         @Override
-                        public void callback(Response response) {
+                        public void run() {
                             if (null != response) {
-                                Log.d(
-                                        TAG,
-                                        "startShare response  code : "
-                                                + response.getCode()
-                                                + " content : "
-                                                + response.getContent());
+                                Log.d(TAG, "startShare response  code : "
+                                        + response.getCode()
+                                        + " content : "
+                                        + response.getContent());
+                                if (null != shareCallback) {
+                                    shareCallback.onShareCallback(response);
+                                }
                             }
                         }
                     });
+
+                }
+            });
 
         } else {
             Log.e(TAG, "startShare extensionManager null.");
@@ -298,41 +324,41 @@ public class MenubarUtils {
             extensionManager = getExtensionManager(rootView);
         }
         if (null != extensionManager) {
-            JSONObject emptyJson = new JSONObject();
-            extensionManager.invokeWithCallback(
-                    "system.shortcut",
-                    "hasInstalled",
-                    emptyJson.toString(),
-                    "-1",
-                    -1,
-                    new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
-                        @Override
-                        public void callback(Response response) {
+            final ExtensionManager curExtensionManager = extensionManager;
+            if (null != curExtensionManager) {
+                JSONObject emptyJson = new JSONObject();
+                FeatureInnerBridge.invokeWithCallback(extensionManager, "system.shortcut", "hasInstalled", emptyJson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+                    @Override
+                    public void callback(Response response) {
+                        ThreadUtils.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                boolean hasInstall = false;
+                                if (null != callback) {
+                                    if (null != response) {
+                                        Object content = response.getContent();
+                                        if (content instanceof Boolean) {
+                                            hasInstall = (Boolean) content;
+                                        } else {
+                                            Log.e(TAG, "isShortCutInstalled hasInstall not Boolean.");
+                                        }
+                                        if (null != callback) {
+                                            HashMap<String, Object> maps = new HashMap<>();
+                                            maps.put(MENUBAR_HAS_SHORTCUT_INSTALLED, hasInstall);
+                                            callback.onMenubarStatusCallback(maps);
+                                        }
 
-                            boolean hasInstall = false;
-                            if (null != callback) {
-                                if (null != response) {
-                                    Object content = response.getContent();
-                                    if (content instanceof Boolean) {
-                                        hasInstall = (Boolean) content;
-                                    } else {
-                                        Log.e(TAG, "isShortCutInstalled hasInstall not Boolean.");
                                     }
-                                    if (null != callback) {
-                                        HashMap<String, Object> maps = new HashMap<>();
-                                        maps.put(MENUBAR_HAS_SHORTCUT_INSTALLED, hasInstall);
-                                        callback.onMenubarStatusCallback(maps);
-                                    }
+                                } else {
+                                    Log.e(TAG, "isShortCutInstalled callback is null.");
                                 }
-
-                            } else {
-                                Log.e(TAG, "isShortCutInstalled callback is null.");
                             }
-                        }
-                    });
-            Log.e(TAG, "isShortCutInstalled extensionManager null.");
-        } else {
-            Log.e(TAG, "isShortCutInstalled extensionManager null.");
+                        });
+                    }
+                });
+            } else {
+                Log.e(TAG, "isShortCutInstalled extensionManager null.");
+            }
         }
     }
 
@@ -589,5 +615,9 @@ public class MenubarUtils {
     public static class UrlData {
         public String baseUrl;
         public Map<String, String> params;
+    }
+
+    public interface ShareCallback {
+        void onShareCallback(Response response);
     }
 }

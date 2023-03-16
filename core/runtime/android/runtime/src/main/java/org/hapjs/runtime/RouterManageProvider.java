@@ -5,7 +5,10 @@
 
 package org.hapjs.runtime;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ResolveInfo;
 
 public interface RouterManageProvider {
     String NAME = "routerManageProvider";
@@ -16,13 +19,15 @@ public interface RouterManageProvider {
 
     boolean inRouterRpkDialogList(Context context, String currentPkg, String targetPkg);
 
-    boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg);
+    boolean inRouterForbiddenList(Context context, String rpkPkg, String appPkg, ResolveInfo info);
 
-    boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg);
+    boolean inRouterDialogList(Context context, String rpkPkg, String nativePkg, ResolveInfo info);
 
     boolean triggeredByGestureEvent(Context context, String pkg);
 
     void recordFireEvent(String eventType);
 
-    boolean inAlipayForbiddenList(Context context, String url);
+    boolean inWebpayForbiddenList(Context context, String url);
+
+    boolean startActivityIfNeeded(Activity activity, Intent intent, String rpkPkg);
 }

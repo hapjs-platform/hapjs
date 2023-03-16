@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -47,6 +47,7 @@ public class Response implements java.io.Serializable {
      * Invocation is cancelled.
      */
     public static final int CODE_CANCEL = 100;
+
     /**
      * IO error
      */
@@ -78,7 +79,6 @@ public class Response implements java.io.Serializable {
      * User deny permission request
      */
     public static final int CODE_USER_DENIED = CODE_ERROR + 1;
-    public static final Response USER_DENIED = new Response(CODE_USER_DENIED, "user denied");
     /**
      * Found illegal argument in request parameters
      */
@@ -102,6 +102,10 @@ public class Response implements java.io.Serializable {
      */
     public static final int CODE_ILLEGAL_REQUEST = CODE_ERROR + 6;
     /**
+     * User dined permission request and Do not disturb access
+     */
+    public static final int CODE_DONT_DISTURB_ACCESS = CODE_ERROR + 7;
+    /**
      * Base framework error code
      */
     private static final int CODE_FRAMEWORK_ERROR = 800;
@@ -123,6 +127,9 @@ public class Response implements java.io.Serializable {
      * Invocation occurs permission error.
      */
     public static final int CODE_PERMISSION_ERROR = CODE_FRAMEWORK_ERROR + 4;
+    public static final Response USER_DENIED = new Response(CODE_USER_DENIED, "user denied");
+    public static final Response DO_NOT_DISTURB_ACCESS = new Response(CODE_DONT_DISTURB_ACCESS, "do not disturb access.");
+
     private static final String CODE = "code";
     private static final String CONTENT = "content";
 
@@ -239,5 +246,9 @@ public class Response implements java.io.Serializable {
             throw new IllegalStateException("Fail to build json response", e);
         }
         return result;
+    }
+
+    public static Response getUserDeniedResponse(boolean dontDisturb) {
+        return dontDisturb ? DO_NOT_DISTURB_ACCESS : USER_DENIED;
     }
 }

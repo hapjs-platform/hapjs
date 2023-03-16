@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.text.TextUtils;
 import android.util.Log;
+import androidx.core.graphics.ColorUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -537,5 +538,94 @@ public class ColorUtil {
          * @return #RRGGBB or #AARRGGBB
          */
         abstract Integer handle(String rawColor);
+    }
+
+    //颜色相似度计算
+    public static double LabDiff(int first, int second) {
+        double[] lab_f = new double[3];
+        double[] lab_s = new double[3];
+        ColorUtils.colorToLAB(first, lab_f);
+        ColorUtils.colorToLAB(second, lab_s);
+
+        //计算CIELAB公式中的L*、a*、b*、C*ab
+        double c1, c2;
+        c1 = chroma(lab_f[1], lab_f[2]);
+        c2 = chroma(lab_s[1], lab_s[2]);
+
+        //计算L‘、a‘、C‘、h‘
+        double L1, L2, a1, a2, b1, b2, C1, C2, h1, h2, G;
+        double c_avr = (c1 + c2) / 2;
+        double c_avr_pow7 = Math.pow(c_avr, 7);
+        G = 0.5 * (1 - Math.sqrt(c_avr_pow7 / (c_avr_pow7 + Math.pow(25, 7))));
+        L1 = lab_f[0];
+        L2 = lab_s[0];
+        a1 = (1 + G) * lab_f[1];
+        a2 = (1 + G) * lab_s[1];
+        b1 = lab_f[2];
+        b2 = lab_s[2];
+        C1 = chroma(a1, b1);
+        C2 = chroma(a2, b2);
+        h1 = hueAngle(a1, b1);
+        h2 = hueAngle(a2, b2);
+
+        //计算△L‘、△C‘ab、△H‘ab
+        double dt_L, dt_C, dt_h, dt_H;
+        dt_L = L1 - L2;
+        dt_C = C1 - C2;
+        dt_h = h1 - h2;
+        dt_H = 2 * Math.sqrt(C1 * C2) * Math.sin(Math.PI * dt_h / 360);
+
+        //计算公式中的加权函数SL,SC,SH,T
+        double S_l, S_c, S_h, T, L_avr, C_avr, h_avr;
+        L_avr = (L1 + L2) / 2;
+        C_avr = (C1 + C2) / 2;
+        h_avr = (h1 + h2) / 2;
+        T = 1 - 0.17 * Math.cos((h_avr - 30) * Math.PI / 180) + 0.24 * Math.cos(2 * h_avr * Math.PI / 180) + 0.32 * Math.cos((3 * h_avr + 6) * Math.PI / 180) - 0.2 * Math.cos((4 * h_avr - 63) * Math.PI / 180);
+        S_l = 1 + 0.015 * Math.pow(L_avr - 50, 2) / Math.pow(20 + Math.pow(L_avr - 50, 2), 0.5);
+        S_c = 1 + 0.045 * C_avr;
+        S_h = 1 + 0.015 * C_avr * T;
+
+        //计算公式中的RT
+        double Rt, An, Rc, C_avr_pow7;
+        An = 30 * Math.exp(-Math.pow((h_avr - 275) / 25, 2));
+        C_avr_pow7 = Math.pow(C_avr, 7);
+        Rc = 2 * Math.sqrt(C_avr_pow7 / (C_avr_pow7 + Math.pow(25, 7)));
+        Rt = -Math.sin(2 * An * Math.PI / 180) * Rc;
+
+        double dt_E200, K_l, K_c, K_h;
+        K_l = K_c = K_h = 1;
+        dt_L /= K_l * S_l;
+        dt_C /= K_c * S_c;
+        dt_H /= K_h * S_h;
+        dt_E200 = Math.sqrt(dt_L * dt_L + dt_C * dt_C + dt_H * dt_H + Rt * dt_C * dt_H);
+        return dt_E200;
+    }
+
+    //计算彩度值
+    private static double chroma(double a, double b) {
+        double Cab = 0;
+        Cab = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+        return Cab;
+    }
+
+
+    //计算色度角
+    private static double hueAngle(double a, double b) {
+        double angle = 0;
+        double angle_ab = 0;
+        if (a == 0) {
+            return 90;
+        }
+        angle = (180 / Math.PI) * Math.atan(b / a);
+        if (a > 0 && b > 0) {
+            angle_ab = angle;
+        } else if (a < 0 && b > 0) {
+            angle_ab = 180 + angle;
+        } else if (a < 0 && b < 0) {
+            angle_ab = 180 + angle;
+        } else {
+            angle_ab = 360 + angle;
+        }
+        return angle_ab;
     }
 }

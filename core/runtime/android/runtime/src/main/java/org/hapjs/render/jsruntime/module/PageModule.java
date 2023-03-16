@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
 import org.hapjs.bridge.Extension;
 import org.hapjs.bridge.NativeInterface;
 import org.hapjs.bridge.Request;
@@ -16,6 +17,7 @@ import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.ModuleExtensionAnnotation;
 import org.hapjs.common.utils.DisplayUtil;
+import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.DecorLayout;
 import org.hapjs.render.Display;
@@ -33,7 +35,9 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = PageModule.ACTION_FINISH_PAGE, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_RECT, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_DATA, mode = Extension.Mode.SYNC),
-                @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_BOUNDING_RECT, mode = Extension.Mode.SYNC)
+                @ActionAnnotation(name = PageModule.ACTION_GET_MENUBAR_BOUNDING_RECT, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = PageModule.ACTION_SET_MENUBAR_TIPS, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = PageModule.ACTION_SET_TABBAR_ITEM, mode = Extension.Mode.SYNC)
         }
 )
 public class PageModule extends ModuleExtension {
@@ -49,6 +53,8 @@ public class PageModule extends ModuleExtension {
     protected static final String RESULT_MENU_BAR_RIGHT = "menuBarRight";
     protected static final String RESULT_MENU_BAR_BOTTOM = "menuBarBottom";
     protected static final String ACTION_SET_MENUBAR_DATA = "setMenubarData";
+    protected static final String ACTION_SET_MENUBAR_TIPS = "setMenubarTips";
+    protected static final String ACTION_SET_TABBAR_ITEM = "setTabBarItem";
     private static final String TAG = "PageModule";
     private PageManager mPageManager;
 
@@ -74,6 +80,10 @@ public class PageModule extends ModuleExtension {
             return getMenuBarBoundingRect(request);
         } else if (ACTION_SET_MENUBAR_DATA.equals(action)) {
             return setMenuBarData(request);
+        } else if (ACTION_SET_MENUBAR_TIPS.equals(action)) {
+            return setMenuBarTips(request);
+        } else if (ACTION_SET_TABBAR_ITEM.equals(action)) {
+            return setTabBarItem(request);
         }
         return Response.NO_ACTION;
     }
@@ -182,6 +192,37 @@ public class PageModule extends ModuleExtension {
         return Response.ERROR;
     }
 
+    private Response setTabBarItem(Request request) {
+        if (null == request) {
+            Log.e(TAG, "setTabBarItem request is null.");
+            return Response.ERROR;
+        }
+        JSONObject params = null;
+        try {
+            JSONObject jsonParams = request.getJSONParams();
+            if (null != jsonParams && jsonParams.has("attr")) {
+                params = jsonParams.getJSONObject("attr");
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, " setTabBarItem jsonParams is null.");
+            return Response.ERROR;
+        }
+        NativeInterface nativeInterface = null;
+        if (null != request) {
+            nativeInterface = request.getNativeInterface();
+        }
+        if (null != nativeInterface) {
+            RootView rootView = nativeInterface.getRootView();
+            if (null != rootView) {
+                rootView.updateTabBarData(params);
+                return Response.SUCCESS;
+            } else {
+                return Response.ERROR;
+            }
+        }
+        return Response.ERROR;
+    }
+
     private Display getDisPlay(Request request) {
         NativeInterface nativeInterface = null;
         RootView rootView = null;
@@ -211,5 +252,37 @@ public class PageModule extends ModuleExtension {
             display = decorLayout.getDecorLayoutDisPlay();
         }
         return display;
+    }
+
+    public Response setMenuBarTips(Request request) {
+        if (null == request) {
+            Log.e(TAG, "setMenuBarTips request is null.");
+            return Response.ERROR;
+        }
+        JSONObject params = null;
+        try {
+            JSONObject jsonParams = request.getJSONParams();
+            if (null != jsonParams && jsonParams.has("attr")) {
+                params = jsonParams.getJSONObject("attr");
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, " invokeInner setMenuBarTips jsonParams is null.");
+        }
+        final JSONObject realParams = params;
+        Display display = getDisPlay(request);
+        if (null != display) {
+            ThreadUtils.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    boolean isSuccess = display.showMenubarTips(realParams);
+                    if (!isSuccess) {
+                        Log.e(TAG, " invokeInner ERROR setMenuBarTips.");
+                    }
+                }
+            });
+            return Response.SUCCESS;
+        } else {
+            return Response.ERROR;
+        }
     }
 }

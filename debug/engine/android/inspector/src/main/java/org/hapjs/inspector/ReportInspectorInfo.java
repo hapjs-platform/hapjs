@@ -92,7 +92,7 @@ public class ReportInspectorInfo implements HttpHandler {
         builder.append("{");
         builder.append("\"protocol-version\":\"1.1\"");
         builder.append(",\"status\":\"" + getHostURL() + PATH_STATUS + "\"");
-        builder.append(",\"ws\":\"" + getHostURL() + ChromeDevtoolsServer.PATH + "\"");
+        builder.append(",\"ws\":\"" + getWsUrl() + "\"");
         builder.append(",\"target\":\"" + V8Inspector.getInstance().getDebugTatget() + "\"");
         builder.append(",\"traceId\":\"" + DebuggerLogUtil.getTraceId() + "\"");
         builder.append(
@@ -175,6 +175,10 @@ public class ReportInspectorInfo implements HttpHandler {
     public String getHostURL() {
         String ip = V8Inspector.getInstance().isUseADB() ? LOCAL_SERVER : getWifiIPAddr();
         return ip + ":" + mPort;
+    }
+
+    public String getWsUrl(){
+        return getHostURL() + ChromeDevtoolsServer.PATH;
     }
 
     private String getWifiIPAddr() {

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2022, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="28dp"
+    >
+
+    <LinearLayout
+        android:id="@+id/analyzer_notice_expand"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/ic_analyzer_notice_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp">
+
+            <TextView
+                android:id="@+id/btn_analyzer_notice_expand_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="10dp"
+                android:layout_toStartOf="@id/btn_analyzer_notice_copy"
+                android:textColor="#fff"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/btn_analyzer_notice_copy"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="7dp"
+                android:layout_marginBottom="7dp"
+                android:layout_toStartOf="@id/btn_analyzer_notice_clean"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/selector_analyzer_notice_copy_btn" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/btn_analyzer_notice_clean"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="9dp"
+                android:layout_marginTop="7dp"
+                android:layout_marginBottom="7dp"
+                android:layout_toStartOf="@id/btn_analyzer_notice_min"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/selector_analyzer_notice_clean_btn" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/btn_analyzer_notice_min"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="9dp"
+                android:layout_marginTop="7dp"
+                android:layout_marginBottom="7dp"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/selector_analyzer_notice_min_btn" />
+        </RelativeLayout>
+
+        <View
+            android:id="@+id/btn_analyzer_notice_expand_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:background="#19FFFFFF" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/analyzer_notice_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="5dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/analyzer_notice_min"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/ic_analyzer_notice_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="11dp"
+        android:paddingTop="7dp"
+        android:paddingEnd="11dp"
+        android:paddingBottom="7dp"
+        android:visibility="gone">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:scaleType="fitXY"
+            android:layout_gravity="center_vertical"
+            app:srcCompat="@drawable/ic_analyzer_notice_tip" />
+
+        <TextView
+            android:id="@+id/analyzer_notice_min_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:textColor="#fff"
+            android:gravity="center_vertical"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</FrameLayout>

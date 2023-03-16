@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,6 +12,7 @@ import org.hapjs.model.AppInfo;
 import org.hapjs.model.ConfigInfo;
 import org.hapjs.runtime.resource.ResourceManager;
 import org.hapjs.runtime.resource.ResourceManagerFactory;
+import org.hapjs.system.SysOpProvider;
 
 public class HapEngine {
     private static final String TAG = "HapEngine";
@@ -80,14 +81,24 @@ public class HapEngine {
 
     public int getDesignWidth() {
         AppInfo appInfo = getApplicationContext().getAppInfo();
-        ConfigInfo info = appInfo == null ? null : appInfo.getConfigInfo();
-        return info == null ? ConfigInfo.DEFAULT_DESIGN_WIDTH : info.getDesignWidth();
+        if (appInfo == null) return ConfigInfo.DEFAULT_DESIGN_WIDTH;
+
+        SysOpProvider provider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return provider.getDesignWidth(mContext, appInfo);
     }
 
     public int getMinPlatformVersion() {
         AppInfo appInfo = getApplicationContext().getAppInfo();
         if (appInfo != null) {
             return appInfo.getMinPlatformVersion();
+        }
+        return -1;
+    }
+
+    public int getVersionCode() {
+        AppInfo appInfo = getApplicationContext().getAppInfo();
+        if (appInfo != null) {
+            return appInfo.getVersionCode();
         }
         return -1;
     }

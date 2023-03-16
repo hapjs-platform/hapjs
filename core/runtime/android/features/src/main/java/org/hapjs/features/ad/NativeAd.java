@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2023, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.features.ad;
 
+import org.hapjs.ad.NativeAdEntity;
 import org.hapjs.bridge.Extension;
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.Request;
@@ -56,7 +57,7 @@ public class NativeAd extends BaseAd {
 
         String action = request.getAction();
         JSONObject jsonObject = request.getJSONParams();
-        String adId = jsonObject.optString(BaseNativeAdInstance.AD_ID);
+        String adId = jsonObject.optString(NativeAdEntity.AD_ID);
 
         switch (action) {
             case ACTION_LOAD:

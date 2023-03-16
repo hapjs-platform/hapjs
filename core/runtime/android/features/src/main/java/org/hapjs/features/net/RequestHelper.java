@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -136,7 +136,7 @@ public class RequestHelper {
         return fileList;
     }
 
-    private static MediaType getMimeType(String name) {
+    public static MediaType getMimeType(String name) {
         FileNameMap fileNameMap = URLConnection.getFileNameMap();
         String contentTypeFor = null;
         try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -93,6 +93,24 @@ function initExternalData(vm, externalData) {
       vm._data[extName] = externalData[extName]
     }
   }
+}
+
+/**
+ * 合并全局、页面级自定义指令
+ * @param vm
+ */
+function initCustomDirective(vm) {
+  const appCustomDirective =
+    (vm._page && vm._page.app && vm._page.app._def && vm._page.app._def.directives) || {}
+  const vmCustomDirective = vm._options.directives || {}
+  const directives = {}
+  // 合并指令存入一个新对象中，页面覆盖全局级别的指令
+  const dirs = $extend({}, appCustomDirective, vmCustomDirective)
+  for (const dirName in dirs) {
+    // 将指令名称转为小写
+    directives[dirName.toLocaleLowerCase()] = dirs[dirName]
+  }
+  vm._directives = directives
 }
 
 /**
@@ -319,6 +337,11 @@ export default class XVm {
     this._$attrs = {}
     this.__$attrs__ = {}
     this._$listeners = []
+    this._directives = {}
+    // 如果是顶级Vm，增加自定义指令上下文数据
+    if (this._root === this) {
+      this._directivesContext = {}
+    }
     this._destroyed = false
 
     Object.defineProperties(this, {
@@ -441,6 +464,9 @@ export default class XVm {
     // 初始化vm状态, 将自定义函数添加到vm中
     initState(this)
 
+    // 初始化自定义指令
+    initCustomDirective(this)
+
     console.trace(`### App Framework ### 组件Vm(${this._type})创建成功`)
     // 自定义Vm与仅做数据驱动的Vm：无携带
     const hasQuery = this._isPageVm() && this._page && this._page._meta
@@ -527,42 +553,42 @@ export default class XVm {
         setTitleBar: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setTitleBar ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setTitleBar ----`)
             context.quickapp.runtime.helper.updatePageTitleBar(page.doc, attr)
           }
         },
         setMeta: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setMeta ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setMeta ----`)
             context.quickapp.runtime.helper.setMeta(page.doc, attr)
           }
         },
         scrollTo: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 scrollTo ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 scrollTo ----`)
             context.quickapp.runtime.helper.scrollTo(page.doc, attr)
           }
         },
         scrollBy: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 scrollBy ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 scrollBy ----`)
             context.quickapp.runtime.helper.scrollBy(page.doc, attr)
           }
         },
         setStatusBar: function(attr) {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 setStatusBar ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 setStatusBar ----`)
             context.quickapp.runtime.helper.updatePageStatusBar(page.doc, attr)
           }
         },
         exitFullscreen: function() {
           // 如果是页面对象
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 exitFullscreen ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 exitFullscreen ----`)
             context.quickapp.runtime.helper.exitFullscreen(page.doc)
           }
         },
@@ -602,15 +628,33 @@ export default class XVm {
             return pageModule.setMenubarData({ id: page.id, attr })
           }
         },
+        setTabBarItem: function(attr) {
+          // 调用native侧提供的接口，设置TabBardata数据
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.setTabBarItem({ id: page.id, attr })
+          }
+        },
         hideSkeleton: function() {
           if (page && page.doc) {
-            console.log(`### App Framework ### 页面 ${page.id} 调用 hideSkeleton ----`)
+            console.trace(`### App Framework ### 页面 ${page.id} 调用 hideSkeleton ----`)
             context.quickapp.runtime.helper.hideSkeleton(page.doc, page.id)
           }
         },
         setSecure: function(isSecure) {
           if (page && page.doc) {
             context.quickapp.runtime.helper.callHostFunction(page.doc, 'setSecure', [!!isSecure])
+          }
+        },
+        setMenubarTips: function(attr) {
+          // 调用native侧提供的接口，设置menubarTips数据
+          if (page && page.doc) {
+            if (pageModule === null) {
+              pageModule = context.quickapp.platform.requireModule(app, 'system.page')
+            }
+            return pageModule.setMenubarTips({ id: page.id, attr })
           }
         }
       },
@@ -698,7 +742,7 @@ export default class XVm {
       id = undefined
     } else if (typeof id !== 'string') {
       // 如果id不是字符串, 则什么也不做
-      console.error(`### App Framework ### emitElement的参数id不合法`)
+      console.error(`### App Framework ### $emitElement的参数id不合法`)
       return
     }
 
@@ -707,7 +751,7 @@ export default class XVm {
       return fireEventWrap(element, type, { detail: detail })
     } else {
       // 如果id不是字符串, 则什么也不做
-      console.error(`### App Framework ### emitElement执行失败: 找不到id为 '${id}' 的组件`)
+      console.error(`### App Framework ### $emitElement执行失败: 找不到id为 '${id}' 的组件`)
     }
   }
 
@@ -805,7 +849,7 @@ export default class XVm {
     const page = this._page
     // 如果是页面对象
     if (page && page.doc) {
-      console.log(`### App Framework ### 强制更新页面 ---- ${page.id}`)
+      console.trace(`### App Framework ### 强制更新页面 ---- ${page.id}`)
       updatePageActions(page)
     }
   }
@@ -921,7 +965,7 @@ XVm.parseExpression = function(exp) {
  */
 XVm.getPath = function(obj, target) {
   if (/[^\w.$]/.test(target)) {
-    console.warn(`### App Framework ### getPath调用:  观察对象 '${target}' 不合法`)
+    console.warn(`### App Framework ### getPath调用：观察对象 '${target}' 不合法`)
     return
   }
   // 解析target路径
@@ -932,12 +976,12 @@ XVm.getPath = function(obj, target) {
   for (let i = 0; i < nameListLen; i++) {
     const name = nameList[i]
     if (isReserved(name)) {
-      console.warn(`### App Framework ### getPath调用: 属性名 '${name}' 不能以 $ 或 _ 开头`)
+      console.warn(`### App Framework ### getPath调用：属性名 '${name}' 不能以 $ 或 _ 开头`)
       return
     }
     if (!obj[name]) {
       console.warn(
-        `### App Framework ### getPath调用: 属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
+        `### App Framework ### getPath调用：属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
       )
       return
     }
@@ -954,7 +998,7 @@ XVm.getPath = function(obj, target) {
  */
 XVm.setPath = function(obj, target, val) {
   if (/[^\w.$]/.test(target)) {
-    console.warn(`### App Framework ### setPath调用:  观察对象 '${target}' 不合法`)
+    console.warn(`### App Framework ### setPath调用：观察对象 '${target}' 不合法`)
     return
   }
   // 解析target路径
@@ -965,12 +1009,12 @@ XVm.setPath = function(obj, target, val) {
   for (let i = 0; i < nameListLen; i++) {
     const name = nameList[i]
     if (isReserved(name)) {
-      console.warn(`### App Framework ### setPath调用: 属性名 '${name}' 不能以 $ 或 _ 开头`)
+      console.warn(`### App Framework ### setPath调用：属性名 '${name}' 不能以 $ 或 _ 开头`)
       return
     }
     if (!obj[name]) {
       console.warn(
-        `### App Framework ### setPath调用: 属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
+        `### App Framework ### setPath调用：属性名 '${name}' 在 '${target}' 中值为：${obj[name]}`
       )
       return
     }

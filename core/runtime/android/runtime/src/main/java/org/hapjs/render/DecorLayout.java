@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.component.Component;
 import org.hapjs.component.view.ScrollView;
 import org.hapjs.runtime.DarkThemeUtil;
+import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.R;
 
@@ -28,6 +29,8 @@ public class DecorLayout extends RelativeLayout {
     private int mMenubarIndex = -1;
     private boolean mDarkMode;
 
+    private boolean mInGrayMode = false;
+
     public DecorLayout(Context context, Page page, RootView rootView) {
         super(context);
         mDisplay = new Display(this, ((Activity) context).getWindow(), page, rootView);
@@ -35,6 +38,18 @@ public class DecorLayout extends RelativeLayout {
         if (!BuildPlatform.isTV()) {
             setFocusableInTouchMode(true);
         }
+
+        if (!GrayModeManager.getInstance().isPageExclude(page.getPath())
+                && GrayModeManager.getInstance().shouldApplyGrayMode()) {
+            applyGrayMode(true);
+        }
+    }
+
+    public void applyGrayMode(boolean toggle) {
+        if (toggle == mInGrayMode) {
+            return;
+        }
+        mInGrayMode = GrayModeManager.getInstance().applyGrayMode(this, toggle);
     }
 
     public boolean isDarkMode() {

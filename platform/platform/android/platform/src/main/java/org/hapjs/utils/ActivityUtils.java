@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,6 +18,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,6 +28,7 @@ public class ActivityUtils {
     private static Object sIActivityManager;
     private static Method sGetLaunchedFromPackageMethod;
     private static Method sGetActivityTokenMethod;
+    private static WeakHashMap<Activity, String> sCacheLaunchedFromPkgs = new WeakHashMap<>();
     private static ConcurrentMap<String, Boolean> sCachePackage = new ConcurrentHashMap<>();
     private static String sHomePackage = "";
 
@@ -49,19 +51,28 @@ public class ActivityUtils {
         }
     }
 
-    public static String getCallingPackage(Activity activity) {
+    public synchronized static String getCallingPackage(Activity activity) {
         if (sIActivityManager == null
                 || sGetLaunchedFromPackageMethod == null
                 || sGetActivityTokenMethod == null) {
             return null;
         }
+
+        String callingPkg = sCacheLaunchedFromPkgs.get(activity);
+        if (!TextUtils.isEmpty(callingPkg)) {
+            return callingPkg;
+        }
+
         try {
             IBinder binder = (IBinder) sGetActivityTokenMethod.invoke(activity);
-            return (String) sGetLaunchedFromPackageMethod.invoke(sIActivityManager, binder);
+            callingPkg = (String) sGetLaunchedFromPackageMethod.invoke(sIActivityManager, binder);
+            if (!TextUtils.isEmpty(callingPkg)) {
+                sCacheLaunchedFromPkgs.put(activity, callingPkg);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Fail to getCallingPackage", e);
         }
-        return null;
+        return callingPkg;
     }
 
     public static boolean shouldOverrideExitAnimation(Activity activity) {

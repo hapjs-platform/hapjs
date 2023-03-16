@@ -1,33 +1,33 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.debugger;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.util.TypedValue;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.appcompat.widget.Toolbar;
+import android.widget.TextView;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.appbar.AppBarLayout;
+
 import org.hapjs.debugger.app.impl.R;
 import org.hapjs.debugger.debug.AppDebugManager;
 import org.hapjs.debugger.debug.CardDebugManager;
 import org.hapjs.debugger.fragment.DebugFragmentManager;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
     private static final String KEY_RPK_ADDRESS = "rpk_address";
-    private AppCompatSpinner mModeSpinner;
     private DebugFragmentManager mDebugFragmentManager;
-    private ArrayAdapter mModeAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,32 +37,33 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             getIntent().setData(null);
         }
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        initViews();
+    }
 
-        mDebugFragmentManager = createDebugFragmentManager();
+    private void initViews() {
+        ((AppBarLayout) findViewById(R.id.app_bar_layout)).setOutlineProvider(null);
+
+        ViewPager2 pager = findViewById(R.id.pager);
+        mDebugFragmentManager = createDebugFragmentManager(pager);
         mDebugFragmentManager.showDebugFragment(getIntent());
 
-        mModeSpinner = ((AppCompatSpinner) findViewById(R.id.mode_spinner));
-        mModeAdapter = new ArrayAdapter<String>(MainActivity.this, R.layout
-                .item_spinner_select, mDebugFragmentManager.getNamesArray());
-        mModeSpinner.setAdapter(mModeAdapter);
-        mModeSpinner.setSelection(mDebugFragmentManager.getMode());
-        mModeSpinner.setOnItemSelectedListener(this);
+        findViewById(R.id.app_mode_title).setOnClickListener(this);
+        findViewById(R.id.card_mode_title).setOnClickListener(this);
+        int mode = mDebugFragmentManager.getMode();
+        updateTitleStyle(mode == 0);
+        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                updateTitleStyle(position == 0);
+            }
+        });
+
+        findViewById(R.id.setting).setOnClickListener(this);
     }
 
-    protected DebugFragmentManager createDebugFragmentManager() {
-        return new DebugFragmentManager(this, R.id.container);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mDebugFragmentManager.refreshModeList()) {
-            mModeAdapter.clear();
-            mModeAdapter.addAll(mDebugFragmentManager.getNamesArray());
-            mModeAdapter.notifyDataSetChanged();
-        }
+    protected DebugFragmentManager createDebugFragmentManager(ViewPager2 pager){
+        return  new DebugFragmentManager(this, pager);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (mDebugFragmentManager != null) {
             boolean modeChanged = mDebugFragmentManager.onNewIntent(intent);
             if (modeChanged) {
-                mModeSpinner.setSelection(mDebugFragmentManager.getMode());
+                updateTitleStyle(mDebugFragmentManager.getMode() == 0);
             }
         }
     }
@@ -82,47 +83,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onDestroy();
         AppDebugManager.getInstance(this).close();
         CardDebugManager.getInstance(this).close();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent();
-            intent.setClass(this, SettingsActivity.class);
-            startActivity(intent);
-            return true;
-        } else if (id == R.id.action_launch_app_test) {
-            startActivity(new Intent(this, AppLaunchTestActivity.class));
-            return true;
-        } else if (id == R.id.action_get_signature) {
-            startActivity(new Intent(this, SignatureActivity.class));
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        mDebugFragmentManager.showDebugFragment(position);
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
     }
 
     private boolean isLaunchFromRecentsTask(Bundle savedInstanceState) {
@@ -140,4 +100,42 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         return false;
     }
 
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.app_mode_title
+                || v.getId() == R.id.card_mode_title) {
+            mDebugFragmentManager.showDebugFragment(v.getId() == R.id.app_mode_title ? 0 : 1);
+            updateTitleStyle(v.getId() == R.id.app_mode_title);
+        } else if (v.getId() == R.id.setting) {
+            Intent intent = new Intent();
+            intent.setClass(this, SettingsActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    private void updateTitleStyle(boolean isAppMode) {
+        TextView appModeTitle = findViewById(R.id.app_mode_title);
+        TextView cardModeTitle = findViewById(R.id.card_mode_title);
+        View appModeBottomLine = findViewById(R.id.app_mode_bottom_line);
+        View cardModeBottomLine = findViewById(R.id.card_mode_bottom_line);
+        if (isAppMode) {
+            appModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_selected_text_size));
+            appModeTitle.setTextColor(getResources().getColor(R.color.mode_selected_color));
+            appModeTitle.setTypeface(null, Typeface.BOLD);
+            cardModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_unselected_text_size));
+            cardModeTitle.setTextColor(getResources().getColor(R.color.mode_unselected_color));
+            appModeTitle.setTypeface(null, Typeface.NORMAL);
+            appModeBottomLine.setVisibility(View.VISIBLE);
+            cardModeBottomLine.setVisibility(View.GONE);
+        } else {
+            appModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_unselected_text_size));
+            appModeTitle.setTextColor(getResources().getColor(R.color.mode_unselected_color));
+            appModeTitle.setTypeface(null, Typeface.NORMAL);
+            cardModeTitle.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.mode_selected_text_size));
+            cardModeTitle.setTextColor(getResources().getColor(R.color.mode_selected_color));
+            appModeTitle.setTypeface(null, Typeface.BOLD);
+            appModeBottomLine.setVisibility(View.GONE);
+            cardModeBottomLine.setVisibility(View.VISIBLE);
+        }
+    }
 }

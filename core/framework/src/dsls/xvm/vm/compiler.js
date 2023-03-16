@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { $camelize, isPlainObject, isReserved, isObject } from 'src/shared/util'
 
-import { $bind } from '../util'
+import { $bind, assignObjectInOrder } from '../util'
 
 import context from '../context'
 
@@ -566,6 +566,21 @@ function compileCustomComponent(vm, component, template, dest, type, meta) {
     }
   })
 
+  // 处理组件的自定义指令
+  const dirs = template.directives
+  if (dirs && dirs.length && component && component.template) {
+    component.template.appendDirectives = []
+    for (let i = 0, len = dirs.length; i < len; i++) {
+      const elDir = dirs[i]
+      const vmDirs = vm._directives
+      // 在使用自定义组件时，如果节点的自定义指令名称在vm上有定义，则将当前指令信息push到组件根节点的 appendDirectives 数组中
+      // 在生成组件vm时会合并组件根节点的 directives 和 appendDirectives
+      if (vmDirs && vmDirs[elDir.name]) {
+        component.template.appendDirectives.push(elDir)
+      }
+    }
+  }
+
   if (component && component.props && !component._hasnormalizeProps) {
     component._hasnormalizeProps = true
     // 格式化props信息
@@ -642,9 +657,16 @@ function compileNativeComponent(vm, template, dest, type) {
 
     // 定义样式到文档中
     const isDocLevel = app._shareDocStyle && dest === doc.documentElement
+
+    let styleObject = {}
+    // 合并父组件externalClasses传入的样式
+    assignObjectInOrder(styleObject, vm._options && vm._options.style)
+    assignObjectInOrder(styleObject, vm._externalClasses)
+
+    styleObject = Object.keys(styleObject).length === 0 ? vm._options.style : styleObject
     context.quickapp.runtime.helper.registerStyleObject(
       vm._type,
-      vm._options.style,
+      styleObject,
       isDocLevel,
       vm._rootElement
     )
@@ -670,7 +692,8 @@ function compileNativeComponent(vm, template, dest, type) {
   // 将richtext属性保存为html
   if (isRichTextNode(template)) {
     template.content = template.attr.value
-    template.contentType = template.attr.type
+    // 获取template的scene或type属性
+    template.contentType = template.attr.scene || template.attr.type
     // 注释：循环遍历richtext时，后面的richtext需要有value模板
     // delete template.attr['value']
   }
@@ -754,7 +777,7 @@ function bindFor(vm, target, frag, info) {
     compile(newContext, target, frag, { repeat: item })
   }
 
-  const list = watchFragment(vm, frag, getter, 'for', data => {
+  let list = watchFragment(vm, frag, getter, 'for', data => {
     if (!frag || !data) {
       return
     }
@@ -783,7 +806,7 @@ function bindFor(vm, target, frag, info) {
       trackMap[key].push(item)
       if (trackMap[key].length > 1) {
         console.warn(
-          `### App Framework ### for 循环数据的tid 属性 '${key} 不唯一, 可能导致性能问题`
+          `### App Framework ### for 循环数据的tid 属性 '${key}' 不唯一, 可能导致性能问题`
         )
       }
     })
@@ -840,6 +863,15 @@ function bindFor(vm, target, frag, info) {
       }
     })
   })
+
+  // for循环固定值
+  if (typeof list === 'number') {
+    const ret = new Array(list)
+    for (let i = 0; i < list; i++) {
+      ret[i] = i + 1
+    }
+    list = ret
+  }
 
   // 初次展开循环节点
   if (list && list.length > 0) {
@@ -940,7 +972,8 @@ function compileRichText(vm, target, dest) {
 
       // 如果有新值, 重新编译
       if (value) {
-        if (textType !== 'html') {
+        // 当类型为book或者html时不用编译节点
+        if (textType !== 'html' && textType !== 'book') {
           // 解析value为template
           const xContent = parser.compile(value, textType)
           compile(vm, xContent, fragment)
@@ -952,7 +985,8 @@ function compileRichText(vm, target, dest) {
   }
 
   if (content) {
-    if (textType !== 'html') {
+    // 当类型为book或者html时不用编译节点
+    if (textType !== 'html' && textType !== 'book') {
       const xContent = parser.compile(content, textType)
       compile(vm, xContent, fragment)
     }

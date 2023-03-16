@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,7 +45,7 @@ function _registerAppFunc(methodName) {
         _appMap[id] = info
 
         console.log(
-          `### App Framework ### 创建应用 ${id}---- 框架: ${info.framework} 版本: ${global.frameworkVersion}`
+          `### App Framework ### 创建应用 ${id} ---- 框架: ${info.framework} 版本: ${global.frameworkVersion}`
         )
         // 调用框架的对应API
         return _frameworks[info.framework].createApplication(id, code, ...args)
@@ -103,7 +103,10 @@ function _registerPageFunc(methodName) {
         }
         _pageMap[id] = info
 
-        console.log(`### App Framework ### 创建页面 ${id}----应用Id: ${appid}`)
+        console.log(
+          `### App Framework ### 创建页面 ${id} ---- ${intent &&
+            intent.currentPageName} ---- 应用Id: ${appid}`
+        )
         // 调用框架的对应API
         return _frameworks[appinfo.framework].createPage(id, appid, code, data, intent, meta)
       }
@@ -176,6 +179,7 @@ const frameworkPageApi = [
   'reachPageBottom',
   'pageScroll',
   ['processCallbacks', 'execJSBatch'],
+  'processRenderHooks',
   'getPage',
   'getPageRoot',
   'getPageElementStyles',

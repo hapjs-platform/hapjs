@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -129,6 +129,12 @@ public class MediaUtils {
 
     private static File getAppMediaTempDir(Context context, String pkg) {
         File dir = new File(getMediaTempDir(context), pkg);
+        FileUtils.mkdirs(dir);
+        return dir;
+    }
+
+    private static File getQQShareFileProDir(Context context) {
+        File dir = new File(context.getExternalFilesDir(null), "Images/tmp");
         FileUtils.mkdirs(dir);
         return dir;
     }

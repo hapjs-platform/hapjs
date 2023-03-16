@@ -46,6 +46,8 @@ public class VDomChangeAction implements RenderAction {
     public final Map<String, Object> extra = new ArrayMap<>();
     public final Map<String, Object> scrolls = new ArrayMap<>();
     public final List<VDomChangeAction> children = new ArrayList<>();
+    final public List<String> hooks = new ArrayList<>();
+    public boolean jsCallbacks = false;
     public int pageId;
     public int action;
     public int vId;
@@ -92,6 +94,10 @@ public class VDomChangeAction implements RenderAction {
                 + ", children:"
                 + children
                 + ", inspectorVElementType:"
-                + inspectorVElementType;
+                + inspectorVElementType
+                + ", hooks:"
+                + hooks
+                + ", jsCallbacks:"
+                + jsCallbacks;
     }
 }

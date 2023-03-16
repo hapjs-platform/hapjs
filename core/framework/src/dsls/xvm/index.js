@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,6 +10,7 @@ import XVm from './vm'
 import context from './context'
 
 import framework from './interface'
+import { isFunction } from '../../shared/util'
 
 /**
  * 根据id查找元素(添加对应原生组件的接口函数)
@@ -48,7 +49,7 @@ function $child(id) {
   const info = this._ids[id]
   if (info) {
     if (info.vm._destroyed) {
-      console.warn(`### App Framework ### 组件Vm(${info.vm._type})已销毁`)
+      console.warn(`### App Framework ### 组件 ${info.vm._type} 已销毁`)
     }
     return info.vm
   }
@@ -72,12 +73,12 @@ function $vm(id) {
  */
 function $config() {
   if (this._destroyed) {
-    console.error(`### App Framework ### 组件Vm(${this._type})已销毁`)
+    console.error(`### App Framework ### 组件Vm '${this._type}' 已销毁`)
   }
   if (this._page && this._page.app && this._page.app.options) {
     return this._page.app.options
   } else {
-    console.error(`### App Framework ### 获取配置失败！`)
+    console.error(`### App Framework ### $config 获取配置失败`)
   }
 }
 
@@ -165,7 +166,7 @@ function $createElement(type, attrs, children) {
               })
             }
             if (v.log) {
-              console.error('### App Parser ###', v.log)
+              console.error('### App Parser ### ', v.log)
             }
           }
         })
@@ -232,6 +233,18 @@ function $createElement(type, attrs, children) {
   return elem
 }
 
+/**
+ * 将回调函数加入 vm 的 nextTickCallbacks中
+ * @param  {function} cb, 回调函数
+ */
+function $nextTick(cb) {
+  if (!isFunction(cb)) {
+    console.warn('### App Framework ### $nextTick函数仅支持函数类型的参数')
+  } else if (this._page && this._page.nextTickCallbacks) {
+    this._page.nextTickCallbacks.push(cb)
+  }
+}
+
 const methods = {
   $child,
   $vm,
@@ -240,7 +253,8 @@ const methods = {
   $config,
   $createElement,
   $extend,
-  $stringify
+  $stringify,
+  $nextTick
 }
 
 // 給Vm原型注册方法

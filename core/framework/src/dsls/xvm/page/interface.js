@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -40,7 +40,9 @@ function initPage(page, code, query, globals) {
     )
     profiler.time(`PERF:bootstrapPage`)
     result = $bootstrap(page, name, configs, query)
-    page.doc.listener.createFinish()
+    const hasCallbacks = page.nextTickCallbacks && page.nextTickCallbacks.length > 0
+    page.doc.listener.createFinish(null, hasCallbacks)
+
     console.trace(`### App Framework ### 完成实例初始化(${page.id})----`)
     profiler.timeEnd(`PERF:bootstrapPage`)
     profiler.record(
