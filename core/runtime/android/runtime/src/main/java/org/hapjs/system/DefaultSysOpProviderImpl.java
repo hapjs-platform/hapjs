@@ -1,16 +1,21 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.system;
 
+import static org.hapjs.render.MultiWindowManager.MULTI_WINDOW_DIVIDER_WIDTH;
+
+
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.database.Cursor;
@@ -28,23 +33,29 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import androidx.appcompat.widget.Toolbar;
+
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.hapjs.bridge.BaseJsSdkBridge;
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FileUtils;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.IntentUtils;
 import org.hapjs.common.utils.PackageUtils;
 import org.hapjs.common.utils.ThemeUtils;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
+import org.hapjs.model.ConfigInfo;
+import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.MenubarItemData;
+import org.hapjs.render.MultiWindowManager;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.DarkThemeUtil;
@@ -89,8 +100,8 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public boolean updateShortcut(
-            Context context, String pkg, String path, String params, String appName, Bitmap icon) {
+    public boolean updateShortcut(Context context, String pkg, String path, String params, String appName,
+                                  Bitmap icon, boolean isOpIconUpdate) {
         boolean result = false;
         if (Build.VERSION.SDK_INT >= 26) {
             result = updateShortcutAboveOreo(context, pkg, path, appName, icon);
@@ -115,6 +126,8 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
             String params,
             String appName,
             Uri iconUri,
+            String type,
+            String serverIconUrl,
             Source source,
             boolean isComplete) {
     }
@@ -125,7 +138,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
 
     private Intent getShortcutPendingIntentOnBase(Context context, String pkg, String path) {
         Uri uri = getQueryUri();
-        String[] projection = new String[] {"intent"};
+        String[] projection = new String[]{"intent"};
         String selection = "itemType=1";
         Cursor cursor = null;
         try {
@@ -417,6 +430,12 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
+    public int getDesignWidth(Context context, AppInfo appInfo) {
+        ConfigInfo info = appInfo.getConfigInfo();
+        return info == null ? ConfigInfo.DEFAULT_DESIGN_WIDTH : info.getDesignWidth();
+    }
+
+    @Override
     public Intent getPermissionActivityIntent(String pkg) {
         return null;
     }
@@ -454,8 +473,18 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public int getScreenWidthPixels(Context context, int platformVersion) {
+    public int getScreenWidthPixels(Context context, int platformVersion,HashMap<String, Object> datas) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        boolean isLandscapeMode = DisplayUtil.isLandscapeMode(context);
+        int safeAreaWidth = getSafeAreaWidth(context);
+        if (isFoldableDevice(context) && FoldingUtils.isMultiWindowMode()) {
+            if (isFoldStatusByDisplay(context)) {
+                return isLandscapeMode ? displayMetrics.heightPixels : displayMetrics.widthPixels;
+            } else {
+                int fullScreenWidth = isLandscapeMode ? displayMetrics.widthPixels + safeAreaWidth : displayMetrics.widthPixels;
+                return (fullScreenWidth - MULTI_WINDOW_DIVIDER_WIDTH) / 2;
+            }
+        }
         if (platformVersion < 1063 && !BuildPlatform.isTV()) {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.heightPixels : displayMetrics.widthPixels;
         }
@@ -463,11 +492,47 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     }
 
     @Override
-    public int getScreenHeightPixels(Context context, int platformVersion) {
+    public int getScreenHeightPixels(Context context, int platformVersion,HashMap<String, Object> datas) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         if (platformVersion < 1063 && !BuildPlatform.isTV()) {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.widthPixels : displayMetrics.heightPixels;
         }
         return displayMetrics.heightPixels;
     }
+
+    @Override
+    public int getScreenOrientation(Page page, AppInfo info) {
+        int screenOrientation;
+        if (page.hasSetOrientation()) {
+            screenOrientation = page.getOrientation();
+        } else {
+            screenOrientation =
+                    BuildPlatform.isTV() | BuildPlatform.isCar() ?
+                            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                            : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        }
+        return screenOrientation;
+    }
+
+    @Override
+    public boolean isFoldableDevice(Context context) {
+        return false;
+    }
+
+    @Override
+    public boolean isFoldStatusByDisplay(Context context) {
+        return false;
+    }
+
+    @Override
+    public int getFoldDisplayWidth(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return displayMetrics.widthPixels;
+    }
+
+    @Override
+    public int getSafeAreaWidth(Context context) {
+        return 0;
+    }
+
 }

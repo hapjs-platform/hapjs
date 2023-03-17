@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,6 +29,7 @@ import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.view.ScrollView;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.DecorLayout;
+import org.hapjs.render.MultiWindowManager;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.HapEngine;
@@ -39,8 +40,6 @@ public class DocComponent extends Container {
     protected DecorLayout mDecorLayout;
     protected AppInfo mAppInfo;
     protected boolean mOpenWithAnim;
-    protected PageEnterListener mPageEnterListener;
-    protected PageExitListener mPageExitListener;
     private int mPageId = -1;
     private volatile int mWebComponentCount;
     private Page mPage;
@@ -48,6 +47,10 @@ public class DocComponent extends Container {
     private Map<String, SingleChoice> mSingleChoices;
     private Map<String, Integer> mViewIds;
     private FloatingHelper mFloatingHelper;
+
+    protected PageEnterListener mPageEnterListener;
+    protected PageExitListener mPageExitListener;
+    protected PageMoveListener mPageMoveListener;
 
     public DocComponent(
             HapEngine hapEngine,
@@ -70,7 +73,9 @@ public class DocComponent extends Container {
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT);
         ViewUtils.fitParentLayoutParams(lp, rootView);
+        ViewUtils.fitMultiModeLayoutParams(mContext, lp);
         mDecorLayout.setLayoutParams(lp);
+        mCallback.addActivityStateListener(this);
     }
 
     public boolean hasWebComponent() {
@@ -81,16 +86,34 @@ public class DocComponent extends Container {
         this.mWebComponentCount++;
     }
 
-    public void attachChildren(boolean open, int animType, PageEnterListener pageEnterListener) {
+    public void attachChildren(boolean open, int animType, MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo, PageEnterListener pageEnterListener) {
         mPageEnterListener = pageEnterListener;
         removeDecorLayout();
 
         mOpenWithAnim = open && animType > DocAnimator.TYPE_UNDEFINED;
 
-        if (open) {
-            ((ViewGroup) mHost).addView(mDecorLayout);
+        if (extraInfo != null && extraInfo.isMultiWindowMode()) {
+            if (extraInfo.isShoppingMode()) {
+                ((ViewGroup) mHost).addView(mDecorLayout, 0);
+            } else if (extraInfo.isNavigationMode()) {
+                if (open) {
+                    if (extraInfo.isOpenFirstPage()) {
+                        ((ViewGroup) mHost).addView(mDecorLayout);
+                    } else if (extraInfo.isOpenSecondPage()) {
+                        ((ViewGroup) mHost).addView(mDecorLayout, 0);
+                    } else {
+                        ((ViewGroup) mHost).addView(mDecorLayout, (((ViewGroup) mHost).getChildCount() - 2));
+                    }
+                } else {
+                    ((ViewGroup) mHost).addView(mDecorLayout, 0);
+                }
+            }
         } else {
-            ((ViewGroup) mHost).addView(mDecorLayout, 0);
+            if (open) {
+                ((ViewGroup) mHost).addView(mDecorLayout);
+            } else {
+                ((ViewGroup) mHost).addView(mDecorLayout, 0);
+            }
         }
 
         executePageEnterStart();
@@ -104,7 +127,11 @@ public class DocComponent extends Container {
             }
         } else {
             mDecorLayout.setAlpha(1);
-            mDecorLayout.setX(0);
+            if (extraInfo != null && extraInfo.isMultiWindowMode()) {
+                mDecorLayout.setTranslationX(extraInfo.getTranslationXWithNoAnim(mContext));
+            } else {
+                mDecorLayout.setX(0);
+            }
             executePageEnterEnd();
         }
 
@@ -125,6 +152,21 @@ public class DocComponent extends Container {
             animator.start();
         } else {
             executePageExitEnd(open);
+        }
+    }
+
+    public void moveChildren(int animType, PageMoveListener pageMoveListener) {
+        mPageMoveListener = pageMoveListener;
+
+        mDecorLayout.bringToFront();
+
+        executePageMoveStart();
+        if (animType > DocAnimator.TYPE_UNDEFINED) {
+            DocAnimator animator = new DocAnimator(mContext, mDecorLayout, animType);
+            animator.setListener(new MoveAnimatorListener());
+            animator.start();
+        } else {
+            executePageMoveEnd();
         }
     }
 
@@ -255,6 +297,71 @@ public class DocComponent extends Container {
         mDecorLayout.setVisibility(View.VISIBLE);
     }
 
+    public interface PageEnterListener {
+        void onStart();
+
+        void onEnd();
+    }
+
+    public interface PageExitListener {
+        void onStart();
+
+        void onEnd();
+    }
+
+    public interface PageMoveListener {
+        void onStart();
+
+        void onEnd();
+    }
+
+    public class AttachAnimatorListener extends AnimatorListenerAdapter {
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+            mDecorLayout.setIsAttachAnimation(true);
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            if (mOpenWithAnim) {
+                mOpenWithAnim = false;
+            }
+
+            mDecorLayout.setIsAttachAnimation(false);
+        }
+    }
+
+    public class DetachAnimatorListener extends AnimatorListenerAdapter {
+        boolean open;
+
+        DetachAnimatorListener(boolean open) {
+            this.open = open;
+        }
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+        }
+
+        @Override
+        public void onAnimationEnd(final Animator animation) {
+            executePageExitEnd(open);
+        }
+    }
+
+    public class MoveAnimatorListener extends AnimatorListenerAdapter {
+
+        @Override
+        public void onAnimationStart(Animator animation) {
+
+        }
+
+        @Override
+        public void onAnimationEnd(Animator animation) {
+            executePageMoveEnd();
+        }
+    }
+
     public void executePageEnterStart() {
         if (mPageEnterListener != null) {
             mPageEnterListener.onStart();
@@ -304,6 +411,14 @@ public class DocComponent extends Container {
                                 });
             }
         }
+    }
+
+    public void executePageMoveStart() {
+        mPageMoveListener.onStart();
+    }
+
+    public void executePageMoveEnd() {
+        mPageMoveListener.onEnd();
     }
 
     @Override
@@ -387,51 +502,5 @@ public class DocComponent extends Container {
 
     public DecorLayout getDecorLayout() {
         return mDecorLayout;
-    }
-
-    public interface PageEnterListener {
-        void onStart();
-
-        void onEnd();
-    }
-
-    public interface PageExitListener {
-        void onStart();
-
-        void onEnd();
-    }
-
-    public class AttachAnimatorListener extends AnimatorListenerAdapter {
-
-        @Override
-        public void onAnimationStart(Animator animation) {
-            mDecorLayout.setIsAttachAnimation(true);
-        }
-
-        @Override
-        public void onAnimationEnd(Animator animation) {
-            if (mOpenWithAnim) {
-                mOpenWithAnim = false;
-            }
-
-            mDecorLayout.setIsAttachAnimation(false);
-        }
-    }
-
-    public class DetachAnimatorListener extends AnimatorListenerAdapter {
-        boolean open;
-
-        DetachAnimatorListener(boolean open) {
-            this.open = open;
-        }
-
-        @Override
-        public void onAnimationStart(Animator animation) {
-        }
-
-        @Override
-        public void onAnimationEnd(final Animator animation) {
-            executePageExitEnd(open);
-        }
     }
 }

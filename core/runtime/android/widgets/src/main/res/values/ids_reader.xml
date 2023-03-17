@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2022-present, hapjs.org. All rights reserved.
+-->
+<resources>
+    <item name="reader_mid_page" type="id"/>
+    <item name="reader_next_page" type="id"/>
+    <item name="reader_pre_page" type="id" />
+</resources>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -59,6 +59,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.collection.ArraySet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.MotionEventCompat;
@@ -400,9 +401,6 @@ public class NestedWebView extends WebView
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, String url) {
                         Log.d(TAG, "shouldOverrideUrlLoading");
-                        if (mOnshouldOverrideLoadingListener != null) {
-                            mOnshouldOverrideLoadingListener.onShouldOverrideUrlLoading(view, url);
-                        }
                         Intent intent = new Intent();
                         intent.setAction(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(url));
@@ -419,9 +417,10 @@ public class NestedWebView extends WebView
                             }
                             try {
                                 mContext.startActivity(intent);
-                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, null, mSourceH5);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, true, "webview pay", mSourceH5);
                             } catch (ActivityNotFoundException e) {
                                 Log.d(TAG, "Fail to launch deeplink", e);
+                                NavigationUtils.statRouterNativeApp(mContext, getAppPkg(), url, intent, VALUE_ROUTER_APP_FROM_WEB, false, "no compatible activity found", mSourceH5);
                             }
                             return true;
                         }
@@ -430,6 +429,13 @@ public class NestedWebView extends WebView
                             Log.e(TAG, "shouldOverrideUrlLoading error: component is null");
                             mSourceH5 = url;
                             return false;
+                        }
+                        boolean isIntercept = isInterceptUrl(url);
+                        if (isIntercept) {
+                            if (mOnshouldOverrideLoadingListener != null) {
+                                mOnshouldOverrideLoadingListener.onShouldOverrideUrlLoading(view, url);
+                            }
+                            return true;
                         }
                         RenderEventCallback callback = mComponent.getCallback();
                         boolean result = (callback != null
@@ -1010,6 +1016,24 @@ public class NestedWebView extends WebView
         // only for jssdk
         H5InvokeNativeApi h5InvokeNativeApi = new H5InvokeNativeApi(this);
         addJavascriptInterface(h5InvokeNativeApi, "hapH5Invoke");
+    }
+
+    private boolean isInterceptUrl(String url) {
+        ArraySet<String> interceptUrls = null;
+        if (mComponent != null) {
+            Web web = (Web) mComponent;
+            interceptUrls = web.getInterceptUrls();
+        }
+        if (mComponent == null || TextUtils.isEmpty(url)
+                || interceptUrls.size() == 0 || interceptUrls == null) {
+            return false;
+        }
+        for (int i = 0; i < interceptUrls.size(); i++) {
+            if (url.matches(interceptUrls.valueAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isDomainInWhitelist(String domain) {

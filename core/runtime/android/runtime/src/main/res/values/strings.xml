@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -42,6 +42,8 @@
     <!-- Hap Permission -->
     <string name="hap_permission_ringtone_desc">set system ringtone</string>
     <string name="hap_permission_step_counter_desc">get steps data</string>
+    <string name="hap_permission_access_clipboard_desc">Access the clipboard</string>
+    <string name="hap_permission_write_clipboard_desc">Write to the clipboard</string>
 
     <!--unsupported element-->
     <string name="unsupported_element_tip">Unsupported Element:<xliff:g id="app">%1$s</xliff:g></string>
@@ -137,4 +139,8 @@
     <string name="analyzer_network_retry_reopen">, and start debugging again.</string>
     <string name="menubar_tips_special">Click to add <xliff:g id="app">%1$s</xliff:g> to the desktop,which is more convenient to use next time.</string>
     <string name="menubar_added_shortcut_tips">Added to desktop \"<xliff:g id="app">%1$s</xliff:g>\" </string>
+    <!-- shortcutbtn-->
+    <string name="shortcut_add_shortcut_mini">Add to desktop</string>
+    <string name="shortcut_add_shortcut_desktop">Add to desktop</string>
+    <string name="shortcut_add_shortcut_long">Add to desktop</string>
 </resources>

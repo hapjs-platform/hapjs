@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -14,4 +14,5 @@
 
     <color name="image_placeholder_color">#ffeeeeee</color>
     <color name="image_placeholder_color_dark">#12ffffff</color>
+    <color name="near_transparent_color">#01000000</color>
 </resources>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -35,6 +35,7 @@ import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableBitmap;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.CloseableStaticBitmap;
+import com.facebook.imagepipeline.postprocessors.IterativeBoxBlurPostProcessor;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import java.io.File;
@@ -274,8 +275,13 @@ public class BitmapUtils {
         fetchBitmap(uri, callback, 0, 0);
     }
 
-    public static void fetchBitmap(
-            final Uri imgUri, final BitmapLoadCallback bitmapLoadCallback, int width, int height) {
+    public static void fetchBitmap(final Uri imgUri, final BitmapLoadCallback bitmapLoadCallback,
+                                   int width, int height) {
+        fetchBitmap(imgUri, bitmapLoadCallback, width, height, false);
+    }
+
+    public static void fetchBitmap(final Uri imgUri, final BitmapLoadCallback bitmapLoadCallback,
+                                   int width, int height, boolean setBlur) {
         if (imgUri == null || TextUtils.isEmpty(imgUri.toString()) || bitmapLoadCallback == null) {
             return;
         }
@@ -295,12 +301,17 @@ public class BitmapUtils {
             boolean doResize = (realWidth > 0 && realHeight > 0);
             resizeOptions = doResize ? new ResizeOptions(realWidth, realHeight) : null;
         }
-        ImageRequest imageRequest =
-                ImageRequestBuilder.newBuilderWithSource(imgUri)
-                        .setImageDecodeOptions(options)
-                        .setAutoRotateEnabled(true)
-                        .setResizeOptions(resizeOptions)
-                        .build();
+        ImageRequestBuilder imageRequestBuilder = ImageRequestBuilder
+                .newBuilderWithSource(imgUri)
+                .setImageDecodeOptions(options)
+                .setAutoRotateEnabled(true)
+                .setResizeOptions(resizeOptions);
+        if (setBlur) {
+            //给图片加高斯模糊
+            imageRequestBuilder.setPostprocessor(new IterativeBoxBlurPostProcessor(6,25));
+        }
+        ImageRequest imageRequest = imageRequestBuilder.build();
+
         ImagePipeline imagePipeline = Fresco.getImagePipeline();
         DataSource<CloseableReference<CloseableImage>> mBackgroundDataSource =
                 imagePipeline.fetchDecodedImage(imageRequest, null);

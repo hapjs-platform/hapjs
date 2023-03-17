@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -81,8 +81,13 @@ public class ComponentBackgroundComposer {
     }
 
     public void setBackgroundImage(String img) {
+        setBackgroundImage(img, false);
+    }
+
+    public void setBackgroundImage(String img, boolean setBlur) {
         if (!TextUtils.equals(mParameter.mBackgroundImg, img)) {
             mParameter.mBackgroundImg = img;
+            mParameter.mSetBackgroundBlur = setBlur;
             mDirty = true;
         }
     }
@@ -220,14 +225,14 @@ public class ComponentBackgroundComposer {
             } else {
                 if (TextUtils.equals(imgUri.getScheme(), "http")
                         || TextUtils.equals(imgUri.getScheme(), "https")) {
-                    doFetchBitmap(imgUri, mParameter.mBackgroundImg);
+                    doFetchBitmap(imgUri, mParameter.mBackgroundImg, mParameter.mSetBackgroundBlur);
                 } else {
                     Executors.io()
                             .execute(
                                     new Runnable() {
                                         @Override
                                         public void run() {
-                                            doFetchBitmap(imgUri, mParameter.mBackgroundImg);
+                                            doFetchBitmap(imgUri, mParameter.mBackgroundImg, mParameter.mSetBackgroundBlur);
                                         }
                                     });
                 }
@@ -327,6 +332,10 @@ public class ComponentBackgroundComposer {
     }
 
     private void doFetchBitmap(final Uri backgroundUri, final String originBgImgStr) {
+        doFetchBitmap(backgroundUri, originBgImgStr, false);
+    }
+
+    private void doFetchBitmap(final Uri backgroundUri, final String originBgImgStr, boolean setBlur) {
         if (backgroundUri == null || originBgImgStr == null) {
             return;
         }
@@ -334,7 +343,7 @@ public class ComponentBackgroundComposer {
         // 按照图片原有尺寸获取
         BitmapUtils.fetchBitmap(backgroundUri,
                 new BitmapLoadCallback(this, backgroundUri, originBgImgStr),
-                0, 0);
+                0, 0, setBlur);
     }
 
     private static class BitmapLoadCallback implements BitmapUtils.BitmapLoadCallback {
@@ -582,6 +591,7 @@ public class ComponentBackgroundComposer {
     private static class Parameter {
         int mBackgroundColor;
         String mBackgroundImg;
+        boolean mSetBackgroundBlur;
         String mBackgroundSize;
         String mBackgroundRepeatMode;
         String mBackgroundPosition;

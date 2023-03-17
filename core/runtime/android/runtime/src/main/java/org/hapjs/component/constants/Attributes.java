@@ -30,6 +30,77 @@ public class Attributes {
         return Math.round(getFloat(hapEngine, value, defValue));
     }
 
+    public static int getFoldInt(HapEngine hapEngine, Object value, int defValue, boolean isUseFold) {
+        return Math.round(getFoldFloat(hapEngine, value, defValue, isUseFold));
+    }
+
+    public static float getFoldFloat(HapEngine hapEngine, Object value, float defValue, boolean isUseFold) {
+        if (value == null || "".equals(value)) {
+            return defValue;
+        }
+        String temp = value.toString().trim();
+        if (temp.startsWith(CardThemeUtils.KEY_THEME)) {
+            String themeValue = CardThemeUtils.getThemeValue(temp);
+            if (!TextUtils.isEmpty(themeValue)) {
+                temp = themeValue;
+            } else {
+                return defValue;
+            }
+        }
+        try {
+            //px
+            if (temp.endsWith(Unit.PX)) {
+                temp = temp.substring(0, temp.length() - Unit.PX.length());
+                float result = Float.parseFloat(temp);
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.getFoldRealPxByWidth(result, hapEngine.getDesignWidth(), isUseFold);
+            }
+
+            //dp
+            if (temp.endsWith(Unit.DP)) {
+                temp = temp.substring(0, temp.length() - Unit.DP.length());
+                float result = Float.parseFloat(temp);
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.dip2Pixel(hapEngine.getContext(), (int) result);
+            }
+
+            //default
+            return Float.parseFloat(temp);
+        } catch (Exception e) {
+            Log.e(TAG, "Attribute get float error: " + temp, e);
+        }
+        return defValue;
+    }
+
+    public static int getFoldFontSize(HapEngine hapEngine, Page page, Object value, boolean isUseFold) {
+        return getFoldFontSize(hapEngine, page, value, 0, isUseFold);
+    }
+
+    /**
+     * @param hapEngine
+     * @param page
+     * @param value
+     * @param defValue
+     * @return
+     */
+    public static int getFoldFontSize(HapEngine hapEngine, Page page, Object value, int defValue, boolean isUseFold) {
+        if (hapEngine == null || page == null) {
+            return defValue;
+        }
+        FontSizeProvider provider = ProviderManager.getDefault().getProvider(FontSizeProvider.NAME);
+        float size = provider.getBestFontSize(hapEngine.getContext(), getFoldFloat(hapEngine, value, defValue, isUseFold));
+        if (page.isTextSizeAdjustAuto()) {
+            Configuration configuration = hapEngine.getContext().getResources().getConfiguration();
+            size *= configuration.fontScale;
+        }
+
+        return Math.round(size);
+    }
+
     public static float getFloat(HapEngine hapEngine, Object value) {
         return getFloat(hapEngine, value, FloatUtil.UNDEFINED);
     }

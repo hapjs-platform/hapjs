@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -37,12 +37,14 @@ import org.json.JSONObject;
                 @ActionAnnotation(name = RouterModule.ACTION_GET_LENGTH, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = RouterModule.ACTION_GET_PAGE_LIST, mode = Extension.Mode.SYNC),
                 @ActionAnnotation(name = RouterModule.ACTION_GET_STATE, mode = Extension.Mode.SYNC),
+                @ActionAnnotation(name = RouterModule.ACTION_SWITCH_TAB, mode = Extension.Mode.SYNC),
         })
 public class RouterModule extends ModuleExtension {
 
     protected static final String NAME = "system.router";
     protected static final String ACTION_BACK = "back";
     protected static final String ACTION_PUSH = "push";
+    protected static final String ACTION_SWITCH_TAB = "switchTab";
     protected static final String ACTION_REPLACE = "replace";
     protected static final String ACTION_CLEAR = "clear";
     protected static final String ACTION_GET_LENGTH = "getLength";
@@ -84,6 +86,8 @@ public class RouterModule extends ModuleExtension {
             return getPageList();
         } else if (ACTION_GET_STATE.equals(action)) {
             return getState();
+        } else if (ACTION_SWITCH_TAB.equals(action)) {
+            return switchTab(params);
         } else {
             return Response.NO_ACTION;
         }
@@ -103,6 +107,12 @@ public class RouterModule extends ModuleExtension {
     private Response push(SerializeObject params) throws SerializeException {
         HybridRequest request = parseRequest(params);
         boolean result = RouterUtils.router(mContext, mPageManager, request);
+        return result ? Response.SUCCESS : Response.ERROR;
+    }
+
+    private Response switchTab(SerializeObject params) throws SerializeException {
+        HybridRequest request = parseRequest(params);
+        boolean result = RouterUtils.switchTab(mContext, mPageManager, request);
         return result ? Response.SUCCESS : Response.ERROR;
     }
 

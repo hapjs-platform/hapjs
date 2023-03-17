@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -39,6 +39,8 @@
     <!-- Hap Permission -->
     <string name="hap_permission_ringtone_desc">修改系统铃声</string>
     <string name="hap_permission_step_counter_desc">获取计步数据</string>
+    <string name="hap_permission_access_clipboard_desc">访问剪贴板</string>
+    <string name="hap_permission_write_clipboard_desc">写入剪贴板</string>
 
     <!--unsupported element-->
     <string name="unsupported_element_tip">不支持的组件:<xliff:g id="app">%1$s</xliff:g></string>
@@ -98,4 +100,8 @@
     <string name="analyzer_network_retry_reopen">， 然后打开调试器，重新开始调试。</string>
     <string name="menubar_tips_special">点击将 <xliff:g id="app">%1$s</xliff:g> 添加到桌面，下次使用更方便。</string>
     <string name="menubar_added_shortcut_tips">已在桌面创建 \"<xliff:g id="app">%1$s</xliff:g>\" </string>
+    <!-- shortcutbtn-->
+    <string name="shortcut_add_shortcut_mini">加桌</string>
+    <string name="shortcut_add_shortcut_desktop">桌面</string>
+    <string name="shortcut_add_shortcut_long">添加到桌面</string>
 </resources>

@@ -443,6 +443,7 @@ public class Media extends FeatureExtension {
 
     private void getRingtone(Request request) throws JSONException {
         JSONObject jsonParams = request.getJSONParams();
+        Activity activity = request.getNativeInterface().getActivity();
         if (jsonParams == null) {
             request
                     .getCallback()
@@ -450,6 +451,12 @@ public class Media extends FeatureExtension {
             return;
         }
         String type = jsonParams.optString(PARAMS_TYPE);
+        if (TYPE_ALARM.equals(type) && !isAvailable(activity, request.getAction())) {
+            Response response = new Response(
+                    Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
         if (TYPE_RINGTONE.equals(type) || TYPE_NOTIFICATION.equals(type)
                 || TYPE_ALARM.equals(type)) {
             Context context = request.getNativeInterface().getActivity();
@@ -508,6 +515,14 @@ public class Media extends FeatureExtension {
             request.getCallback().callback(response);
             return;
         }
+
+        if (TYPE_ALARM.equals(type) && !isAvailable(activity, request.getAction())) {
+            Response response = new Response(
+                    Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
+
         if (ringtoneUri.endsWith("/")) {
             Response response =
                     new Response(
@@ -540,6 +555,10 @@ public class Media extends FeatureExtension {
                     .getCallback()
                     .callback(new Response(Response.CODE_ILLEGAL_ARGUMENT, "invalid type:" + type));
         }
+    }
+
+    public boolean isAvailable(Context context, String action) {
+        return true;
     }
 
     protected void setActualDefaultRingtone(Context context, int ringType, Uri ringtoneUri) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +21,7 @@ import java.util.Map;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.ValueCallback;
+import android.webkit.WebView;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.net.AcceptLanguageUtils;
@@ -77,12 +78,13 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private static final String EVENT_ERROR = "error";
     private static final String EVENT_MESSAGE = "message";
     private static final String EVENT_PROGRESS = "progress";
+    private static final String EVENT_INTERCEPTURL = "intercepturl";
     // attr
     private static final String TRUSTED_URL = "trustedurl";
     private static final String ALLOW_THIRDPARTY_COOKIES = "allowthirdpartycookies";
     private static final String SUPPORT_ZOOM = "supportzoom";
     private static final String SHOW_LOADING_DIALOG = "showloadingdialog";
-
+    private static final String INTERCEPT_URL = "intercepturl";
     private static final String USER_AGENT = "useragent";
 
     private static final String KEY_STATE = "state";
@@ -99,8 +101,10 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     private static final String KEY_FAIL = "fail";
 
     private ArraySet<String> mTrustedUrls = new ArraySet<>();
+    private ArraySet<String> mInterceptUrls = new ArraySet<>();
     private String mTrustedSrc;
     private ArraySet<String> mDomTrustedUrls;
+    private ArraySet<String> mDomInterceptUrls;
     private String mLastUrl;
     private boolean mIsCallFromHostViewAttached = false;
     private boolean mIsLastLoadFinish = true;
@@ -286,6 +290,24 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                     mTrustedUrls.addAll(mDomTrustedUrls);
                 }
                 return true;
+            case INTERCEPT_URL:
+                if (mDomInterceptUrls == null) {
+                    mDomInterceptUrls = new ArraySet<>();
+                }
+                mInterceptUrls.removeAll(mDomInterceptUrls);
+                if (attribute instanceof JSONArray) {
+                    JSONArray jsonArray = (JSONArray) attribute;
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        try {
+                            Object interceptUrl = jsonArray.get(i);
+                            mDomInterceptUrls.add(jsonArray.getString(i));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "apply trusted url attr failed ", e);
+                        }
+                    }
+                    mInterceptUrls.addAll(mDomInterceptUrls);
+                }
+                return true;
             case ALLOW_THIRDPARTY_COOKIES:
                 Boolean allowThirdPartyCookies = Attributes.getBoolean(attribute, false);
                 mHost.setAllowThirdPartyCookies(allowThirdPartyCookies);
@@ -450,6 +472,18 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
                                     getPageId(), mRef, EVENT_PROGRESS, Web.this, params, null);
                         }
                     });
+        } else if (EVENT_INTERCEPTURL.equals(event)) {
+            mHost.setOnshouldOverrideLoadingListener(
+                    new NestedWebView.OnShouldOverrideUrlLoadingListener() {
+                        @Override
+                        public void onShouldOverrideUrlLoading(WebView view, String url) {
+                            Map<String, Object> params = new HashMap<>();
+                            params.put("url", url);
+                            mCallback.onJsEventCallback(
+                                    getPageId(), mRef, EVENT_INTERCEPTURL, Web.this,
+                                    params, null);
+                        }
+                    });
         }
 
         return super.addEvent(event);
@@ -478,6 +512,9 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
             return true;
         } else if (EVENT_PROGRESS.equals(event)) {
             mHost.setOnProgressChangedListener(null);
+            return true;
+        } else if (EVENT_INTERCEPTURL.equals(event)) {
+            mHost.setOnshouldOverrideLoadingListener(null);
             return true;
         }
 
@@ -777,6 +814,11 @@ public class Web extends Component<NestedWebView> implements SwipeObserver {
     public ArraySet<String> getTrustedUlrs() {
         return mTrustedUrls;
     }
+
+    public ArraySet<String> getInterceptUrls() {
+        return mInterceptUrls;
+    }
+
     private static class WebPostMsg {
         private String mMessage;
         private String mSuccessId;

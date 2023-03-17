@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -1681,8 +1681,40 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                 mStatusBarView.getLayoutParams().height = 0;
             }
             mWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+                View decorView = mWindow.getDecorView();
+                if (null != decorView) {
+                    decorView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (null != decorView) {
+                                decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() |
+                                        View.SYSTEM_UI_FLAG_FULLSCREEN);
+                            }
+                        }
+                    });
+                } else {
+                    Log.w(TAG, "setupFullScreen decorView is null.");
+                }
+            }
         } else {
             mWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+                View decorView = mWindow.getDecorView();
+                if (null != decorView) {
+                    decorView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (null != decorView) {
+                                decorView.setSystemUiVisibility(decorView.getSystemUiVisibility() &
+                                        (~View.SYSTEM_UI_FLAG_FULLSCREEN));
+                            }
+                        }
+                    });
+                } else {
+                    Log.w(TAG, "setupFullScreen else decorView is null.");
+                }
+            }
         }
     }
 
@@ -1752,6 +1784,22 @@ public class Display implements ConfigurationManager.ConfigurationListener {
     }
 
     public void onActivityResume() {
+        PageManager pageManager = null;
+        Page page = null;
+        if (mRootView != null) {
+            pageManager = mRootView.getPageManager();
+        }
+        if (null != pageManager) {
+            try {
+                page = pageManager.getCurrPage();
+            } catch (Exception e) {
+                Log.w(TAG, "onActivityResume getCurrPage error : " + e.getMessage());
+            }
+        }
+        if (null == page || page != mPage) {
+            return;
+        }
+        setupFullScreen();
         if (mFullscreenHelper != null) {
             mFullscreenHelper.onActivityResume();
         }
@@ -1762,16 +1810,9 @@ public class Display implements ConfigurationManager.ConfigurationListener {
             return;
         }
         Context context = mRootView.getContext();
-        if (null != context && context instanceof Activity) {
-            if (mPage.hasSetOrientation()) {
-                ((Activity) context).setRequestedOrientation(mPage.getOrientation());
-            } else {
-                ((Activity) context)
-                        .setRequestedOrientation(
-                                BuildPlatform.isTV()
-                                        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                                        : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
+        if (context instanceof Activity) {
+            SysOpProvider provider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+            ((Activity) context).setRequestedOrientation(provider.getScreenOrientation(mPage, mAppInfo));
         }
     }
 

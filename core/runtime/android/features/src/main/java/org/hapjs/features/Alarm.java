@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,6 +10,7 @@ import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Context;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -54,7 +55,8 @@ import java.util.List;
         name = Alarm.FEATURE_NAME,
         actions = {
                 @ActionAnnotation(name = Alarm.ACTION_SET_ALARM, mode = FeatureExtension.Mode.ASYNC),
-                @ActionAnnotation(name = Alarm.ACTION_GET_PROVIDER, mode = FeatureExtension.Mode.SYNC)
+                @ActionAnnotation(name = Alarm.ACTION_GET_PROVIDER, mode = FeatureExtension.Mode.SYNC),
+                @ActionAnnotation(name = Alarm.ACTION_IS_AVAILABLE, mode = FeatureExtension.Mode.ASYNC)
         })
 public class Alarm extends FeatureExtension {
     public static final String PARAM_HOUR = "hour";
@@ -63,9 +65,11 @@ public class Alarm extends FeatureExtension {
     public static final String PARAM_DAYS = "days";
     public static final String PARAM_VIBRATE = "vibrate";
     public static final String PARAM_RINGTONE = "ringtone";
+    public static final String PARAM_IS_AVAILABLE = "isAvailable";
     protected static final String FEATURE_NAME = "system.alarm";
     protected static final String ACTION_SET_ALARM = "setAlarm";
     protected static final String ACTION_GET_PROVIDER = "getProvider";
+    protected static final String ACTION_IS_AVAILABLE = "isAvailable";
     private static final String TAG = "AlarmFeature";
     private static final int PARAM_DEFAULT = -1;
     private List<Dialog> mDialogs;
@@ -87,15 +91,39 @@ public class Alarm extends FeatureExtension {
 
             case ACTION_GET_PROVIDER:
                 return new Response(getProvider());
+            case ACTION_IS_AVAILABLE:
+                invokeIsAvailable(request);
+                break;
             default:
                 break;
         }
         return null;
     }
 
+    private void invokeIsAvailable(Request request) {
+        Activity activity = request.getNativeInterface().getActivity();
+        boolean isInstalled = isAvailable(activity);
+        JSONObject result = new JSONObject();
+        try {
+            result.put(PARAM_IS_AVAILABLE, isInstalled);
+        } catch (JSONException e) {
+            Log.e(TAG, "invokeIsAvailable put result error!");
+        }
+        request.getCallback().callback(new Response(result));
+    }
+
+    public boolean isAvailable(Context context) {
+        return true;
+    }
+
     private void setAlarm(final Request request) throws JSONException {
         final Activity activity = request.getNativeInterface().getActivity();
         final JSONObject jsonParams = request.getJSONParams(); // throw JSONException here.
+        if (!isAvailable(activity)) {
+            Response response = new Response(Response.CODE_SERVICE_UNAVAILABLE, "clock service not available");
+            request.getCallback().callback(response);
+            return;
+        }
         final ParamHolder paramHolder = new ParamHolder();
         Response response = checkAndHoldParams(request, jsonParams, paramHolder);
         if (response != null) { // null means no error response return,check passed.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -16,4 +16,5 @@
     <color name="titlebar_tips_point">#FFF55353</color>
     <color name="titlebar_large_text_color">#FF000000</color>
     <color name="titlebar_small_text_color">#80000000</color>
+    <color name="tabbar_bg_color">#737373</color>
 </resources>

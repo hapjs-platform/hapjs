@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -78,6 +78,8 @@ public class Prompt extends FeatureExtension {
 
     private View mLoadingView;
     private WindowManager mWindowManager;
+    private Activity mActivity;
+
 
     @Override
     protected Response invokeInner(final Request request) throws Exception {
@@ -87,6 +89,7 @@ public class Prompt extends FeatureExtension {
         } else if (ACTION_SHOW_DIALOG.equals(action)) {
             showDialog(request);
         } else if (ACTION_SHOW_LOADING.equals(action)) {
+            mActivity = request.getNativeInterface().getActivity();
             showLoading(request);
         } else if (ACTION_HIDE_LOADING.equals(action)) {
             hideLoading(request);
@@ -293,12 +296,14 @@ public class Prompt extends FeatureExtension {
                                     }
                                 });
 
-                        if (alertDialog instanceof Dialog) {
-                            DarkThemeUtil.disableForceDark((Dialog) alertDialog);
-                        }
-                        alertDialog.show();
-                    }
-                });
+                if (alertDialog instanceof Dialog) {
+                    DarkThemeUtil.disableForceDark((Dialog) alertDialog);
+                }
+                //无障碍适配
+                dialogAccessibilityAdaptation(activity.getApplicationContext(), alertDialog);
+                alertDialog.show();
+            }
+        });
     }
 
     private Dialog getContextMenuDialog(
@@ -326,79 +331,100 @@ public class Prompt extends FeatureExtension {
         String message = params.optString(PARAM_KEY_MESSAGE);
         String loadingColor = params.optString(PARAM_KEY_LOADING_COLOR);
         boolean loadingMask = params.optBoolean(PARAM_KEY_LOADING_MASK, true);
-
-        if (mWindowManager == null) {
-            mWindowManager = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
-        }
-        if (mLoadingView != null) {
-            mWindowManager.removeView(mLoadingView);
-            mLoadingView = null;
-        }
-        mLoadingView = LayoutInflater.from(activity).inflate(R.layout.prompt_loading_layout, null);
-        if (!TextUtils.isEmpty(loadingColor)) {
-            ProgressBar progressBar = mLoadingView.findViewById(R.id.loading_progress_bar);
-            progressBar
-                    .getIndeterminateDrawable()
-                    .setColorFilter(ColorUtil.getColor(loadingColor), PorterDuff.Mode.SRC_IN);
-        }
-        if (!TextUtils.isEmpty(message)) {
-            TextView textView = mLoadingView.findViewById(R.id.loading_text_view);
-            textView.setText(message);
-        }
-        WindowManager.LayoutParams layoutParams =
-                new WindowManager.LayoutParams(
-                        WindowManager.LayoutParams.WRAP_CONTENT,
-                        WindowManager.LayoutParams.WRAP_CONTENT,
-                        WindowManager.LayoutParams.LAST_SUB_WINDOW,
-                        0,
-                        PixelFormat.TRANSLUCENT);
-        if (loadingMask) {
-            mLoadingView.setFocusableInTouchMode(true);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                mLoadingView.addOnUnhandledKeyEventListener(
-                        new View.OnUnhandledKeyEventListener() {
-                            @Override
-                            public boolean onUnhandledKeyEvent(View v, KeyEvent event) {
-                                return doMaskLoadingKeyEvent(request, event.getKeyCode(), event);
-                            }
-                        });
-            } else {
-                mLoadingView.setOnKeyListener(
-                        new View.OnKeyListener() {
-                            @Override
-                            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                                return doMaskLoadingKeyEvent(request, keyCode, event);
-                            }
-                        });
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mWindowManager == null) {
+                    mWindowManager = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
+                }
+                if (mLoadingView != null) {
+                    mWindowManager.removeView(mLoadingView);
+                    mLoadingView = null;
+                }
+                mLoadingView = LayoutInflater.from(activity).inflate(R.layout.prompt_loading_layout, null);
+                if (!TextUtils.isEmpty(loadingColor)) {
+                    ProgressBar progressBar = mLoadingView.findViewById(R.id.loading_progress_bar);
+                    progressBar
+                            .getIndeterminateDrawable()
+                            .setColorFilter(ColorUtil.getColor(loadingColor), PorterDuff.Mode.SRC_IN);
+                }
+                if (!TextUtils.isEmpty(message)) {
+                    TextView textView = mLoadingView.findViewById(R.id.loading_text_view);
+                    textView.setText(message);
+                }
+                WindowManager.LayoutParams layoutParams =
+                        new WindowManager.LayoutParams(
+                                WindowManager.LayoutParams.WRAP_CONTENT,
+                                WindowManager.LayoutParams.WRAP_CONTENT,
+                                WindowManager.LayoutParams.LAST_SUB_WINDOW,
+                                0,
+                                PixelFormat.TRANSLUCENT);
+                if (loadingMask) {
+                    mLoadingView.setFocusableInTouchMode(true);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        mLoadingView.addOnUnhandledKeyEventListener(
+                                new View.OnUnhandledKeyEventListener() {
+                                    @Override
+                                    public boolean onUnhandledKeyEvent(View v, KeyEvent event) {
+                                        return doMaskLoadingKeyEvent(request, event.getKeyCode(), event);
+                                    }
+                                });
+                    } else {
+                        mLoadingView.setOnKeyListener(
+                                new View.OnKeyListener() {
+                                    @Override
+                                    public boolean onKey(View v, int keyCode, KeyEvent event) {
+                                        return doMaskLoadingKeyEvent(request, keyCode, event);
+                                    }
+                                });
+                    }
+                } else {
+                    layoutParams.flags =
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                }
+                layoutParams.gravity = Gravity.CENTER;
+                mWindowManager.addView(mLoadingView, layoutParams);
+                //无障碍适配
+                viewAccessibilityAdaptation(activity, mLoadingView, message);
             }
-        } else {
-            layoutParams.flags =
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                            | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        }
-        layoutParams.gravity = Gravity.CENTER;
-        mWindowManager.addView(mLoadingView, layoutParams);
+        });
     }
 
     private void hideLoading(Request request) {
-        if (mLoadingView != null) {
-            if (mWindowManager == null) {
-                mWindowManager =
-                        (WindowManager)
-                                request.getNativeInterface().getActivity()
-                                        .getSystemService(Context.WINDOW_SERVICE);
-            }
-            mWindowManager.removeView(mLoadingView);
-            mLoadingView = null;
+        final Activity activity = request.getNativeInterface().getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mLoadingView != null) {
+                        if (mWindowManager == null) {
+                            mWindowManager =
+                                    (WindowManager)
+                                            request.getNativeInterface().getActivity()
+                                                    .getSystemService(Context.WINDOW_SERVICE);
+                        }
+                        mWindowManager.removeView(mLoadingView);
+                        mLoadingView = null;
+                    }
+                }
+            });
         }
     }
 
     @Override
     public void dispose(boolean force) {
         super.dispose(force);
-        if (mLoadingView != null && mWindowManager != null) {
-            mWindowManager.removeView(mLoadingView);
-            mLoadingView = null;
+        if (mActivity != null) {
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mLoadingView != null && mWindowManager != null) {
+                        mWindowManager.removeView(mLoadingView);
+                        mLoadingView = null;
+                    }
+                }
+            });
         }
     }
 
@@ -492,5 +518,11 @@ public class Prompt extends FeatureExtension {
             }
             return view;
         }
+    }
+
+    protected void dialogAccessibilityAdaptation(Context context, Dialog dialog) {
+    }
+
+    protected void viewAccessibilityAdaptation(Context context, View view, String contentDesc) {
     }
 }

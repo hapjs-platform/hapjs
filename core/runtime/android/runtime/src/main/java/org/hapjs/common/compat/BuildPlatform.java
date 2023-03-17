@@ -11,6 +11,7 @@ import org.hapjs.runtime.BuildConfig;
 public class BuildPlatform {
     private static final String PHONE = "phone";
     private static final String TV = "tv";
+    private static final String CAR = "car";
 
     public static boolean isPhone() {
         return TextUtils.equals(PHONE, BuildConfig.FLAVOR);
@@ -18,5 +19,9 @@ public class BuildPlatform {
 
     public static boolean isTV() {
         return TextUtils.equals(TV, BuildConfig.FLAVOR);
+    }
+
+    public static boolean isCar() {
+        return TextUtils.equals(CAR, BuildConfig.FLAVOR);
     }
 }

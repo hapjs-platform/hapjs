@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,6 +16,7 @@ import static org.hapjs.component.animation.AnimationParser.PROPERTY_SCALE_X;
 import static org.hapjs.component.animation.AnimationParser.PROPERTY_SCALE_Y;
 import static org.hapjs.component.animation.AnimationParser.PROPERTY_TRANSLATION_X;
 import static org.hapjs.component.animation.AnimationParser.PROPERTY_TRANSLATION_Y;
+import static org.hapjs.component.animation.AnimationParser.PROPERTY_TRANSLATION_Z;
 import static org.hapjs.component.animation.AnimationParser.PROPERTY_WIDTH;
 
 import android.animation.Animator;
@@ -714,6 +715,20 @@ public class CSSAnimatorSet {
                                         }
                                     }
                                 });
+
+                        continue;
+                    case PROPERTY_TRANSLATION_Z:
+                        valueAnimator.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                if (!cssAnimatorSet.isFillForwards()) {
+                                    Transform.applyTranslationZ(
+                                            cssAnimatorSet.mTransform,
+                                            cssAnimatorSet.mComponent.getHostView());
+                                }
+                            }
+                        });
 
                         continue;
                     default:

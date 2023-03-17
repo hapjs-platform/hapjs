@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.render.vdom;
+
+import static org.hapjs.render.MultiWindowManager.MULTI_WINDOW_DIVIDER_WIDTH;
 
 import android.animation.Animator;
 import android.content.Context;
@@ -17,14 +19,35 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import org.hapjs.common.utils.DisplayUtil;
 
 public class DocAnimator {
+
+    private static final String TAG = "DocAnimator";
+
     public static final int TYPE_UNDEFINED = 0;
     public static final int TYPE_PAGE_OPEN_ENTER = 1;
     public static final int TYPE_PAGE_OPEN_EXIT = 2;
     public static final int TYPE_PAGE_CLOSE_ENTER = 3;
     public static final int TYPE_PAGE_CLOSE_EXIT = 4;
-    private static final String TAG = "DocAnimator";
+
+    public static final int TYPE_MULTI_WINDOW_COMMON_MOVE_OPEN_TO_LEFT = 11;
+    public static final int TYPE_MULTI_WINDOW_COMMON_ATTACH_OPEN_ENTER = 12;
+    public static final int TYPE_MULTI_WINDOW_COMMON_DETACH_CLOSE_EXIT = 13;
+    public static final int TYPE_MULTI_WINDOW_COMMON_MOVE_CLOSE_TO_MIDDLE = 14;
+
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_DETACH_OPEN_EXIT = 21;
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_MOVE_OPEN_TO_LEFT = 22;
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_ATTACH_OPEN_ENTER = 23;
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_DETACH_CLOSE_EXIT = 24;
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_MOVE_CLOSE_TO_RIGHT = 25;
+    public static final int TYPE_MULTI_WINDOW_SHOPPING_MODE_ATTACH_CLOSE_ENTER = 26;
+
+    public static final int TYPE_MULTI_WINDOW_NAVIGATION_MODE_DETACH_OPEN_EXIT = 31;
+    public static final int TYPE_MULTI_WINDOW_NAVIGATION_MODE_ATTACH_OPEN_ENTER = 32;
+    public static final int TYPE_MULTI_WINDOW_NAVIGATION_MODE_DETACH_CLOSE_EXIT = 34;
+    public static final int TYPE_MULTI_WINDOW_NAVIGATION_MODE_ATTACH_CLOSE_ENTER = 35;
+
     private static final int ANIM_DURATION = 300;
 
     /**
@@ -34,7 +57,8 @@ public class DocAnimator {
 
     private static final int ALPHA = 11;
 
-    private int mRootViewWidth;
+    private final int mRootViewWidth;
+    private final int mMultiWindowWidth;
     private int mAnimType;
 
     private Animator.AnimatorListener mListener;
@@ -45,6 +69,7 @@ public class DocAnimator {
     public DocAnimator(Context context, View targetView, int animType) {
         ViewGroup parent = (ViewGroup) targetView.getParent();
         mRootViewWidth = parent.getWidth();
+        mMultiWindowWidth = DisplayUtil.getScreenWidth(context);
         mTargetView = targetView;
         mAnimType = animType;
         initAnimatorProperty();
@@ -55,7 +80,13 @@ public class DocAnimator {
         PropertyValueHolder alphaHolder = null;
         switch (mAnimType) {
             case TYPE_PAGE_OPEN_ENTER:
+                mTargetView.setTranslationX(mRootViewWidth);
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, 0);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1);
+                break;
             case TYPE_PAGE_CLOSE_ENTER:
+                mTargetView.setTranslationX(-mRootViewWidth * 0.25f);
+                mTargetView.setAlpha(0.6f);
                 translationXHolder = new PropertyValueHolder(TRANSLATION_X, 0);
                 alphaHolder = new PropertyValueHolder(ALPHA, 1);
                 break;
@@ -66,7 +97,67 @@ public class DocAnimator {
                 break;
             case TYPE_PAGE_CLOSE_EXIT:
                 translationXHolder = new PropertyValueHolder(TRANSLATION_X, mRootViewWidth);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+
+            case TYPE_MULTI_WINDOW_COMMON_MOVE_OPEN_TO_LEFT:
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_MOVE_OPEN_TO_LEFT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, 0);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_COMMON_ATTACH_OPEN_ENTER:
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_ATTACH_OPEN_ENTER:
+                mTargetView.setTranslationX(mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
+                mTargetView.setAlpha(1f);
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_COMMON_DETACH_CLOSE_EXIT:
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_DETACH_CLOSE_EXIT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
                 alphaHolder = new PropertyValueHolder(ALPHA, 0.6f);
+                break;
+            case TYPE_MULTI_WINDOW_COMMON_MOVE_CLOSE_TO_MIDDLE:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, (mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH) >> 1);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_DETACH_OPEN_EXIT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, 0);
+                alphaHolder = new PropertyValueHolder(ALPHA, 0.6f);
+                break;
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_MOVE_CLOSE_TO_RIGHT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_SHOPPING_MODE_ATTACH_CLOSE_ENTER:
+                mTargetView.setTranslationX(0);
+                mTargetView.setAlpha(1f);
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, 0);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+
+            case TYPE_MULTI_WINDOW_NAVIGATION_MODE_DETACH_OPEN_EXIT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X,
+                        (mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH) - 0.25f * mMultiWindowWidth);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_NAVIGATION_MODE_ATTACH_OPEN_ENTER:
+                mTargetView.setTranslationX((mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH) + mMultiWindowWidth);
+                mTargetView.setAlpha(1f);
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_NAVIGATION_MODE_DETACH_CLOSE_EXIT:
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X,
+                        (mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH) + mMultiWindowWidth);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
+                break;
+            case TYPE_MULTI_WINDOW_NAVIGATION_MODE_ATTACH_CLOSE_ENTER:
+                mTargetView.setTranslationX((mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH) - 0.25f * mMultiWindowWidth);
+                mTargetView.setAlpha(1f);
+                translationXHolder = new PropertyValueHolder(TRANSLATION_X, mMultiWindowWidth + MULTI_WINDOW_DIVIDER_WIDTH);
+                alphaHolder = new PropertyValueHolder(ALPHA, 1f);
                 break;
             default:
                 break;
@@ -96,12 +187,6 @@ public class DocAnimator {
             Log.e(TAG, "TransformationInfo class not found", e);
         } catch (InstantiationException e) {
             Log.e(TAG, "TransformationInfo invoke failed", e);
-        }
-        if (mAnimType == TYPE_PAGE_OPEN_ENTER) {
-            mTargetView.setTranslationX(mRootViewWidth);
-        } else if (mAnimType == TYPE_PAGE_CLOSE_ENTER) {
-            mTargetView.setTranslationX(-mRootViewWidth * 0.25f);
-            mTargetView.setAlpha(0.6f);
         }
     }
 

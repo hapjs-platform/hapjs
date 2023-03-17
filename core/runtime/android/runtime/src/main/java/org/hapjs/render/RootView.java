@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -19,6 +19,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -52,19 +53,21 @@ import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.impl.android.AndroidViewClient;
+import org.hapjs.bridge.storage.file.InternalUriUtils;
 import org.hapjs.card.api.IRenderListener;
 import org.hapjs.common.executors.AbsTask;
 import org.hapjs.common.executors.Executor;
 import org.hapjs.common.executors.Executors;
-import org.hapjs.common.json.JSONObject;
 import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.resident.ResidentManager;
 import org.hapjs.common.utils.BrightnessUtils;
 import org.hapjs.common.utils.DisplayUtil;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.MediaUtils;
 import org.hapjs.common.utils.RouterUtils;
 import org.hapjs.common.utils.ThreadUtils;
+import org.hapjs.common.utils.UriUtils;
 import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.ResizeEventDispatcher;
@@ -110,6 +113,7 @@ import org.hapjs.runtime.R;
 import org.hapjs.runtime.inspect.InspectorManager;
 import org.hapjs.system.SysOpProvider;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * It's a view like WebView, used to render a native app
@@ -176,7 +180,16 @@ public class RootView extends FrameLayout
     private ConfigurationManager.ConfigurationListener mConfigurationListener;
     private AutoplayManager mAutoplayManager;
     private OnDetachedListener mOnDetachedListener;
+    private TabBar mTabBar = null;
     private CountDownLatch mEventCountDownLatch;
+    private ConfigurationChangedTask mTask;
+
+    private boolean mIsFoldingStatus; // 当前设备是否处于折叠状态
+
+    protected View mMultiWindowDividerView;
+    protected VDocument mMultiWindowLeftDocument; // for multi window mode
+    private boolean mIsClearAll = false;
+
     protected RenderEventCallback mRenderEventCallback =
             new RenderEventCallback() {
                 @Override
@@ -354,7 +367,6 @@ public class RootView extends FrameLayout
                 }
             };
     private boolean mFirstRenderActionReceived = false;
-    private InnerPageEnterListener mPageEnterListener = new InnerPageEnterListener();
 
     public RootView(Context context) {
         this(context, null);
@@ -370,6 +382,17 @@ public class RootView extends FrameLayout
         // OrientationEventListener受制于g-sensor，无法监听代码中手动setRequestedOrientation的情况
         // 使用DisplayManager，只监听默认Display
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+        mIsFoldingStatus = isFoldStatus(context);
+    }
+
+    private boolean isFoldableDevice(Context context) {
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isFoldableDevice(context);
+    }
+
+    private boolean isFoldStatus(Context context) {
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isFoldStatusByDisplay(context);
     }
 
     public static void onHandleSkeletonHide(String source, VDocument document) {
@@ -471,6 +494,7 @@ public class RootView extends FrameLayout
             if (!routerPage(request)) {
                 onRenderFailed(IRenderListener.ErrorCode.ERROR_PAGE_NOT_FOUND, "Page not found");
             }
+            initTabBar();
         }
     }
 
@@ -520,18 +544,27 @@ public class RootView extends FrameLayout
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         if (mDocument != null) {
-            if (!changed && mInitialized) {
-                return;
+            if (changed || !mInitialized) {
+                mInitialized = true;
+                DecorLayout mDecorLayout = (DecorLayout) mDocument.getComponent().getInnerView();
+                if (mDecorLayout != null) {
+                    int windowWidth = mDecorLayout.getMeasuredWidth();
+                    int windowHeight = mDecorLayout.getMeasuredHeight() - mDecorLayout.getContentInsets().top;
+
+                    if (windowWidth != DisplayUtil.getViewPortWidthByDp() || windowHeight != DisplayUtil.getViewPortHeightByDp()) {
+                        DisplayUtil.setViewPortWidth(windowWidth);
+                        DisplayUtil.setViewPortHeight(windowHeight);
+                        Page currentPage = this.mPageManager.getCurrPage();
+                        mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
+                    }
+                }
             }
-            mInitialized = true;
-            DecorLayout mDecorLayout = (DecorLayout) mDocument.getComponent().getInnerView();
-            if (mDecorLayout != null) {
-                int windowWidth = mDecorLayout.getMeasuredWidth();
-                int windowHeight =
-                        mDecorLayout.getMeasuredHeight() - mDecorLayout.getContentInsets().top;
-                DisplayUtil.setViewPortWidth(windowWidth);
-                DisplayUtil.setViewPortHeight(windowHeight);
-            }
+        }
+
+        if (mTask != null && !mTask.consumed) {
+            mTask.consumed = true;
+            mHandler.post(mTask);
+            mTask = null;
         }
     }
 
@@ -627,6 +660,10 @@ public class RootView extends FrameLayout
         mDisplayManager.unregisterDisplayListener(mDisplayListener);
         if (mOnDetachedListener != null) {
             mOnDetachedListener.onDetached();
+        }
+        if (null != mTabBar) {
+            mTabBar.clearTabBar();
+            mTabBar = null;
         }
     }
 
@@ -874,6 +911,10 @@ public class RootView extends FrameLayout
                                         }
                                     });
                         }
+                        if (displayInfo != null) {
+                            String fitMode = displayInfo.getFitMode();
+                            FoldingUtils.setRpkWideScreenFitMode(fitMode);
+                        }
 
                         EventManager.getInstance()
                                 .invoke(new ApplicationLaunchEvent(mAppInfo.getPackage()));
@@ -943,7 +984,9 @@ public class RootView extends FrameLayout
                         } finally {
                             mHandler.sendEmptyMessage(MSG_CHECK_IS_SHOW);
                         }
-
+                        if (null != mAppInfo) {
+                            initTabBar();
+                        }
                         return LoadResult.SUCCESS;
                     }
 
@@ -1014,18 +1057,103 @@ public class RootView extends FrameLayout
         ConfigurationManager.getInstance().addListener(mConfigurationListener);
     }
 
-    private void handleConfigurationChange(Page currentPage, HapConfiguration config) {
+    /**
+     * handleConfigurationChangeOnFoldableDevice主要有以下作用：
+     * <p>
+     * 1.折叠屏设备上，设备展开或收起时，进行了Page重建，该函数确保新的Page对象被设置了正确的configuration
+     * 否则下次configurationChanged变更时，由于重建的Page对象没有configuration，导致所有configuration变更
+     * 都会回调
+     * <p>
+     * 2.折叠屏设备上，设备展开或收起时，进行了Page重建，该函数延时发送configurationChanged事件，主要原因如下：
+     * a.折叠屏设备上，发生了Page重建，如果立即在reloadPage的pageId上回调configurationChanged，有可能
+     * 该page还未create，故相关回调需在createPage之后调用
+     * b.折叠屏设备上，设备展开或折叠后，宽高发生变化，是在onLayout中设置到mediaquery的，如果立即通知，会导致
+     * 前端查询到的宽高异常
+     */
+    private void handleReloadConfigurationChange(Page reloadPage, Page currentPage, VDocument vdoc, HapConfiguration config) {
         if (currentPage == null || config == null) {
             return;
         }
 
         HapConfiguration curConfig = currentPage.getHapConfiguration();
-
         HapConfiguration newConfig = config.obtain();
 
-        // handle locale change.
         boolean updateTitleBar = false;
         Locale newLocale = newConfig.getLocale();
+        int newOrientation = newConfig.getOrientation();
+        int newUiMode = newConfig.getUiMode();
+        double newScreenSize = newConfig.getScreenSize();
+
+        boolean configurationChanged = false;
+
+        ReloadPageConfigurationChangedInfo task = new ReloadPageConfigurationChangedInfo(reloadPage);
+        // handle locale change.
+        if (curConfig == null || !curConfig.getLocale().equals(newLocale)) {
+            updateTitleBar = true;
+            if (mJsThread != null) {
+                mJsThread.postUpdateLocale(newLocale, LocaleResourcesParser.getInstance().resolveLocaleResources(mPackage, newLocale));
+                task.setLocaleChanged(true);
+            }
+            newConfig.setLocale(newLocale);
+        }
+
+        // handle theme mode change.
+        if (curConfig == null || curConfig.getLastUiMode() != newUiMode) {
+            configurationChanged = true;
+            task.setThemeModeChanged(true);
+            newConfig.setLastUiMode(newConfig.getUiMode());
+        }
+
+        //handle orientation change.
+        if (curConfig == null || curConfig.getLastOrientation() != newOrientation) {
+            task.setOrientationChanged(true);
+            configurationChanged = true;
+            newConfig.setLastOrientation(newOrientation);
+        }
+
+        //handle screen size change.
+        if (curConfig == null || curConfig.getLastScreenSize() != newScreenSize) {
+            task.setScreenSizeChanged(true);
+            configurationChanged = true;
+            newConfig.setLastScreenSize(newScreenSize);
+        }
+
+        // update media query when 'theme mode' or 'orientation' has changed.
+        if (configurationChanged) {
+            mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
+        }
+
+        //update config to current page.
+        currentPage.setHapConfiguration(newConfig);
+        reloadPage.setHapConfiguration(newConfig);
+
+        // update titlebar
+        if (updateTitleBar) {
+            Executors.ui().execute(() -> {
+                if (vdoc != null) {
+                    vdoc.getComponent().updateTitleBar(Collections.emptyMap(), currentPage.pageId);
+                }
+            });
+        }
+    }
+
+    private void handleConfigurationChange(Page currentPage, VDocument vdoc, HapConfiguration config) {
+        if (currentPage == null || config == null) {
+            return;
+        }
+
+        HapConfiguration curConfig = currentPage.getHapConfiguration();
+        HapConfiguration newConfig = config.obtain();
+
+        boolean updateTitleBar = false;
+        Locale newLocale = newConfig.getLocale();
+        int newOrientation = newConfig.getOrientation();
+        int newUiMode = newConfig.getUiMode();
+        double newScreenSize = newConfig.getScreenSize();
+
+        boolean configurationChanged = false;
+
+        // handle locale change.
         if (curConfig == null || !curConfig.getLocale().equals(newLocale)) {
             updateTitleBar = true;
             if (mJsThread != null) {
@@ -1040,11 +1168,34 @@ public class RootView extends FrameLayout
         }
 
         // handle theme mode change.
-        if (curConfig == null || curConfig.getLastUiMode() != newConfig.getUiMode()) {
-            mJsThread.postNotifyConfigurationChanged(currentPage,
-                    JsThread.CONFIGURATION_TYPE_THEME_MODE);
-            mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
+        if (curConfig == null || curConfig.getLastUiMode() != newUiMode) {
+            configurationChanged = true;
+            mJsThread.postNotifyConfigurationChanged(currentPage, JsThread.CONFIGURATION_TYPE_THEME_MODE);
             newConfig.setLastUiMode(newConfig.getUiMode());
+        }
+
+        //handle orientation change.
+        if (curConfig == null || curConfig.getLastOrientation() != newOrientation) {
+            if (isFoldStatus(getContext())) {
+                ReloadPageConfigurationChangedInfo task = new ReloadPageConfigurationChangedInfo(currentPage);
+                task.setOrientationChanged(true);
+            } else {
+                mJsThread.postNotifyConfigurationChanged(currentPage, JsThread.CONFIGURATION_TYPE_ORIENTATION);
+            }
+            configurationChanged = true;
+            newConfig.setLastOrientation(newOrientation);
+        }
+
+        //handle screen size change.
+        if (curConfig == null || curConfig.getLastScreenSize() != newScreenSize) {
+            mJsThread.postNotifyConfigurationChanged(currentPage, JsThread.CONFIGURATION_TYPE_SCREEN_SIZE);
+            configurationChanged = true;
+            newConfig.setLastScreenSize(newScreenSize);
+        }
+
+        // update media query when 'theme mode' or 'orientation' has changed.
+        if (configurationChanged) {
+            mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
         }
 
         // update config to current page.
@@ -1062,6 +1213,75 @@ public class RootView extends FrameLayout
                                                     currentPage.pageId);
                                 }
                             });
+        }
+    }
+
+    private void handleConfigurationChangeOnMultiWindow(HapConfiguration config) {
+        boolean isFold = isFoldStatus(getContext());
+
+        Page leftPage = mPageManager.getMultiWindowLeftPage();
+        Page rightPage = mPageManager.getCurrPage();
+
+        if (mIsFoldingStatus != isFold) {
+            if (isFold) {
+                // 展开 -> 折叠
+                if (mMultiWindowDividerView != null) {
+                    mMultiWindowDividerView.setVisibility(GONE);
+                }
+                if (mMultiWindowLeftDocument != null) {
+                    mJsThread.postChangeVisiblePage(leftPage, false);
+                    mMultiWindowLeftDocument.detachChildren(DocAnimator.TYPE_UNDEFINED,
+                            new InnerPageExitListener(mMultiWindowLeftDocument, mPageManager.getMultiWindowLeftPage(), false), false);
+                    mMultiWindowLeftDocument = null;
+                }
+                ReloadPagesOnFoldDeviceOnMultiWindowMode(true, leftPage, rightPage, config);
+            } else {
+                // 折叠 -> 展开
+                leftPage = mPageManager.updateMultiWindowLeftPageWhenNewCreate();
+                ReloadPagesOnFoldDeviceOnMultiWindowMode(false, leftPage, rightPage, config);
+            }
+        } else {
+            if (isFold) {
+                // 折叠状态下，不响应横竖屏切换
+            } else {
+                // 展开状态下，响应横竖屏切换
+                ReloadPagesOnFoldDeviceOnMultiWindowMode(false, leftPage, rightPage, config);
+            }
+        }
+        mIsFoldingStatus = isFold;
+    }
+
+    private void ReloadPagesOnFoldDeviceOnMultiWindowMode(boolean isFold, Page leftPage, Page rightPage, HapConfiguration config) {
+        Page reloadRightPage = null;
+        Page reloadLeftPage = null;
+        if (mDocument != null) {
+            try {
+                reloadRightPage = mPageManager.reloadOnFoldableDevice();
+                if (reloadRightPage != null) {
+                    handleReloadConfigurationChange(reloadRightPage, rightPage, mDocument, config);
+                } else {
+                    handleConfigurationChange(rightPage, mDocument, config);
+                }
+            } catch (PageNotFoundException e) {
+                Log.e(TAG, "foldDeviceOnMultiWindowModeReloadPages reload right page error", e);
+            }
+        }
+
+        if (!isFold && leftPage != null) {
+            try {
+                reloadLeftPage = mPageManager.reloadLeftPageOnFoldableDevice();
+                if (reloadLeftPage != null) {
+                    handleReloadConfigurationChange(reloadLeftPage, leftPage, mMultiWindowLeftDocument, config);
+                } else {
+                    handleConfigurationChange(leftPage, mMultiWindowLeftDocument, config);
+                }
+            } catch (PageNotFoundException e) {
+                Log.e(TAG, "foldDeviceOnMultiWindowModeReloadPages reload left page error", e);
+            }
+        }
+
+        if (reloadLeftPage != null && reloadRightPage != null) {
+            reloadRightPage.setReferrer(reloadLeftPage);
         }
     }
 
@@ -1088,28 +1308,27 @@ public class RootView extends FrameLayout
             page.pushRenderAction(action);
         }
 
-        applyActions();
+        applyActions(mDocument, mPageManager.getCurrPage());
+        if (mMultiWindowLeftDocument != null && mPageManager.getMultiWindowLeftPage() != null) {
+            applyActions(mMultiWindowLeftDocument, mPageManager.getMultiWindowLeftPage());
+        }
     }
 
-    public void applyActions() {
-        if (mDocument == null) {
-            return;
-        }
-        Page currentPage = mPageManager.getCurrPage();
-        if (currentPage == null) {
+    public void applyActions(VDocument document, Page page) {
+        if (document == null || page == null) {
             return;
         }
 
         RuntimeLogManager.getDefault().logUIThreadTaskStart(mPackage, "applyActions");
-        RenderAction action = currentPage.pollRenderAction();
+        RenderAction action = page.pollRenderAction();
         while (action != null) {
-            applyAction(action);
-            action = currentPage.pollRenderAction();
+            applyAction(document, action);
+            action = page.pollRenderAction();
         }
         RuntimeLogManager.getDefault().logUIThreadTaskEnd(mPackage, "applyActions");
     }
 
-    public void applyAction(RenderAction action) {
+    public void applyAction(VDocument document, RenderAction action) {
         try {
 
             HapEngine hapEngine = HapEngine.getInstance(mPackage);
@@ -1119,10 +1338,10 @@ public class RootView extends FrameLayout
                         getThemeContext(),
                         mJsThread,
                         (VDomChangeAction) action,
-                        mDocument,
+                        document,
                         mRenderEventCallback);
             } else if (action instanceof ComponentAction) {
-                mCallingComponent.applyComponentAction((ComponentAction) action, mDocument);
+                mCallingComponent.applyComponentAction((ComponentAction) action, document);
             }
 
         } catch (Exception ex) {
@@ -1225,14 +1444,91 @@ public class RootView extends FrameLayout
             return;
         }
 
+        if (MultiWindowManager.shouldApplyMultiWindowMode(getContext())) {
+            onMultiWindowPagePreChange(oldIndex, newIndex, oldPage, newPage);
+            return;
+        }
+
         if (newIndex < oldIndex) {
             // when back, we should call onConfigurationChanged() before onShow()
-            handleConfigurationChange(newPage, ConfigurationManager.getInstance().getCurrent());
+            handleConfigurationChange(newPage, mDocument, ConfigurationManager.getInstance().getCurrent());
         }
         mJsThread.postChangeVisiblePage(oldPage, false);
         InspectorManager.getInspector().onPagePreChange(oldIndex, newIndex, oldPage, newPage);
     }
     /* end implement JsBridgeCallback */
+
+    private void initTabBar() {
+        ThreadUtils.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (null == mTabBar) {
+                    mTabBar = new TabBar();
+                }
+                mTabBar.initTabBarView(RootView.this);
+            }
+        });
+
+    }
+
+    public void updateTabBarData(JSONObject tabbarData) {
+        if (null != mTabBar) {
+            mTabBar.updateTabBarData(this, tabbarData);
+        } else {
+            Log.w(TAG, "updateTabBarData mTabBar is null.");
+        }
+    }
+
+    public boolean notifyTabBarChange(String routerPath) {
+        boolean isValid = false;
+        if (null != mTabBar) {
+            isValid = mTabBar.notifyTabBarChange(this, routerPath);
+        } else {
+            Log.w(TAG, "notifyTabBarChange mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    public boolean prepareTabBarPath(boolean isTabBarPage, String path) {
+        boolean isValid = isTabBarPage;
+        if (null != mTabBar) {
+            isValid = mTabBar.prepareTabBarPath(isTabBarPage, path);
+        } else {
+            Log.w(TAG, "prepareTabBarPath mTabBar is null.");
+        }
+        return isValid;
+    }
+
+    @Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        super.addView(child, index, params);
+        refreshViewOrder();
+    }
+
+    private void refreshViewOrder() {
+        View tabbarView = findViewById(R.id.tabbar_container);
+        if (tabbarView != null) {
+            if (indexOfChild(tabbarView) < getChildCount() - 1) {
+                bringChildToFront(tabbarView);
+            }
+        }
+    }
+
+    public Uri tryParseUri(String src) {
+        if (null == mRenderEventCallback) {
+            return null;
+        }
+        Uri result = null;
+        if (!TextUtils.isEmpty(src)) {
+            result = UriUtils.computeUri(src);
+            if (result == null) {
+                result = mRenderEventCallback.getCache(src);
+            } else if (InternalUriUtils.isInternalUri(result)) {
+                result = mRenderEventCallback.getUnderlyingUri(src);
+            }
+        }
+        return result;
+    }
 
     @Override
     public void onPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {
@@ -1244,9 +1540,13 @@ public class RootView extends FrameLayout
             return;
         }
 
+        if (MultiWindowManager.shouldApplyMultiWindowMode(getContext())) {
+            onMultiWindowPageChanged(oldIndex, newIndex, oldPage, newPage);
+            return;
+        }
         RuntimeLogManager.getDefault().logPageChanged(newPage);
 
-        if (newPage != null && newPage.getReferrer() == null && newIndex >= oldIndex) {
+        if (newPage != null && newPage.getReferrer() == null && newIndex > oldIndex) {
             newPage.setReferrer(oldPage);
         }
 
@@ -1275,6 +1575,11 @@ public class RootView extends FrameLayout
         }
 
         if (mIsDestroyed) {
+            return;
+        }
+
+        if (MultiWindowManager.shouldApplyMultiWindowMode(getContext())) {
+            onMultiWindowPageRemoved(index, page);
             return;
         }
 
@@ -1318,7 +1623,9 @@ public class RootView extends FrameLayout
         if (mDocument != null) {
             oldDocument = mDocument;
             int animType;
-            if (oldPage == null) {
+            if (isReloadOldPage(oldIndex, newIndex, oldPage)) {
+                animType = DocAnimator.TYPE_UNDEFINED;
+            } else if (oldPage == null) {
                 animType = newIndex >= oldIndex ? DocAnimator.TYPE_PAGE_OPEN_EXIT : DocAnimator.TYPE_PAGE_CLOSE_EXIT;
             } else {
                 animType =
@@ -1349,7 +1656,7 @@ public class RootView extends FrameLayout
             mAndroidViewClient.onPageStarted(RootView.this, request.getUri());
         }
         if (newIndex >= oldIndex) {
-            forward(newIndex, currPage);
+            forward(newIndex, oldIndex, currPage, oldPage);
         } else {
             backward(currPage);
         }
@@ -1363,6 +1670,28 @@ public class RootView extends FrameLayout
         currPage.setShouldRefresh(false);
     }
 
+    private boolean isReloadOldPage(int oldIndex, int newIndex, Page oldPage) {
+        if (oldPage == null) {
+            return false;
+        }
+        if (oldIndex == newIndex && oldPage.shouldReload()) {
+            return true;
+        }
+        return false;
+    }
+
+    private void dispatchPageStart(Page page) {
+        ApplicationContext applicationContext = HapEngine.getInstance(mPackage).getApplicationContext();
+        applicationContext.dispatchPageStart(page);
+
+        RoutableInfo routableInfo = page.getRoutableInfo();
+        if (mAndroidViewClient != null) {
+            HybridRequest request = new HybridRequest.Builder()
+                    .pkg(mPackage).uri(routableInfo.getPath()).build();
+            mAndroidViewClient.onPageStarted(RootView.this, request.getUri());
+        }
+    }
+
     private void backward(Page currPage) {
         boolean refresh = currPage.shouldRefresh();
         VDocument cacheDoc = currPage.getCacheDoc();
@@ -1373,11 +1702,12 @@ public class RootView extends FrameLayout
                     .logPageCacheRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = currPage.getCacheDoc();
             if (currPage.hasRenderActions()) {
-                applyActions();
+                applyActions(mDocument, currPage);
             }
+            InnerPageEnterListener pageEnterListener = new InnerPageEnterListener(mDocument, currPage, false);
             mDocument.attachChildren(false,
                     currPage.getPageAnimation(Attributes.PageAnimation.ACTION_CLOSE_ENTER, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
-                    mPageEnterListener);
+                    pageEnterListener);
             mJsThread.postChangeVisiblePage(currPage, true);
             if (refresh) {
                 mJsThread.postRefreshPage(currPage);
@@ -1387,31 +1717,34 @@ public class RootView extends FrameLayout
             RuntimeLogManager.getDefault()
                     .logPageRecreateRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = new VDocument(createDocComponent(currPage.pageId));
+            InnerPageEnterListener pageEnterListener = new InnerPageEnterListener(mDocument, currPage, false);
             mDocument.attachChildren(false,
                     currPage.getPageAnimation(Attributes.PageAnimation.ACTION_CLOSE_ENTER, DocAnimator.TYPE_PAGE_CLOSE_ENTER),
-                    mPageEnterListener);
+                    pageEnterListener);
             currPage.setDisplayInfo(mDocument);
         }
     }
     /* end implement PageManager.PageChangedListener */
 
-    private void forward(int newIndex, Page currPage) {
+    private void forward(int newIndex, int oldIndex, Page currPage, Page oldPage) {
         if (currPage.getCacheDoc() != null) {
             mDocument = currPage.getCacheDoc();
-            mDocument.attachChildren(true, newIndex == 0
+            InnerPageEnterListener pageEnterListener = new InnerPageEnterListener(mDocument, currPage, false);
+            mDocument.attachChildren(true, (newIndex == 0 || isReloadOldPage(oldIndex, newIndex, oldPage))
                             ? DocAnimator.TYPE_UNDEFINED
                             : currPage.getPageAnimation(Attributes.PageAnimation.ACTION_OPEN_ENTER, DocAnimator.TYPE_PAGE_OPEN_ENTER),
-                    mPageEnterListener);
+                    pageEnterListener);
             mJsThread.postChangeVisiblePage(currPage, true);
         } else {
             mJsThread.loadPage(currPage);
             RuntimeLogManager.getDefault()
                     .logPageCreateRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = new VDocument(createDocComponent(currPage.pageId));
-            mDocument.attachChildren(true, newIndex == 0
+            InnerPageEnterListener pageEnterListener = new InnerPageEnterListener(mDocument, currPage, false);
+            mDocument.attachChildren(true, (newIndex == 0 || isReloadOldPage(oldIndex, newIndex, oldPage))
                             ? DocAnimator.TYPE_UNDEFINED
                             : currPage.getPageAnimation(Attributes.PageAnimation.ACTION_OPEN_ENTER, DocAnimator.TYPE_PAGE_OPEN_ENTER),
-                    mPageEnterListener);
+                    pageEnterListener);
             currPage.setCacheDoc(mDocument);
             currPage.setDisplayInfo(mDocument);
         }
@@ -1431,6 +1764,228 @@ public class RootView extends FrameLayout
     }
 
     protected void onPageExit(DocComponent oldComponent, DocComponent newComponent) {
+    }
+
+    void onMultiWindowPagePreChange(int oldIndex, int newIndex, Page oldPage, Page newPage) {
+        if (newIndex < oldIndex) {
+            // when back, we should call onConfigurationChanged() before onShow()
+            handleConfigurationChange(newPage, mDocument, ConfigurationManager.getInstance().getCurrent());
+        }
+        InspectorManager.getInspector().onPagePreChange(oldIndex, newIndex, oldPage, newPage);
+    }
+
+    void onMultiWindowPageChanged(int oldIndex, int newIndex, Page oldPage, Page newPage) {
+        RuntimeLogManager.getDefault().logPageChanged(newPage);
+
+        if (newPage != null && newPage.getReferrer() == null && newIndex > oldIndex) {
+            newPage.setReferrer(oldPage);
+        }
+
+        onMultiWindowPageChangedInMainThreadInMainThread(oldIndex, newIndex, oldPage, newPage);
+        InspectorManager.getInspector().onPageChanged(oldIndex, newIndex, oldPage, newPage);
+    }
+
+    void onMultiWindowPageChangedInMainThreadInMainThread(int oldIndex, int newIndex, Page oldPage, Page currPage) {
+        if (newIndex < 0 || currPage == null) {
+            ((Activity) getContext()).onBackPressed();
+            return;
+        }
+
+        if (currPage.isPageNotFound()) {
+            mJsThread.postPageNotFound(currPage);
+        }
+
+        boolean refresh = currPage.shouldRefresh();
+        if (oldPage == currPage) {
+            mJsThread.postChangeVisiblePage(currPage, true);
+            if (refresh) {
+                mJsThread.postRefreshPage(currPage);
+            }
+            currPage.setShouldRefresh(false);
+            return;
+        }
+
+        ApplicationContext applicationContext = HapEngine.getInstance(mPackage).getApplicationContext();
+
+        MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo =
+                new MultiWindowManager.MultiWindowPageChangeExtraInfo(getContext(), oldIndex, newIndex, oldPage, currPage,
+                        mMultiWindowLeftDocument, mDocument, mPageManager);
+
+        VDocument oldDocument = null;
+        if (mIsClearAll) {
+            if (mDocument != null) {
+                mDocument.detachChildren(DocAnimator.TYPE_UNDEFINED, null, false);
+                mDocument = null;
+            }
+            if (mMultiWindowLeftDocument != null) {
+                mMultiWindowLeftDocument.detachChildren(DocAnimator.TYPE_UNDEFINED, null, false);
+                mMultiWindowLeftDocument = null;
+            }
+            mIsClearAll = false;
+        }
+        updateDividerView();
+        if (mDocument != null) {
+            // detach流程
+            VDocument detachTargetDocument = extraInfo.getDetachTargetDoc();
+            oldDocument = detachTargetDocument;
+
+            if (detachTargetDocument != null) {
+                Page detachTargetPage = extraInfo.getDetachTargetPage();
+                int detachAnimType = extraInfo.getDetachAnimType();
+                boolean isOpen = newIndex > oldIndex;
+                detachTargetDocument.detachChildren(detachAnimType,
+                        new InnerPageExitListener(detachTargetDocument, detachTargetPage, isOpen), isOpen);
+                if (detachTargetDocument == mMultiWindowLeftDocument) {
+                    mMultiWindowLeftDocument = null;
+                } else if (detachTargetDocument == mDocument) {
+                    mDocument = null;
+                }
+
+                mJsThread.postChangeVisiblePage(detachTargetPage, false);
+                applicationContext.dispatchPageStop(detachTargetPage);
+                if (newIndex <= oldIndex) {//返回操作
+                    applicationContext.dispatchPageDestroy(detachTargetPage);
+                }
+            }
+
+            // move流程
+            VDocument moveTargetDocument = extraInfo.getMoveTargetDoc();
+            if (moveTargetDocument != null) {
+                Page moveTargetPage = extraInfo.getMoveTargetPage();
+                int moveAnimType = extraInfo.getMoveAnimType();
+                moveTargetDocument.moveChildren(moveAnimType, new InnerPageMoveListener(moveTargetPage, extraInfo));
+                if (extraInfo.getMovedLeftDoc() != null) {
+                    mMultiWindowLeftDocument = extraInfo.getMovedLeftDoc();
+                } else if (extraInfo.getMovedRightDoc() != null) {
+                    mDocument = extraInfo.getMovedRightDoc();
+                }
+                mJsThread.postChangeVisiblePage(moveTargetPage, true);
+            }
+        }
+
+        if (newIndex >= oldIndex) {
+            multiWindowForward(newIndex, oldIndex, currPage, extraInfo);
+        } else {
+            multiWindowBackward(extraInfo);
+        }
+        DocComponent oldComponent = oldDocument == null ? null : oldDocument.getComponent();
+        DocComponent newComponent = mDocument.getComponent();
+        if (newIndex >= oldIndex) {
+            onPageEnter(oldComponent, newComponent);
+        } else {
+            onPageExit(oldComponent, newComponent);
+        }
+        currPage.setShouldRefresh(false);
+    }
+
+    private void updateDividerView() {
+        if (mMultiWindowDividerView == null) {
+            mMultiWindowDividerView = new View(getContext());
+            mMultiWindowDividerView.setBackgroundColor(Color.BLACK);
+            FrameLayout.LayoutParams layoutParams = new LayoutParams(MultiWindowManager.MULTI_WINDOW_DIVIDER_WIDTH,
+                    ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER_HORIZONTAL);
+            mMultiWindowDividerView.setLayoutParams(layoutParams);
+            mMultiWindowDividerView.setVisibility(GONE);
+            addView(mMultiWindowDividerView);
+        }
+        if (mPageManager.getPageCount() > 1) {
+            mMultiWindowDividerView.setVisibility(VISIBLE);
+        } else {
+            mMultiWindowDividerView.setVisibility(GONE);
+        }
+    }
+
+    private void multiWindowBackward(MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo) {
+        boolean isMultiWindowShoppingMode = extraInfo.isShoppingMode();
+        Page backwardTargetPage = extraInfo.getAttachTargetPage();
+        if (backwardTargetPage == null) {
+            return;
+        }
+
+        int backwardAnimType = extraInfo.getAttachAnimType();
+        dispatchPageStart(backwardTargetPage);
+
+        boolean refresh = backwardTargetPage.shouldRefresh();
+        VDocument cacheDoc = backwardTargetPage.getCacheDoc();
+        boolean hasWeb = cacheDoc != null && cacheDoc.hasWebComponent();
+        boolean darkModeChanged = DarkThemeUtil.isDarkModeChanged(getThemeContext(), cacheDoc);
+        VDocument newDoc;
+
+        if (cacheDoc != null && !(hasWeb && darkModeChanged)) {
+            RuntimeLogManager.getDefault().logPageCacheRenderStart(
+                    mAppInfo.getPackage(), backwardTargetPage.getName());
+            newDoc = backwardTargetPage.getCacheDoc();
+            if (backwardTargetPage.hasRenderActions()) {
+                applyActions(newDoc, backwardTargetPage);
+            }
+            newDoc.attachChildren(false, backwardAnimType, extraInfo,
+                    new InnerPageEnterListener(newDoc, backwardTargetPage, isMultiWindowShoppingMode));
+            if (isMultiWindowShoppingMode) {
+                mMultiWindowLeftDocument = newDoc;
+            } else {
+                mDocument = newDoc;
+            }
+            mJsThread.postChangeVisiblePage(backwardTargetPage, true);
+            if (refresh) {
+                mJsThread.postRefreshPage(backwardTargetPage);
+            }
+        } else {
+            mJsThread.postRecreatePage(backwardTargetPage);
+            RuntimeLogManager.getDefault().logPageRecreateRenderStart(
+                    mAppInfo.getPackage(), backwardTargetPage.getName());
+            newDoc = new VDocument(createDocComponent(backwardTargetPage.pageId));
+            newDoc.attachChildren(false, backwardAnimType, extraInfo,
+                    new InnerPageEnterListener(newDoc, backwardTargetPage, isMultiWindowShoppingMode));
+            if (isMultiWindowShoppingMode) {
+                mMultiWindowLeftDocument = newDoc;
+            } else {
+                mDocument = newDoc;
+            }
+            mJsThread.postChangeVisiblePage(backwardTargetPage, true);
+            backwardTargetPage.setDisplayInfo(newDoc);
+        }
+    }
+
+    void multiWindowForward(int newIndex, int oldIndex, Page currPage, MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo) {
+        int forwardAnimType = extraInfo.getAttachAnimType();
+        boolean isReplaceLeftPage = extraInfo.isReplace() && extraInfo.isReplaceLeftPage();
+
+        dispatchPageStart(currPage);
+
+        VDocument newDoc;
+
+        if (currPage.getCacheDoc() != null) {
+            newDoc = currPage.getCacheDoc();
+            newDoc.attachChildren(true, forwardAnimType, extraInfo, new InnerPageEnterListener(newDoc, currPage, isReplaceLeftPage));
+            mJsThread.postChangeVisiblePage(currPage, true);
+        } else {
+            mJsThread.loadPage(currPage);
+            RuntimeLogManager.getDefault().logPageCreateRenderStart(
+                    mAppInfo.getPackage(), currPage.getName());
+            newDoc = new VDocument(createDocComponent(currPage.pageId));
+            newDoc.attachChildren(true, forwardAnimType, extraInfo, new InnerPageEnterListener(newDoc, currPage, isReplaceLeftPage));
+            mJsThread.postChangeVisiblePage(currPage, true);
+            currPage.setCacheDoc(newDoc);
+            currPage.setDisplayInfo(newDoc);
+        }
+        if (isReplaceLeftPage) {
+            mMultiWindowLeftDocument = newDoc;
+        } else {
+            mDocument = newDoc;
+        }
+    }
+
+    void onMultiWindowPageRemoved(int index, Page page) {
+        if (index == 0 && mPageManager.getPageCount() == 0) {
+            mIsClearAll = true;
+        }
+        if (page != null && !page.shouldCache()) {
+            onPageRemoved(page.pageId);
+            page.clearCache();
+            VideoCacheManager.getInstance().clearVideoData(page.pageId);
+            mJsThread.postDestroyPage(page);
+        }
+        InspectorManager.getInspector().onPageRemoved(index, page);
     }
 
     public void onActivityCreate() {
@@ -1745,7 +2300,14 @@ public class RootView extends FrameLayout
                 return;
             }
             Page currentPage = rootView.mPageManager.getCurrPage();
-            rootView.handleConfigurationChange(currentPage, newConfig);
+            SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+            if (sysOpProvider.isFoldableDevice(rootView.getContext())) {
+                if (FoldingUtils.isMultiWindowMode()) {
+                    rootView.handleConfigurationChangeOnMultiWindow(newConfig);
+                }
+            } else {
+                rootView.handleConfigurationChange(currentPage, rootView.mDocument, newConfig);
+            }
         }
     }
 
@@ -1816,6 +2378,16 @@ public class RootView extends FrameLayout
 
     private class InnerPageEnterListener implements DocComponent.PageEnterListener {
 
+        private Page mPage;
+        private VDocument mDoc;
+        private boolean mShouldUpdateLeftPage;
+
+        public InnerPageEnterListener(VDocument doc, Page page, boolean shouldReplaceLeftPage) {
+            this.mDoc = doc;
+            this.mPage = page;
+            this.mShouldUpdateLeftPage = shouldReplaceLeftPage;
+        }
+
         @Override
         public void onStart() {
         }
@@ -1826,9 +2398,12 @@ public class RootView extends FrameLayout
                     new Runnable() {
                         @Override
                         public void run() {
-                            applyActions();
+                            applyActions(mDoc, mPage);
                         }
                     });
+            if (mShouldUpdateLeftPage) {
+                mPageManager.updateMultiWindowLeftPage(mPage);
+            }
         }
     }
 
@@ -1853,7 +2428,7 @@ public class RootView extends FrameLayout
                 if (mPageManager.getPageCount() > PAGE_CACHE_NUM_MAX) {
                     Page page = mPageManager
                             .getPage(mPageManager.getPageCount() - PAGE_CACHE_NUM_MAX - 1);
-                    if (page != null && !page.shouldCache()) {
+                    if (page != null && !page.shouldCache() && !isMultiWindowLeftPage(page)) {
                         page.clearCache();
                         page.setState(Page.STATE_CREATED);
                     }
@@ -1873,6 +2448,39 @@ public class RootView extends FrameLayout
         }
     }
 
+    private boolean isMultiWindowLeftPage(Page page) {
+        return page == mPageManager.getMultiWindowLeftPage();
+    }
+
+    private class InnerPageMoveListener implements DocComponent.PageMoveListener {
+
+        private Page mMoveTargetPage;
+        private MultiWindowManager.MultiWindowPageChangeExtraInfo mExtraInfo;
+
+        InnerPageMoveListener(Page moveTargetPage, MultiWindowManager.MultiWindowPageChangeExtraInfo extraInfo) {
+            mMoveTargetPage = moveTargetPage;
+            mExtraInfo = extraInfo;
+        }
+
+        @Override
+        public void onStart() {
+
+        }
+
+        @Override
+        public void onEnd() {
+            if (mExtraInfo.getMovedLeftDoc() != null) {
+                mPageManager.updateMultiWindowLeftPage(mMoveTargetPage);
+            }
+            if (mExtraInfo.getMovedRightDoc() != null) {
+                if (mExtraInfo.isCloseFirstPage()) {
+                    mMultiWindowLeftDocument = null;
+                    mPageManager.updateMultiWindowLeftPage(null);
+                }
+            }
+        }
+    }
+
     private class RuntimeLifecycleCallbackImpl implements JsThread.LifecycleCallback {
         @Override
         public void onRuntimeCreate() {
@@ -1886,6 +2494,85 @@ public class RootView extends FrameLayout
             if (mAndroidViewClient != null) {
                 mAndroidViewClient.onRuntimeDestroy(RootView.this);
             }
+        }
+    }
+
+    private class ConfigurationChangedTask implements Runnable {
+        boolean orientationChanged = false;
+        boolean screenSizeChanged = false;
+        volatile boolean consumed = false;
+        Page page;
+
+        ConfigurationChangedTask(Page currentPage) {
+            page = currentPage;
+        }
+
+        @Override
+        public void run() {
+            if (orientationChanged) {
+                mJsThread.postNotifyConfigurationChanged(page, JsThread.CONFIGURATION_TYPE_ORIENTATION);
+            }
+
+            if (screenSizeChanged) {
+                mJsThread.postNotifyConfigurationChanged(page, JsThread.CONFIGURATION_TYPE_SCREEN_SIZE);
+            }
+        }
+    }
+
+    public class ReloadPageConfigurationChangedInfo {
+        private boolean mThemeModeChanged = false;
+        private boolean mLocaleChanged = false;
+        private boolean mOrientationChanged = false;
+        private boolean mScreenSizeChanged = false;
+        private boolean mIsConsumed = false;
+        private Page mReloadPage;
+
+        ReloadPageConfigurationChangedInfo(Page page) {
+            mReloadPage = page;
+        }
+
+        public boolean isThemeModeChanged() {
+            return mThemeModeChanged;
+        }
+
+        public void setThemeModeChanged(boolean mThemeModeChanged) {
+            this.mThemeModeChanged = mThemeModeChanged;
+        }
+
+        public boolean isLocaleChanged() {
+            return mLocaleChanged;
+        }
+
+        public void setLocaleChanged(boolean mLocaleChanged) {
+            this.mLocaleChanged = mLocaleChanged;
+        }
+
+        public boolean isOrientationChanged() {
+            return mOrientationChanged;
+        }
+
+        public void setOrientationChanged(boolean mOrientationChanged) {
+            this.mOrientationChanged = mOrientationChanged;
+        }
+
+        public boolean isScreenSizeChanged() {
+            return mScreenSizeChanged;
+        }
+
+        public void setScreenSizeChanged(boolean mScreenSizeChanged) {
+            this.mScreenSizeChanged = mScreenSizeChanged;
+        }
+
+        public boolean isConsumed() {
+            return mIsConsumed;
+        }
+
+        public void setConsumed(boolean mIsConsumed) {
+            this.mIsConsumed = mIsConsumed;
+        }
+
+        public Page getPage() {
+            return mReloadPage;
         }
     }
 }
