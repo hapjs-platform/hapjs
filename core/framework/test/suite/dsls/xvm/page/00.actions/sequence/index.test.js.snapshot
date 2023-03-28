@@ -81,7 +81,7 @@ exports[`框架：00. sequence initPage`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"addElement\\",\\"args\\":[\\"25\\",{\\"ref\\":\\"80\\",\\"type\\":\\"list-item\\",\\"prop\\":{\\"_styleObjectId\\":2},\\"attr\\":{\\"type\\":\\"loadMore\\",\\"class\\":\\"load-more\\"},\\"inlineStyle\\":{\\"columnSpan\\":3}},26]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"addElement\\",\\"args\\":[\\"80\\",{\\"ref\\":\\"81\\",\\"type\\":\\"progress\\",\\"prop\\":{\\"_styleObjectId\\":2},\\"attr\\":{\\"type\\":\\"circular\\"}},-1]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"addElement\\",\\"args\\":[\\"80\\",{\\"ref\\":\\"82\\",\\"type\\":\\"text\\",\\"prop\\":{\\"_styleObjectId\\":2},\\"attr\\":{\\"value\\":\\"加载更多\\"}},-1]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"createFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"createFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence showArrayMethod`] = `Array [
@@ -90,18 +90,18 @@ exports[`框架：00. sequence showArrayMethod`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"9\\",{\\"attr\\":{\\"show\\":false}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"16\\",{\\"attr\\":{\\"show\\":true}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"21\\",{\\"attr\\":{\\"show\\":true}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickPush`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"addElement\\",\\"args\\":[\\"25\\",{\\"ref\\":\\"83\\",\\"type\\":\\"list-item\\",\\"prop\\":{\\"_styleObjectId\\":2},\\"attr\\":{\\"type\\":\\"listItem\\",\\"class\\":\\"item item-color\\"}},26]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"addElement\\",\\"args\\":[\\"83\\",{\\"ref\\":\\"84\\",\\"type\\":\\"text\\",\\"prop\\":{\\"_styleObjectId\\":2},\\"attr\\":{\\"value\\":\\"push--26\\",\\"class\\":\\"txt\\"}},-1]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickPop`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"removeElement\\",\\"args\\":[\\"83\\"]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickShift`] = `Array [
@@ -131,7 +131,7 @@ exports[`框架：00. sequence clickShift`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"72\\",{\\"attr\\":{\\"value\\":\\"X--22\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"74\\",{\\"attr\\":{\\"value\\":\\"Y--23\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"76\\",{\\"attr\\":{\\"value\\":\\"Z--24\\"}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickUnshift`] = `Array [
@@ -162,12 +162,12 @@ exports[`框架：00. sequence clickUnshift`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"72\\",{\\"attr\\":{\\"value\\":\\"W--22\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"74\\",{\\"attr\\":{\\"value\\":\\"X--23\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"76\\",{\\"attr\\":{\\"value\\":\\"Y--24\\"}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickSplice`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"28\\",{\\"attr\\":{\\"value\\":\\"splice--0\\"}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickSort`] = `Array [
@@ -197,7 +197,7 @@ exports[`框架：00. sequence clickSort`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"74\\",{\\"attr\\":{\\"value\\":\\"Y--23\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"76\\",{\\"attr\\":{\\"value\\":\\"Z--24\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"86\\",{\\"attr\\":{\\"value\\":\\"splice--25\\"}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
 
 exports[`框架：00. sequence clickReverse`] = `Array [
@@ -227,5 +227,5 @@ exports[`框架：00. sequence clickReverse`] = `Array [
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"74\\",{\\"attr\\":{\\"value\\":\\"D--23\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"76\\",{\\"attr\\":{\\"value\\":\\"C--24\\"}}]}",
   "{\\"module\\":\\"dom\\",\\"method\\":\\"updateAttrs\\",\\"args\\":[\\"86\\",{\\"attr\\":{\\"value\\":\\"B--25\\"}}]}",
-  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[]}",
+  "{\\"module\\":\\"dom\\",\\"method\\":\\"updateFinish\\",\\"args\\":[{\\"jsCallbacks\\":false}]}",
 ]`;
