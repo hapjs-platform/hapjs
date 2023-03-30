@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,6 +36,8 @@ import org.hapjs.system.SysOpProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import static org.hapjs.common.utils.FeatureInnerBridge.MENUBAR_JS_CALLBACK;
 
 public class MenubarUtils {
     private static final String TAG = "MenubarUtils";
@@ -204,7 +206,7 @@ public class MenubarUtils {
             } catch (UnsupportedEncodingException e) {
                 Log.e(TAG, "error EncodingException startShare msg : " + e.getMessage());
             }
-            FeatureInnerBridge.invokeWithCallback(extensionManager, "service.share", action, sharejson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+            FeatureInnerBridge.invokeWithCallback(extensionManager, "service.share", action, sharejson.toString(), MENUBAR_JS_CALLBACK, -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
                 @Override
                 public void callback(Response response) {
                     ThreadUtils.runOnUiThread(new Runnable() {
@@ -327,7 +329,7 @@ public class MenubarUtils {
             final ExtensionManager curExtensionManager = extensionManager;
             if (null != curExtensionManager) {
                 JSONObject emptyJson = new JSONObject();
-                FeatureInnerBridge.invokeWithCallback(extensionManager, "system.shortcut", "hasInstalled", emptyJson.toString(), "-1", -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
+                FeatureInnerBridge.invokeWithCallback(extensionManager, "system.shortcut", "hasInstalled", emptyJson.toString(), MENUBAR_JS_CALLBACK, -1, new Callback(extensionManager, "-1", AbstractExtension.Mode.ASYNC) {
                     @Override
                     public void callback(Response response) {
                         ThreadUtils.runOnUiThread(new Runnable() {
