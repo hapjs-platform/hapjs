@@ -1,0 +1,40 @@
+<!--
+    Copyright (c) 2023, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>error bubbling</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        title: 'part3',
+        isBubble: true
+      }
+    },
+    onReady() {
+      this.$watch('title', () => {
+        throw new Error('part3: watcher callback error')
+      })
+    },
+    onErrorCaptured(err, vm, info) {
+      this[`part3.onErrorCaptured`] = true
+      this[`part3.onErrorCaptured.err`] = err.message
+      this[`part3.onErrorCaptured.vm`] = vm
+      this[`part3.onErrorCaptured.info`] = info
+
+      if (!this.isBubble) return false
+    },
+    changeTitle(title) {
+      this.title = title
+    },
+    changeBubbleMode(isBubble) {
+      this.isBubble = isBubble
+    }
+  }
+</script>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -27,7 +27,8 @@ console.log = (...args) => {
 // 定时任务
 const _oriSetTimeout = global.setTimeout
 const _oriSetInterval = global.setInterval
-const _oriRequestAnimationFrame = global.requestAnimationFrame
+// requestAnimationFrame 不存在时，则使用 setTimeout 模拟
+const _oriRequestAnimationFrame = global.requestAnimationFrame || global.setTimeout
 
 global.setTimeoutNative = function(iid, timerId, time) {
   _oriSetTimeout(function() {

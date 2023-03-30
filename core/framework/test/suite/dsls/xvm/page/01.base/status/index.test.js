@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -62,11 +62,23 @@ describe('框架：01.页面以及VM的状态管理', () => {
     expect(pageVm[`plugin.onReady`]).to.equal(true)
 
     // test onError function
-    const errParams = 'params-value'
+    const errParams = {
+      stack: '',
+      message: 'params-value'
+    }
     global.notifyAppError(app.id, errParams)
     expect(app[`app.onError`]).to.equal(true)
-    expect(app[`app.onError.params`]).to.equal(errParams)
+    expect(app[`app.onError.params`].message).to.equal(errParams.message)
+
+    expect(app[`app.onErrorHandler`][0]).to.equal(true)
+    expect(app[`app.onErrorHandler.err`][0]).to.equal(errParams.message)
+    // 此场景下无 vm 对象
+    expect(app[`app.onErrorHandler.vm`][0]).to.equal(undefined)
+    expect(app[`app.onErrorHandler.info`][0]).to.equal(errParams.message)
+
     expect(app[`plugin.onError`]).to.equal(true)
+    // onErrorHandler 不支持插件混入
+    expect(app[`plugin.onErrorHandler`]).to.equal(undefined)
 
     // test onPageNotFound function
     const errorPageParams = { uri: 'hap://app/com.application.demo/nowhereToBeFound' }

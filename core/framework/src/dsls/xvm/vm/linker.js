@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -63,14 +63,13 @@ class XLinker {
 XLinker.target = null
 
 XLinker.pushTarget = function(target) {
-  if (XLinker.target) {
-    _targetStack.push(XLinker.target)
-  }
+  _targetStack.push(target)
   XLinker.target = target
 }
 
 XLinker.popTarget = function() {
-  XLinker.target = _targetStack.pop()
+  _targetStack.pop()
+  XLinker.target = _targetStack[_targetStack.length - 1]
 }
 
 XLinker.resetTarget = function() {

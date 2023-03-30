@@ -4,7 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { $extend, isPlainObject, isReserved, isEmptyObject } from 'src/shared/util'
+import {
+  $extend,
+  isPlainObject,
+  isReserved,
+  isEmptyObject,
+  removeLifecyclePrefix
+} from 'src/shared/util'
 
 import { $own, $proxy, $unproxy, isReservedKey, isReservedAttr } from '../util'
 
@@ -21,6 +27,7 @@ import { XObserver } from './observer'
 import context from '../context'
 import XEvent from '../app/event'
 import XLinker from './linker'
+import { xHandleError, xInvokeWithErrorHandling } from 'src/shared/error'
 
 // 访问校验类型
 const AccessTypeList = ['public', 'protected', 'private']
@@ -258,9 +265,25 @@ function initEvents(vm, externalEvents) {
   // 插件定制的生命周期
   for (const key in XVm.pluginEvents) {
     const listeners = XVm.pluginEvents[key]
-    listeners.forEach(fn => {
-      vm.$on(key, fn)
-    })
+    // 订阅生命周期
+    if (XEvent.isReservedEvent(key)) {
+      const keyName = `xlc:${key}`
+      listeners.forEach(fn => {
+        vm.$on(keyName, fn)
+      })
+    } else if (key === 'onErrorCaptured') {
+      // 收集插件混入的错误回调
+      vm._errorCapturedCbs = vm._errorCapturedCbs.concat(listeners)
+    }
+  }
+
+  // 收集 页面/组件 定义的错误回调
+  if (options.onErrorCaptured) {
+    if (typeof options.onErrorCaptured === 'function') {
+      vm._errorCapturedCbs.push(options.onErrorCaptured)
+    } else {
+      console.warn('### App Framework ### onErrorCaptured must be a function')
+    }
   }
 
   // 绑定生命周期接口函数
@@ -333,13 +356,15 @@ export default class XVm {
     // 父级Vm或者for指令上下文
     this._parentContext = parentContext
 
+    this._data = {}
     this._attrs = {}
     this._$attrs = {}
     this.__$attrs__ = {}
     this._$listeners = []
     this._directives = {}
+    this._errorCapturedCbs = [] // 组件错误回调(支持插件混入以及组件内部声明)
     // 如果是顶级Vm，增加自定义指令上下文数据
-    if (this._root === this) {
+    if (this._isPageVm()) {
       this._directivesContext = {}
     }
     this._destroyed = false
@@ -414,6 +439,15 @@ export default class XVm {
         }
       }
 
+      if (key === 'onErrorCaptured') {
+        if (!global.isRpkMinPlatformVersionGEQ(1300)) {
+          console.warn(
+            `### App Framework ### onErrorCaptured() 为1300版本中新增的Vm生命周期，不再当做Vm方法，如果用于方法调用或组件事件响应，请使用其它名称，后续版本不再兼容`
+          )
+        }
+        return
+      }
+
       if (key === 'computed') {
         if (!global.isRpkMinPlatformVersionGEQ(1050)) {
           console.warn(`### App Framework ### computed为1050版本中新增的计算属性，不再当做Vm方法`)
@@ -442,14 +476,17 @@ export default class XVm {
     initEvents(this, externalEvents)
 
     console.trace(`### App Framework ### 组件Vm(${this._type})初始化完成`)
-    this.$emit('xlc:onCreate')
+    this._emit('xlc:onCreate')
     this._created = true // 目前为内部接口（暂时不暴露）
 
     if (typeof data === 'function') {
-      this._data = data.call(this) || {}
+      try {
+        this._data = data.call(this) || {}
+      } catch (e) {
+        xHandleError(e, this, `data()`)
+      }
     } else {
       // 复制数据
-      this._data = {}
       $extend(this._data, data)
     }
 
@@ -693,8 +730,10 @@ export default class XVm {
       const evt = new XEvent(type, detail)
       // 系统接口只有唯一一个handler, 只需返回第一个即可
       const result = []
+      const info = `page/component: event handler for "${type}"`
       handlerList.forEach(handler => {
-        result.push(handler.call(this, evt))
+        const res = xInvokeWithErrorHandling(handler, this, [evt], this, info)
+        result.push(res)
       })
       // 插件环境下可能有多个handler，所以返回vm中的结果
       return result.length > 0 ? result[result.length - 1] : false
@@ -717,8 +756,10 @@ export default class XVm {
     if (handlerList) {
       // 系统接口只有唯一一个handler, 只需返回第一个即可
       const result = []
+      const info = `page/component: lifecycle for "${removeLifecyclePrefix(type)}"`
       handlerList.forEach(handler => {
-        result.push(handler.call(this, evtHash, ...args))
+        const res = xInvokeWithErrorHandling(handler, this, [evtHash, ...args], this, info)
+        result.push(res)
       })
       // 插件环境下可能有多个handler，所以返回vm中的结果
       return result.length > 0 ? result[result.length - 1] : false
@@ -799,11 +840,12 @@ export default class XVm {
    * @param  {function} handler
    */
   $on(type, handler) {
-    if (this._isVmDestroyed()) {
+    if (this._isVmDestroyed() || !type || !handler) {
       return
     }
 
-    if (!type || typeof handler !== 'function') {
+    if (typeof handler !== 'function') {
+      console.warn(`### App Framework ### ${removeLifecyclePrefix(type)} must be a function`)
       return
     }
     const events = this._vmEvents
@@ -911,15 +953,22 @@ export default class XVm {
     const calc = function() {
       return XVm.getPath(vm, target)
     }
-    const watcher = new XWatcher(vm, calc, function(value, oldValue) {
-      // 如果函数计算结果是对象则始终认为值被改变，如果是基本类型则进行比较
-      if (typeof value !== 'object' && value === oldValue) {
-        // 如果值没改变则直接返回
-        return
-      }
-      // 执行回调
-      cb.apply(vm, [value, oldValue])
-    })
+    // 保存初始表达式, 供 watcher 内部使用，eg: 'data.msg'
+    calc.originExp = target
+    const watcher = new XWatcher(
+      vm,
+      calc,
+      function(value, oldValue) {
+        // 如果函数计算结果是对象则始终认为值被改变，如果是基本类型则进行比较
+        if (typeof value !== 'object' && value === oldValue) {
+          // 如果值没改变则直接返回
+          return
+        }
+        // 执行回调
+        return cb.apply(vm, [value, oldValue])
+      },
+      { errorCapture: true }
+    )
     return watcher
   }
 
@@ -1133,15 +1182,19 @@ XVm.pluginEvents = {}
  */
 XVm.mixin = function(options) {
   for (const key in options) {
+    const val = options[key]
     // 绑定保留的生命周期
-    if (XEvent.isReservedEvent(key)) {
-      const keyName = `xlc:${key}`
-      if (!XVm.pluginEvents[keyName]) {
-        XVm.pluginEvents[keyName] = []
+    if (XEvent.isReservedEvent(key) || key === 'onErrorCaptured') {
+      if (typeof val !== 'function') {
+        console.warn(`### App Framework ### 插件定义的生命周期: ${key} 必须为函数`)
+        continue
       }
-      XVm.pluginEvents[keyName].push(options[key])
+      if (!XVm.pluginEvents[key]) {
+        XVm.pluginEvents[key] = []
+      }
+      XVm.pluginEvents[key].push(val)
     } else {
-      console.warn(`### App Framework ### 插件定义的函数，不属于页面生命周期函数：${key}`)
+      console.warn(`### App Framework ### 插件定义的函数: ${key}，不属于页面生命周期函数`)
     }
   }
 }

@@ -1,0 +1,18 @@
+<!--
+    Copyright (c) 2023, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<template>
+  <div>
+    <text>data</text>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      throw new Error('data() error')
+    }
+  }
+</script>

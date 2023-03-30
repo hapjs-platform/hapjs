@@ -49,7 +49,7 @@ class PluginI18n {
   }
 
   _destroyVm() {
-    this._vm.$emit('xlc:onDestroy')
+    this._vm._emit('xlc:onDestroy')
   }
 
   get locale() {

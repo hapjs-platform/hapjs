@@ -33,6 +33,8 @@ import {
 
 import { XObserver } from './observer'
 
+import { xHandleError } from 'src/shared/error'
+
 /**
  * 递归创建vm中的定义
  * @param vm
@@ -41,11 +43,13 @@ function build(vm) {
   // _options保存组件的tempalte,style和script定义
   const options = vm._options || {}
   const template = options.template || {}
-
-  compile(vm, template, vm._parentElement)
-
+  try {
+    compile(vm, template, vm._parentElement)
+  } catch (e) {
+    xHandleError(e, vm, 'render')
+  }
   console.trace(`### App Framework ### 组件Vm (${vm._type}) UI准备就绪`)
-  vm.$emit('xlc:onReady')
+  vm._emit('xlc:onReady')
   vm._ready = true
 }
 
@@ -649,6 +653,12 @@ function compileNativeComponent(vm, template, dest, type) {
     element = createElement(vm, type)
   }
 
+  // element._vm 用于某些场景的判断（可查询 unbindNode 方法）， 涉及 销毁vm 和 触发页面 onDestroy 生命周期的逻辑
+  // 所以只有页面或组件的根节点才会携带 _vm （只有页面根节点的 _vm 在 compileNativeComponent 方法内部赋值，组件的在其他地方）
+  // 所以不能给每个 node 都赋值 _vm
+  // 为了能在每个 node 节点都能访问到 vm，此处另起一个 _xvm 属性, 用来保存 vm
+  element._xvm = vm
+
   template.attr = template.attr || {}
 
   if (!vm._rootElement) {
@@ -745,7 +755,11 @@ function compileChildren(vm, template, dest) {
     // 如果发生错误，则退出循环
     for (let i = 0, len = children.length; i < len && page.lastSignal !== -1; i++) {
       console.trace('### App Framework ### 编译孩子节点----', children[i].type)
-      compile(vm, children[i], dest)
+      try {
+        compile(vm, children[i], dest)
+      } catch (e) {
+        xHandleError(e, vm, 'render')
+      }
     }
   }
 }
@@ -903,7 +917,11 @@ function bindIf(vm, target, fragment, meta) {
     }
     value = !!v
     if (v) {
-      compile(vm, target, fragment, meta)
+      try {
+        compile(vm, target, fragment, meta)
+      } catch (e) {
+        xHandleError(e, vm, 'render')
+      }
     } else {
       // 针对fragment节点, 仅删除内部子节点
       removeNode(fragment, true)

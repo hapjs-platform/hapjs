@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -49,6 +49,12 @@ const PluginDemo = {
       },
       onDestroy() {
         this[`plugin.onDestroy`] = true
+      },
+      onErrorCaptured(err, vm, info) {
+        this[`plugin.onErrorCaptured`] = true
+        this[`plugin.onErrorCaptured.err`] = err.message
+        this[`plugin.onErrorCaptured.vm`] = vm
+        this[`plugin.onErrorCaptured.info`] = info
       }
     })
 
@@ -66,6 +72,10 @@ const PluginDemo = {
       },
       onError() {
         this[`plugin.onError`] = true
+      },
+      // onErrorHandler 不支持插件混入，该方法将不会执行
+      onErrorHandler() {
+        this[`plugin.onErrorHandler`] = true
       },
       onDestroy() {
         this[`plugin.onDestroy`] = true

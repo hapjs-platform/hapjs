@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -85,7 +85,7 @@ class Animation {
       componentId: this.commonParams.componentId,
       animationId: this.commonParams.animationId,
       success: () => {
-        callback && callback()
+        return callback && callback()
       }
     })
   }
@@ -99,7 +99,7 @@ class Animation {
       componentId: this.commonParams.componentId,
       animationId: this.commonParams.animationId,
       success: () => {
-        callback && callback()
+        return callback && callback()
       }
     })
   }

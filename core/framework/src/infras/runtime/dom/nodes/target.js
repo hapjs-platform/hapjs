@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,6 +8,7 @@ import Node from './node'
 import Event from './event/event'
 import { getListener } from '../model'
 import { renderParents } from '../misc'
+import { xInvokeWithErrorHandling } from 'src/shared/error'
 
 /**
  * 仅触发最深层次的事件发生绑定者
@@ -38,7 +39,15 @@ export function fireTargetEventListener(node, evt, options) {
         `### App Runtime ### fireTargetEventListener() 事件响应:${evt.type}，节点:${node.ref}`
       )
       if (fnListener) {
-        const functionResult = fnListener.call(evt.target, evt)
+        const info = `component: event handler for "${evtName}"`
+        const functionResult = xInvokeWithErrorHandling(
+          fnListener,
+          evt.target,
+          [evt],
+          node._xvm,
+          info
+        )
+
         if (evtName === 'key') {
           // onkey组件回调返回true，即组件自己处理
           if (functionResult === true) {
@@ -268,7 +277,8 @@ class EventTarget extends Node {
               )
               // 执行fnListener回调
               if (fnListener) {
-                fnListener.call(evt.currentTarget, evt)
+                const info = `component: event handler for "${evtName}"`
+                xInvokeWithErrorHandling(fnListener, evt.currentTarget, [evt], node._xvm, info)
                 evt._listenNodes[evt.currentTarget.ref] = true
               }
             } catch (err) {

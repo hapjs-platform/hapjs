@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2021, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -16,18 +16,36 @@
       // 如果是数组，则install时传递多个参数
       [ Object.assign({}, pluginDemo), 'installOptions']
     ],
-    onCreate () {
+    onCreate() {
+      this.resetAppProp()
     },
-    onError (params) {
+    onShow() {
+      throw new Error('onShow error')
+    },
+    onError(params) {
       this[`app.onError`] = true
       this[`app.onError.params`] = params
     },
-
+    onErrorHandler(err, vm, info) {
+      if (this.isThrowError) {
+        throw new Error('onErrorHandler error')
+      }
+      this[`app.onErrorHandler`].push(true)
+      this[`app.onErrorHandler.err`].push(err.message)
+      this[`app.onErrorHandler.vm`].push(vm)
+      this[`app.onErrorHandler.info`].push(info)
+    },
     // onPageNotFound params often shows as an object
     // like {uri: 'hap://app/com.application.demo/nowhereToBeFound' }
     onPageNotFound(params) {
       this[`app.onPageNotFound`] = true
       this[`app.onPageNotFound.params`] = params
+    },
+    resetAppProp() {
+      this[`app.onErrorHandler`] = []
+      this[`app.onErrorHandler.err`] = []
+      this[`app.onErrorHandler.vm`] = []
+      this[`app.onErrorHandler.info`] = []
     }
   }
 </script>

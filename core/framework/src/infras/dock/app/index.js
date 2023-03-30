@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { isObject, isReserved } from 'src/shared/util'
+import { isObject, isReserved, removeLifecyclePrefix } from 'src/shared/util'
 
 import XEvent from './event'
 
@@ -14,8 +14,21 @@ import ModuleHost from '../../platform/module/index'
 
 import { getLocaleConfig } from './locale'
 
+import { xInvokeWithErrorHandling } from 'src/shared/error'
+
 // app module
 let appModule = null
+// app 内部使用的函数名
+const appInnerFuncs = ['onErrorHandler']
+
+/**
+ * 是否为 app 内部保留函数
+ * @param {*} name
+ * @returns {boolean}
+ */
+function isAppReservedFunc(name) {
+  return appInnerFuncs.indexOf(name) >= 0
+}
 
 class XApp extends ModuleHost {
   constructor(id, options) {
@@ -32,6 +45,7 @@ class XApp extends ModuleHost {
     this._valid = true
     this._plugins = []
     this._pluginInstalled = false // 页面是否已安装
+    this._errorHandler = null // 全局错误回调
 
     this._shareDocStyle = false
   }
@@ -121,8 +135,23 @@ class XApp extends ModuleHost {
     // 将自定义函数属性添加到App对象上
     for (const key in data) {
       const item = data[key]
-      if (typeof item === 'function' && !XEvent.isReservedEvent(key)) {
+      if (typeof item === 'function' && !XEvent.isReservedEvent(key) && !isAppReservedFunc(key)) {
         this[key] = data[key]
+      }
+    }
+
+    const errorHandler = data.onErrorHandler
+    // 绑定全局错误回调
+    if (errorHandler) {
+      if (!global.isRpkMinPlatformVersionGEQ(1300)) {
+        console.warn(
+          `### App Framework ### onErrorHandler() 为1300版本中新增的app生命周期，不再当做app方法，如果用于方法调用或事件响应，请使用其它名称，后续版本不再兼容`
+        )
+      }
+      if (typeof errorHandler === 'function') {
+        this._errorHandler = errorHandler
+      } else {
+        console.warn('### App Framework ### onErrorHandler must be a function')
       }
     }
 
@@ -162,15 +191,16 @@ class XApp extends ModuleHost {
     const events = this._events
     const handlerList = events[type]
     if (handlerList) {
+      const info = `app: event handler for "${type}"`
       for (let i = 0; i < handlerList.length; i++) {
         const evt = new XEvent(type, detail)
-        handlerList[i].call(this, evt)
+        xInvokeWithErrorHandling(handlerList[i], this, [evt], undefined, info, this)
       }
     }
   }
 
   /**
-   * 无事件对象
+   * 无事件对象，用于 app 生命周期的发布
    * @param type
    * @param param
    * @private
@@ -179,8 +209,9 @@ class XApp extends ModuleHost {
     const events = this._events
     const handlerList = events[type]
     if (handlerList) {
+      const info = `app: lifecycle for "${removeLifecyclePrefix(type)}"`
       for (let i = 0; i < handlerList.length; i++) {
-        handlerList[i].call(this, param)
+        xInvokeWithErrorHandling(handlerList[i], this, [param], undefined, info, this)
       }
     }
   }
@@ -191,7 +222,11 @@ class XApp extends ModuleHost {
    * @param  {function}
    */
   $on(type, handler) {
-    if (!type || typeof handler !== 'function') {
+    if (!type || !handler) {
+      return
+    }
+    if (typeof handler !== 'function') {
+      console.warn(`### App Framework ### ${removeLifecyclePrefix(type)} must be a function`)
       return
     }
     // 每个类型事件只能对应一个回调函数
