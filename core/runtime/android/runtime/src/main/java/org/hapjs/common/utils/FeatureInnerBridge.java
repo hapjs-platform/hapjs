@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2022-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,6 +16,7 @@ import org.hapjs.render.jsruntime.JsThread;
 public class FeatureInnerBridge {
     public static final String TAG = "FeatureInnerBridge";
     public static final String H5_JS_CALLBACK = "-2";
+    public static final String MENUBAR_JS_CALLBACK = "-3";
 
     public static void invokeWithCallback(ExtensionManager extensionManager, String name, String action, Object rawParams,
                                           String jsCallback, int instanceId, Callback asyncResultCallback) {

@@ -12,7 +12,7 @@
     "babel-eslint": "^10.0.1",
     "eslint": "^6.8.0",
     "eslint-plugin-ux": "^0.0.4",
-    "hap-toolkit": "^0.7.1"
+    "hap-toolkit": "beta"
   },
   "browserslist": [
     "chrome 65"

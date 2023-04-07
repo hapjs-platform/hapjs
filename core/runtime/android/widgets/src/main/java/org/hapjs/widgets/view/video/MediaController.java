@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -602,7 +602,13 @@ public class MediaController extends RelativeLayout {
             return;
         }
         if (mPlayer.isPlaying()) {
+            if (mVideoView != null) {
+                mVideoView.setPauseButtonPress(true);
+            }
             mPlayer.pause();
+            if (mVideoView != null) {
+                mVideoView.setPauseButtonPress(false);
+            }
         } else {
             mPlayer.start();
         }

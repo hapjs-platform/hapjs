@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets;
@@ -27,6 +27,7 @@ import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.YogaLayout;
 import org.hapjs.component.view.flexbox.PercentFlexboxLayout;
+import org.hapjs.model.ConfigInfo;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.readerdiv.ReaderLayoutView;
@@ -90,9 +91,10 @@ public class ReaderDiv extends Container<ReaderLayoutView> {
     public static final String READERDIV_PAGE_START = "startline";
     public static final String READERDIV_PAGE_END = "endline";
     public static final String READERDIV_PAGE_INDEX = "pageIndex";
-    static final String DEFAULT_FONT_SIZE = "42px";
-    static final String DEFAULT_MIN_FONT_SIZE = "36px";
-    static final String DEFAULT_MAX_FONT_SIZE = "60px";
+    static final int DEFAULT_FONT_SIZE = 42;
+    static final int DEFAULT_MIN_FONT_SIZE = 36;
+    static final int DEFAULT_MAX_FONT_SIZE = 60;
+    private float mScaleValue = 1.0f;
     static final String DEFAULT_COLOR = "#8a000000";
     private int FONT_SIZE_MIN = -1;
     private int FONT_SIZE_MAX = -1;
@@ -130,8 +132,17 @@ public class ReaderDiv extends Container<ReaderLayoutView> {
     public ReaderDiv(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback,
                      Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
-        FONT_SIZE_MIN = Attributes.getFoldFontSize(mHapEngine, getPage(), DEFAULT_MIN_FONT_SIZE, true);
-        FONT_SIZE_MAX = Attributes.getFoldFontSize(mHapEngine, getPage(), DEFAULT_MAX_FONT_SIZE, true);
+        boolean isDefaultDesignWidth = mHapEngine.getDesignWidth() == ConfigInfo.DEFAULT_DESIGN_WIDTH;
+        if (!isDefaultDesignWidth) {
+            float designWidth = mHapEngine.getDesignWidth();
+            float defaultWidth = ConfigInfo.DEFAULT_DESIGN_WIDTH;
+            mScaleValue = designWidth / defaultWidth;
+            if (mScaleValue <= 0) {
+                mScaleValue = 1.0f;
+            }
+        }
+        FONT_SIZE_MIN = Attributes.getFoldFontSize(mHapEngine, getPage(), DEFAULT_MIN_FONT_SIZE * mScaleValue + Attributes.Unit.PX, true);
+        FONT_SIZE_MAX = Attributes.getFoldFontSize(mHapEngine, getPage(), DEFAULT_MAX_FONT_SIZE * mScaleValue + Attributes.Unit.PX, true);
         setFontSize(Attributes.getFoldFontSize(mHapEngine, getPage(), getDefaultFontSize(), true));
         setFontColor(DEFAULT_COLOR);
     }
@@ -628,7 +639,7 @@ public class ReaderDiv extends Container<ReaderLayoutView> {
     }
 
     private String getDefaultFontSize() {
-        return DEFAULT_FONT_SIZE;
+        return DEFAULT_FONT_SIZE * mScaleValue + Attributes.Unit.PX;
     }
 
     public boolean setFontSize(int fontSize) {

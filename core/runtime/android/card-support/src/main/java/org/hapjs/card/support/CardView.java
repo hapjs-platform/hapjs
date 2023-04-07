@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -43,6 +43,7 @@ import org.hapjs.render.MainThreadFrameWorker;
 import org.hapjs.render.Page;
 import org.hapjs.render.RenderAction;
 import org.hapjs.render.RootView;
+import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ResourceConfig;
@@ -93,7 +94,7 @@ public class CardView extends RootView
                         return false;
                     }
 
-                    applyAction(action);
+                    applyAction(getDocument(), action);
                     return true;
                 }
             };
@@ -582,7 +583,7 @@ public class CardView extends RootView
     }
 
     @Override
-    public void applyActions() {
+    public void applyActions(VDocument document, Page page) {
         // 将 applyAction 的任务分解成小的批次, 防止阻塞主应用的UI线程任务
         mApplyActionWorker.start();
     }

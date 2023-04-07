@@ -5,6 +5,9 @@
 
 package org.hapjs.system;
 
+import static org.hapjs.render.MultiWindowManager.MULTI_WINDOW_DIVIDER_WIDTH;
+
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
@@ -43,6 +46,7 @@ import org.hapjs.common.compat.BuildPlatform;
 import org.hapjs.common.executors.Executors;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FileUtils;
+import org.hapjs.common.utils.FoldingUtils;
 import org.hapjs.common.utils.IntentUtils;
 import org.hapjs.common.utils.PackageUtils;
 import org.hapjs.common.utils.ThemeUtils;
@@ -51,6 +55,7 @@ import org.hapjs.model.AppInfo;
 import org.hapjs.model.ConfigInfo;
 import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.MenubarItemData;
+import org.hapjs.render.MultiWindowManager;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
 import org.hapjs.runtime.DarkThemeUtil;
@@ -470,6 +475,16 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public int getScreenWidthPixels(Context context, int platformVersion,HashMap<String, Object> datas) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        boolean isLandscapeMode = DisplayUtil.isLandscapeMode(context);
+        int safeAreaWidth = getSafeAreaWidth(context);
+        if (isFoldableDevice(context) && FoldingUtils.isMultiWindowMode()) {
+            if (isFoldStatusByDisplay(context)) {
+                return isLandscapeMode ? displayMetrics.heightPixels : displayMetrics.widthPixels;
+            } else {
+                int fullScreenWidth = isLandscapeMode ? displayMetrics.widthPixels + safeAreaWidth : displayMetrics.widthPixels;
+                return (fullScreenWidth - MULTI_WINDOW_DIVIDER_WIDTH) / 2;
+            }
+        }
         if (platformVersion < 1063 && !BuildPlatform.isTV()) {
             return DisplayUtil.isLandscapeMode(context) ? displayMetrics.heightPixels : displayMetrics.widthPixels;
         }
@@ -492,7 +507,7 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
             screenOrientation = page.getOrientation();
         } else {
             screenOrientation =
-                    BuildPlatform.isTV() ?
+                    BuildPlatform.isTV() | BuildPlatform.isCar() ?
                             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
         }

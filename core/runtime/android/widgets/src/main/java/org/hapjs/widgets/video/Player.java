@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -31,6 +31,7 @@ public abstract class Player implements IMediaPlayer {
     // recording the seek position while preparing
     protected long mSeekWhenPrepared;
     protected int mPlayCount = 1;
+    protected float mSpeed = 1;
     protected Surface mSurface;
     protected boolean mDataSourceChanged;
     protected boolean mPlayCountChanged;

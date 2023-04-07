@@ -150,6 +150,7 @@ public class RuntimeLogManager {
     //shortcut tips
     public static final String KEY_APP_EVENT_BUTTON_SHOW = "eventbuttonShow";
     public static final String KEY_APP_EVENT_BUTTON_CLICK = "eventbuttonClick";
+    public static final String KEY_APP_EVENT_BUTTON_OPACITY = "eventbuttonOpacity";
     public static final String KEY_APP_EVENT_BUTTON_TIPS_SHOW = "eventbuttonTipsShow";
 
     //feature result
