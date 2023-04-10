@@ -61,6 +61,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.MotionEventCompat;
 import androidx.core.view.NestedScrollingChildHelper;
@@ -79,6 +80,7 @@ import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FeatureInnerBridge;
+import org.hapjs.common.utils.FileHelper;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.ThreadUtils;
@@ -1340,6 +1342,7 @@ public class NestedWebView extends WebView
                                     result = tmpResults;
                                 }
                             }
+                            result = blockPrivatePaths(result);
                             if (null != result && result.length > 0 && result[0] == null) {
                                 Log.e(
                                         TAG,
@@ -1357,6 +1360,26 @@ public class NestedWebView extends WebView
                         }
                     }
                 });
+    }
+
+    private Uri[] blockPrivatePaths(Uri[] resultList) {
+        if (resultList != null && resultList.length > 0) {
+            for (Uri result : resultList) {
+                if (result != null) {
+                    String path = FileHelper.getFileFromContentUri(mContext, result);
+                    String dataData = "/data/data/" + mContext.getPackageName();
+                    String dataUser = dataData;
+                    File dataDir = ContextCompat.getDataDir(mContext);
+                    if (dataDir != null) {
+                        dataUser = dataDir.getPath();
+                    }
+                    if (!TextUtils.isEmpty(path) && (path.startsWith(dataData) || path.startsWith(dataUser))) {
+                        return new Uri[0];
+                    }
+                }
+            }
+        }
+        return resultList;
     }
 
     private void resolveLowApiResult() {
