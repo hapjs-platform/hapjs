@@ -77,7 +77,7 @@ public class OkHttpClientBuilderFactory {
     }
 
     private static void setSslConfiguration (OkHttpClient.Builder builder) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
             setSslSocketFactoryIfNeed(builder);
             return;
         }
