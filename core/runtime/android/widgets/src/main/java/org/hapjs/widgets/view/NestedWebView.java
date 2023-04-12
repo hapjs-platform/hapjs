@@ -2265,7 +2265,7 @@ public class NestedWebView extends WebView
         public final void onGlobalLayout() {
             getWindowVisibleDisplayFrame(mTempVisibleRect);
 
-            View contentRoot = ((ViewGroup) getRootView()).getChildAt(0);
+            View contentRoot = getAdjustKeyboardHostView();
             int[] contentRootLocation = {0, 0};
             contentRoot.getLocationOnScreen(contentRootLocation);
             int contentRootBottom = contentRootLocation[1] + contentRoot.getHeight();
