@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -223,9 +223,12 @@ public class DebugService extends Service {
         }
         intent.putExtra(RuntimeActivity.EXTRA_FROM_DEBUGGER, true);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-
+        launchToDebug(intent);
         return true;
+    }
+
+    void launchToDebug(Intent intent) {
+        startActivity(intent);
     }
 
     private void onUninstallPackage(Message msg) {
