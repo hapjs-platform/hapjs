@@ -1316,9 +1316,14 @@ public class NestedWebView extends WebView
                                         mCacheVideoFile = null;
                                     }
                                     result = tmpResults;
+                                } else {
+                                    //video go here
+                                    if (null != mCacheVideoFile && mCacheVideoFile.exists() && mCacheVideoFile.length() == 0) {
+                                        //not check video
+                                        result = blockPrivatePaths(result);
+                                    }
                                 }
                             }
-                            result = blockPrivatePaths(result);
                             if (null != result && result.length > 0 && result[0] == null) {
                                 Log.e(
                                         TAG,
