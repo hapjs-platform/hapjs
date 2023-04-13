@@ -1340,9 +1340,14 @@ public class NestedWebView extends WebView
                                         mCacheVideoFile = null;
                                     }
                                     result = tmpResults;
+                                } else {
+                                    //photo or video sometimes go here
+                                    if ((mCachePhotoFile == null || !mCachePhotoFile.exists() || mCachePhotoFile.length() == 0) && (mCacheVideoFile == null || !mCacheVideoFile.exists() || mCacheVideoFile.length() == 0)) {
+                                        //not check photo or video
+                                        result = blockPrivatePaths(result);
+                                    }
                                 }
                             }
-                            result = blockPrivatePaths(result);
                             if (null != result && result.length > 0 && result[0] == null) {
                                 Log.e(
                                         TAG,
