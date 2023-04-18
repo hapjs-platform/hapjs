@@ -2007,7 +2007,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
         }
     }
 
-    Rect getContentInsets() {
+    public Rect getContentInsets() {
         int topCutoutHeight = mTopCutoutView != null ? mTopCutoutView.getLayoutParams().height : 0;
         int leftCutouWidth = mLeftCutoutView != null ? mLeftCutoutView.getLayoutParams().width : 0;
         int titleHeight = mToolbar == null ? 0 : mToolbar.getLayoutParams().height;
