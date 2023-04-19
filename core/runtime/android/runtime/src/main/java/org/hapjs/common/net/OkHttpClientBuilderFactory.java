@@ -93,7 +93,7 @@ public class OkHttpClientBuilderFactory {
                 .tlsVersions(SECURE_TLS_VERSIONS)
                 .cipherSuites(SECURE_CIPHER_SUITES)
                 .build();
-        builder.connectionSpecs(Collections.singletonList(spec));
+        builder.connectionSpecs(Util.immutableList(spec, ConnectionSpec.CLEARTEXT));
     }
 
     /**
