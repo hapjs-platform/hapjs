@@ -59,11 +59,6 @@
         app:allowDividerAbove="false"
         app:allowDividerBelow="false">
         <Preference
-            android:key="@string/setting_item_feedback_key"
-            android:title="@string/setting_item_feedback"
-            app:icon="@mipmap/ic_forward"
-            app:layout="@layout/preference_edittext" />
-        <Preference
             android:icon="@mipmap/ic_forward"
             android:key="@string/setting_item_instruction_key"
             android:layout="@layout/preference_edittext"

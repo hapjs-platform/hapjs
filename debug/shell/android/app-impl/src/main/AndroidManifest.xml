@@ -87,6 +87,10 @@
             android:label="@string/choose_app_label"
             android:theme="@style/AppTheme.InstalledApp" />
 
+        <activity
+            android:name="org.hapjs.debugger.WebActivity"
+            android:theme="@style/AppTheme.InstalledApp"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="org.hapjs.debugger.file"
