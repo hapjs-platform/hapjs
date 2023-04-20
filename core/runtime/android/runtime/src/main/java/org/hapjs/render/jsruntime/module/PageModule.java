@@ -52,6 +52,10 @@ public class PageModule extends ModuleExtension {
     protected static final String RESULT_MENU_BAR_TOP = "menuBarTop";
     protected static final String RESULT_MENU_BAR_RIGHT = "menuBarRight";
     protected static final String RESULT_MENU_BAR_BOTTOM = "menuBarBottom";
+    protected static final String RESULT_MENU_BAR_PAGE_LEFT = "menuBarPageLeft";
+    protected static final String RESULT_MENU_BAR_PAGE_RIGHT = "menuBarPageRight";
+    protected static final String RESULT_MENU_BAR_PAGE_TOP = "menuBarPageTop";
+    protected static final String RESULT_MENU_BAR_PAGE_BOTTOM = "menuBarPageBottom";
     protected static final String ACTION_SET_MENUBAR_DATA = "setMenubarData";
     protected static final String ACTION_SET_MENUBAR_TIPS = "setMenubarTips";
     protected static final String ACTION_SET_TABBAR_ITEM = "setTabBarItem";
@@ -135,12 +139,17 @@ public class PageModule extends ModuleExtension {
         JSONObject result = new JSONObject();
         Display display = getDisPlay(request);
         View menubarView = null;
+        Rect contentInsets = null;
         if (null != display) {
             menubarView = display.getMenuBar();
+            contentInsets = display.getContentInsets();
         }
         Rect rect = new Rect();
+        int[] positionWindow = null;
         if (null != menubarView) {
             menubarView.getGlobalVisibleRect(rect);
+            positionWindow = new int[2];
+            menubarView.getLocationInWindow(positionWindow);
         }
         int designWidth = -1;
         HapEngine hapEngine = null;
@@ -157,6 +166,12 @@ public class PageModule extends ModuleExtension {
             result.put(RESULT_MENU_BAR_TOP, DisplayUtil.getDesignPxByWidth(rect.top, designWidth));
             result.put(RESULT_MENU_BAR_RIGHT, DisplayUtil.getDesignPxByWidth(rect.right, designWidth));
             result.put(RESULT_MENU_BAR_BOTTOM, DisplayUtil.getDesignPxByWidth(rect.bottom, designWidth));
+            if (null != positionWindow && positionWindow.length == 2) {
+                result.put(RESULT_MENU_BAR_PAGE_LEFT, DisplayUtil.getDesignPxByWidth(positionWindow[0], designWidth));
+                result.put(RESULT_MENU_BAR_PAGE_TOP, DisplayUtil.getDesignPxByWidth(positionWindow[1] - (null != contentInsets ? contentInsets.top : 0), designWidth));
+                result.put(RESULT_MENU_BAR_PAGE_RIGHT, DisplayUtil.getDesignPxByWidth(positionWindow[0] + menubarView.getWidth(), designWidth));
+                result.put(RESULT_MENU_BAR_PAGE_BOTTOM, DisplayUtil.getDesignPxByWidth(positionWindow[1] + menubarView.getHeight() - (null != contentInsets ? contentInsets.top : 0), designWidth));
+            }
         } else {
             result.put(RESULT_MENU_BAR_WIDTH, -1);
             result.put(RESULT_MENU_BAR_HEIGHT, -1);

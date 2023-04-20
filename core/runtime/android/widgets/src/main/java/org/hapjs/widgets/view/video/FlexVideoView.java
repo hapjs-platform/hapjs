@@ -97,6 +97,7 @@ public class FlexVideoView extends FrameLayout
     private Uri mPosterUri;
     private Boolean mMuted;
     private String mPlayCount;
+    private float mSpeed = Video.SPEED_DEFAULT;
     private OnErrorListener mOnErrorListener;
     private OnIdleListener mOnIdleListener;
     private OnStartListener mOnStartListener;
@@ -148,6 +149,8 @@ public class FlexVideoView extends FrameLayout
     public static Uri mCacheFullScreenUri = null;
     public static boolean mIsFullScreen = false;
     public boolean mIsEverCacheVideo = false;
+    // 是否按下 video 控制栏左下角暂停按钮
+    private boolean mIsPauseButtonPress;
 
     public FlexVideoView(final Context context) {
         this(context, true);
@@ -216,6 +219,14 @@ public class FlexVideoView extends FrameLayout
 
     private boolean isRoundedBorders() {
         return mBorderRadiusFlags > 0f;
+    }
+
+    public void setPauseButtonPress(boolean mIsPauseButtonPress) {
+        this.mIsPauseButtonPress = mIsPauseButtonPress;
+    }
+
+    public boolean isPauseButtonPress() {
+        return mIsPauseButtonPress;
     }
 
     public void start() {
@@ -1301,9 +1312,17 @@ public class FlexVideoView extends FrameLayout
             if (mMuted != null) {
                 mPlayer.setMuted(mMuted);
             }
+            mPlayer.setSpeed(mSpeed);
             mPlayer.setDataSource(mUri);
             mPlayer.setEventListener(this);
             mControlsManager.attachPlayer(mPlayer);
+        }
+    }
+
+    public void setSpeed(float speed) {
+        mSpeed = speed;
+        if (mPlayer != null) {
+            mPlayer.setSpeed(speed);
         }
     }
 
