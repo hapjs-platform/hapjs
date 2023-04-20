@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets.view.readerdiv;
@@ -231,7 +231,26 @@ public class ReaderText extends AppCompatTextView {
             mLineY += getLineHeight();
         }
         if (hasDrawCount > 0 && mPageData.size() > 0
-                && hasDrawCount < (mPageData.size() - 1)) {
+                && hasDrawCount < mPageData.size()) {
+            for (int i = hasDrawCount; i < mPageData.size(); i++) {
+                String pageLineStr = mPageData.get(i);
+                if (!TextUtils.isEmpty(pageLineStr)) {
+                    canvas.save();
+                    canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
+                    canvas.drawColor(mBgColor);
+                    canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
+                    canvas.restore();
+                }
+                //背景色
+                if (!TextUtils.isEmpty(pageLineStr) && mIsLineBgInvalid && i >= mStartLine && i < mEndLine) {
+                    canvas.save();
+                    canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
+                    canvas.drawColor(mLineBgColor);
+                    canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
+                    canvas.restore();
+                }
+                mLineY += getLineHeight();
+            }
             Log.w(TAG, ReaderLayoutView.READER_LOG_TAG + "onDraw error hasDrawCount  : " + hasDrawCount
                     + " mPageData.size() : " + mPageData.size()
                     + " Layout count : " + (null != layout ? layout.getLineCount() : "null layout"));
