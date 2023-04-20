@@ -139,8 +139,4 @@
     <string name="analyzer_network_retry_reopen">, and start debugging again.</string>
     <string name="menubar_tips_special">Click to add <xliff:g id="app">%1$s</xliff:g> to the desktop,which is more convenient to use next time.</string>
     <string name="menubar_added_shortcut_tips">Added to desktop \"<xliff:g id="app">%1$s</xliff:g>\" </string>
-    <!-- shortcutbtn-->
-    <string name="shortcut_add_shortcut_mini">Add to desktop</string>
-    <string name="shortcut_add_shortcut_desktop">Add to desktop</string>
-    <string name="shortcut_add_shortcut_long">Add to desktop</string>
 </resources>

@@ -93,18 +93,8 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     private static final String TITLE_BAR = "titlebar";
     private static final String TITLE = "title";
     private static final String PLAY_COUNT = "playcount";
-    private static final String SPEED = "speed";
 
     private static final String CURRENT_TIME = "currenttime";
-
-    //pause reason
-    private static final String PAUSE_CODE = "pauseCode";
-    // 按下视频左下角暂停按钮，导致视频暂停
-    private static final int VIDEO_PAUSE_OF_PRESS_PAUSE_BUTTON = 201;
-    // 调用快应用官方文档中的视频暂停方法，导致视频暂停
-    private static final int VIDEO_PAUSE_OF_CALL_PAUSE_METHOD = 202;
-    // 其他情况导致视频暂停
-    private static final int VIDEO_PAUSE_OF_OTHER_REASON = 203;
 
     private String mUri;
     private String mParseUriStr;
@@ -124,12 +114,8 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     private static final String RESULT_SIZE = "size";
 
     private static final int IMAGE_QUALITY = 100;
-    public static final float SPEED_DEFAULT = 1.0f;
     private long mMinLastModified;
     private static final long MAX_ALIVE_TIME_MILLIS = 60 * 60 * 1000L;
-
-    private boolean mCallFromPauseMethod;
-    private FlexVideoView mVideoView;
 
     public Video(
             HapEngine hapEngine,
@@ -145,10 +131,10 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
     @Override
     protected FlexVideoView createViewImpl() {
         boolean visible = Attributes.getBoolean(mAttrsDomData.get(CONTROLS), true);
-        mVideoView = new FlexVideoView(mContext, visible);
-        mVideoView.setComponent(this);
-        mVideoView.setIsLazyCreate(mLazyCreate);
-        mVideoView.setOnPreparedListener(new FlexVideoView.OnPreparedListener() {
+        final FlexVideoView videoView = new FlexVideoView(mContext, visible);
+        videoView.setComponent(this);
+        videoView.setIsLazyCreate(mLazyCreate);
+        videoView.setOnPreparedListener(new FlexVideoView.OnPreparedListener() {
             @Override
             public void onPrepared(IMediaPlayer mp) {
                 if (mHost == null || !mHost.isAttachedToWindow()) {
@@ -172,9 +158,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                 if (lastPosition > 0) {
                     mp.seek(lastPosition);
                     setLastPosition(-1);
-                    mVideoView.start();
+                    videoView.start();
                 } else if (mAutoPlay) {
-                    mVideoView.start();
+                    videoView.start();
                 } else {
                     Log.w(TAG, "createViewImpl onPrepared else  lastPosition : " + lastPosition);
                 }
@@ -186,7 +172,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         getOrCreateBackgroundComposer().setBackgroundColor(0xee000000);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mVideoView.setOutlineProvider(
+            videoView.setOutlineProvider(
                     new ViewOutlineProvider() {
                         @Override
                         public void getOutline(View view, Outline outline) {
@@ -204,9 +190,9 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                             }
                         }
                     });
-            mVideoView.setClipToOutline(true);
+            videoView.setClipToOutline(true);
         }
-        return mVideoView;
+        return videoView;
     }
 
     @Override
@@ -273,17 +259,6 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                 }
                 super.setAttribute(key, attribute);
                 return true;
-            case SPEED:
-                String speedStr = Attributes.getString(attribute, "1");
-                float speed = SPEED_DEFAULT;
-                try {
-                    speed = Float.parseFloat(speedStr);
-                } catch (NumberFormatException e) {
-                    Log.d(TAG, "parse speed error:" + e);
-                    speed = SPEED_DEFAULT;
-                }
-                setSpeed(speed);
-                return true;
             default:
                 break;
         }
@@ -340,16 +315,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                     new FlexVideoView.OnPauseListener() {
                         @Override
                         public void onPause() {
-                            Map<String, Object> params = new HashMap<>(1);
-                            if (mVideoView != null && mVideoView.isPauseButtonPress()) {
-                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_PRESS_PAUSE_BUTTON);
-                            } else if (mCallFromPauseMethod) {
-                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_CALL_PAUSE_METHOD);
-                            } else {
-                                params.put(PAUSE_CODE, VIDEO_PAUSE_OF_OTHER_REASON);
-                            }
-                            Log.i(TAG, "pauseCode: " + params.get(PAUSE_CODE));
-                            mCallback.onJsEventCallback(getPageId(), mRef, PAUSE, Video.this, params,
+                            mCallback.onJsEventCallback(getPageId(), mRef, PAUSE, Video.this, null,
                                     null);
                         }
                     });
@@ -528,9 +494,7 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         if (mHost == null) {
             return;
         }
-        mCallFromPauseMethod = true;
         mHost.pause();
-        mCallFromPauseMethod = false;
     }
 
     private void requestFullscreen(int screenOrientation) {
@@ -904,12 +868,5 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
             default:
                 break;
         }
-    }
-
-    private void setSpeed(float speed) {
-        if (speed <= 0) {
-            speed = SPEED_DEFAULT;
-        }
-        mHost.setSpeed(speed);
     }
 }
