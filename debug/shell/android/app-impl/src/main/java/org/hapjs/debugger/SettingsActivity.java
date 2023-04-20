@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.debugger;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -170,17 +171,23 @@ public class SettingsActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(Preference preference) {
-            if (preference.getKey().equals(getString(R.string.setting_item_feedback_key))) {
-                Toast.makeText(getActivity(), R.string.setting_item_feedback, Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (preference.getKey().equals(getString(R.string.setting_item_instruction_key))) {
-                Toast.makeText(getActivity(), R.string.setting_item_instruction, Toast.LENGTH_SHORT).show();
+            if (preference.getKey().equals(getString(R.string.setting_item_instruction_key))) {
+                Intent intent = new Intent(getActivity(), WebActivity.class);
+                intent.putExtra(WebActivity.KEY_URL, "https://doc.quickapp.cn/ide/machine-debug.html");
+                intent.putExtra(WebActivity.KEY_TITLE, preference.getTitle());
+                getActivity().startActivity(intent);
                 return true;
             } else if (preference.getKey().equals(getString(R.string.setting_item_faq_key))) {
-                Toast.makeText(getActivity(), R.string.setting_item_faq, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), WebActivity.class);
+                intent.putExtra(WebActivity.KEY_URL, "https://faq.quickapp.cn/");
+                intent.putExtra(WebActivity.KEY_TITLE, preference.getTitle());
+                getActivity().startActivity(intent);
                 return true;
             } else if (preference.getKey().equals(getString(R.string.setting_item_doc_key))) {
-                Toast.makeText(getActivity(), R.string.setting_item_doc, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), WebActivity.class);
+                intent.putExtra(WebActivity.KEY_URL, "https://doc.quickapp.cn/");
+                intent.putExtra(WebActivity.KEY_TITLE, preference.getTitle());
+                getActivity().startActivity(intent);
                 return true;
             }
             return super.onPreferenceTreeClick(preference);

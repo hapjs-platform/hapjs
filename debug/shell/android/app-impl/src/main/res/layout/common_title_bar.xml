@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (c) 2023, the hapjs-platform Project Contributors
+  SPDX-License-Identifier: Apache-2.0
+-->
+<org.hapjs.debugger.TitleBar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/title_bar"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:layout_marginBottom="0.5dp"
+    android:background="@android:color/white">
+
+    <RelativeLayout
+        android:id="@+id/title_back_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/back_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="21dp"
+            android:src="@drawable/back"
+            android:visibility="visible" />
+
+        <TextView
+            android:id="@+id/title"
+            style="@style/common_title_text_style"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="21dp"
+            android:layout_toEndOf="@+id/back_icon"
+            android:ellipsize="end"
+            android:gravity="start|center_vertical"
+            android:singleLine="true"
+            android:text="@string/feedback_title"
+            android:textDirection="locale"
+            android:textSize="16sp"
+            android:visibility="visible" />
+    </RelativeLayout>
+</org.hapjs.debugger.TitleBar>

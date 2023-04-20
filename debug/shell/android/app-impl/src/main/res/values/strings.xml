@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -109,7 +109,6 @@
     <string name="setting_item_set_params_hint">Example: /pageName?key=value or key=value</string>
     <string name="toast_params_illegal">Params cannot contain \"__DEBUG_PARAMS__\"</string>
     <string name="setting_category_help">Help</string>
-    <string name="setting_item_feedback">Feedback</string>
     <string name="setting_item_instruction">Instructions</string>
     <string name="setting_item_faq">FAQ</string>
     <string name="setting_item_doc">Document</string>
@@ -119,7 +118,6 @@
     <string name="setting_item_wait_connect_key" translatable="false">setting_item_wait_connect</string>
     <string name="setting_item_web_debug_key" translatable="false">setting_item_web_debug</string>
     <string name="setting_item_reload_key" translatable="false">setting_item_reload</string>
-    <string name="setting_item_feedback_key" translatable="false">setting_item_feedback</string>
     <string name="setting_item_instruction_key" translatable="false">setting_item_instruction</string>
     <string name="setting_item_faq_key" translatable="false">setting_item_faq</string>
     <string name="setting_item_doc_key" translatable="false">setting_item_doc</string>
@@ -171,4 +169,5 @@
     <string name="toast_app_not_install">The App is not installed</string>
     <string name="toast_invalid_pem">Invalid PEM file</string>
     <string name="str_save">Save</string>
+    <string name="feedback_title">Question Feedback </string>
 </resources>
