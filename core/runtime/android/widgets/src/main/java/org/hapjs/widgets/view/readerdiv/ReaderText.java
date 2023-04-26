@@ -8,7 +8,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -81,7 +80,6 @@ public class ReaderText extends AppCompatTextView {
         mPageData.clear();
         mPageData.addAll(datas);
         mText = getDrawPageString(mPageData);
-        setText(mText);
     }
 
     @Override
@@ -181,63 +179,29 @@ public class ReaderText extends AppCompatTextView {
         TextPaint paint = getPaint();
         paint.setTextSize(mTextSize);
         paint.drawableState = getDrawableState();
-        CharSequence tmpChars = getText();
-        String text = tmpChars.toString();
         mLineY = 0;
-        Layout layout = getLayout();
-        if (null == layout) {
-            Log.w(TAG, ReaderLayoutView.READER_LOG_TAG + "onDraw error layout is null.");
-            return;
-        }
         int hasDrawCount = 0;
-        for (int i = 0; i < layout.getLineCount(); i++) {
+        for (int i = 0; i < mPageData.size(); i++) {
             hasDrawCount++;
-            int lineStart = layout.getLineStart(i);
-            int lineEnd = layout.getLineEnd(i);
-            String line = text.substring(lineStart, lineEnd);
-            if (null != line && i < mPageData.size()) {
-                String lineReal = line.trim();
-                String pageLineStr = mPageData.get(i);
-                if (null != lineReal
-                        && null != pageLineStr
-                        && !lineReal.equals(pageLineStr)) {
-                    //可以限定是非段尾情况
-                    canvas.save();
-                    canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
-                    canvas.drawColor(mBgColor);
-                    canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
-                    canvas.restore();
-                } else {
-                    //canvas.drawColor(mBgColor);
-                }
-                //背景色
-                if (!TextUtils.isEmpty(pageLineStr) && mIsLineBgInvalid && i >= mStartLine && i < mEndLine) {
-                    canvas.save();
-                    canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
-                    canvas.drawColor(mLineBgColor);
-                    canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
-                    //canvas.drawColor(Color.BLUE);
-                    canvas.restore();
-                    //仅生效当前一次
-                }
-            } else {
-                if (null != line && i >= mPageData.size()) {
-                    canvas.save();
-                    canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
-                    canvas.drawColor(mBgColor);
-                    canvas.restore();
-                }
+            String pageLineStr = mPageData.get(i);
+            if (!TextUtils.isEmpty(pageLineStr)) {
+                canvas.save();
+                canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
+                canvas.drawColor(mBgColor);
+                canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
+                canvas.restore();
+            }
+            //背景色
+            if (!TextUtils.isEmpty(pageLineStr) && mIsLineBgInvalid && i >= mStartLine && i < mEndLine) {
+                canvas.save();
+                canvas.clipRect(new RectF(0, mLineY, getWidth(), mLineY + mLineHeight));
+                canvas.drawColor(mLineBgColor);
+                canvas.drawText(pageLineStr, 0, mLineY + mTextSize, paint);
+                canvas.restore();
             }
             mLineY += getLineHeight();
         }
-        if (hasDrawCount > 0 && mPageData.size() > 0
-                && hasDrawCount < (mPageData.size() - 1)) {
-            Log.w(TAG, ReaderLayoutView.READER_LOG_TAG + "onDraw error hasDrawCount  : " + hasDrawCount
-                    + " mPageData.size() : " + mPageData.size()
-                    + " Layout count : " + (null != layout ? layout.getLineCount() : "null layout"));
-        }
     }
-
 
     private boolean mIsLineBgInvalid = false;
     private int mStartLine = -1;
