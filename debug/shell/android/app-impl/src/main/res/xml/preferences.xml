@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -58,11 +58,6 @@
         android:title="@string/setting_category_help"
         app:allowDividerAbove="false"
         app:allowDividerBelow="false">
-        <Preference
-            android:key="@string/setting_item_feedback_key"
-            android:title="@string/setting_item_feedback"
-            app:icon="@mipmap/ic_forward"
-            app:layout="@layout/preference_edittext" />
         <Preference
             android:icon="@mipmap/ic_forward"
             android:key="@string/setting_item_instruction_key"

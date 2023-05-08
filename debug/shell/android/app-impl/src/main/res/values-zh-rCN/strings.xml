@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -106,7 +106,6 @@
     <string name="setting_item_set_params_hint">如: /pageName?key=value 或 key=value</string>
     <string name="toast_params_illegal">参数不能包含\"__DEBUG_PARAMS__\"</string>
     <string name="setting_category_help">帮助</string>
-    <string name="setting_item_feedback">问题反馈</string>
     <string name="setting_item_instruction">使用说明</string>
     <string name="setting_item_faq">常见问题</string>
     <string name="setting_item_doc">开发文档</string>
@@ -158,4 +157,5 @@
     <string name="toast_app_not_install">应用未安装</string>
     <string name="toast_invalid_pem">文件格式错误</string>
     <string name="str_save">保存</string>
+    <string name="feedback_title">问题反馈</string>
 </resources>

@@ -61,6 +61,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.MotionEventCompat;
 import androidx.core.view.NestedScrollingChildHelper;
@@ -79,6 +80,7 @@ import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.bridge.provider.webview.WebviewSettingProvider;
 import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.FeatureInnerBridge;
+import org.hapjs.common.utils.FileHelper;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.common.utils.NavigationUtils;
 import org.hapjs.common.utils.ThreadUtils;
@@ -1338,6 +1340,12 @@ public class NestedWebView extends WebView
                                         mCacheVideoFile = null;
                                     }
                                     result = tmpResults;
+                                } else {
+                                    //photo or video sometimes go here
+                                    if ((mCachePhotoFile == null || !mCachePhotoFile.exists() || mCachePhotoFile.length() == 0) && (mCacheVideoFile == null || !mCacheVideoFile.exists() || mCacheVideoFile.length() == 0)) {
+                                        //not check photo or video
+                                        result = blockPrivatePaths(result);
+                                    }
                                 }
                             }
                             if (null != result && result.length > 0 && result[0] == null) {
@@ -1357,6 +1365,56 @@ public class NestedWebView extends WebView
                         }
                     }
                 });
+    }
+
+    private Uri[] blockPrivatePaths(Uri[] resultList) {
+        if (resultList != null && resultList.length > 0) {
+            for (Uri result : resultList) {
+                if (result != null) {
+                    String path = FileHelper.getFileFromContentUri(mContext, result);
+                    String dataData = "/data/data/" + mContext.getPackageName();
+                    String dataUser = dataData;
+                    File dataDir = ContextCompat.getDataDir(mContext);
+                    String filePath = "";
+                    try {
+                        filePath = new File(path).getCanonicalPath();
+                    } catch (IOException e) {
+                        Log.e(TAG, "blockPrivatePaths: ", e);
+                        return new Uri[0];
+                    }
+                    String externalData = "/sdcard/Android/data/" + mContext.getPackageName();
+                    if (dataDir != null) {
+                        dataUser = dataDir.getPath();
+                    }
+                    if (!TextUtils.isEmpty(filePath)) {
+                        if (filePath.startsWith(dataData) || filePath.startsWith(dataUser)) {
+                            return new Uri[0];
+                        }
+                        if (filePath.toLowerCase().startsWith(externalData.toLowerCase())) {
+                            return new Uri[0];
+                        }
+                        File[] externalFilesDirs = mContext.getExternalFilesDirs(null);
+                        if (checkPath(filePath, externalFilesDirs)) return new Uri[0];
+                        File[] externalCacheDirs = mContext.getExternalCacheDirs();
+                        if (checkPath(filePath, externalCacheDirs)) return new Uri[0];
+                        File[] externalMediaDirs = mContext.getExternalMediaDirs();
+                        if (checkPath(filePath, externalMediaDirs)) return new Uri[0];
+                    }
+                }
+            }
+        }
+        return resultList;
+    }
+
+    private boolean checkPath(String path, File[] files) {
+        if (files != null) {
+            for (File file : files) {
+                if (path.toLowerCase().startsWith(file.getAbsolutePath().toLowerCase())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void resolveLowApiResult() {
@@ -1395,6 +1453,16 @@ public class NestedWebView extends WebView
                                         mCacheVideoFile = null;
                                     }
                                     result = tmpResults;
+                                } else {
+                                    //photo or video sometimes go here
+                                    if ((mCachePhotoFile == null || !mCachePhotoFile.exists() || mCachePhotoFile.length() == 0) && (mCacheVideoFile == null || !mCacheVideoFile.exists() || mCacheVideoFile.length() == 0)) {
+                                        //not check photo or video
+                                        Uri[] results = new Uri[]{result};
+                                        Uri[] resultsAfterCheck = blockPrivatePaths(results);
+                                        if (resultsAfterCheck.length == 0) {
+                                            result = null;
+                                        }
+                                    }
                                 }
                             }
                             if (null != mSingleFileCallback) {
@@ -2265,7 +2333,7 @@ public class NestedWebView extends WebView
         public final void onGlobalLayout() {
             getWindowVisibleDisplayFrame(mTempVisibleRect);
 
-            View contentRoot = ((ViewGroup) getRootView()).getChildAt(0);
+            View contentRoot = getAdjustKeyboardHostView();
             int[] contentRootLocation = {0, 0};
             contentRoot.getLocationOnScreen(contentRootLocation);
             int contentRootBottom = contentRootLocation[1] + contentRoot.getHeight();
