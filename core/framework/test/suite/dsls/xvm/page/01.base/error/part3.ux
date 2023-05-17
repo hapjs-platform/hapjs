@@ -19,7 +19,7 @@
     },
     onReady() {
       this.$watch('title', () => {
-        throw new Error('part3: watcher callback error')
+        throw new Error(`part3: watcher callback error, isBubble: ${this.isBubble}`)
       })
     },
     onErrorCaptured(err, vm, info) {

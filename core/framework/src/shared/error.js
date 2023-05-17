@@ -8,36 +8,56 @@ import XLinker from 'src/dsls/xvm/vm/linker'
 import { isPromise } from 'src/shared/util'
 
 /**
+ * 在卡片环境下获取页面的vm
+ * @param page page 实例
+ */
+function getPageVmInCard(page) {
+  let vm
+  if (global.Env.engine === global.ENGINE_TYPE.CARD && page && page._isPage) {
+    vm = page.vm
+  }
+  return vm
+}
+
+/**
  * 触发 页面/组件 的 onErrorCaptured 回调
  * @param err 捕获的错误
  * @param vm vm
  * @param info 附加错误信息
  * @param app app 实例
+ * @param page page 实例
  */
-function xHandleError(err, vm, info = '', app) {
+function xHandleError(err, vm, info = '', app, page) {
   // 在处理错误处理程序时禁用 linker 跟踪，以避免可能的无限渲染
   XLinker.pushTarget()
   try {
+    let curVm
+
     info = String(info)
     if (vm) {
-      let curVm = vm
+      curVm = vm
+    } else {
+      // 卡片环境无法收集 app.ux 中定义的生命周期回调
+      // 部分拿不到vm的场景（定时器回调、接口回调）无法触发 onErrorHandler 回调
+      // 故在此做兼容，使其触发页面的 onErrorCaptured 回调
+      curVm = getPageVmInCard(page)
+    }
 
-      while (curVm) {
-        const hooks = curVm._errorCapturedCbs
+    while (curVm) {
+      const hooks = curVm._errorCapturedCbs
 
-        if (hooks) {
-          for (let i = 0; i < hooks.length; i++) {
-            try {
-              // 是否需要将错误向上传递
-              const capture = hooks[i].call(curVm, err, vm, info) === false
-              if (capture) return
-            } catch (e) {
-              xGlobalHandleError(e, curVm, `page/component: lifecycle for "onErrorCaptured"`, app)
-            }
+      if (hooks) {
+        for (let i = 0; i < hooks.length; i++) {
+          try {
+            // 是否需要将错误向上传递
+            const capture = hooks[i].call(curVm, err, vm, info) === false
+            if (capture) return
+          } catch (e) {
+            xGlobalHandleError(e, curVm, `page/component: lifecycle for "onErrorCaptured"`, app)
           }
         }
-        curVm = curVm._parent
       }
+      curVm = curVm._parent
     }
     xGlobalHandleError(err, vm, info, app)
   } finally {
@@ -53,19 +73,20 @@ function xHandleError(err, vm, info = '', app) {
  * @param vm vm
  * @param info 附加错误信息
  * @param app app 实例
+ * @param page page 实例
  */
-function xInvokeWithErrorHandling(handler, context, args, vm, info, app) {
+function xInvokeWithErrorHandling(handler, context, args, vm, info, app, page) {
   let res
   try {
     res = args ? handler.apply(context, args) : handler.call(context)
     // 回调有可能是 async 函数，返回值为 promise，所以需要对该 promise 内部的错误进行捕获
     if (res && !res._isXVm && isPromise(res) && !res._handled) {
-      res.catch(e => xHandleError(e, vm, info, app))
+      res.catch(e => xHandleError(e, vm, info, app, page))
       // 防止因 xInvokeWithErrorHandling 嵌套导致错误重复捕获
       res._handled = true
     }
   } catch (e) {
-    xHandleError(e, vm, info, app)
+    xHandleError(e, vm, info, app, page)
   }
   return res
 }
@@ -122,7 +143,7 @@ function appError(app, err) {
       }
     }
   } catch (e) {
-    xLogError(e, undefined, 'app: lifecycle for "onError')
+    xLogError(e, undefined, 'app: lifecycle for "onError"')
   }
 }
 

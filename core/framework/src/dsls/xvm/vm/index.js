@@ -955,20 +955,15 @@ export default class XVm {
     }
     // 保存初始表达式, 供 watcher 内部使用，eg: 'data.msg'
     calc.originExp = target
-    const watcher = new XWatcher(
-      vm,
-      calc,
-      function(value, oldValue) {
-        // 如果函数计算结果是对象则始终认为值被改变，如果是基本类型则进行比较
-        if (typeof value !== 'object' && value === oldValue) {
-          // 如果值没改变则直接返回
-          return
-        }
-        // 执行回调
-        return cb.apply(vm, [value, oldValue])
-      },
-      { errorCapture: true }
-    )
+    const watcher = new XWatcher(vm, calc, function(value, oldValue) {
+      // 如果函数计算结果是对象则始终认为值被改变，如果是基本类型则进行比较
+      if (typeof value !== 'object' && value === oldValue) {
+        // 如果值没改变则直接返回
+        return
+      }
+      // 执行回调
+      return cb.apply(vm, [value, oldValue])
+    })
     return watcher
   }
 

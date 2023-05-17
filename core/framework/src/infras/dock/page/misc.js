@@ -125,7 +125,7 @@ function callback(inst, callbackId, args = [], preserved) {
     const _app = inst.app || {}
 
     // 执行回调
-    const ret = xInvokeWithErrorHandling(callback, undefined, [...args], vm, errInfo, _app)
+    const ret = xInvokeWithErrorHandling(callback, undefined, [...args], vm, errInfo, _app, inst)
 
     // 如果是定时器函数，则保留；否则清除（只使用一次）
     if (typeof preserved === 'undefined' || preserved === false) {
