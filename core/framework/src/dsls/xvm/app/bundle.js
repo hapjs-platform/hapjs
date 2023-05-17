@@ -41,9 +41,18 @@ const $bootstrap = function(app, name, config) {
       // 绑定保留的生命周期
       if (XEvent.isReservedEvent(key)) {
         const keyName = `applc:${key}`
-        app.$on(keyName, options[key])
+        const handler = options[key]
+        if (typeof handler === 'function') {
+          app.$on(keyName, handler)
+        } else {
+          console.warn(`### App Framework ### ${key} must be a function`)
+        }
+      } else if (key === 'onErrorHandler') {
+        console.warn(
+          `### App Framework ### ${key} 生命周期不支持以插件的方式定义，请在 app.ux 导出的对象中定义`
+        )
       } else {
-        console.warn(`### App Framework ### 插件定义的函数，不属于APP生命周期函数：${key}`)
+        console.warn(`### App Framework ### 插件定义的函数: ${key}，不属于 APP 生命周期函数`)
       }
     }
   }
@@ -83,7 +92,7 @@ const $bootstrap = function(app, name, config) {
   )
   profiler.time(`PERF:appOnCreate`)
   console.trace(`### App Framework ### 调用App(${appName})生命周期 onCreate`)
-  app.$emit('applc:onCreate')
+  app._emit('applc:onCreate')
   profiler.timeEnd(`PERF:appOnCreate`)
 }
 

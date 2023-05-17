@@ -10,6 +10,8 @@ import XLinker from './linker'
 
 import { $remove } from '../util'
 
+import { xHandleError, xInvokeWithErrorHandling } from 'src/shared/error'
+
 let _uid = 0
 
 /**
@@ -32,6 +34,7 @@ class XWatcher {
     this.sync = !!this.sync
     this.lazy = !!this.lazy
     this.dirty = this.lazy
+    this.errorCapture = !!this.errorCapture // 是否需要捕获错误
 
     this.vm = vm
     this.vmGetter = global.isRpkDebugMode() ? this.proxy(vm) : vm
@@ -86,11 +89,22 @@ class XWatcher {
    */
   get() {
     XLinker.pushTarget(this)
+    let value
+    const vm = this.vm
     // console.trace(`### App Framework ### XLinker pushTarget ${this.id}`)
-    const value = this.active ? this.getter.call(this.vmGetter, this.vm) : undefined
-    XLinker.popTarget()
-    // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
-    this.clearLink()
+    try {
+      value = this.active ? this.getter.call(this.vmGetter, vm) : undefined
+    } catch (e) {
+      if (this.errorCapture) {
+        xHandleError(e, vm, `getter for watcher "${this.expression}"`)
+      } else {
+        throw e
+      }
+    } finally {
+      XLinker.popTarget()
+      // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
+      this.clearLink()
+    }
     return value
   }
 
@@ -166,8 +180,14 @@ class XWatcher {
         // 设置新值
         const oldValue = this.value
         this.value = value
-        // 调用回调
-        this.cb.call(this.vm, value, oldValue)
+        if (this.errorCapture) {
+          const expression = this.expression ? this.expression.originExp || this.expression : ''
+          const info = `callback for watcher "${expression}"`
+          // 调用回调
+          xInvokeWithErrorHandling(this.cb, this.vm, [value, oldValue], this.vm, info)
+        } else {
+          this.cb.call(this.vm, value, oldValue)
+        }
       }
     }
   }

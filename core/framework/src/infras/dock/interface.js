@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { invokeScript } from 'src/shared/function'
-import { getSessionInstance, changeIsFirstOnShowToFalse, getIsFirstOnShow } from 'src/shared/util'
+import {
+  getSessionInstance,
+  changeIsFirstOnShowToFalse,
+  getIsFirstOnShow,
+  isPlainObject
+} from 'src/shared/util'
 
 import { APP_KEYS } from 'src/shared/events'
 
@@ -35,6 +40,8 @@ import config from './config'
 import { makeTimer } from './timer'
 
 import { bootstrap, methodMap } from './bootstrap'
+
+import { xHandleError } from 'src/shared/error'
 
 // App页面实例表
 const _appMap = {}
@@ -650,7 +657,16 @@ function notifyAppError(id, param) {
     console.trace(`### App Framework ### notifyAppError 应用(${id})响应`)
     if (app.$valid) {
       try {
-        app._emit('applc:onError', param)
+        let err, info
+        if (isPlainObject(param)) {
+          err = param
+          info = param.message
+        } else {
+          err = new Error(`${param}`)
+          info = param
+        }
+        // 同时触发新增的 onErrorHandler 生命周期
+        xHandleError(err, undefined, info, app)
       } catch (err) {
         err.message = `$INTERRUPTION$:${err.message}`
         throw err
@@ -714,7 +730,12 @@ function bindComponentMethods(page, element) {
           // 通知组件方法的调用
           config.publish(APP_KEYS.callbackDone, [page])
           // 调用组件方法
-          const argList = args.map(arg => normalize(arg, page))
+          const argList = args.map(arg =>
+            normalize(arg, page, {
+              vm: element._xvm,
+              info: `callback for ${methodName}`
+            })
+          )
           originalDef.apply(element[methodName], argList)
         }
       }

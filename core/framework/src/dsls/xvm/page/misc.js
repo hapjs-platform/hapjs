@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -129,7 +129,7 @@ function destroyVm(vm) {
     delete vm._data
     delete vm._ids
   })
-  vm.$emit('xlc:onDestroy')
+  vm._emit('xlc:onDestroy')
 
   // 从父 VM 中删除引用
   if (vm._parent && vm._parent._childrenVms) {

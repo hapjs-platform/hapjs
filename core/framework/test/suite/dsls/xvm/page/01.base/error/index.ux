@@ -1,0 +1,129 @@
+<!--
+    Copyright (c) 2023, the hapjs-platform Project Contributors
+    SPDX-License-Identifier: Apache-2.0
+-->
+
+<import name="part1" src="./part1.ux"></import>
+<import name="part2" src="./part2.ux"></import>
+<import name="part3" src="./part3.ux"></import>
+
+<template>
+  <div class="demo-page">
+    <text id="click-btn" class="title" @click="handleClick">欢迎打开{{title}}</text>
+    <text id="dir-text" class="title" dir:test="自定义指令">自定义指令</text>
+    <text if="isShowPart0">{{ errorComputed }}</text>
+    <part1 if="isShowPart1"></part1>
+    <part2 if="isShowPart2" @test-emit="handlerEmit"></part2>
+    <part3 if="isShowPart3"></part3>
+  </div>
+</template>
+
+<script>
+// 示例接口
+import sample from '@system.sample'
+
+export default {
+  data() {
+    return {
+      title: '示例页面',
+      isThrowError: false,
+      isShowPart0: false,
+      isShowPart1: false,
+      isShowPart2: false,
+      isShowPart3: false
+    }
+  },
+  directives: {
+    test: {
+      mounted () {
+        throw new Error('custom directive callback error')
+      }
+    }
+  },
+  computed: {
+    errorComputed() {
+      throw new Error('render error')
+      return this.title
+    }
+  },
+  onInit() {
+    throw new Error('onInit error')
+  },
+  onReady() {
+    this.sample = sample
+    this.$watch('title', () => {
+      throw new Error('watcher callback error')
+    })
+    this.$nextTick(() => {
+      throw new Error('$nextTick callback error')
+    })
+  },
+  onErrorCaptured(err, vm, info) {
+    if (this.isThrowError) {
+      throw new Error('onErrorCaptured error')
+    }
+    this[`page.onErrorCaptured`] = true
+    this[`page.onErrorCaptured.err`] = err.message
+    this[`page.onErrorCaptured.vm`] = vm
+    this[`page.onErrorCaptured.info`] = info
+  },
+  throwError(isThrowError) {
+    this.isThrowError = isThrowError
+  },
+  changeTitle(title) {
+    this.title = title
+  },
+  changeComponentStatus(num, status) {
+    this[`isShowPart${num}`] = status
+  },
+  handleClick() {
+    throw new Error('component event callback error')
+  },
+  handlerEmit() {
+    throw new Error('$emit error')
+  },
+  timeout() {
+    const timer = setTimeout(() => {
+      clearTimeout(timer)
+      throw new Error('setTimeout error')
+    })
+  },
+  timeoutAsync () {
+    const timer = setTimeout(async () => {
+      await this.testAsync()
+      clearTimeout(timer)
+      throw new Error('async setTimeout error')
+    })
+  },
+  async testAsync() {
+    return new Promise((resolve) => {
+      resolve('success')
+    })
+  },
+  interval() {
+    const timer = setInterval(() => {
+      clearInterval(timer)
+      throw new Error('setInterval error')
+    })
+  },
+  requestAnimationFrame() {
+    const timer = requestAnimationFrame(() => {
+      cancelAnimationFrame(timer)
+      throw new Error('requestAnimationFrame error')
+    })
+  }
+}
+</script>
+
+<style>
+  .demo-page {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .title {
+    font-size: 40px;
+    text-align: center;
+  }
+</style>

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { $typeof, isObject, isFunction, uniqueCallbackId } from 'src/shared/util'
+
+import { xInvokeWithErrorHandling } from 'src/shared/error'
 
 // 回调上下文映射
 const _callbackSourceMap = {}
@@ -534,15 +536,31 @@ function invokeNative(inst, module, method, args, moduleInstId) {
         const result = transformModuleResult(inst, ret, module, mthName)
         const code = result.code
         const data = result.data
+        // inst 可能是 page 实例，也可能是 app 实例
+        const app = inst.app || inst || {}
+        let errInfo = ''
+        let cbArgs = null
+        let curCb
+
         if (code === 0 && callbacks.success) {
-          callbacks.success.call(thisContext, data)
+          errInfo = 'success/callback'
+          cbArgs = [data]
+          curCb = callbacks.success
         } else if (code === 100 && callbacks.cancel) {
-          callbacks.cancel.call(thisContext)
+          errInfo = 'cancel'
+          curCb = callbacks.cancel
         } else if (code >= 200 && callbacks.fail) {
-          callbacks.fail.call(thisContext, data, code)
+          errInfo = 'fail'
+          cbArgs = [data, code]
+          curCb = callbacks.fail
+        }
+        if (curCb) {
+          errInfo = `${module.name}: "${errInfo}" callback of "${mthName}"`
+          xInvokeWithErrorHandling(curCb, thisContext, cbArgs, undefined, errInfo, app)
         }
         if (callbacks.complete) {
-          callbacks.complete.call(thisContext, data)
+          errInfo = `${module.name}: "complete" callback of "${mthName}"`
+          xInvokeWithErrorHandling(callbacks.complete, thisContext, [data], undefined, errInfo, app)
         }
 
         if (pInst) {

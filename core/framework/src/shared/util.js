@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -142,6 +142,23 @@ function isPlainObject(obj) {
 }
 
 /**
+ * @param {*} v
+ * @returns {boolean}
+ */
+function isDef(v) {
+  return v !== undefined && v !== null
+}
+
+/**
+ * 是否为 promise 对象
+ * @param {*} v
+ * @returns {boolean}
+ */
+function isPromise(v) {
+  return isDef(v) && typeof v.then === 'function' && typeof v.catch === 'function'
+}
+
+/**
  * 字符串是否以‘$’或‘_’开头（系统保留变量名）
  * @param {string} str
  * @returns {boolean}
@@ -169,6 +186,19 @@ function removeAppPrefix(str) {
     .replace(REGEXP_APPLICATION, '')
     .replace(REGEXP_COMPONENT, '')
     .replace(REGEXP_MODULE, '')
+  return result
+}
+
+const REGEXP_APP = /^applc:/
+const REGEXP_XVM = /^xlc:/
+
+/**
+ * 去除 app 和 xvm 的生命周期前缀
+ * @param {string} str
+ * @return {string}
+ */
+function removeLifecyclePrefix(str) {
+  const result = str.replace(REGEXP_APP, '').replace(REGEXP_XVM, '')
   return result
 }
 
@@ -211,12 +241,14 @@ export {
   isObject,
   isEmptyObject,
   isPlainObject,
+  isPromise,
   isReserved,
   // 应用相关
   isApplication,
   isComponent,
   isModule,
   removeAppPrefix,
+  removeLifecyclePrefix,
   uniqueCallbackId,
   // 引擎性能统计火焰图相关
   createSession,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,7 +10,10 @@ function makeTimer(inst, callback, normalize) {
 
   return {
     setTimeout: function(cb, time) {
-      const cid = normalize(cb, _inst)
+      const cid = normalize(cb, _inst, {
+        vm: undefined,
+        info: 'callback for setTimeout'
+      })
       const handler = function() {
         callback(_inst, cid)
       }
@@ -19,7 +22,10 @@ function makeTimer(inst, callback, normalize) {
       return tid.toString()
     },
     setInterval: function(cb, time) {
-      const cid = normalize(cb, _inst)
+      const cid = normalize(cb, _inst, {
+        vm: undefined,
+        info: 'callback for setInterval'
+      })
       const handler = function() {
         callback(_inst, cid, [], true)
       }
@@ -36,7 +42,10 @@ function makeTimer(inst, callback, normalize) {
       _timerCallbackMap[n] = undefined
     },
     requestAnimationFrame: function(cb) {
-      const cid = normalize(cb, _inst)
+      const cid = normalize(cb, _inst, {
+        vm: undefined,
+        info: 'callback for requestAnimationFrame'
+      })
       const handler = function() {
         callback(_inst, cid)
       }
