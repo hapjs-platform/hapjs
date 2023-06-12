@@ -556,11 +556,19 @@ function invokeNative(inst, module, method, args, moduleInstId) {
         }
         if (curCb) {
           errInfo = `${module.name}: "${errInfo}" callback of "${mthName}"`
-          xInvokeWithErrorHandling(curCb, thisContext, cbArgs, undefined, errInfo, app)
+          xInvokeWithErrorHandling(curCb, thisContext, cbArgs, undefined, errInfo, app, inst)
         }
         if (callbacks.complete) {
           errInfo = `${module.name}: "complete" callback of "${mthName}"`
-          xInvokeWithErrorHandling(callbacks.complete, thisContext, [data], undefined, errInfo, app)
+          xInvokeWithErrorHandling(
+            callbacks.complete,
+            thisContext,
+            [data],
+            undefined,
+            errInfo,
+            app,
+            inst
+          )
         }
 
         if (pInst) {

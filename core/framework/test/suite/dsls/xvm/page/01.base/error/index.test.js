@@ -83,16 +83,14 @@ describe('框架: 01.框架错误捕获测试', () => {
     resetErrorStatus()
   })
 
-  it('render 错误捕获', async () => {
-    pageVm.changeComponentStatus(0, true)
-    await waitForOK()
-
+  it('watcher 表达式错误捕获', () => {
+    // 触发 computed
+    console.trace(pageVm.errorComputed)
     expect(pageVm[`page.onErrorCaptured`]).to.equal(true)
-    expect(pageVm[`page.onErrorCaptured.err`]).to.equal('render error')
+    expect(pageVm[`page.onErrorCaptured.err`]).to.equal('watcher expression error')
     expect(pageVm[`page.onErrorCaptured.vm`]).to.equal(pageVm)
-    expect(pageVm[`page.onErrorCaptured.info`]).to.equal('render')
+    expect(pageVm[`page.onErrorCaptured.info`]).to.includes('getter for watcher')
 
-    pageVm.changeComponentStatus(0, false)
     resetErrorStatus()
   })
 
@@ -330,19 +328,25 @@ describe('框架: 01.框架错误捕获测试', () => {
 
     // 组件本身捕获
     expect(curVm[`part3.onErrorCaptured`]).to.equal(true)
-    expect(curVm[`part3.onErrorCaptured.err`]).to.equal('part3: watcher callback error')
+    expect(curVm[`part3.onErrorCaptured.err`]).to.equal(
+      'part3: watcher callback error, isBubble: true'
+    )
     expect(curVm[`part3.onErrorCaptured.vm`]).to.equal(curVm)
     expect(curVm[`part3.onErrorCaptured.vm`]._type).to.equal('part3')
     expect(curVm[`part3.onErrorCaptured.info`]).to.equal('callback for watcher "title"')
     // 错误冒泡到页面
     expect(pageVm[`page.onErrorCaptured`]).to.equal(true)
-    expect(pageVm[`page.onErrorCaptured.err`]).to.equal('part3: watcher callback error')
+    expect(pageVm[`page.onErrorCaptured.err`]).to.equal(
+      'part3: watcher callback error, isBubble: true'
+    )
     expect(pageVm[`page.onErrorCaptured.vm`]).to.equal(curVm)
     expect(pageVm[`page.onErrorCaptured.vm`]._type).to.equal('part3')
     expect(pageVm[`page.onErrorCaptured.info`]).to.equal('callback for watcher "title"')
     // 错误冒泡到全局
     expect(app[`app.onErrorHandler`][0]).to.equal(true)
-    expect(app[`app.onErrorHandler.err`][0]).to.equal('part3: watcher callback error')
+    expect(app[`app.onErrorHandler.err`][0]).to.equal(
+      'part3: watcher callback error, isBubble: true'
+    )
     expect(app[`app.onErrorHandler.vm`][0]).to.equal(curVm)
     expect(app[`app.onErrorHandler.vm`][0]._type).to.equal('part3')
     expect(app[`app.onErrorHandler.info`][0]).to.equal('callback for watcher "title"')
@@ -357,7 +361,9 @@ describe('框架: 01.框架错误捕获测试', () => {
 
     // 组件本身捕获
     expect(curVm[`part3.onErrorCaptured`]).to.equal(true)
-    expect(curVm[`part3.onErrorCaptured.err`]).to.equal('part3: watcher callback error')
+    expect(curVm[`part3.onErrorCaptured.err`]).to.equal(
+      'part3: watcher callback error, isBubble: false'
+    )
     expect(curVm[`part3.onErrorCaptured.vm`]).to.equal(curVm)
     expect(curVm[`part3.onErrorCaptured.vm`]._type).to.equal('part3')
     expect(curVm[`part3.onErrorCaptured.info`]).to.equal('callback for watcher "title"')
@@ -394,6 +400,45 @@ describe('框架: 01.框架错误捕获测试', () => {
     expect(app[`app.onErrorHandler.vm`][0]).to.equal(undefined)
     expect(app[`app.onErrorHandler.info`][0]).to.includes('callback for setTimeout')
 
+    resetErrorStatus()
+  })
+
+  it('兼容卡片环境', async () => {
+    const _oriEngine = global.Env.engine
+    // 手动更改为卡片环境
+    global.Env.engine = global.ENGINE_TYPE.CARD
+
+    // 定时器回调场景
+    pageVm.timeout()
+    await waitForOK()
+
+    // 触发页面的 onErrorCaptured
+    expect(pageVm[`page.onErrorCaptured`]).to.equal(true)
+    expect(pageVm[`page.onErrorCaptured.err`]).to.equal('setTimeout error')
+    expect(pageVm[`page.onErrorCaptured.vm`]).to.equal(undefined)
+    expect(pageVm[`page.onErrorCaptured.info`]).to.includes('callback for setTimeout')
+    resetErrorStatus()
+
+    // 接口回调场景
+    const sample = pageVm.sample
+
+    function interfaceCb(errInfo) {
+      throw new Error(`"${errInfo}" callback for sample`)
+    }
+
+    sample.methodCallback1({ success: () => interfaceCb('success') })
+    await waitForOK()
+
+    // 触发页面的 onErrorCaptured
+    expect(pageVm[`page.onErrorCaptured`]).to.equal(true)
+    expect(pageVm[`page.onErrorCaptured.err`]).to.equal('"success" callback for sample')
+    expect(pageVm[`page.onErrorCaptured.vm`]).to.equal(undefined)
+    expect(pageVm[`page.onErrorCaptured.info`]).to.equal(
+      'system.sample: "success/callback" callback of "methodCallback1"'
+    )
+
+    // 还原宿主环境
+    global.Env.engine = _oriEngine
     resetErrorStatus()
   })
 

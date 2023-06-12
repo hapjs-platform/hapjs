@@ -34,7 +34,6 @@ class XWatcher {
     this.sync = !!this.sync
     this.lazy = !!this.lazy
     this.dirty = this.lazy
-    this.errorCapture = !!this.errorCapture // 是否需要捕获错误
 
     this.vm = vm
     this.vmGetter = global.isRpkDebugMode() ? this.proxy(vm) : vm
@@ -95,11 +94,9 @@ class XWatcher {
     try {
       value = this.active ? this.getter.call(this.vmGetter, vm) : undefined
     } catch (e) {
-      if (this.errorCapture) {
-        xHandleError(e, vm, `getter for watcher "${this.expression}"`)
-      } else {
-        throw e
-      }
+      // 防止存在错误的 computed属性 不断被重新计算，无限触发错误回调
+      this.dirty = false
+      xHandleError(e, vm, `getter for watcher "${this.expression}"`)
     } finally {
       XLinker.popTarget()
       // console.trace(`### App Framework ### XLinker popTarget ${this.id}`)
@@ -180,14 +177,10 @@ class XWatcher {
         // 设置新值
         const oldValue = this.value
         this.value = value
-        if (this.errorCapture) {
-          const expression = this.expression ? this.expression.originExp || this.expression : ''
-          const info = `callback for watcher "${expression}"`
-          // 调用回调
-          xInvokeWithErrorHandling(this.cb, this.vm, [value, oldValue], this.vm, info)
-        } else {
-          this.cb.call(this.vm, value, oldValue)
-        }
+        const expression = this.expression ? this.expression.originExp || this.expression : ''
+        const info = `callback for watcher "${expression}"`
+        // 调用回调
+        xInvokeWithErrorHandling(this.cb, this.vm, [value, oldValue], this.vm, info)
       }
     }
   }

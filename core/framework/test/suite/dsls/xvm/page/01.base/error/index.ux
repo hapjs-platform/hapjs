@@ -11,7 +11,6 @@
   <div class="demo-page">
     <text id="click-btn" class="title" @click="handleClick">欢迎打开{{title}}</text>
     <text id="dir-text" class="title" dir:test="自定义指令">自定义指令</text>
-    <text if="isShowPart0">{{ errorComputed }}</text>
     <part1 if="isShowPart1"></part1>
     <part2 if="isShowPart2" @test-emit="handlerEmit"></part2>
     <part3 if="isShowPart3"></part3>
@@ -27,7 +26,6 @@ export default {
     return {
       title: '示例页面',
       isThrowError: false,
-      isShowPart0: false,
       isShowPart1: false,
       isShowPart2: false,
       isShowPart3: false
@@ -42,7 +40,7 @@ export default {
   },
   computed: {
     errorComputed() {
-      throw new Error('render error')
+      throw new Error('watcher expression error')
       return this.title
     }
   },
