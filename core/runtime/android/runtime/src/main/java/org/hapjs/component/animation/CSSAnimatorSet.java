@@ -30,9 +30,11 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Objects;
+
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
 import org.hapjs.component.bridge.SimpleActivityStateListener;
@@ -228,6 +230,10 @@ public class CSSAnimatorSet {
         }
     }
 
+    public int getRepeatCount() {
+        return mRepeatCount;
+    }
+
     public void start() {
         if (mComponent == null) {
             return;
@@ -262,6 +268,10 @@ public class CSSAnimatorSet {
 
     public void pause() {
         mWrapped.pause();
+    }
+
+    public void resume() {
+        mWrapped.resume();
     }
 
     public void reverse() {
