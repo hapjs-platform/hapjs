@@ -28,7 +28,7 @@ def getPlatformVersionName() {
 
 String PLATFORM_VERSION_TEXT = getPlatformVersionCode()
 String PLATFORM_VERSION_NAME = getPlatformVersionName()
-def JSENV_VERSION = "1.2.8"
+def JSENV_VERSION = "1.2.9"
 
 // add version file
 task addVersionFile(type: Exec) {
@@ -88,7 +88,9 @@ dependencies {
     def jsenv = jsenvArtifactId + "-" + jsenvVersionCode + ".aar"
 
     api fileTree(dir: 'jsenv-libs', include: [jsenv])
-    // api fileTree(include: ['*.aar'], dir: '/yourproject/build/outputs/aar')
+
+    //api jsenv
+    //api fileTree(include: ['*.aar'], dir: '/libs')
     implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
     implementation "androidx.constraintlayout:constraintlayout:${rootProject.androidXconstraintlayoutVersion}"
     implementation "com.google.android.material:material:${rootProject.androidXVersion}"

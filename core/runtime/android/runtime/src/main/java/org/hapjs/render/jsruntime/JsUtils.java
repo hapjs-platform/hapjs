@@ -10,9 +10,11 @@ import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8ArrayBuffer;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,10 +106,13 @@ public class JsUtils {
             } else if (val == null) {
                 obj.addNull(key);
             } else if (val instanceof ArrayBuffer) {
-                V8ArrayBuffer nativeArrayBuffer =
-                        new V8ArrayBuffer(v8, ((ArrayBuffer) val).getByteBuffer());
+                V8ArrayBuffer nativeArrayBuffer = ((ArrayBuffer) val).getV8ArrayBuffer();
                 obj.add(key, nativeArrayBuffer);
                 release(nativeArrayBuffer);
+            } else if (val instanceof ByteBuffer) {
+                V8ArrayBuffer v8ArrayBuffer = new V8ArrayBuffer(v8, (ByteBuffer) val);
+                obj.add(key, v8ArrayBuffer);
+                release(v8ArrayBuffer);
             } else {
                 obj.add(key, val.toString());
             }

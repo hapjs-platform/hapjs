@@ -24,8 +24,6 @@ import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.LifecycleListener;
@@ -37,6 +35,7 @@ import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 import org.hapjs.render.jsruntime.serialize.SerializeArray;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class NFCAdapterInstance extends BaseInstance {
@@ -212,7 +211,10 @@ public class NFCAdapterInstance extends BaseInstance {
 
                     byte[] id = mDiscoveredTag.getId();
                     Log.d(TAG, "id: " + Arrays.toString(id));
-                    resultObj.put(RESULT_ID, new ArrayBuffer(id));
+                    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(id.length);
+                    byteBuffer.put(id);
+                    byteBuffer.rewind();
+                    resultObj.put(RESULT_ID, byteBuffer);
                 } else {
                     Log.e(TAG, "null of discovered tag");
                 }
@@ -264,9 +266,18 @@ public class NFCAdapterInstance extends BaseInstance {
                 SerializeArray arrayRecord = new JavaSerializeArray();
                 for (NdefRecord record : ndefRecords) {
                     SerializeObject recordObj = new JavaSerializeObject();
-                    recordObj.put(RESULT_MESSAGES_RECORD_ID, new ArrayBuffer(record.getId()));
-                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, new ArrayBuffer(record.getPayload()));
-                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, new ArrayBuffer(record.getType()));
+                    ByteBuffer idByteBuffer = ByteBuffer.allocateDirect(record.getId().length);
+                    idByteBuffer.put(record.getId());
+                    idByteBuffer.rewind();
+                    recordObj.put(RESULT_MESSAGES_RECORD_ID, idByteBuffer);
+                    ByteBuffer payloadByteBuffer = ByteBuffer.allocateDirect(record.getPayload().length);
+                    payloadByteBuffer.put(record.getPayload());
+                    payloadByteBuffer.rewind();
+                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, payloadByteBuffer);
+                    ByteBuffer typeByteBuffer = ByteBuffer.allocateDirect(record.getType().length);
+                    typeByteBuffer.put(record.getType());
+                    typeByteBuffer.rewind();
+                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, typeByteBuffer);
                     recordObj.put(RESULT_MESSAGES_RECORD_TNF, record.getTnf());
                     arrayRecord.put(recordObj);
                 }

@@ -6,13 +6,14 @@
 package org.hapjs.features.websocket;
 
 import android.util.Log;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import okhttp3.Headers;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
+
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
@@ -179,7 +180,11 @@ public class SocketTask implements InstanceManager.IInstance {
         if (request != null) {
             byte[] bytes = byteString != null ? byteString.toByteArray() : new byte[0];
             SerializeObject serializeObject = new JavaSerializeObject();
-            serializeObject.put(WebSocket.RESULT_DATA, new ArrayBuffer(bytes));
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes);
+            byteBuffer.rewind();
+
+            serializeObject.put(WebSocket.RESULT_DATA, byteBuffer);
             request.getCallback().callback(new Response(serializeObject));
         }
     }

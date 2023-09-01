@@ -8,14 +8,13 @@ package org.hapjs.features.nfc;
 import android.nfc.NfcAdapter;
 import android.nfc.tech.IsoDep;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.features.nfc.base.BaseTagTechInstance;
 import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class IsoDepInstance extends BaseTagTechInstance {
 
@@ -44,7 +43,10 @@ public class IsoDepInstance extends BaseTagTechInstance {
     public void getHistoricalBytes(Request request) {
         byte[] historicalBytes = mIsoDep.getHistoricalBytes();
         JavaSerializeObject result = new JavaSerializeObject();
-        result.put(NFC.RESULT_HISTORICAL_BYTES, new ArrayBuffer(historicalBytes));
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(historicalBytes.length);
+        byteBuffer.put(historicalBytes);
+        byteBuffer.rewind();
+        result.put(NFC.RESULT_HISTORICAL_BYTES, byteBuffer);
         request.getCallback().callback(new Response(result));
     }
 

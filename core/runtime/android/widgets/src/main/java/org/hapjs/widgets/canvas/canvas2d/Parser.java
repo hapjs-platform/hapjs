@@ -14,7 +14,7 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import androidx.annotation.NonNull;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1597,7 +1597,10 @@ public abstract class Parser {
                                 }
                                 result.put("width", imageData.width);
                                 result.put("height", imageData.height);
-                                result.put("data", new ArrayBuffer(imageData.data));
+                                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(imageData.data.length);
+                                byteBuffer.put(imageData.data);
+                                byteBuffer.rewind();
+                                result.put("data", byteBuffer);
                             }
                         };
                     }
