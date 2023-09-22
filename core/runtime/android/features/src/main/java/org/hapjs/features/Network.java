@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,15 +10,33 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.telephony.CellInfo;
+import android.telephony.CellInfoCdma;
+import android.telephony.CellInfoGsm;
+import android.telephony.CellInfoLte;
+import android.telephony.CellInfoWcdma;
+import android.telephony.CellSignalStrengthCdma;
+import android.telephony.CellSignalStrengthGsm;
+import android.telephony.CellSignalStrengthLte;
+import android.telephony.CellSignalStrengthWcdma;
 import android.telephony.ServiceState;
+import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
+
 import org.hapjs.bridge.CallbackContext;
 import org.hapjs.bridge.CallbackHybridFeature;
 import org.hapjs.bridge.FeatureExtension;
@@ -28,6 +46,7 @@ import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
 import org.hapjs.common.executors.Executors;
+import org.hapjs.common.utils.ReflectUtils;
 import org.hapjs.common.utils.SystemPropertiesUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -78,6 +97,7 @@ public class Network extends CallbackHybridFeature {
     protected static final String ACTION_GET_SIM_OPERATORS = "getSimOperators";
     protected static final String KEY_METERED = "metered";
     protected static final String KEY_TYPE = "type";
+    protected static final String KEY_SIGNAL_STRENGTH = "signalStrength";
     protected static final String KEY_OPERATORS = "operators";
     protected static final String KEY_SIM_SIZE = "size";
     protected static final String KEY_SLOT_INDEX = "slotIndex";
@@ -100,8 +120,13 @@ public class Network extends CallbackHybridFeature {
     private static final int NR_STATE_NOT_RESTRICTED = 2;
     private static final int NR_STATE_CONNECTED = 3;
     private static final String METHOD_GET_NR_STATE = "getNrState";
+    private static final String METHOD_GET_DBM = "getDbm";
     private static final int CODE_NO_SIM_ERROR = Response.CODE_FEATURE_ERROR + 1;
     private static final int CODE_TYPE_ERROR = Response.CODE_FEATURE_ERROR + 2;
+    protected static final int ERROR_SIGNAL_STRENGTH = -1000;
+    protected static final int ERROR_SIGNAL_STRENGTH_WITHOUT_INIT = -1001;
+    protected static final int ERROR_SIGNAL_STRENGTH_OTHER_NETWORK = -1002;
+    protected static final int ERROR_SIGNAL_STRENGTH_NO_CELL_INFO = -1003;
 
     private IntentFilter mFilter;
 
@@ -137,8 +162,107 @@ public class Network extends CallbackHybridFeature {
 
     protected Response doGetNetworkType(Context context) {
         try {
-            ConnectivityManager connectivityManager =
-                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager connectivityManager = (ConnectivityManager) context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+            if (networkInfo == null || !networkInfo.isConnected()) {
+                return makeResponse(false, TYPE_NONE, ERROR_SIGNAL_STRENGTH);
+            }
+            boolean metered = connectivityManager.isActiveNetworkMetered();
+            int networkType = networkInfo.getType();
+            if (networkType == ConnectivityManager.TYPE_MOBILE) {
+                int mobileType = getMobileType(context, networkInfo);
+                int mobileSignalStrength = getMobileSignalStrength(context);
+                return makeResponse(metered, mobileType, mobileSignalStrength);
+            } else if (networkType == ConnectivityManager.TYPE_WIFI) {
+                int wifiSignalStrength = getWifiSignalStrength(context);
+                return makeResponse(metered, TYPE_WIFI, wifiSignalStrength);
+            } else if (networkType == ConnectivityManager.TYPE_BLUETOOTH) {
+                return makeResponse(metered, TYPE_BLUETOOTH, ERROR_SIGNAL_STRENGTH_OTHER_NETWORK);
+            } else {
+                Log.e(TAG, "Unknown network type: " + networkType);
+                return makeResponse(metered, TYPE_OTHERS, ERROR_SIGNAL_STRENGTH_OTHER_NETWORK);
+            }
+        } catch (SecurityException e) {
+            return getExceptionResponse(ACTION_GET_TYPE, e, Response.CODE_GENERIC_ERROR);
+        } catch (JSONException e) {
+            return getExceptionResponse(ACTION_GET_TYPE, e, Response.CODE_GENERIC_ERROR);
+        }
+    }
+
+    private int getMobileSignalStrength(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (telephonyManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+                SignalStrength signalStrength = telephonyManager.getSignalStrength();
+                return getMobileSignalStrengthFromSignalStrength(signalStrength);
+            }
+            else {
+                return getMobileSignalStrengthFromCellInfo(context, telephonyManager);
+            }
+        }
+        return ERROR_SIGNAL_STRENGTH;
+    }
+
+    private int getMobileSignalStrengthFromCellInfo(Context context, TelephonyManager telephonyManager) {
+        int signalStrength = ERROR_SIGNAL_STRENGTH;
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "return default signal strength because no permission.");
+            return ERROR_SIGNAL_STRENGTH_WITHOUT_INIT;
+        }
+        List<CellInfo> cellInfoList = telephonyManager.getAllCellInfo();
+        if (cellInfoList != null && cellInfoList.size() > 0) {
+            for (CellInfo cellInfo : cellInfoList) {
+                if (cellInfo.isRegistered()) {
+                    if (cellInfo instanceof CellInfoGsm) {
+                        CellSignalStrengthGsm cellSignalStrengthGsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
+                        signalStrength = cellSignalStrengthGsm.getDbm();
+                    } else if (cellInfo instanceof CellInfoCdma) {
+                        CellSignalStrengthCdma cellSignalStrengthCdma = ((CellInfoCdma) cellInfo).getCellSignalStrength();
+                        signalStrength = cellSignalStrengthCdma.getDbm();
+                    } else if (cellInfo instanceof CellInfoLte) {
+                        CellSignalStrengthLte cellSignalStrengthLte = ((CellInfoLte) cellInfo).getCellSignalStrength();
+                        signalStrength = cellSignalStrengthLte.getDbm();
+                    } else if (cellInfo instanceof CellInfoWcdma) {
+                        CellSignalStrengthWcdma cellSignalStrengthWcdma = ((CellInfoWcdma) cellInfo).getCellSignalStrength();
+                        signalStrength = cellSignalStrengthWcdma.getDbm();
+                    }
+                    break;
+                }
+            }
+        }else {
+            Log.e(TAG, "return default signal strength because cellInfoList is empty.");
+            signalStrength = ERROR_SIGNAL_STRENGTH_NO_CELL_INFO;
+        }
+        return signalStrength;
+    }
+
+    private int getMobileSignalStrengthFromSignalStrength(SignalStrength signalStrength) {
+        try {
+            Object value = ReflectUtils.invokeDeclaredMethod(
+                    SignalStrength.class.getName(), signalStrength, METHOD_GET_DBM, new Class[]{}, new Object[]{});
+            if (value != null){
+                return (int)value;
+            }
+        }catch (Exception e){
+            Log.e(TAG,"return default signal strength because reflection getDbm failed.",e);
+        }
+        return ERROR_SIGNAL_STRENGTH;
+    }
+
+    private int getWifiSignalStrength(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            return wifiInfo.getRssi();
+        }
+        return ERROR_SIGNAL_STRENGTH;
+    }
+
+    protected Response doSubsrcibeResponse(Context context) {
+        try {
+            ConnectivityManager connectivityManager = (ConnectivityManager) context
+                    .getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
             if (networkInfo == null || !networkInfo.isConnected()) {
                 return makeResponse(false, TYPE_NONE);
@@ -161,6 +285,14 @@ public class Network extends CallbackHybridFeature {
         } catch (JSONException e) {
             return getExceptionResponse(ACTION_GET_TYPE, e, Response.CODE_GENERIC_ERROR);
         }
+    }
+
+    private Response makeResponse(boolean metered, int type, int signalStrength) throws JSONException {
+        JSONObject result = new JSONObject();
+        result.put(KEY_METERED, metered);
+        result.put(KEY_TYPE, TYPE_TEXTS[type]);
+        result.put(KEY_SIGNAL_STRENGTH, signalStrength);
+        return new Response(result);
     }
 
     private Response makeResponse(boolean metered, int type) throws JSONException {
@@ -335,7 +467,7 @@ public class Network extends CallbackHybridFeature {
 
         @Override
         public void callback(int what, Object obj) {
-            Response response = doGetNetworkType(mRequest.getNativeInterface().getActivity());
+            Response response = doSubsrcibeResponse(mRequest.getNativeInterface().getActivity());
             mRequest.getCallback().callback(response);
         }
     }
