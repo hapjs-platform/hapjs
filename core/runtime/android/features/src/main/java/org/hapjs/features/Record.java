@@ -473,10 +473,7 @@ public class Record extends CallbackHybridFeature {
         private SerializeObject makeResult(boolean isLastFrame, byte[] bytes) {
             SerializeObject result = new JavaSerializeObject();
             result.put(RESULT_IS_LAST_FRAME, isLastFrame);
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-            byteBuffer.put(bytes);
-            byteBuffer.rewind();
-            result.put(RESULT_FRAME_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, byteBuffer));
+            result.put(RESULT_FRAME_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, bytes));
             return result;
         }
 

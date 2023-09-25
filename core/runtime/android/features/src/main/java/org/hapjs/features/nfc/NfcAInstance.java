@@ -46,10 +46,7 @@ public class NfcAInstance extends BaseTagTechInstance {
     public void getAtqa(Request request) {
         byte[] atqa = mNfcA.getAtqa();
         SerializeObject resultObj = new JavaSerializeObject();
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(atqa.length);
-        byteBuffer.put(atqa);
-        byteBuffer.rewind();
-        resultObj.put(NFC.RESULT_ATQA, byteBuffer);
+        resultObj.put(NFC.RESULT_ATQA, atqa);
         request.getCallback().callback(new Response(resultObj));
     }
 

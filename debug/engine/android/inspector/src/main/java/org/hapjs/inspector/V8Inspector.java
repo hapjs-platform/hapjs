@@ -45,6 +45,7 @@ import org.hapjs.inspector.reflect.Method;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
 import org.hapjs.render.VDomChangeAction;
+import org.hapjs.render.jsruntime.IJsEngine;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
@@ -74,10 +75,6 @@ public class V8Inspector implements InspectorProvider {
             android.os.Build.VERSION.SDK_INT >= 21
                     ? new Method("android/os/Message", "recycleUnchecked", "()V")
                     : null;
-
-    static {
-        System.loadLibrary("inspector");
-    }
 
     private final List<VDomChangeActionMessage> mCachedVDomActionMessages = new ArrayList<>();
     private Map<Integer, JsonRpcPeer> mPeerMaps = new ConcurrentHashMap<Integer, JsonRpcPeer>();
@@ -300,21 +297,6 @@ public class V8Inspector implements InspectorProvider {
         return url.startsWith(INSPECTOR_HEAD);
     }
 
-    public V8Object executeObjectScript(final String script) {
-        if (mHandler == null) {
-            return null;
-        }
-        final MessageHandler h = mHandler;
-        return HandlerUtil.postAndWait(
-                h,
-                new UncheckedCallable<V8Object>() {
-                    @Override
-                    public V8Object call() {
-                        return h.mV8.executeObjectScript(script);
-                    }
-                });
-    }
-
     public String executeJsCode(final String jsCode) {
         if (mHandler == null) {
             return null;
@@ -325,23 +307,7 @@ public class V8Inspector implements InspectorProvider {
                 new UncheckedCallable<String>() {
                     @Override
                     public String call() {
-                        return nativeExecuteJsCode(h.mNativePtr, jsCode);
-                    }
-                });
-    }
-
-    @Override
-    public String handleConsoleMessage(final V8Value v8Array) {
-        if (mHandler == null) {
-            return null;
-        }
-        final MessageHandler h = mHandler;
-        return HandlerUtil.postAndWait(
-                h,
-                new UncheckedCallable<String>() {
-                    @Override
-                    public String call() {
-                        return nativeHandleConsoleMessage(h.mNativePtr, v8Array);
+                        return h.mEngine.inspectorExecuteJsCode(h.mNativePtr, jsCode);
                     }
                 });
     }
@@ -376,49 +342,6 @@ public class V8Inspector implements InspectorProvider {
         return paramters;
     }
 
-    public String executeStringFunction(final String name, final Object... args) {
-        if (mHandler == null) {
-            return null;
-        }
-        final MessageHandler h = mHandler;
-        return HandlerUtil.postAndWait(
-                h,
-                new UncheckedCallable<String>() {
-                    @Override
-                    public String call() {
-                        V8Array paramters = createV8Paramters(h.mV8, args);
-                        try {
-                            return h.mV8.executeStringFunction(name, paramters);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    }
-                });
-    }
-
-    public String executeJSONFunction(
-            final String name, final V8ObjectCheck checker, final Object... args) {
-        if (mHandler == null) {
-            return null;
-        }
-        final MessageHandler h = mHandler;
-        return HandlerUtil.postAndWait(
-                h,
-                new UncheckedCallable<String>() {
-                    @Override
-                    public String call() {
-                        try {
-                            Object obj = h.mV8.executeJSFunction(name, args);
-                            return toJSON(obj, checker);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    }
-                });
-    }
-
     public void handleMessage(JsonRpcPeer peer, String message) {
         int hashcode = peer.hashCode();
         mLastSessionId = hashcode;
@@ -434,17 +357,15 @@ public class V8Inspector implements InspectorProvider {
         }
     }
 
-    // @callby native
-    public void sendResponse(int sessionId, int callId, String message) {
-        // JsonRpcPeer peer = mPeerMaps.get(sessionId);
-        // if (peer != null) {
-        //    peer.getWebSocket().sendText(message);
-        // }
+
+    @Override
+    public void inspectorResponse(int sessionId, int callId, String message) {
         mSendHandler.obtainMessage(H.SEND_MESSAGE, sessionId, 0, message).sendToTarget();
     }
 
-    public void sendNotification(int sessionId, int callId, String message) {
-        sendResponse(sessionId, callId, message);
+    @Override
+    public void inspectorSendNotification(int sessionId, int callId, String message) {
+        inspectorResponse(sessionId, callId, message);
     }
 
     @Override
@@ -526,22 +447,22 @@ public class V8Inspector implements InspectorProvider {
     }
 
     @Override
-    public synchronized void onJsContextCreated(V8 v8) {
-        if (mHandler != null && mHandler.mV8 == v8) {
+    public synchronized void onJsContextCreated(IJsEngine engine) {
+        if (mHandler != null && mHandler.mEngine == engine) {
             return;
         }
-        if (mHandler != null && mHandler.mNativePtr != 0 && mHandler.mV8 != null) {
-            mDestroyNatives.add(new DestroyNativeInfo(mHandler.mV8, mHandler.mNativePtr));
+        if (mHandler != null && mHandler.mNativePtr != 0 && mHandler.mEngine != null) {
+            mDestroyNatives.add(new DestroyNativeInfo(mHandler.mEngine, mHandler.mNativePtr));
         }
-        long nativePtr = initNative(mAutoEnable, mLastSessionId);
+        long nativePtr = engine.inspectorInit(mAutoEnable, mLastSessionId);
         if (mIsJsContextFirstCreated) {
-            nativeSetV8Context(nativePtr, v8, 0);
+            engine.inspectorSetV8Context(nativePtr, 0);
             mIsJsContextFirstCreated = false;
         } else {
-            nativeSetV8Context(nativePtr, v8, 1);
+            engine.inspectorSetV8Context(nativePtr, 1);
         }
-        // start the thread handler
-        mHandler = new MessageHandler(nativePtr, v8, Looper.myLooper());
+        //start the thread handler
+        mHandler = new MessageHandler(nativePtr, engine, Looper.myLooper());
         for (ProtocolMessage pm : mCachedProtocolMessages) {
             mHandler
                     .obtainMessage(MessageHandler.HANDLE_MESSAGE, pm.peerHasCode, 0, pm.message)
@@ -558,12 +479,12 @@ public class V8Inspector implements InspectorProvider {
     }
 
     @Override
-    public synchronized void onJsContextDispose(V8 v8) {
-        if (mHandler != null && mHandler.mV8 == v8) {
-            nativeDisposeV8Context(mHandler.mNativePtr);
-            nativeDestroy(mHandler.mNativePtr);
+    public synchronized void onJsContextDispose(IJsEngine engine) {
+        if (mHandler != null && mHandler.mEngine == engine) {
+            engine.inspectorDisposeV8Context(mHandler.mNativePtr);
+            engine.inspectorDestroy(mHandler.mNativePtr);
             mHandler.mNativePtr = 0;
-            mHandler.mV8 = null;
+            mHandler.mEngine = null;
             mHandler = null;
             mAutoEnable = true;
         } else {
@@ -571,7 +492,7 @@ public class V8Inspector implements InspectorProvider {
             DestroyNativeInfo info = null;
             for (i = 0; i < mDestroyNatives.size(); i++) {
                 info = mDestroyNatives.get(i);
-                if (info.v8 == v8) {
+                if (info.engine == engine) {
                     break;
                 }
             }
@@ -581,8 +502,8 @@ public class V8Inspector implements InspectorProvider {
             }
             mDestroyNatives.remove(i);
             if (info.nativePtr != 0) {
-                nativeDisposeV8Context(info.nativePtr);
-                nativeDestroy(info.nativePtr);
+                engine.inspectorDisposeV8Context(info.nativePtr);
+                engine.inspectorDestroy(info.nativePtr);
             }
         }
     }
@@ -612,12 +533,12 @@ public class V8Inspector implements InspectorProvider {
 
     @Override
     public void onBeginLoadJsCode(String uri, String content) {
-        nativeBeginLoadJsCode(uri, content);
+        mHandler.mEngine.inspectorBeginLoadJsCode(uri, content);
     }
 
     @Override
     public void onEndLoadJsCode(String uri) {
-        nativeEndLoadJsCode(uri);
+        mHandler.mEngine.inspectorEndLoadJsCode(uri);
     }
 
     public void domEnabled() {
@@ -658,8 +579,8 @@ public class V8Inspector implements InspectorProvider {
      * 从而让v8虚拟机继续执行。
      *
      */
-    // @Called by native
-    void runMessageLoopOnPause(int contextGroupId) {
+    //@Called by native
+    public void inspectorRunMessageLoopOnPause(int contextGroupId) {
         mPausedLooper = Looper.myLooper();
         if (mPausedLooper == null) {
             return;
@@ -716,7 +637,8 @@ public class V8Inspector implements InspectorProvider {
         }
     }
 
-    void quitMessageLoopOnPause() {
+    @Override
+    public void inspectorQuitMessageLoopOnPause() {
         if (mPausedLooper != null) {
             mHandler.obtainMessage(MessageHandler.PAUSE_QUIT, 0, 0, null).sendToTarget();
         }
@@ -731,7 +653,7 @@ public class V8Inspector implements InspectorProvider {
 
     final void destroy() {
         if (mHandler != null && mHandler.mNativePtr != 0) {
-            nativeDestroy(mHandler.mNativePtr);
+            mHandler.mEngine.inspectorDestroy(mHandler.mNativePtr);
             mHandler.mNativePtr = 0;
         }
     }
@@ -838,11 +760,11 @@ public class V8Inspector implements InspectorProvider {
     }
 
     private static class DestroyNativeInfo {
-        V8 v8;
+        IJsEngine engine;
         long nativePtr;
 
-        DestroyNativeInfo(V8 v8, long nptr) {
-            this.v8 = v8;
+        DestroyNativeInfo(IJsEngine engine, long nptr) {
+            this.engine = engine;
             this.nativePtr = nptr;
         }
     }
@@ -864,18 +786,18 @@ public class V8Inspector implements InspectorProvider {
         static final int HANDLE_MESSAGE = 1;
         static final int PAUSE_QUIT = -1;
         long mNativePtr;
-        V8 mV8;
+        IJsEngine mEngine;
 
-        MessageHandler(long nativeptr, V8 v8, Looper looper) {
+        MessageHandler (long nativeptr, IJsEngine engine, Looper looper) {
             super(looper);
-            this.mV8 = v8;
+            this.mEngine = engine;
             this.mNativePtr = nativeptr;
         }
 
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == HANDLE_MESSAGE) {
-                nativeHandleMessage(mNativePtr, msg.arg1, (String) (msg.obj));
+                mEngine.inspectorHandleMessage(mNativePtr, msg.arg1, (String) (msg.obj));
             }
         }
     }
@@ -926,7 +848,7 @@ public class V8Inspector implements InspectorProvider {
                 // END
                 MessageHandler h = mHandler;
                 rootView.reloadCurrentPage();
-                nativeFrontendReload(h.mNativePtr);
+                h.mEngine.inspectorFrontendReload(h.mNativePtr);
             } catch (NoSuchMethodError e) {
                 Log.e(TAG, "Reload current page error", e);
             }

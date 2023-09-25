@@ -113,6 +113,14 @@ public class JsUtils {
                 V8ArrayBuffer v8ArrayBuffer = new V8ArrayBuffer(v8, (ByteBuffer) val);
                 obj.add(key, v8ArrayBuffer);
                 release(v8ArrayBuffer);
+            } else if (val instanceof byte[]) {
+                byte[] bytes = (byte[]) val;
+                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+                byteBuffer.put(bytes);
+                byteBuffer.rewind();
+                V8ArrayBuffer v8ArrayBuffer = new V8ArrayBuffer(v8, byteBuffer);
+                obj.add(key, v8ArrayBuffer);
+                release(v8ArrayBuffer);
             } else {
                 obj.add(key, val.toString());
             }

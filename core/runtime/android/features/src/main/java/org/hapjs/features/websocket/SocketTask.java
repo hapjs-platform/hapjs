@@ -180,11 +180,8 @@ public class SocketTask implements InstanceManager.IInstance {
         if (request != null) {
             byte[] bytes = byteString != null ? byteString.toByteArray() : new byte[0];
             SerializeObject serializeObject = new JavaSerializeObject();
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-            byteBuffer.put(bytes);
-            byteBuffer.rewind();
 
-            serializeObject.put(WebSocket.RESULT_DATA, byteBuffer);
+            serializeObject.put(WebSocket.RESULT_DATA, bytes);
             request.getCallback().callback(new Response(serializeObject));
         }
     }

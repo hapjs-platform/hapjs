@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
@@ -84,7 +85,7 @@ public class Share extends FeatureExtension {
 
     private ShareAction mShareAction;
     private static final int MSG_ONLINE_SHARE = 0x01;
-    private Handler mHandler = new Handler() {
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {

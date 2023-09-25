@@ -10,10 +10,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.Nullable;
 
-import com.eclipsesource.v8.JavaCallback;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
-import com.eclipsesource.v8.V8Object;
 import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.executors.Executor;
@@ -24,8 +20,8 @@ import org.hapjs.model.AppInfo;
 import org.hapjs.model.CardInfo;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.IJsEngine;
 import org.hapjs.render.jsruntime.JsThread;
-import org.hapjs.render.jsruntime.JsUtils;
 import org.hapjs.render.jsruntime.module.ModuleBridge;
 import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 import org.hapjs.render.jsruntime.serialize.Serializable;
@@ -54,7 +50,6 @@ public class ExtensionManager {
     private LifecycleListenerImpl mLifecycleListener;
     private JsThread mJsThread;
     private WidgetBridge mWidgetBridge;
-    private V8Object mRegisteredInterface;
 
     private FeatureInvokeListener mFeatureInvokeListener;
 
@@ -70,27 +65,19 @@ public class ExtensionManager {
         return !TextUtils.isEmpty(jsCallback) && !UNSET_JS_CALLBACK.equals(jsCallback);
     }
 
-    public void onRuntimeInit(V8 v8) {
-        register(v8);
-
-        publish(ModuleBridge.getModuleMapJSONString());
-    }
-
-    private void register(V8 v8) {
-        JsInterface jsInterface = new JsInterface(this);
-        mRegisteredInterface =
-                JsInterfaceProxy.register(v8, jsInterface, JsInterface.INTERFACE_NAME);
+    public void onRuntimeInit(IJsEngine engine) {
+        publish(engine, ModuleBridge.getModuleMapJSONString());
     }
 
     public void attach(RootView rootView, PageManager pageManager, AppInfo appInfo) {
         mModuleBridge.attach(rootView, pageManager, appInfo);
     }
 
-    public void onRuntimeCreate(AppInfo appInfo) {
+    public void onRuntimeCreate(IJsEngine engine, AppInfo appInfo) {
         mFeatureBridge.addFeatures(appInfo.getFeatureInfos());
 
-        publish(FeatureBridge.getFeatureMapJSONString());
-        publish(WidgetBridge.getWidgetMetaDataJSONString());
+        publish(engine, FeatureBridge.getFeatureMapJSONString());
+        publish(engine, WidgetBridge.getWidgetMetaDataJSONString());
     }
 
     protected String buildRegisterScript(String bridgeJson) {
@@ -101,9 +88,9 @@ public class ExtensionManager {
         return sb.toString();
     }
 
-    private void publish(String bridgeJson) {
+    private void publish(IJsEngine engine, String bridgeJson) {
         String registerScript = buildRegisterScript(bridgeJson);
-        mJsThread.getJsContext().getV8().executeScript(registerScript);
+        engine.executeScript(registerScript, null, 0);
     }
 
     public void configApplication(AppInfo appInfo) {
@@ -243,8 +230,6 @@ public class ExtensionManager {
         }
     }
     public void dispose() {
-        JsUtils.release(mRegisteredInterface);
-        mRegisteredInterface = null;
         disposeFeature(true, mLifecycleListener);
     }
 
@@ -273,45 +258,6 @@ public class ExtensionManager {
             } else {
                 SINGLE_THREAD_EXECUTOR.execute(new JsInvocation(response, jsCallback));
             }
-        }
-    }
-
-    private static class JsInterfaceProxy extends V8Object {
-        private final JsInterface jsInterface;
-        private final JavaCallback invoke =
-                new JavaCallback() {
-                    @Override
-                    public Object invoke(V8Object receiver, V8Array parameters) {
-                        Object rawParams = parameters.get(2);
-                        Object instanceId = parameters.get(4);
-                        if (!(instanceId instanceof Integer)) {
-                            instanceId = -1;
-                        }
-                        Response response =
-                                jsInterface.invoke(
-                                        parameters.getString(0),
-                                        parameters.getString(1),
-                                        rawParams,
-                                        parameters.getString(3),
-                                        (int) instanceId);
-
-                        if (rawParams instanceof V8Object) {
-                            JsUtils.release((V8Object) rawParams);
-                        }
-                        return response == null ? null : response.toJavascriptResult(v8);
-                    }
-                };
-
-        private JsInterfaceProxy(V8 v8, JsInterface jsInterface) {
-            super(v8);
-            this.jsInterface = jsInterface;
-        }
-
-        static V8Object register(V8 v8, JsInterface jsInterface, String name) {
-            JsInterfaceProxy proxy = new JsInterfaceProxy(v8, jsInterface);
-            v8.add(name, proxy);
-            proxy.registerJavaMethod(proxy.invoke, "invoke");
-            return proxy;
         }
     }
 

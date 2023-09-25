@@ -128,6 +128,12 @@ public class WebSocket extends FeatureExtension {
             ByteBuffer buffer = ((TypedArrayProxy) dataObj).getBuffer();
             ByteString data = getByteString(buffer);
             sendOk = null != data && socketTask.send(data);
+        } else if (dataObj instanceof byte[]) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(((byte[]) dataObj).length);
+            byteBuffer.put((byte[]) dataObj);
+            byteBuffer.rewind();
+            ByteString data = getByteString(byteBuffer);
+            sendOk = null != data && socketTask.send(data);
         } else if (null != dataObj) {
             String str = dataObj.toString();
             sendOk = !TextUtils.isEmpty(str) && socketTask.send(str);

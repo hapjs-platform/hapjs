@@ -94,6 +94,8 @@ dependencies {
     implementation "androidx.recyclerview:recyclerview:${rootProject.recyclerviewVersion}"
     implementation "androidx.constraintlayout:constraintlayout:${rootProject.androidXconstraintlayoutVersion}"
     implementation "com.google.android.material:material:${rootProject.androidXVersion}"
+
+    implementation 'com.esotericsoftware:kryo:5.5.0'
 }
 
 apply plugin: 'com.moowork.node'

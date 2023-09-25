@@ -1597,10 +1597,7 @@ public abstract class Parser {
                                 }
                                 result.put("width", imageData.width);
                                 result.put("height", imageData.height);
-                                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(imageData.data.length);
-                                byteBuffer.put(imageData.data);
-                                byteBuffer.rewind();
-                                result.put("data", byteBuffer);
+                                result.put("data", imageData.data);
                             }
                         };
                     }

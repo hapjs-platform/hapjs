@@ -635,11 +635,7 @@ public class Bluetooth extends CallbackHybridFeature {
         String address = params.getString(PARAM_DEVICE_ID);
         String serviceUUID = params.getString(PARAM_SERVICE_UUID);
         String charaUUID = params.getString(PARAM_CHARACTERISTIC_UUID);
-        ArrayBuffer value = (ArrayBuffer) params.get(PARAM_VALUE);
-        // copy memory to heap
-        V8ArrayBuffer v8ArrayBuffer = value.getV8ArrayBuffer();
-        byte[] buffer = new byte[v8ArrayBuffer.remaining()];
-        v8ArrayBuffer.get(buffer);
+        byte[] buffer = (byte[]) params.get(PARAM_VALUE);
         BleManager.getInstance()
                 .writeCharacteristic(
                         address, serviceUUID, charaUUID, buffer, getOperationCallback(request));
@@ -867,10 +863,7 @@ public class Bluetooth extends CallbackHybridFeature {
                                                     serviceUUID.toUpperCase());
                                             result.put(RESULT_CHARACTERISTIC_UUID,
                                                     characteristicUUID.toUpperCase());
-                                            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(data.length);
-                                            byteBuffer.put(data);
-                                            byteBuffer.rewind();
-                                            result.put(RESULT_VALUE, byteBuffer);
+                                            result.put(RESULT_VALUE, data);
                                             runCallbackContext(
                                                     EVENT_ON_CHARACTERISTIC_VALUE_CHANGE,
                                                     CODE_ON_CHARACTERISTIC_VALUE_CHANGE,
@@ -980,16 +973,10 @@ public class Bluetooth extends CallbackHybridFeature {
             JavaSerializeObject serviceData = new JavaSerializeObject();
             for (Pair<String, byte[]> d : mServiceData) {
                 byte[] bytes = d.second;
-                ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-                byteBuffer.put(bytes);
-                byteBuffer.rewind();
-                serviceData.put(d.first, byteBuffer);
+                serviceData.put(d.first, bytes);
             }
             result.put(RESULT_SERVICE_DATA, serviceData);
-            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(mAdvertisData.length);
-            byteBuffer.put(mAdvertisData);
-            byteBuffer.rewind();
-            result.put(RESULT_ADVERTIS_DATA, byteBuffer);
+            result.put(RESULT_ADVERTIS_DATA, mAdvertisData);
             return result;
         }
 

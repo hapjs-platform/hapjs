@@ -87,10 +87,7 @@ abstract public class BaseTagTechInstance extends BaseTechInstance {
 
                     byte[] resultBytes = transceive(transceiveParams);
                     SerializeObject resultObj = new JavaSerializeObject();
-                    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(resultBytes.length);
-                    byteBuffer.put(resultBytes);
-                    byteBuffer.rewind();
-                    resultObj.put(NFC.RESULT_TRANSCEIVE_DATA, byteBuffer);
+                    resultObj.put(NFC.RESULT_TRANSCEIVE_DATA, resultBytes);
                     request.getCallback().callback(new Response(resultObj));
                 } else {
                     request.getCallback().callback(new Response(NFCConstants.CODE_INVALID_PARAMETER, NFCConstants.DESC_INVALID_PARAMETER));

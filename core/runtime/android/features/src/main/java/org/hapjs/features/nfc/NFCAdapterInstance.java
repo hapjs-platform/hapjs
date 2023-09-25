@@ -211,10 +211,7 @@ public class NFCAdapterInstance extends BaseInstance {
 
                     byte[] id = mDiscoveredTag.getId();
                     Log.d(TAG, "id: " + Arrays.toString(id));
-                    ByteBuffer byteBuffer = ByteBuffer.allocateDirect(id.length);
-                    byteBuffer.put(id);
-                    byteBuffer.rewind();
-                    resultObj.put(RESULT_ID, byteBuffer);
+                    resultObj.put(RESULT_ID, id);
                 } else {
                     Log.e(TAG, "null of discovered tag");
                 }
@@ -266,18 +263,9 @@ public class NFCAdapterInstance extends BaseInstance {
                 SerializeArray arrayRecord = new JavaSerializeArray();
                 for (NdefRecord record : ndefRecords) {
                     SerializeObject recordObj = new JavaSerializeObject();
-                    ByteBuffer idByteBuffer = ByteBuffer.allocateDirect(record.getId().length);
-                    idByteBuffer.put(record.getId());
-                    idByteBuffer.rewind();
-                    recordObj.put(RESULT_MESSAGES_RECORD_ID, idByteBuffer);
-                    ByteBuffer payloadByteBuffer = ByteBuffer.allocateDirect(record.getPayload().length);
-                    payloadByteBuffer.put(record.getPayload());
-                    payloadByteBuffer.rewind();
-                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, payloadByteBuffer);
-                    ByteBuffer typeByteBuffer = ByteBuffer.allocateDirect(record.getType().length);
-                    typeByteBuffer.put(record.getType());
-                    typeByteBuffer.rewind();
-                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, typeByteBuffer);
+                    recordObj.put(RESULT_MESSAGES_RECORD_ID, record.getId());
+                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, record.getPayload());
+                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, record.getType());
                     recordObj.put(RESULT_MESSAGES_RECORD_TNF, record.getTnf());
                     arrayRecord.put(recordObj);
                 }

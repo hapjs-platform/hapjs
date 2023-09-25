@@ -4,34 +4,44 @@
  */
 package org.hapjs.analyzer.monitors;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.hapjs.analyzer.Analyzer;
+import org.hapjs.analyzer.model.LogData;
 import org.hapjs.analyzer.model.LogPackage;
 import org.hapjs.analyzer.monitors.abs.AbsMonitor;
 import org.hapjs.analyzer.tools.AnalyzerThreadManager;
 import org.hapjs.common.executors.Executors;
-import org.hapjs.common.utils.FileUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import org.hapjs.common.utils.ProcessUtils;
+
+import org.hapjs.render.jsruntime.SandboxProvider;
+import org.hapjs.runtime.ProviderManager;
+import org.hapjs.runtime.sandbox.ILogListener;
+import org.hapjs.runtime.sandbox.ISandbox;
 
 public class LogcatMonitor extends AbsMonitor<LogPackage> {
+    private static final String TAG = "LogcatMonitor";
     public static final String NAME = "logcat";
     public static final int LOG_JS = 1;
     public static final int LOG_NATIVE = 1 << 1;
     public static final int TYPE_LOG_STYLE_WEB = 0;
     public static final int TYPE_LOG_STYLE_ANDROID = 1;
-    private static final String JS_TAG = "LOGCAT_CONSOLE";
+    public static final String JS_TAG = "LOGCAT_CONSOLE";
     private static final int CACHE_SIZE = 500;
     private static final int MSG_SEND_ONE_LOG = 1;
     private int mLogLevel = Log.VERBOSE;
@@ -39,7 +49,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
     private int mLogStyle = TYPE_LOG_STYLE_WEB;
     private String mFilter = "";
     private Dumper mDumper;
-    private LinkedList<LogPackage.LogData> mCaches = new LinkedList<>();
+    private LinkedList<LogData> mCaches = new LinkedList<>();
     private final Handler mMainHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -104,7 +114,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
             if (mCaches.isEmpty()) {
                 return;
             }
-            List<LogPackage.LogData> logDatas;
+            List<LogData> logDatas;
             synchronized (LogcatMonitor.this) {
                 logDatas = filterData(new ArrayList<>(mCaches));
             }
@@ -112,20 +122,14 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         });
     }
 
-    private List<LogPackage.LogData> filterData(LogPackage.LogData logData) {
-        ArrayList<LogPackage.LogData> singleList = new ArrayList<>(1);
-        singleList.add(logData);
-        return filterData(singleList);
-    }
-
-    private List<LogPackage.LogData> filterData(List<LogPackage.LogData> originData) {
+    private List<LogData> filterData(List<LogData> originData) {
         if (originData == null || originData.isEmpty()) {
             return new ArrayList<>();
         }
         String filter = mFilter == null ? "" : mFilter.toLowerCase();
-        Iterator<LogPackage.LogData> iterator = originData.iterator();
+        Iterator<LogData> iterator = originData.iterator();
         while (iterator.hasNext()) {
-            LogPackage.LogData logData = iterator.next();
+            LogData logData = iterator.next();
             if (logData.mType == LogPackage.LOG_TYPE_DEFAULT) {
                 continue;
             }
@@ -156,11 +160,11 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         return originData;
     }
 
-    private synchronized void cacheLog(LogPackage.LogData logData) {
-        if (mCaches.size() >= CACHE_SIZE) {
+    private synchronized void cacheLog(List<LogData> logDatas) {
+        mCaches.addAll(logDatas);
+        while (mCaches.size() >= CACHE_SIZE) {
             mCaches.removeFirst();
         }
-        mCaches.add(logData);
     }
 
     public void clearLog() {
@@ -168,7 +172,7 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         mCaches.clear();
     }
 
-    private void sendLogDatas(int position, List<LogPackage.LogData> logDatas) {
+    private void sendLogDatas(int position, List<LogData> logDatas) {
         if (logDatas != null) {
             Pipeline<LogPackage> pipeline = getPipeline();
             if (pipeline != null) {
@@ -177,77 +181,22 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
         }
     }
 
-    private class Dumper implements Runnable {
-        private static final  String STR_DUMP_FAIL = "--- LOGCAT_CONSOLE dump log fail ! ---";
-        private Process mLogcatProcess;
-        private boolean mIsStop;
+    private class Dumper extends AbsLogDumper {
+        private ISandbox mSandbox;
+        private ServiceConnection mConnection;
 
-        void clearLogcat() {
-            Executors.io().execute(new Runnable() {
-                @Override
-                public void run() {
-                    Process process = null;
-                    try {
-                        process = Runtime.getRuntime().exec("logcat -b main -c");
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        // ignore
-                    } finally {
-                        if (process != null) {
-                            process.destroy();
-                        }
-                    }
-                }
-            });
-        }
-
-        private BufferedReader getLogReader() throws IOException {
-            String command = "logcat -b main -v time --pid " + android.os.Process.myPid();
-            if (mLogcatProcess != null) {
-                mLogcatProcess.destroy();
+        public Dumper() {
+            SandboxProvider sandboxProvider = ProviderManager.getDefault().getProvider(SandboxProvider.NAME);
+            if (sandboxProvider != null && sandboxProvider.isSandboxEnabled()) {
+                connectSandboxService();
             }
-            mLogcatProcess = Runtime.getRuntime().exec(command);
-            return new BufferedReader(new InputStreamReader(mLogcatProcess.getInputStream(), StandardCharsets.UTF_8));
         }
 
         @Override
-        public void run() {
-            BufferedReader reader = null;
-            try {
-                String line;
-                reader = getLogReader();
-                while (!mIsStop) {
-                    line = reader.readLine();
-                    if (line == null) {
-                        dumpFailLog();
-                        break;
-                    } else {
-                        dumpLog(line);
-                    }
-                }
-            } catch (Exception e) {
-                // ignore
-            } finally {
-                FileUtils.closeQuietly(reader);
-            }
-        }
-
-        private void dumpLog(String log) {
-            int logLevel = getLogLevel(log);
-            boolean isJsLog = log.contains(JS_TAG);
-            LogPackage.LogData logData = new LogPackage.LogData(logLevel, isJsLog ? LogPackage.LOG_TYPE_JS : LogPackage.LOG_TYPE_NATIVE, log);
-            dumpLog(logData);
-        }
-
-        private void dumpFailLog() {
-            LogPackage.LogData logData = new LogPackage.LogData(LogPackage.LOG_LEVEL_DEFAULT, LogPackage.LOG_TYPE_DEFAULT, STR_DUMP_FAIL);
-            dumpLog(logData);
-        }
-
-        private void dumpLog(LogPackage.LogData logData) {
-            cacheLog(logData);
+        protected void doDumpLog(List<LogData> logs) {
+            cacheLog(logs);
             AnalyzerThreadManager.getInstance().getAnalyzerHandler().post(() -> {
-                List<LogPackage.LogData> filterData = filterData(logData);
+                List<LogData> filterData = filterData(logs);
                 if (!filterData.isEmpty()) {
                     Message message = mMainHandler.obtainMessage(MSG_SEND_ONE_LOG);
                     message.obj = new LogPackage(filterData);
@@ -256,41 +205,58 @@ public class LogcatMonitor extends AbsMonitor<LogPackage> {
             });
         }
 
-        private @LogPackage.LogLevel int getLogLevel(String log) {
-            if (log.length() < 20) {
-                return Log.VERBOSE;
-            }
-            char level = log.charAt(19);
-            switch (level) {
-                case 'V':
-                    return Log.VERBOSE;
-                case 'D':
-                    return Log.DEBUG;
-                case 'I':
-                    return Log.INFO;
-                case 'W':
-                    return Log.WARN;
-                case 'E':
-                    return Log.ERROR;
-            }
-            return Log.VERBOSE;
-        }
+        @Override
+        public void close() {
+            super.close();
 
-        void close() {
-            mIsStop = true;
-            clearLogcat();
-            closeLogcatProcess();
-        }
-
-        void closeLogcatProcess(){
-            if (mLogcatProcess != null) {
+            if (mConnection != null) {
+                Context context = Analyzer.get().getApplicationContext();
+                context.unbindService(mConnection);
+                mConnection = null;
+            }
+            if (mSandbox != null) {
                 try {
-                    mLogcatProcess.destroy();
-                } catch (Exception e) {
-                    // ignore
+                    mSandbox.setLogListener(null);
+                    mSandbox = null;
+                } catch (RemoteException e) {
+                    Log.e(TAG, "failed to setLogListener null", e);
                 }
             }
-            mLogcatProcess = null;
+        }
+
+        private void connectSandboxService() {
+            String currentProcessName = ProcessUtils.getCurrentProcessName();
+            String sandboxName = "org.hapjs.runtime.sandbox.SandboxService$Sandbox"
+                    + currentProcessName.charAt(currentProcessName.length() - 1);
+
+            Context context = Analyzer.get().getApplicationContext();
+            Intent intent = new Intent();
+            intent.setClassName(context.getPackageName(), sandboxName);
+
+            mConnection = new ServiceConnection() {
+                @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    mSandbox = ISandbox.Stub.asInterface(service);
+                    try {
+                        mSandbox.setLogListener(new ILogListener.Stub() {
+                            public void onLog(List<LogData> logs) {
+                                dumpLog(logs);
+                            }
+                        });
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "failed to setLogListener", e);
+                    }
+                }
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                }
+            };
+
+            boolean bindResult = context.bindService(intent, mConnection, 0);
+            if (!bindResult) {
+                Log.e(TAG, "bind sandboxService failed. sandboxName=" + sandboxName);
+            }
         }
     }
 }

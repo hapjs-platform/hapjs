@@ -9,6 +9,7 @@ import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -48,6 +50,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.greenrobot.eventbus.EventBus;
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.HybridRequest;
@@ -91,10 +94,12 @@ import org.hapjs.model.RoutableInfo;
 import org.hapjs.model.ScreenOrientation;
 import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.component.CallingComponent;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsBridge;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.render.jsruntime.JsThreadFactory;
 import org.hapjs.render.jsruntime.Profiler;
+import org.hapjs.render.jsruntime.ProfilerHelper;
 import org.hapjs.render.skeleton.SkeletonProvider;
 import org.hapjs.render.skeleton.SkeletonSvgView;
 import org.hapjs.render.vdom.DocAnimator;
@@ -147,7 +152,7 @@ public class RootView extends FrameLayout
     protected AppInfo mAppInfo;
     protected String mUrl;
     protected boolean mInitialized;
-    JsThread mJsThread;
+    AppJsThread mJsThread;
     Handler mHandler = new H();
     public VDomActionApplier mVdomActionApplier = new VDomActionApplier();
     public CallingComponent mCallingComponent = new CallingComponent();
@@ -218,7 +223,9 @@ public class RootView extends FrameLayout
                         mJsThread.postFireKeyEvent(data);
                         return;
                     }
-                    mJsThread.postFireEvent(data);
+                    List<JsThread.JsEventCallbackData> list = new ArrayList<>();
+                    list.add(data);
+                    mJsThread.postFireEvent(list);
                 }
 
                 @Override
@@ -353,17 +360,26 @@ public class RootView extends FrameLayout
 
                 @Override
                 public void onPageReachTop() {
-                    mJsThread.postPageReachTop(getCurrentPage());
+                    Page curPage = getCurrentPage();
+                    if (curPage != null) {
+                        mJsThread.postPageReachTop(curPage.pageId);
+                    }
                 }
 
                 @Override
                 public void onPageReachBottom() {
-                    mJsThread.postPageReachBottom(getCurrentPage());
+                    Page curPage = getCurrentPage();
+                    if (curPage != null) {
+                        mJsThread.postPageReachBottom(curPage.pageId);
+                    }
                 }
 
                 @Override
                 public void onPageScroll(int scrollTop) {
-                    mJsThread.postPageScroll(getCurrentPage(), scrollTop);
+                    Page curPage = getCurrentPage();
+                    if (curPage != null) {
+                        mJsThread.postPageScroll(curPage.getPageId(), scrollTop);
+                    }
                 }
             };
     private boolean mFirstRenderActionReceived = false;
@@ -428,7 +444,7 @@ public class RootView extends FrameLayout
         mDirectBack = directBack;
     }
 
-    public JsThread getJsThread() {
+    public AppJsThread getJsThread() {
         return mJsThread;
     }
 
@@ -925,7 +941,7 @@ public class RootView extends FrameLayout
                         if (mWaitDevTools && mRequest != null) {
                             mRequest = null;
                         } else {
-                            mJsThread = JsThreadFactory.getInstance().create(getContext());
+                            mJsThread = (AppJsThread) JsThreadFactory.getInstance().create(getContext());
                         }
                         mJsThread.getJsChunksManager().initialize(mAppInfo);
 
@@ -960,7 +976,7 @@ public class RootView extends FrameLayout
 
                         String css = AppResourcesLoader.getAppCss(getContext(), mPackage);
                         RuntimeLogManager.getDefault().logAppJsLoadEnd(mPackage);
-                        mJsThread.postCreateApplication(content, css, request);
+                        mJsThread.postCreateApplication(content, css);
                         mHasAppCreated.set(true);
 
                         if (mAndroidViewClient != null) {
@@ -1365,7 +1381,7 @@ public class RootView extends FrameLayout
                 && renderActionPackage.type != RenderActionPackage.TYPE_PRE_CREATE_BODY) {
             mFirstRenderActionReceived = true;
             EventBus.getDefault().post(new FirstRenderActionEvent());
-            Profiler.recordFirstFrameRendered(System.nanoTime(), mJsThread.getId());
+            ProfilerHelper.recordFirstFrameRendered(System.nanoTime(), mJsThread.getId());
         }
     }
 
@@ -1610,7 +1626,7 @@ public class RootView extends FrameLayout
         if (oldPage == currPage) {
             mJsThread.postChangeVisiblePage(currPage, true);
             if (refresh) {
-                mJsThread.postRefreshPage(currPage);
+                mJsThread.postRefreshPage(currPage.pageId, currPage.params, currPage.intent);
             }
             currPage.setShouldRefresh(false);
             return;
@@ -1710,10 +1726,10 @@ public class RootView extends FrameLayout
                     pageEnterListener);
             mJsThread.postChangeVisiblePage(currPage, true);
             if (refresh) {
-                mJsThread.postRefreshPage(currPage);
+                mJsThread.postRefreshPage(currPage.pageId, currPage.params, currPage.intent);
             }
         } else {
-            mJsThread.postRecreatePage(currPage);
+            mJsThread.postRecreatePage(currPage.pageId);
             RuntimeLogManager.getDefault()
                     .logPageRecreateRenderStart(mAppInfo.getPackage(), currPage.getName());
             mDocument = new VDocument(createDocComponent(currPage.pageId));
@@ -1799,7 +1815,7 @@ public class RootView extends FrameLayout
         if (oldPage == currPage) {
             mJsThread.postChangeVisiblePage(currPage, true);
             if (refresh) {
-                mJsThread.postRefreshPage(currPage);
+                mJsThread.postRefreshPage(currPage.pageId, currPage.params, currPage.intent);
             }
             currPage.setShouldRefresh(false);
             return;
@@ -1927,10 +1943,10 @@ public class RootView extends FrameLayout
             }
             mJsThread.postChangeVisiblePage(backwardTargetPage, true);
             if (refresh) {
-                mJsThread.postRefreshPage(backwardTargetPage);
+                mJsThread.postRefreshPage(backwardTargetPage.pageId, backwardTargetPage.params, backwardTargetPage.intent);
             }
         } else {
-            mJsThread.postRecreatePage(backwardTargetPage);
+            mJsThread.postRecreatePage(backwardTargetPage.pageId);
             RuntimeLogManager.getDefault().logPageRecreateRenderStart(
                     mAppInfo.getPackage(), backwardTargetPage.getName());
             newDoc = new VDocument(createDocComponent(backwardTargetPage.pageId));
@@ -2337,7 +2353,7 @@ public class RootView extends FrameLayout
                     break;
                 }
                 case MSG_PAGE_CLEAR_CACHE: {
-                    Page page = (Page) msg.obj;
+                    Page page = mPageManager.getPageById((int) msg.obj);
                     if (page != null) {
                         page.clearCache();
                     }

@@ -328,6 +328,16 @@ public class JavaSerializeObject implements SerializeObject {
     }
 
     @Override
+    public SerializeObject put(String key, byte[] value) {
+        mOverlayMap.remove(key);
+        if (mObject instanceof JSONSerializeObject) {
+            mObject = new V8SerializeObject(mObject.toMap());
+        }
+        mObject.put(key, value);
+        return this;
+    }
+
+    @Override
     public final Object remove(String key) {
         Object value = mOverlayMap.remove(key);
         if (value == null) {

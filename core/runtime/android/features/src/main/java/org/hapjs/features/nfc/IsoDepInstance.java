@@ -43,10 +43,7 @@ public class IsoDepInstance extends BaseTagTechInstance {
     public void getHistoricalBytes(Request request) {
         byte[] historicalBytes = mIsoDep.getHistoricalBytes();
         JavaSerializeObject result = new JavaSerializeObject();
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(historicalBytes.length);
-        byteBuffer.put(historicalBytes);
-        byteBuffer.rewind();
-        result.put(NFC.RESULT_HISTORICAL_BYTES, byteBuffer);
+        result.put(NFC.RESULT_HISTORICAL_BYTES, historicalBytes);
         request.getCallback().callback(new Response(result));
     }
 

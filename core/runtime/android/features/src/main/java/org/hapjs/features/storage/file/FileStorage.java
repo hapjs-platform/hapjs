@@ -283,9 +283,9 @@ public class FileStorage {
                         "Fail to get resource by " + internalUri);
             }
             InputStream input = resource.openInputStream();
-            ByteBuffer byteBuffer = FileUtils.readStreamAsBuffer(input, position, length, true);
+            byte[] bytes = FileUtils.readStreamAsBytes(input, position, length, true);
             SerializeObject result = new JavaSerializeObject();
-            result.put(FileStorageFeature.RESULT_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, byteBuffer));
+            result.put(FileStorageFeature.RESULT_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, bytes));
             return new Response(result);
         } catch (FileNotFoundException e) {
             return new Response(Response.CODE_FILE_NOT_FOUND, e.getMessage());

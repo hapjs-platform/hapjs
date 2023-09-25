@@ -162,10 +162,7 @@ public class Camera extends Component<CameraView> {
                             params.put("width", width);
                             params.put("height", height);
                             params.put("time", time);
-                            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-                            byteBuffer.put(bytes);
-                            byteBuffer.rewind();
-                            params.put("frame", byteBuffer);
+                            params.put("frame", bytes);
                             mCallback.onJsEventCallback(
                                     getPageId(), mRef, CAMERA_FRAME, Camera.this, params, null);
                         }

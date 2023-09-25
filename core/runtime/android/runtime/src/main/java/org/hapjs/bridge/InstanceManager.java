@@ -85,6 +85,8 @@ public class InstanceManager {
     public static class InstanceHandler implements HandlerObject {
         private int mId;
 
+        private InstanceHandler() {}
+
         public InstanceHandler(int id) {
             this.mId = id;
         }

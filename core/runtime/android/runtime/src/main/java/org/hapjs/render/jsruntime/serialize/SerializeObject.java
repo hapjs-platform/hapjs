@@ -93,6 +93,8 @@ public interface SerializeObject extends Serializable {
 
     SerializeObject put(String key, HandlerObject value);
 
+    SerializeObject put(String key, byte[] value);
+
     Object remove(String key);
 
     Map<String, Object> toMap();

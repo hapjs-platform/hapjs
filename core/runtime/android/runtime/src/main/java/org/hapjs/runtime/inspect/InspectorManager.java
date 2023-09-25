@@ -9,17 +9,19 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Value;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import okhttp3.Interceptor;
 import okhttp3.WebSocket;
+
 import org.hapjs.common.net.HttpConfig;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.render.Page;
 import org.hapjs.render.VDomChangeAction;
+import org.hapjs.render.jsruntime.AppJsThread;
+import org.hapjs.render.jsruntime.IJsEngine;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
@@ -27,7 +29,7 @@ import org.hapjs.runtime.resource.ResourceManager;
 
 public class InspectorManager {
     public static final String TAG = "InspectorManager";
-    private WeakReference<JsThread> mJsthread;
+    private WeakReference<AppJsThread> mJsthread;
     private InspectorProvider mProviderImpl;
     private boolean mEnabled;
 
@@ -51,17 +53,17 @@ public class InspectorManager {
         return Holder.INSTANCE;
     }
 
-    public void notifyJsThreadReady(JsThread jsthread) {
+    public void notifyJsThreadReady(AppJsThread jsThread) {
         if (mEnabled) {
-            getInspector().onJsContextCreated(jsthread.getJsContext().getV8());
+            getInspector().onJsContextCreated(jsThread.getEngine());
         } else {
-            mJsthread = new WeakReference<>(jsthread);
+            mJsthread = new WeakReference<>(jsThread);
         }
     }
 
     private void sendJsthreadReadyMsg() {
         if (mJsthread != null) {
-            JsThread jsThread = mJsthread.get();
+            AppJsThread jsThread = mJsthread.get();
             if (jsThread != null) {
                 jsThread.postInitInspectorJsContext();
             }
@@ -126,11 +128,11 @@ public class InspectorManager {
         }
 
         @Override
-        public void onJsContextCreated(V8 v8) {
+        public void onJsContextCreated(IJsEngine engine) {
         }
 
         @Override
-        public void onJsContextDispose(V8 v8) {
+        public void onJsContextDispose(IJsEngine engine) {
         }
 
         @Override
@@ -156,17 +158,28 @@ public class InspectorManager {
         }
 
         @Override
-        public String handleConsoleMessage(final V8Value v8Array) {
-            return "";
-        }
-
-        @Override
         public boolean isInspectorReady() {
             return true;
         }
 
         @Override
         public void setRootView(View view) {
+        }
+
+        @Override
+        public void inspectorResponse(int sessionId, int callId, String message) {
+        }
+
+        @Override
+        public void inspectorSendNotification(int sessionId, int callId, String message) {
+        }
+
+        @Override
+        public void inspectorRunMessageLoopOnPause(int contextGroupId) {
+        }
+
+        @Override
+        public void inspectorQuitMessageLoopOnPause() {
         }
     }
 }

@@ -17,8 +17,10 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class V8SerializeObject extends AbstractSerializeObject {
+public class V8SerializeObject extends AbstractSerializeObject {
     private Map<String, Object> mMap;
+
+    private V8SerializeObject() {}
 
     public V8SerializeObject(Map<String, Object> map) {
         mMap = map;
@@ -197,6 +199,12 @@ class V8SerializeObject extends AbstractSerializeObject {
     }
 
     @Override
+    public SerializeObject put(String key, byte[] value) {
+        mMap.put(key, value);
+        return this;
+    }
+
+    @Override
     public Object remove(String key) {
         Object value = opt(key);
         mMap.remove(key);
@@ -232,6 +240,8 @@ class V8SerializeObject extends AbstractSerializeObject {
                 } else if (value instanceof ByteBuffer) {
                     // ignore
                 } else if (value instanceof TypedArrayProxy) {
+                    // ignore
+                } else if (value instanceof byte[]) {
                     // ignore
                 } else if (value instanceof Map) {
                     result.put(key,

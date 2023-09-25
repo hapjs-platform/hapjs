@@ -5,34 +5,25 @@
 
 package org.hapjs.render.jsruntime;
 
-import android.content.Context;
-import android.os.Bundle;
 import android.util.Log;
 
+import android.util.Pair;
 import com.eclipsesource.v8.JavaVoidCallback;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 
-import org.hapjs.bridge.HybridRequest;
-import org.hapjs.common.utils.NavigationUtils;
-import org.hapjs.common.utils.RouterUtils;
-import org.hapjs.render.PageManager;
-import org.hapjs.render.PageNotFoundException;
-
-import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_JS_PUSH;
+import java.util.Map;
 
 public class JsBridgeHistory extends V8Object {
 
     private static final String TAG = "JsBridgeHistory";
-    private Context mContext;
-    private JsContext mJsContext;
-    private PageManager mPageManager;
+    private IJavaNative mNative;
 
     public final JavaVoidCallback back =
             new JavaVoidCallback() {
                 @Override
                 public void invoke(V8Object v8Object, V8Array args) {
-                    RouterUtils.back(mContext, mPageManager);
+                    mNative.routerBack();
                 }
             };
 
@@ -46,19 +37,8 @@ public class JsBridgeHistory extends V8Object {
                         return;
                     }
                     try {
-                        String pkg = mPageManager.getAppInfo().getPackage();
-                        HybridRequest request = V8ObjConverter.objToRequest(params, pkg);
-                        if (NavigationUtils.navigate(
-                                mContext, pkg, request, new Bundle(),
-                                VALUE_ROUTER_APP_FROM_JS_PUSH, null)) {
-                            return;
-                        }
-
-                        try {
-                            RouterUtils.push(mPageManager, request);
-                        } catch (PageNotFoundException ex) {
-                            mJsContext.getJsThread().processV8Exception(ex);
-                        }
+                        Pair<String, Map<String, String>> pair = V8ObjConverter.parseReqeustParams(params);
+                        mNative.routerPush(pair.first, pair.second);
                     } finally {
                         JsUtils.release(params);
                     }
@@ -74,11 +54,10 @@ public class JsBridgeHistory extends V8Object {
                         Log.e(TAG, "replace params is null");
                         return;
                     }
-                    HybridRequest request =
-                            V8ObjConverter
-                                    .objToRequest(params, mPageManager.getAppInfo().getPackage());
                     try {
-                        RouterUtils.replace(mPageManager, request);
+                        Pair<String, Map<String, String>> pair =
+                                V8ObjConverter.parseReqeustParams(params);
+                        mNative.routerReplace(pair.first, pair.second);
                     } finally {
                         JsUtils.release(params);
                     }
@@ -89,17 +68,12 @@ public class JsBridgeHistory extends V8Object {
             new JavaVoidCallback() {
                 @Override
                 public void invoke(V8Object v8Object, V8Array args) {
-                    mPageManager.clear();
+                    mNative.routerClear();
                 }
             };
 
-    public JsBridgeHistory(Context context, JsContext jsContext) {
+    public JsBridgeHistory(JsContext jsContext, IJavaNative javaNative) {
         super(jsContext.getV8());
-        mContext = context;
-        mJsContext = jsContext;
-    }
-
-    public void attach(PageManager pageManager) {
-        mPageManager = pageManager;
+        mNative = javaNative;
     }
 }

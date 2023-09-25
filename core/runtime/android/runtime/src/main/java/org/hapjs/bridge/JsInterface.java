@@ -7,6 +7,8 @@ package org.hapjs.bridge;
 
 import android.webkit.JavascriptInterface;
 import com.eclipsesource.v8.V8Object;
+
+import org.hapjs.render.jsruntime.IJavaNative;
 import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 
 /**
@@ -16,10 +18,10 @@ public class JsInterface {
 
     public static final String INTERFACE_NAME = "JsBridge";
 
-    private ExtensionManager mManager;
+    private IJavaNative mNative;
 
-    public JsInterface(ExtensionManager manager) {
-        mManager = manager;
+    public JsInterface(IJavaNative javaNative) {
+        mNative = javaNative;
     }
 
     /**
@@ -44,7 +46,7 @@ public class JsInterface {
             rawParams = new JavaSerializeObject(V8ObjectHelper.toMap((V8Object) rawParams));
         }
 
-        Response response = mManager.invoke(feature, action, rawParams, callback, instanceId);
+        Response response = mNative.invoke(feature, action, rawParams, callback, instanceId);
         return response;
     }
 }

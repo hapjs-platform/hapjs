@@ -9,10 +9,17 @@ import java.nio.ByteBuffer;
 public class TypedArrayProxy {
     private int type;
     private ByteBuffer buffer;
+    private byte[] bytes;
 
-    public TypedArrayProxy(int type, ByteBuffer buffer) {
+    private TypedArrayProxy() {}
+
+    public TypedArrayProxy(int type, byte[] bytes) {
         this.type = type;
-        this.buffer = buffer;
+        this.bytes = bytes;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
     }
 
     public int getType() {
@@ -24,10 +31,12 @@ public class TypedArrayProxy {
     }
 
     public ByteBuffer getBuffer() {
+        if (buffer == null) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+            byteBuffer.put(bytes);
+            byteBuffer.rewind();
+            buffer = byteBuffer;
+        }
         return buffer;
-    }
-
-    public void setBuffer(ByteBuffer buffer) {
-        this.buffer = buffer;
     }
 }

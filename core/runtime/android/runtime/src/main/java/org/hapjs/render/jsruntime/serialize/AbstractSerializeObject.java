@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 
 import org.json.JSONObject;
 
-abstract class AbstractSerializeObject implements SerializeObject {
+public abstract class AbstractSerializeObject implements SerializeObject {
     private static final String TAG = "AbstractSerializeObject";
 
     @Override

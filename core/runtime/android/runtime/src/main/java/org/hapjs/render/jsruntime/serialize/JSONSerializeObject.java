@@ -192,6 +192,11 @@ class JSONSerializeObject extends AbstractSerializeObject {
     }
 
     @Override
+    public SerializeObject put(String key, byte[] value) {
+        throw new UnsupportedOperationException("Can't insert byte array");
+    }
+
+    @Override
     public Object remove(String key) {
         Object value = opt(key);
         mJSONObject.remove(key);

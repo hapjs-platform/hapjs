@@ -25,8 +25,8 @@ import org.hapjs.widgets.video.manager.PlayerManagerProvider;
 public class MockupRuntime extends PlatformRuntime {
 
     @Override
-    protected void onAllProcessInit() {
-        super.onAllProcessInit();
+    protected void onAllProcessInitOtherThenSandbox() {
+        super.onAllProcessInitOtherThenSandbox();
 
         // add service must be called before any other code
         ProviderManager pm = ProviderManager.getDefault();

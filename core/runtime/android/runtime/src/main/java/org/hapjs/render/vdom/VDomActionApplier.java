@@ -23,6 +23,7 @@ import org.hapjs.render.DebugUtils;
 import org.hapjs.render.RootView;
 import org.hapjs.render.VDomChangeAction;
 import org.hapjs.render.css.Node;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.render.skeleton.SkeletonProvider;
 import org.hapjs.runtime.HapEngine;
@@ -74,7 +75,7 @@ public class VDomActionApplier {
     public void applyChangeAction(
             HapEngine hapEngine,
             Context context,
-            JsThread jsThread,
+            AppJsThread jsThread,
             VDomChangeAction action,
             VDocument doc,
             RenderEventCallback renderEventCallback) {
