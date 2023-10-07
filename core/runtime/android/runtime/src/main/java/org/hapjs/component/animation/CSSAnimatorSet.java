@@ -27,20 +27,26 @@ import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Objects;
+
+import org.hapjs.bridge.HybridManager;
+import org.hapjs.bridge.HybridView;
 import org.hapjs.common.utils.ColorUtil;
 import org.hapjs.component.Component;
+import org.hapjs.component.bridge.ActivityStateListener;
 import org.hapjs.component.bridge.SimpleActivityStateListener;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.runtime.HapEngine;
 
 public class CSSAnimatorSet {
 
+    private final String TAG = "CSSAnimatorSet";
     private Component mComponent;
     private Transform mTransform;
     private AnimatorSet mWrapped;
@@ -60,6 +66,7 @@ public class CSSAnimatorSet {
     private boolean mIsCanceled = false;
     private boolean mIsFinished = false;
     private boolean mActivityListenerInstalled = false;
+    private boolean mForceActivityListenerInstalled = false;
 
     private long mStartTime = 0;
     private long mDelay = 0;
@@ -130,7 +137,7 @@ public class CSSAnimatorSet {
 
         @Override
         public void onActivityPause() {
-            boolean previouslyStarted = mWrapped.isStarted() && !mWrapped.isPaused();
+            boolean previouslyStarted = mWrapped.isStarted() && (mWrapped.isRunning() || !mWrapped.isPaused());
             if (previouslyStarted && !mSuspended) {
                 mWrapped.pause();
                 mSuspended = mWrapped.isPaused();
@@ -287,12 +294,49 @@ public class CSSAnimatorSet {
             component.getCallback().addActivityStateListener(mActivityStateListener);
             mActivityListenerInstalled = true;
         }
+        if (!mForceActivityListenerInstalled && null != mComponent) {
+            addForceActivityListener(component, mActivityStateListener);
+            mForceActivityListenerInstalled = true;
+        }
     }
 
     private void uninstallActivityListener(Component component) {
         if (mActivityListenerInstalled && component != null && component.getCallback() != null) {
             component.getCallback().removeActivityStateListener(mActivityStateListener);
             mActivityListenerInstalled = false;
+        }
+        if (mForceActivityListenerInstalled && null != mComponent) {
+            removeForceActivityListener(component, mActivityStateListener);
+            mForceActivityListenerInstalled = false;
+        }
+    }
+
+    private void addForceActivityListener(Component component, ActivityStateListener activityStateListener) {
+        final HybridView hybridView = component != null ? component.getHybridView() : null;
+        if (hybridView == null) {
+            Log.w(TAG, "addForceActivityListener error: hybrid view is null.");
+            return;
+        }
+        final HybridManager hybridManager = hybridView.getHybridManager();
+        if (null != hybridManager) {
+            hybridManager.addForceLifecycleListener(activityStateListener);
+        } else {
+            Log.w(TAG, "addForceLifecycleListener hybridManager is null.");
+        }
+    }
+
+
+    private void removeForceActivityListener(Component component, ActivityStateListener activityStateListener) {
+        final HybridView hybridView = component != null ? component.getHybridView() : null;
+        if (hybridView == null) {
+            Log.w(TAG, "removeForceActivityListener error: hybrid view is null.");
+            return;
+        }
+        final HybridManager hybridManager = hybridView.getHybridManager();
+        if (null != hybridManager) {
+            hybridManager.removeForceLifecycleListener(activityStateListener);
+        } else {
+            Log.w(TAG, "removeForceActivityListener hybridManager is null.");
         }
     }
 
