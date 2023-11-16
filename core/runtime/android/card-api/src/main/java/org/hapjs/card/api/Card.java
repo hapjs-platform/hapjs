@@ -22,10 +22,6 @@ public interface Card {
 
     void setVisible(boolean visible);
 
-    /**
-     * 从 UI 上移除后是否自动销毁，销毁后不可重新被添加回 UI 上。默认自动销毁。
-     * 非自动销毁时，需要手动调用 {@link #destroy()}。
-     */
     void setAutoDestroy(boolean autoDestroy);
 
     void destroy();

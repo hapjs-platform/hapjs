@@ -42,6 +42,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
 import org.hapjs.debug.log.DebuggerLogUtil;
 import org.hapjs.debugger.AppLaunchTestActivity;
@@ -166,6 +167,10 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
             handler.post(() -> {
                 PopupWindow popupWindow = showDebugHint(mDebugHintView);
                 handler.postDelayed(() -> {
+                    if (popupWindow == null) {
+                        Log.e(TAG,"popupWindow == null");
+                        return;
+                    }
                     if (popupWindow.isShowing()) {
                         popupWindow.dismiss();
                     }
