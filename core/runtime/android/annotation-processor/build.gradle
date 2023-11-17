@@ -8,8 +8,7 @@ apply plugin: 'java-library'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':annotation')
-    api 'com.fasterxml.jackson.core:jackson-databind:2.11.0'
-    compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+    api 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
 }
 
 sourceCompatibility = "1.8"

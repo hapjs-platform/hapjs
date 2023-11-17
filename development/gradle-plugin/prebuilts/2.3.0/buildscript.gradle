@@ -12,7 +12,7 @@ dependencies {
         classpath files("annotation-processor-${pluginVersion}.jar")
         classpath files("annotation-executor-${pluginVersion}.jar")
         classpath files("annotation-generator-${pluginVersion}.jar")
-        classpath files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+        classpath files("toos.jar")
     } else {
         classpath "org.hapjs.gradle.plugin:annotation-executor:${pluginVersion}"
         classpath "org.hapjs.gradle.plugin:annotation-generator:${pluginVersion}"
