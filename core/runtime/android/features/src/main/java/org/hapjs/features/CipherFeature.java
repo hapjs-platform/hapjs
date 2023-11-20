@@ -6,6 +6,15 @@
 package org.hapjs.features;
 
 import android.util.Base64;
+
+import org.hapjs.bridge.FeatureExtension;
+import org.hapjs.bridge.Request;
+import org.hapjs.bridge.Response;
+import org.hapjs.bridge.annotation.ActionAnnotation;
+import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
+import org.hapjs.common.utils.DigestUtils;
+import org.json.JSONObject;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -17,18 +26,13 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.hapjs.bridge.FeatureExtension;
-import org.hapjs.bridge.Request;
-import org.hapjs.bridge.Response;
-import org.hapjs.bridge.annotation.ActionAnnotation;
-import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
-import org.json.JSONObject;
 
 @FeatureExtensionAnnotation(
         name = CipherFeature.FEATURE_NAME,
@@ -36,27 +40,36 @@ import org.json.JSONObject;
         actions = {
                 @ActionAnnotation(name = CipherFeature.ACTION_RSA, mode = FeatureExtension.Mode.ASYNC),
                 @ActionAnnotation(name = CipherFeature.ACTION_AES, mode = FeatureExtension.Mode.ASYNC),
+                @ActionAnnotation(name = CipherFeature.ACTION_BASE64, mode = FeatureExtension.Mode.ASYNC),
+                @ActionAnnotation(name = CipherFeature.ACTION_CRC32, mode = FeatureExtension.Mode.ASYNC),
+                @ActionAnnotation(name = CipherFeature.ACTION_HASH, mode = FeatureExtension.Mode.SYNC),
         })
 public class CipherFeature extends FeatureExtension {
     protected static final String FEATURE_NAME = "system.cipher";
 
     protected static final String ACTION_RSA = "rsa";
     protected static final String ACTION_AES = "aes";
+    protected static final String ACTION_BASE64 = "base64";
+    protected static final String ACTION_CRC32 = "crc32";
+    protected static final String ACTION_HASH = "hash";
 
     protected static final String PARAM_ACTION = "action";
     protected static final String PARAM_TEXT = "text";
+    protected static final String PARAM_CONTENT = "content";
     protected static final String PARAM_KEY = "key";
     protected static final String PARAM_TRANSFORMATION = "transformation";
     protected static final String PARAM_IV = "iv";
     protected static final String PARAM_IV_LEN = "ivLen";
     protected static final String PARAM_IV_OFFSET = "ivOffset";
+    protected static final String PARAM_ALGORITHM = "algorithm";
 
     protected static final String RESULT_TEXT = "text";
-
     private static final String TRANSFORMATION_DEFAULT = "RSA/None/OAEPwithSHA-256andMGF1Padding";
     private static final String AES_TRANSFORMATION_DEFAULT = "AES/CBC/PKCS5Padding";
     private static final String ACTION_ENCRYPT = "encrypt";
     private static final String ACTION_DECRYPT = "decrypt";
+    private static final String ALGORITHM_HASH = "md5";
+    private static final String ALGORITHM_SHA256 = "sha256";
     private static final int IV_LEN_DEFAULT = 16;
 
     @Override
@@ -74,10 +87,76 @@ public class CipherFeature extends FeatureExtension {
             case ACTION_AES:
                 aes(request);
                 break;
+            case ACTION_BASE64:
+                base64(request);
+                break;
+            case ACTION_CRC32:
+                crc32(request);
+                break;
+            case ACTION_HASH:
+                return hash(request);
             default:
                 return Response.NO_ACTION;
         }
         return Response.SUCCESS;
+    }
+
+    private Response hash(Request request) throws Exception {
+        JSONObject jsonParams = request.getJSONParams();
+        if (jsonParams == null) {
+            return new Response(Response.CODE_ILLEGAL_ARGUMENT, "Invalid param");
+        }
+        String content = jsonParams.getString(PARAM_CONTENT);
+        String algorithm = jsonParams.getString(PARAM_ALGORITHM);
+        String result;
+        if (ALGORITHM_HASH.equals(algorithm)) {
+            result = DigestUtils.getMd5(content.getBytes(StandardCharsets.UTF_8));
+        } else if (ALGORITHM_SHA256.equals(algorithm)) {
+            result = DigestUtils.getSha256(content.getBytes(StandardCharsets.UTF_8));
+        } else {
+            return new Response(Response.CODE_ILLEGAL_ARGUMENT, "Invalid algorithm");
+        }
+
+        return new Response(result);
+    }
+
+    private void crc32(Request request) throws Exception {
+        JSONObject jsonParams = request.getJSONParams();
+        if (jsonParams == null) {
+            request.getCallback().callback(new Response(Response.CODE_ILLEGAL_ARGUMENT, "Invalid param"));
+            return;
+        }
+        String content = jsonParams.getString(PARAM_CONTENT);
+        int result = DigestUtils.crc32(content.getBytes(StandardCharsets.UTF_8));
+        JSONObject data = new JSONObject();
+        data.put(PARAM_TEXT, result);
+        request.getCallback().callback(new Response(data));
+    }
+
+    private void base64(Request request) throws Exception {
+        JSONObject jsonParams = request.getJSONParams();
+        if (jsonParams == null) {
+            request.getCallback().callback(new Response(Response.CODE_ILLEGAL_ARGUMENT, "Invalid param"));
+            return;
+        }
+        String action = jsonParams.getString(PARAM_ACTION);
+        String text = jsonParams.getString(PARAM_TEXT);
+        String result;
+        if (ACTION_ENCRYPT.equals(action)) {
+            byte[] textBytes = text.getBytes(StandardCharsets.UTF_8);
+            result = Base64.encodeToString(textBytes, Base64.DEFAULT);
+        } else if (ACTION_DECRYPT.equals(action)) {
+            byte[] textBytes = Base64.decode(text, Base64.DEFAULT);
+            result = new String(textBytes, StandardCharsets.UTF_8);
+        } else {
+            Response response = new Response(Response.CODE_ILLEGAL_ARGUMENT, "Invalid action");
+            request.getCallback().callback(response);
+            return;
+        }
+
+        JSONObject data = new JSONObject();
+        data.put(RESULT_TEXT, result);
+        request.getCallback().callback(new Response(data));
     }
 
     private void rsa(Request request) throws Exception {
