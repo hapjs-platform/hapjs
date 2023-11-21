@@ -8,7 +8,7 @@ include ':app-impl', ':app', ':annotation-processor', ':annotation', ':debug-log
 if ('repo' != System.properties['moduleDepsType']) {
     include ':features', ':runtime', ':widgets', ':card-api', ':card-common', ':card-support', ':inspector',
             ':platform', ':account', ':pay', ':push', ':stats',
-            ':alipay', ':share', ':wxpay', ':qqaccount', ':wxaccount', ':wbaccount',
+            ':alipay', ':share', ':wxpay', ':qqaccount', ':wxaccount', ':wbaccount', ":asr",
             ':features-adapter',
             ':exchange', ':exchange-common',
             ':annotation', ':annotation-processor'
@@ -40,6 +40,7 @@ if ('repo' != System.properties['moduleDepsType']) {
     project(':qqaccount').projectDir = new File("../../../core/plugins/android/features/qqaccount")
     project(':wxaccount').projectDir = new File("../../../core/plugins/android/features/wxaccount")
     project(':wbaccount').projectDir = new File("../../../core/plugins/android/features/wbaccount")
+    project(':asr').projectDir = new File("../../../core/plugins/android/features/asr")
 
     // features adapter
     project(':features-adapter').projectDir = new File("../../../platform/platform/android/features")

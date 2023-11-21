@@ -65,6 +65,7 @@ dependencies {
         implementation project(':exchange')
         implementation project(':debug-log')
         implementation project(':app-impl')
+        implementation project(':asr')
     } else {
         implementation 'org.hapjs:runtime:' + rootProject.appVersionName
         implementation 'org.hapjs:widgets:' + rootProject.appVersionName
@@ -83,6 +84,7 @@ dependencies {
         phoneImplementation 'org.hapjs:account:' + rootProject.appVersionName
         implementation 'org.hapjs:stats:' + rootProject.appVersionName
         implementation 'org.hapjs:exchange:' + rootProject.appVersionName
+        implementation 'org.hapjs:asr:' + rootProject.appVersionName
         implementation 'org.hapjs:sentry:' + rootProject.appVersionName
         implementation 'org.hapjs:debug-log:' + rootProject.appVersionName
         implementation 'org.hapjs:app-impl:' + rootProject.appVersionName
