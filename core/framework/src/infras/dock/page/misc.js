@@ -129,7 +129,7 @@ function callback(inst, callbackId, args = [], preserved) {
 
     // 如果是定时器函数，则保留；否则清除（只使用一次）
     if (typeof preserved === 'undefined' || preserved === false) {
-      inst._callbacks[callbackId] = undefined
+      delete inst._callbacks[callbackId]
     }
 
     // 如果是页面对象
