@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -7,7 +7,14 @@ package org.hapjs.runtime;
 
 import android.text.TextUtils;
 import android.util.Log;
-import java.io.File;
+
+import org.hapjs.bridge.ApplicationContext;
+import org.hapjs.io.RpkSource;
+import org.hapjs.io.TextReader;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -17,13 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.hapjs.bridge.ApplicationContext;
-import org.hapjs.bridge.storage.file.Resource;
-import org.hapjs.io.RpkSource;
-import org.hapjs.io.TextReader;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import javax.annotation.Nullable;
 
 public class LocaleResourcesParser {
 
@@ -69,38 +71,32 @@ public class LocaleResourcesParser {
         return new Token(key, index);
     }
 
-    private void config(ApplicationContext applicationContext) {
+    private void config(ApplicationContext applicationContext, @Nullable String path) {
+        String pkg = applicationContext.getPackage();
+        HapEngine hapEngine = HapEngine.getInstance(pkg);
         if (mLocaleNames.size() > 0) {
-            List<String> packageRes = mLocaleNames.get(applicationContext.getPackage());
+            List<String> packageRes = mLocaleNames.get(pkg);
             if (packageRes != null && packageRes.size() > 0) {
                 // already config
                 return;
             }
         }
-        List<String> packageRes = new ArrayList<>();
-        Resource i18nDir = applicationContext.getResource(DIRECTORY_I18N);
-        if (i18nDir == null || i18nDir.getUnderlyingFile() == null) {
+        String resourcePath = DIRECTORY_I18N;
+        if (hapEngine.isCardMode() && !TextUtils.isEmpty(path)) {
+            resourcePath = path + DIRECTORY_I18N;
+        }
+        List<String> packageRes = hapEngine.getResourceManager()
+                .getFileNameList(applicationContext.getContext(), pkg, resourcePath);
+        if (packageRes != null) {
+            mLocaleNames.put(pkg, packageRes);
+        } else {
             Log.d(TAG, "no i18n resources found, skip configuration ");
-            return;
         }
-        File[] localeFiles = i18nDir.getUnderlyingFile().listFiles();
-        if (localeFiles == null) {
-            Log.d(TAG, "no i18n resources found, skip configuration ");
-            return;
-        }
-        for (File localeFile : localeFiles) {
-            if (localeFile.isFile()) {
-                String localeFileName = localeFile.getName();
-                String localeName = localeFileName.substring(0, localeFileName.lastIndexOf("."));
-                packageRes.add(localeName);
-            }
-        }
-        mLocaleNames.put(applicationContext.getPackage(), packageRes);
     }
 
-    public Map<String, JSONObject> resolveLocaleResources(String pkg, Locale locale) {
+    public Map<String, JSONObject> resolveLocaleResources(String pkg, @Nullable String path, Locale locale) {
         ApplicationContext context = HapEngine.getInstance(pkg).getApplicationContext();
-        config(context);
+        config(context, path);
         Map<String, JSONObject> result = new LinkedHashMap<>(); // must be an ordered map
         List<String> localeFiles = mLocaleNames.get(pkg);
         if (localeFiles == null) {
@@ -115,17 +111,17 @@ public class LocaleResourcesParser {
                 // find resource that exactly match the given locale
                 if (localeFiles.contains(fullLocaleName)) {
                     result.put(fullLocaleName,
-                            new JSONObject(getLocaleContent(context, fullLocaleName)));
+                            new JSONObject(getLocaleContent(context, path, fullLocaleName)));
                 }
                 // find resource that using the given language
                 if (localeFiles.contains(language)) {
-                    result.put(language, new JSONObject(getLocaleContent(context, language)));
+                    result.put(language, new JSONObject(getLocaleContent(context, path, language)));
                 }
                 // find resource that using same language
                 for (String localeName : localeFiles) {
                     if (localeName.startsWith(language + DASH_MARK)) {
                         result.put(localeName,
-                                new JSONObject(getLocaleContent(context, localeName)));
+                                new JSONObject(getLocaleContent(context, path, localeName)));
                     }
                 }
             }
@@ -133,7 +129,7 @@ public class LocaleResourcesParser {
             if (localeFiles.contains(DEFAULT_LOCALE_NAME)) {
                 result.put(
                         DEFAULT_LOCALE_NAME,
-                        new JSONObject(getLocaleContent(context, DEFAULT_LOCALE_NAME)));
+                        new JSONObject(getLocaleContent(context, path, DEFAULT_LOCALE_NAME)));
             }
         } catch (Exception e) {
             Log.e(TAG, "fail to config locales ", e);
@@ -142,13 +138,17 @@ public class LocaleResourcesParser {
         return result;
     }
 
-    private String getLocaleContent(ApplicationContext context, String localeName) {
+    private String getLocaleContent(ApplicationContext context, @Nullable String path, String localeName) {
+        String resourcePath = DIRECTORY_I18N + "/" + localeName + SUFFIX_JSON;
+        if (HapEngine.getInstance(context.getPackage()).isCardMode() && !TextUtils.isEmpty(path)) {
+            resourcePath = path + resourcePath;
+        }
         return TextReader.get()
                 .read(
                         new RpkSource(
                                 context.getContext(),
                                 context.getPackage(),
-                                DIRECTORY_I18N + "/" + localeName + SUFFIX_JSON));
+                                resourcePath));
     }
 
     /**
@@ -189,7 +189,7 @@ public class LocaleResourcesParser {
     }
 
     public String getText(String pkg, Locale locale, String content) {
-        Map<String, JSONObject> resources = resolveLocaleResources(pkg, locale);
+        Map<String, JSONObject> resources = resolveLocaleResources(pkg, null, locale);
         return getText(content, resources);
     }
 
