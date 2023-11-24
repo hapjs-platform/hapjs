@@ -197,9 +197,9 @@ subprojects {
         version rootProject.appVersionName
         defaultConfig {
             minSdkVersion 19
-            targetSdkVersion 24
-            versionCode rootProject.appVersionCode
-            versionName rootProject.appVersionName
+            targetSdkVersion 34
+            versionCode 11000101
+            versionName "1.1"
             testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         }
         signingConfigs {

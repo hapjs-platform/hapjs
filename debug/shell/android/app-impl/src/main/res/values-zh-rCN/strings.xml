@@ -6,7 +6,7 @@
 -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">快应用调试器</string>
+    <string name="app_name">快应用调试器-万信车联</string>
     <string name="action_settings">设置</string>
 
     <string name="btn_scan_install">扫码安装</string>

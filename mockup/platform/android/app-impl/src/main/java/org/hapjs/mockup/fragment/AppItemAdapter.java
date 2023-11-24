@@ -69,8 +69,7 @@ public class AppItemAdapter extends RecyclerView.Adapter<AppItemAdapter.ViewHold
                             Source src = new Source();
                             src.setPackageName(mView.getContext().getPackageName());
                             src.setType(Source.TYPE_OTHER);
-                            LauncherActivity
-                                    .launch(mView.getContext(), mItem.getPackageName(), "/", src);
+                            LauncherActivity.launch(mView.getContext(), mItem.getPackageName(), "/", src);
                         }
                     });
         }

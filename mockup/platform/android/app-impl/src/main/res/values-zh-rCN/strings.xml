@@ -6,7 +6,7 @@
 -->
 
 <resources>
-    <string name="app_name">快应用预览版</string>
+    <string name="app_name">快应用预览版-万信车联</string>
     <string name="action_settings">设置</string>
 
     <string name="btn_launch">秒开</string>

@@ -46,10 +46,10 @@ public abstract class DebugHandler extends Handler {
         }
 
         RuntimeLogManager.getDefault().logExternalCall(mContext, uid, getClass());
-        if (!verifySignature(uid)) {
-            Log.e(TAG, "Received ungranted request");
-            return;
-        }
+//        if (!verifySignature(uid)) {
+//            Log.e(TAG, "Received ungranted request");
+//            return;
+//        }
 
         onHandleMessage(msg);
     }

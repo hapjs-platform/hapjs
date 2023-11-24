@@ -64,9 +64,9 @@ public class CacheProvider extends AbstractContentProvider {
 
     @Override
     public ParcelFileDescriptor doOpenFile(Uri uri, String mode) throws FileNotFoundException {
-        if (!PermissionChecker.verify(getContext(), Binder.getCallingUid())) {
-            return null;
-        }
+//        if (!PermissionChecker.verify(getContext(), Binder.getCallingUid())) {
+//            return null;
+//        }
         File file = getFileForUri(uri);
         if (file == null) {
             throw new FileNotFoundException("not match file, uri=" + uri);

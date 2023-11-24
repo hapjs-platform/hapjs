@@ -36,18 +36,23 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
+
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.controller.BaseControllerListener;
 import com.facebook.drawee.view.GenericDraweeView;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.imagepipeline.image.ImageInfo;
+
 import java.lang.ref.WeakReference;
+
 import javax.annotation.Nullable;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -668,31 +673,27 @@ public class LauncherActivity extends RuntimeActivity {
             final View root = getHybridView().getWebView();
             if (root instanceof RootView) {
                 Log.d(TAG, "register LoadPageJsListener");
-                ((RootView) root)
-                        .setLoadPageJsListener(
-                                new Page.LoadPageJsListener() {
-                                    @Override
-                                    public void onLoadStart(final Page page) {
-                                        runOnUiThread(
-                                                new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        handleLoadPageJsStart(page);
-                                                    }
-                                                });
-                                    }
+                ((RootView) root).setLoadPageJsListener(new Page.LoadPageJsListener() {
+                    @Override
+                    public void onLoadStart(final Page page) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                handleLoadPageJsStart(page);
+                            }
+                        });
+                    }
 
-                                    @Override
-                                    public void onLoadFinish(final Page page) {
-                                        runOnUiThread(
-                                                new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        handleLoadPageJsFinish(page);
-                                                    }
-                                                });
-                                    }
-                                });
+                    @Override
+                    public void onLoadFinish(final Page page) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                handleLoadPageJsFinish(page);
+                            }
+                        });
+                    }
+                });
             }
             getHybridView()
                     .getHybridManager()
@@ -726,49 +727,36 @@ public class LauncherActivity extends RuntimeActivity {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
                 && !TextUtils.equals(pkg, mTaskDescriptionPackage)) {
-            Executors.io()
-                    .execute(
-                            new AbsTask<ActivityManager.TaskDescription>() {
-                                @Override
-                                protected ActivityManager.TaskDescription doInBackground() {
-                                    RuntimeLogManager.getDefault()
-                                            .logAsyncThreadTaskStart(pkg,
-                                                    "LauncherActivity#setAppTaskDescription");
-                                    Cache cache = CacheStorage.getInstance(LauncherActivity.this)
-                                            .getCache(pkg);
-                                    AppInfo appInfo = cache.getAppInfo();
-                                    if (appInfo == null) {
-                                        return new ActivityManager.TaskDescription();
-                                    }
+            Executors.io().execute(new AbsTask<ActivityManager.TaskDescription>() {
+                @Override
+                protected ActivityManager.TaskDescription doInBackground() {
+                    RuntimeLogManager.getDefault().logAsyncThreadTaskStart(pkg,
+                            "LauncherActivity#setAppTaskDescription");
+                    Cache cache = CacheStorage.getInstance(LauncherActivity.this).getCache(pkg);
+                    AppInfo appInfo = cache.getAppInfo();
+                    if (appInfo == null) {
+                        return new ActivityManager.TaskDescription();
+                    }
 
-                                    Bitmap bitmap =
-                                            IconUtils.getRoundIconBitmap(LauncherActivity.this,
-                                                    cache.getIconUri());
-                                    ActivityManager.TaskDescription td =
-                                            new ActivityManager.TaskDescription(appInfo.getName(),
-                                                    bitmap);
-                                    return td;
-                                }
+                    Bitmap bitmap = IconUtils.getRoundIconBitmap(LauncherActivity.this, cache.getIconUri());
+                    ActivityManager.TaskDescription td = new ActivityManager.TaskDescription(appInfo.getName(), bitmap);
+                    return td;
+                }
 
-                                @Override
-                                protected void onPostExecute(
-                                        ActivityManager.TaskDescription taskDescription) {
-                                    RuntimeLogManager.getDefault()
-                                            .logAsyncThreadTaskEnd(pkg,
-                                                    "LauncherActivity#setAppTaskDescription");
-                                    if (isFinishing() || isDestroyed()
-                                            || !TextUtils.equals(pkg, getPackage())) {
-                                        return;
-                                    }
-                                    String targetId =
-                                            TextUtils.isEmpty(taskDescription.getLabel()) ? null :
-                                                    pkg;
-                                    if (!TextUtils.equals(pkg, mTaskDescriptionPackage)) {
-                                        mTaskDescriptionPackage = targetId;
-                                        setTaskDescription(taskDescription);
-                                    }
-                                }
-                            });
+                @Override
+                protected void onPostExecute(ActivityManager.TaskDescription taskDescription) {
+                    RuntimeLogManager.getDefault().logAsyncThreadTaskEnd(pkg,
+                            "LauncherActivity#setAppTaskDescription");
+                    if (isFinishing() || isDestroyed() || !TextUtils.equals(pkg, getPackage())) {
+                        return;
+                    }
+                    String targetId = TextUtils.isEmpty(taskDescription.getLabel()) ? null : pkg;
+                    if (!TextUtils.equals(pkg, mTaskDescriptionPackage)) {
+                        mTaskDescriptionPackage = targetId;
+                        setTaskDescription(taskDescription);
+                    }
+                }
+            });
         }
     }
 
