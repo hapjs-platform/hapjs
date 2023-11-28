@@ -26,8 +26,9 @@ function getPageVmInCard(page) {
  * @param info 附加错误信息
  * @param app app 实例
  * @param page page 实例
+ * @param isFromNative 错误是否来自客户端
  */
-function xHandleError(err, vm, info = '', app, page) {
+function xHandleError(err, vm, info = '', app, page, isFromNative = false) {
   // 在处理错误处理程序时禁用 linker 跟踪，以避免可能的无限渲染
   XLinker.pushTarget()
   try {
@@ -51,15 +52,24 @@ function xHandleError(err, vm, info = '', app, page) {
           try {
             // 是否需要将错误向上传递
             const capture = hooks[i].call(curVm, err, vm, info) === false
-            if (capture) return
+            if (capture) {
+              invokeJSError(err, info)
+              return
+            }
           } catch (e) {
-            xGlobalHandleError(e, curVm, `page/component: lifecycle for "onErrorCaptured"`, app)
+            xGlobalHandleError(
+              e,
+              curVm,
+              `page/component: lifecycle for "onErrorCaptured"`,
+              app,
+              isFromNative
+            )
           }
         }
       }
       curVm = curVm._parent
     }
-    xGlobalHandleError(err, vm, info, app)
+    xGlobalHandleError(err, vm, info, app, isFromNative)
   } finally {
     XLinker.popTarget()
   }
@@ -97,8 +107,9 @@ function xInvokeWithErrorHandling(handler, context, args, vm, info, app, page) {
  * @param vm vm
  * @param info 附加错误信息
  * @param app app 实例
+ * @param isFromNative 错误是否来自客户端
  */
-function xGlobalHandleError(err, vm, info, app) {
+function xGlobalHandleError(err, vm, info, app, isFromNative = false) {
   let errorHandler
   const _app = vm ? vm.$app : app
 
@@ -118,10 +129,14 @@ function xGlobalHandleError(err, vm, info, app) {
         xLogError(e, undefined, `app: lifecycle for "onErrorHandler"`)
       }
     }
-    return
+  } else {
+    // 若 errorHandler 未定义，保证错误信息能正常输出
+    xLogError(err, vm, info)
   }
-  // 若 errorHandler 未定义，保证错误信息能正常输出
-  xLogError(err, vm, info)
+  // 来自客户端的错误不需要再去通知客户端
+  if (!isFromNative) {
+    invokeJSError(err, info)
+  }
 }
 
 /**
@@ -144,6 +159,31 @@ function appError(app, err) {
     }
   } catch (e) {
     xLogError(e, undefined, 'app: lifecycle for "onError"')
+  }
+}
+
+/**
+ * 将框架捕获的错误传递给引擎上报
+ * @param err 捕获的错误
+ * @param info 附加错误信息
+ */
+function invokeJSError(err, info) {
+  const bridge = global.JsBridge
+  if (!bridge) {
+    console.trace(`### App Framework ### invokeJSError: JsBridge未初始化`)
+  } else {
+    if (typeof bridge.jsError === 'function') {
+      const params = {
+        message: `${err.name}: ${err.message}`,
+        stack: err.stack || '',
+        info: info
+      }
+      // 调用 jsError 方法，将错误信息传递给引擎
+      const res = bridge.jsError(params)
+      console.trace(`### App Framework ### invokeJSError: jsError 方法执行结果: ${res}`)
+    } else {
+      console.trace(`### App Framework ### invokeJSError: jsError 方法未初始化`)
+    }
   }
 }
 

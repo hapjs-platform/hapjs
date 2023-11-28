@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -178,6 +178,12 @@ function initMainPlatform(dslName) {
       } else {
         throw new Error(`ERROR: Unknown moduleName:${moduleName}, methodName:${methodName}`)
       }
+    },
+    jsError(errObject) {
+      if (errObject.message && errObject.stack && errObject.info) {
+        return '{"code":0,"content":"success"}'
+      }
+      return '{"code":200,"content":"fail"}'
     }
   }
   // 为canvas服务
@@ -257,6 +263,12 @@ function initWorkerPlatform(dslName = 'xvm') {
       } else {
         throw new Error(`ERROR: Unknown moduleName:${moduleName}, methodName:${methodName}`)
       }
+    },
+    jsError(errObject) {
+      if (errObject.message && errObject.stack && errObject.info) {
+        return '{"code":0,"content":"success"}'
+      }
+      return '{"code":200,"content":"fail"}'
     }
   }
 

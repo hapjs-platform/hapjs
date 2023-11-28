@@ -666,7 +666,7 @@ function notifyAppError(id, param) {
           info = param
         }
         // 同时触发新增的 onErrorHandler 生命周期
-        xHandleError(err, undefined, info, app)
+        xHandleError(err, undefined, info, app, undefined, true)
       } catch (err) {
         err.message = `$INTERRUPTION$:${err.message}`
         throw err

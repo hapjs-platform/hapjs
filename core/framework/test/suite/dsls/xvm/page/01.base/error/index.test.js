@@ -487,5 +487,27 @@ describe('框架: 01.框架错误捕获测试', () => {
     // 还原 console.error
     console.error = _oriConsoleError
     app.isThrowError = false
+    resetErrorStatus()
+  })
+
+  it('捕获的错误传递给引擎上报', async () => {
+    const _oriConsoleTrace = console.trace
+
+    // 重写 console.trace
+    console.trace = function(str) {
+      // 因为许多地方都有用 console.trace 进行日志打印，所以需要通过条件进行筛选
+      if (str.includes('### App Framework ### invokeJSError')) {
+        expect(str).to.equal(
+          '### App Framework ### invokeJSError: jsError 方法执行结果: {"code":0,"content":"success"}'
+        )
+      }
+    }
+
+    pageVm.timeout()
+    await waitForOK()
+
+    // 还原 console.trace
+    console.trace = _oriConsoleTrace
+    resetErrorStatus()
   })
 })
