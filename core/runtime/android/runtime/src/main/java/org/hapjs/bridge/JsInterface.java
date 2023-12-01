@@ -47,4 +47,9 @@ public class JsInterface {
         Response response = mManager.invoke(feature, action, rawParams, callback, instanceId);
         return response;
     }
+
+    @JavascriptInterface
+    public Response jsErrorInvoke(V8Object object){
+        return mManager.jsErrorInvoke(object);
+    }
 }

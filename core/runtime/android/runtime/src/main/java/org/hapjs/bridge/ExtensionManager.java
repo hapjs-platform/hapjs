@@ -8,11 +8,15 @@ package org.hapjs.bridge;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+
 import androidx.annotation.Nullable;
+
 import com.eclipsesource.v8.JavaCallback;
 import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
+
 import org.hapjs.bridge.permission.HapPermissionManager;
 import org.hapjs.bridge.permission.PermissionCallback;
 import org.hapjs.common.executors.Executor;
@@ -21,6 +25,7 @@ import org.hapjs.common.utils.FeatureInnerBridge;
 import org.hapjs.logging.RuntimeLogManager;
 import org.hapjs.model.AppInfo;
 import org.hapjs.model.CardInfo;
+import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.JsThread;
@@ -33,6 +38,9 @@ import org.hapjs.runtime.HapConfig;
 import org.hapjs.runtime.HapEngine;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ExtensionManager {
     public static final String TAG = "ExtensionManager";
@@ -153,6 +161,33 @@ public class ExtensionManager {
         request.setInstanceId(instanceId);
         request.setJsCallback(jsCallback);
         return request;
+    }
+
+    public Response jsErrorInvoke(V8Object object) {
+        if (object != null) {
+            Map<String, String> data = new HashMap<>();
+            data.put("info", object.getString("info"));
+            HybridView hybridView = mHybridManager.getHybridView();
+            View rootView = hybridView == null ? null : hybridView.getWebView();
+            if (rootView instanceof RootView) {
+                PageManager pageManager = ((RootView) rootView).getPageManager();
+                String pageName = "";
+                String pagePath = "";
+                if (pageManager != null) {
+                    Page curPage = pageManager.getCurrPage();
+                    if (curPage != null) {
+                        pageName = curPage.getName();
+                        pagePath = curPage.getPath();// modify by oppo
+                    }
+                }
+                data.put("pagePath", pagePath);
+            }
+            String message = object.getString("message");
+            String stack = object.getString("stack");
+            //todo
+            return Response.SUCCESS;
+        }
+        return Response.ERROR;
     }
 
     public Response invoke(
@@ -301,6 +336,19 @@ public class ExtensionManager {
                     }
                 };
 
+        private final JavaCallback jsError = new JavaCallback() {
+            @Override
+            public Object invoke(V8Object receiver, V8Array parameters) {
+                try {
+                    V8Object params = (V8Object) parameters.get(0);
+                    Response response = jsInterface.jsErrorInvoke(params);
+                    return response == null ? null : response.toJavascriptResult(v8);
+                } catch (Exception e) {
+                    return Response.ERROR.toJavascriptResult(v8);
+                }
+            }
+        };
+
         private JsInterfaceProxy(V8 v8, JsInterface jsInterface) {
             super(v8);
             this.jsInterface = jsInterface;
@@ -310,6 +358,7 @@ public class ExtensionManager {
             JsInterfaceProxy proxy = new JsInterfaceProxy(v8, jsInterface);
             v8.add(name, proxy);
             proxy.registerJavaMethod(proxy.invoke, "invoke");
+            proxy.registerJavaMethod(proxy.jsError, "jsError");
             return proxy;
         }
     }
