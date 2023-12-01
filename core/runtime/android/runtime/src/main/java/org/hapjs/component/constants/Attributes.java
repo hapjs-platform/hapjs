@@ -411,6 +411,7 @@ public class Attributes {
         String SRC = "src";
         String SOURCE = "source";
         String ALT = "alt";
+        String QUALITY = "quality";
 
         String INDEX = "index";
         String AUTO_PLAY = "autoplay";
