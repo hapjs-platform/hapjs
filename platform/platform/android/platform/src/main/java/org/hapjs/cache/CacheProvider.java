@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -12,18 +12,23 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.text.TextUtils;
 import android.util.Log;
+
+import org.hapjs.AbstractContentProvider;
+import org.hapjs.bridge.storage.file.Resource;
+import org.hapjs.distribution.DistributionManager;
+import org.hapjs.logging.Source;
+import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.PermissionChecker;
+import org.hapjs.runtime.resource.CacheProviderContracts;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.hapjs.AbstractContentProvider;
-import org.hapjs.distribution.DistributionManager;
-import org.hapjs.logging.Source;
-import org.hapjs.runtime.PermissionChecker;
-import org.hapjs.runtime.resource.CacheProviderContracts;
 
 public class CacheProvider extends AbstractContentProvider {
 
@@ -45,6 +50,8 @@ public class CacheProvider extends AbstractContentProvider {
         }
         if (CacheProviderContracts.METHOD_GET_SIZE.equals(method)) {
             return getSize(arg);
+        } else if (CacheProviderContracts.METHOD_GET_FILE_NAME_LIST.equals(method)) {
+            return getFileNameList(extras);
         }
         return null;
     }
@@ -60,6 +67,30 @@ public class CacheProvider extends AbstractContentProvider {
             Log.w(TAG, "no cache for " + pkg);
             return null;
         }
+    }
+
+    private Bundle getFileNameList(Bundle extras) {
+        String pkg = extras.getString(CacheProviderContracts.PARAM_PACKAGE);
+        String resourcePath = extras.getString(CacheProviderContracts.PARAM_RESOURCE_PATH);
+        Resource resourceDir = HapEngine.getInstance(pkg).getApplicationContext().getResource(resourcePath);
+        if (resourceDir == null || resourceDir.getUnderlyingFile() == null) {
+            return null;
+        }
+        File[] files = resourceDir.getUnderlyingFile().listFiles();
+        if (files == null) {
+            return null;
+        }
+        ArrayList<String> fileNameList = new ArrayList<>();
+        for (File file : files) {
+            if (file.isFile()) {
+                String fullFileName = file.getName();
+                String fileName = fullFileName.substring(0, fullFileName.lastIndexOf("."));
+                fileNameList.add(fileName);
+            }
+        }
+        Bundle result = new Bundle();
+        result.putStringArrayList(CacheProviderContracts.RESULT_FILE_NAMES, fileNameList);
+        return result;
     }
 
     @Override

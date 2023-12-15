@@ -338,7 +338,7 @@ public class RootView extends FrameLayout
                 }
 
                 @Override
-                public boolean shouldOverrideUrlLoading(String url, String sourceH5,int pageId) {
+                public boolean shouldOverrideUrlLoading(String url, String sourceH5, int pageId) {
                     HybridRequest request =
                             new HybridRequest.Builder().uri(url).isDeepLink(true).pkg(mPackage)
                                     .build();
@@ -949,7 +949,7 @@ public class RootView extends FrameLayout
                                 mRuntimeLifecycleCallback, mPageManager);
 
                         // init configuration before create application
-                        initConfiguration(appContext);
+                        initConfiguration(appContext, request);
                         mJsThread.getJsChunksManager().registerAppChunks();
 
                         RuntimeLogManager.getDefault().logAppJsLoadStart(mPackage);
@@ -1044,13 +1044,19 @@ public class RootView extends FrameLayout
                 });
     }
 
-    private void initConfiguration(ApplicationContext appContext) {
+    private void initConfiguration(ApplicationContext appContext, HybridRequest request) {
         ConfigurationManager.getInstance().init(appContext);
         Locale initialLocale = ConfigurationManager.getInstance().getCurrentLocale();
+        String cardPath = null;
+        if (HapEngine.getInstance(mPackage).isCardMode()) {
+            if (request instanceof HybridRequest.HapRequest) {
+                cardPath = ((HybridRequest.HapRequest) request).getPagePath();
+            }
+        }
         mJsThread.postUpdateLocale(
                 initialLocale,
                 LocaleResourcesParser.getInstance()
-                        .resolveLocaleResources(mPackage, initialLocale));
+                        .resolveLocaleResources(mPackage, cardPath, initialLocale));
         if (mConfigurationListener == null) {
             mConfigurationListener = new RootViewConfigurationListener(this);
         }
@@ -1091,7 +1097,7 @@ public class RootView extends FrameLayout
         if (curConfig == null || !curConfig.getLocale().equals(newLocale)) {
             updateTitleBar = true;
             if (mJsThread != null) {
-                mJsThread.postUpdateLocale(newLocale, LocaleResourcesParser.getInstance().resolveLocaleResources(mPackage, newLocale));
+                mJsThread.postUpdateLocale(newLocale, LocaleResourcesParser.getInstance().resolveLocaleResources(mPackage, currentPage.getPath(), newLocale));
                 task.setLocaleChanged(true);
             }
             newConfig.setLocale(newLocale);
@@ -1160,7 +1166,7 @@ public class RootView extends FrameLayout
                 mJsThread.postUpdateLocale(
                         newLocale,
                         LocaleResourcesParser.getInstance()
-                                .resolveLocaleResources(mPackage, newLocale));
+                                .resolveLocaleResources(mPackage, currentPage.getPath(), newLocale));
                 mJsThread.postNotifyConfigurationChanged(currentPage,
                         JsThread.CONFIGURATION_TYPE_LOCALE);
             }
