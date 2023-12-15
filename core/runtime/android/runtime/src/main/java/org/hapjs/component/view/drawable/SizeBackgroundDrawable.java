@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,10 +21,12 @@ import android.view.Gravity;
 import android.view.View;
 import java.util.regex.Pattern;
 import org.hapjs.common.utils.FloatUtil;
+import org.hapjs.component.ComponentProvider;
 import org.hapjs.component.callback.VisibilityDrawableCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.model.AppInfo;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.ProviderManager;
 
 public class SizeBackgroundDrawable extends BitmapDrawable {
 
@@ -264,7 +266,29 @@ public class SizeBackgroundDrawable extends BitmapDrawable {
             mScaleMatrix.setTranslate(0, 0);
         }
         if (width > 0 && height > 0) {
-            mScaleMatrix.preScale(backgroundWidth / width, backgroundHeight / height);
+            boolean isSysDensityChange = false;
+            ComponentProvider componentProvider = ProviderManager.getDefault()
+                    .getProvider(ComponentProvider.NAME);
+            if (null != componentProvider) {
+                isSysDensityChange = componentProvider.isSysShowSizeChange();
+            }
+            //for density change
+            if (isSysDensityChange && null != mHostView) {
+                float addScale = 1.0f;
+                float canvasDensityDpi = mHostView.getResources().getConfiguration().densityDpi;
+                float bitmapDensityDpi = -1;
+                Bitmap bitmap = getBitmap();
+                if (null != bitmap) {
+                    bitmapDensityDpi = bitmap.getDensity();
+                }
+                if (bitmapDensityDpi > 0 && canvasDensityDpi > 0
+                        && canvasDensityDpi != bitmapDensityDpi) {
+                    addScale = canvasDensityDpi / bitmapDensityDpi;
+                }
+                mScaleMatrix.preScale(backgroundWidth / width * addScale, backgroundHeight / height * addScale);
+            } else {
+                mScaleMatrix.preScale(backgroundWidth / width, backgroundHeight / height);
+            }
         }
 
         Bitmap bgBitmap = null;

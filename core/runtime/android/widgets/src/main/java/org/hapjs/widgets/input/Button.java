@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +17,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.view.text.FlexButton;
@@ -59,16 +60,15 @@ public class Button extends Edit {
 
     @Override
     protected void initDefaultView(TextView view) {
-        view.setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE));
+        Page page = initFontLevel();
+        view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE, this));
         view.setTextColor(ColorUtil.getColor(DEFAULT_COLOR));
 
-        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH);
+        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH, this);
         view.setMinWidth(minWidth);
         view.setMinimumWidth(minWidth);
 
-        int minHeight = Attributes.getInt(mHapEngine, DEFAULT_HEIGHT);
+        int minHeight = Attributes.getInt(mHapEngine, DEFAULT_HEIGHT, this);
         view.setMinHeight(minHeight);
         view.setMinimumHeight(minHeight);
     }

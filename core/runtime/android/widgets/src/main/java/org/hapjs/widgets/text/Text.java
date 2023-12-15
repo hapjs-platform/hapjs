@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -31,6 +31,7 @@ import org.hapjs.component.RecyclerDataItem;
 import org.hapjs.component.SwipeObserver;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.Page;
 import org.hapjs.render.css.value.CSSValues;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.A;
@@ -91,6 +92,12 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
         textLayoutView.setComponent(this);
         textLayoutView.setGravity(getDefaultVerticalGravity());
         return textLayoutView;
+    }
+
+    protected void initTextFontLevel() {
+        Page page = super.initFontLevel();
+        mLayoutBuilder.setTextSize(Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE, this))
+                .setTextColor(ColorUtil.getColor(DEFAULT_COLOR));
     }
 
     @Override
@@ -290,18 +297,25 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
                 setLines(lines);
                 return true;
             case Attributes.Style.LINE_HEIGHT:
-                int lineHeight = Attributes.getInt(mHapEngine, attribute, -1);
-                setLineHeight(lineHeight);
+                if (mAutoLineHeight) {
+                    int lineHeight = Attributes.getFontSize(mHapEngine, getPage(), attribute, -1, this);
+                    setLineHeight(lineHeight);
+                } else {
+                    int lineHeight = Attributes.getInt(mHapEngine, attribute, -1, this);
+                    setLineHeight(lineHeight);
+                }
+                return true;
+            case Attributes.Style.AUTO_LINE_HEIGHT:
+                boolean autoLineHeight = Attributes.getBoolean(attribute, false);
+                mAutoLineHeight = autoLineHeight;
                 return true;
             case Attributes.Style.COLOR:
                 String colorStr = Attributes.getString(attribute, getDefaultColor());
                 setColor(colorStr);
                 return true;
             case Attributes.Style.FONT_SIZE:
-                int defaultFontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), getDefaultFontSize());
-                int fontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize);
+                int defaultFontSize = Attributes.getFontSize(mHapEngine, getPage(), getDefaultFontSize(), this);
+                int fontSize = Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize, this);
                 setFontSize(fontSize);
                 return true;
             case Attributes.Style.FONT_STYLE:
@@ -643,10 +657,10 @@ public class Text extends AbstractText<TextLayoutView> implements SwipeObserver 
         } else if (letterspacing.endsWith("normal")) {
             setLetterSpacing(0.0f);
         } else if (letterspacing.endsWith("dp")) {
-            float dp = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            float dp = Attributes.getFloat(mHapEngine, letterspacing, 0, this);
             setLetterSpacing(dp/getFontSize());
         } else if (letterspacing.endsWith("px")) {
-            float px = Attributes.getFloat(mHapEngine, letterspacing, 0);
+            float px = Attributes.getFloat(mHapEngine, letterspacing, 0, this);
             setLetterSpacing(px/getFontSize());
         } else if (letterspacing.endsWith("%")) {
             float percent = Attributes.getPercent(letterspacing, 0);

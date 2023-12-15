@@ -11,9 +11,11 @@ import android.util.Log;
 import org.hapjs.card.sdk.utils.CardThemeUtils;
 import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.common.utils.FloatUtil;
+import org.hapjs.component.Component;
 import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.runtime.ProviderManager;
+import org.hapjs.system.SysOpProvider;
 
 public class Attributes {
 
@@ -28,6 +30,14 @@ public class Attributes {
 
     public static int getInt(HapEngine hapEngine, Object value, int defValue) {
         return Math.round(getFloat(hapEngine, value, defValue));
+    }
+
+    public static int getInt(HapEngine hapEngine, Object value, Component component) {
+        return getInt(hapEngine, value, 0, component);
+    }
+
+    public static int getInt(HapEngine hapEngine, Object value, int defValue, Component component) {
+        return Math.round(getFloat(hapEngine, value, defValue, component));
     }
 
     public static int getFoldInt(HapEngine hapEngine, Object value, int defValue, boolean isUseFold) {
@@ -140,6 +150,90 @@ public class Attributes {
             }
 
             // default
+            return Float.parseFloat(temp);
+        } catch (Exception e) {
+            Log.e(TAG, "Attribute get float error: " + temp, e);
+        }
+        return defValue;
+    }
+
+    public static float getFloat(HapEngine hapEngine, Object value, Component component) {
+        if (null == component || (null != component
+                && !component.isSysShowLevelChange())) {
+            return getFloat(hapEngine, value);
+        } else {
+            return getFloatByComponent(hapEngine, value, FloatUtil.UNDEFINED, component);
+        }
+    }
+
+    public static float getFloat(HapEngine hapEngine, Object value, float defValue, Component component) {
+        if (null == component || (null != component
+                && !component.isSysShowLevelChange())) {
+            return getFloat(hapEngine, value, defValue);
+        } else {
+            return getFloatByComponent(hapEngine, value, defValue, component);
+        }
+    }
+
+    public static float getFloatByComponent(HapEngine hapEngine, Object value, float defValue, Component component) {
+        if (value == null || "".equals(value)) {
+            return defValue;
+        }
+        String temp = value.toString().trim();
+        if (temp.startsWith(CardThemeUtils.KEY_THEME)) {
+            String themeValue = CardThemeUtils.getThemeValue(temp);
+            if (!TextUtils.isEmpty(themeValue)) {
+                temp = themeValue;
+            } else {
+                return defValue;
+            }
+        }
+        try {
+            //px
+            if (temp.endsWith(Unit.PX)) {
+                temp = temp.substring(0, temp.length() - Unit.PX.length());
+                float result = Float.parseFloat(temp);
+                if (null != component && component.isSysShowLevelChange()
+                        && component.isAutoShowLevel()) {
+                    float minShowLevel = component.getMinShowLevel();
+                    float maxShowLevel = component.getMaxShowLevel();
+                    float sysShowLevel = component.getScaleShowLevel();
+                    float realShowLevel = sysShowLevel;
+                    if (minShowLevel > 0 && maxShowLevel > 0 && minShowLevel <= maxShowLevel) {
+                        if (sysShowLevel >= maxShowLevel) {
+                            realShowLevel = maxShowLevel;
+                        } else if (sysShowLevel <= minShowLevel) {
+                            realShowLevel = minShowLevel;
+                        }
+                    }
+                    result = result * realShowLevel;
+                }
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.getRealPxByWidth(result, hapEngine.getDesignWidth());
+            }
+
+            //dp
+            if (temp.endsWith(Unit.DP)) {
+                temp = temp.substring(0, temp.length() - Unit.DP.length());
+                float result = Float.parseFloat(temp);
+                if (null != component && component.isSysShowLevelChange()) {
+                    float sysShowLevel = 1.0f;
+                    if (!component.isAutoShowLevel()) {
+                        sysShowLevel = component.getScaleShowLevel();
+                    }
+                    if (sysShowLevel > 0) {
+                        result = result / sysShowLevel;
+                    }
+                }
+                if (hapEngine == null) {
+                    return defValue;
+                }
+                return DisplayUtil.dip2PixelFloat(hapEngine.getContext(), result);
+            }
+
+            //default
             return Float.parseFloat(temp);
         } catch (Exception e) {
             Log.e(TAG, "Attribute get float error: " + temp, e);
@@ -304,6 +398,23 @@ public class Attributes {
         return Math.round(size);
     }
 
+    public static int getFontSizeByComponent(HapEngine hapEngine, Page page, Object value, Component component) {
+        return getFontSize(hapEngine, page, value, 0, component);
+    }
+
+    public static int getFontSizeByComponent(HapEngine hapEngine, Page page, Object value, int defValue, Component component) {
+        if (hapEngine == null || page == null) {
+            return defValue;
+        }
+        FontSizeProvider provider = ProviderManager.getDefault().getProvider(FontSizeProvider.NAME);
+        float size = provider.getBestFontSize(hapEngine.getContext(), getFloat(hapEngine, value, defValue, component));
+        if (page.isTextSizeAdjustAuto()) {
+            Configuration configuration = hapEngine.getContext().getResources().getConfiguration();
+            size *= configuration.fontScale;
+        }
+        return Math.round(size);
+    }
+
     public interface Style {
         String ID = "id";
         String TARGET = "target";
@@ -315,6 +426,7 @@ public class Attributes {
         String MAX_WIDTH = "maxWidth";
         String MAX_HEIGHT = "maxHeight";
         String AUTO = "auto";
+        String AUTO_SIZE = "autosize";
         String NONE = "none";
         String MIN_CONTENT = "minContent";
         String MAX_CONTENT = "maxContent";
@@ -388,8 +500,13 @@ public class Attributes {
 
         String LINES = "lines";
         String LINE_HEIGHT = "lineHeight";
+        String AUTO_LINE_HEIGHT = "autolineheight";
         String COLOR = "color";
         String FONT_SIZE = "fontSize";
+        String KEY_MIN_FONT_LEVEL = "minfontlevel";
+        String KEY_MAX_FONT_LEVEL = "maxfontlevel";
+        String KEY_MIN_SHOW_LEVEL = "minshowlevel";
+        String KEY_MAX_SHOW_LEVEL = "maxshowlevel";
         String FONT_STYLE = "fontStyle";
         String FONT_WEIGHT = "fontWeight";
         String TEXT_DECORATION = "textDecoration";
@@ -683,5 +800,42 @@ public class Attributes {
     public interface FocusBehavior {
         String ALIGNED = "aligned";
         String EDGED = "edged";
+    }
+    /**
+     * fontScale adapter
+     */
+    public static int getFontSize(HapEngine hapEngine, Page page, Object value, Component component) {
+        return getFontSize(hapEngine, page, value, 0, component);
+    }
+
+    public static int getFontSize(HapEngine hapEngine, Page page, Object value, int defValue, Component component) {
+        if (hapEngine == null || page == null) {
+            return defValue;
+        }
+        if (!page.isTextSizeAdjustAuto()) {
+            return getFontSizeByComponent(hapEngine, page, value, defValue, component);
+        } else {
+            FontSizeProvider provider = ProviderManager.getDefault().getProvider(FontSizeProvider.NAME);
+            float size = provider.getBestFontSize(hapEngine.getContext(), getFloat(hapEngine, value, defValue, component));
+            SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+            if (null != sysOpProvider) {
+                boolean isAdjustFontLevel = sysOpProvider.isAdjustFontLevel(hapEngine.getContext());
+                if (!isAdjustFontLevel) {
+                    Configuration configuration = hapEngine.getContext().getResources().getConfiguration();
+                    size *= configuration.fontScale;
+                } else {
+                    float adjustSize = sysOpProvider.getFontLevelAdjustSize(hapEngine, page, size, (null != component ? component.getMinFontLevel() : -1),
+                            (null != component ? component.getMaxFontLevel() : -1));
+                    if (adjustSize > 0) {
+                        size = adjustSize;
+                    } else {
+                        Log.w(TAG, "getFontSize adjustSize is not valid.");
+                    }
+                }
+            } else {
+                Log.w(TAG, "getFontSize sysOpProvider is null.");
+            }
+            return Math.round(size);
+        }
     }
 }

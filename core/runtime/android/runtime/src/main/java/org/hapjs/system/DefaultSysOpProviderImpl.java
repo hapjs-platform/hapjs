@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Icon;
@@ -260,6 +261,11 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
 
     @Override
     public boolean isTextSizeAdjustAuto() {
+        return false;
+    }
+
+    @Override
+    public boolean isShowSizeAdjustAuto() {
         return false;
     }
 
@@ -533,6 +539,36 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
     @Override
     public int getSafeAreaWidth(Context context) {
         return 0;
+    }
+
+    @Override
+    public Map<String, Object> getSystemFontLevelData(Context context) {
+        return null;
+    }
+
+    @Override
+    public float getFontLevelAdjustSize(HapEngine hapEngine, Page page, float size, float minFontScale, float maxFontScale) {
+        return 0;
+    }
+
+    @Override
+    public boolean isAdjustFontLevel(Context context) {
+        return false;
+    }
+
+    @Override
+    public boolean isSysShowLevelChange(Context context) {
+        return false;
+    }
+
+    @Override
+    public float getScaleShowLevel(Context context) {
+        return 1;
+    }
+
+    @Override
+    public void updateConfiguration(Context context, Configuration configuration) {
+
     }
 
 }

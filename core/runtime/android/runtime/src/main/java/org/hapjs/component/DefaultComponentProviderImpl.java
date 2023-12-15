@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,5 +11,10 @@ public class DefaultComponentProviderImpl implements ComponentProvider {
     @Override
     public boolean isDefaultRgb565EnableBelowAndroidO(Context context) {
         return true;
+    }
+
+    @Override
+    public boolean isSysShowSizeChange() {
+        return false;
     }
 }

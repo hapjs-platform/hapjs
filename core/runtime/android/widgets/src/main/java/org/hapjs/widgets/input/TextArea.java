@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +21,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.text.FlexEditText;
 
@@ -65,15 +66,14 @@ public class TextArea extends Edit {
 
     @Override
     protected void initDefaultView(TextView editText) {
-        editText.setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE));
+        Page page = initFontLevel();
+        editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE, this));
         editText.setTextColor(ColorUtil.getColor(DEFAULT_COLOR));
         editText.setHintTextColor(ColorUtil.getColor(DEFAULT_PLACEHOLDER_COLOR));
         editText.setBackground(null);
         editText.setGravity(Gravity.TOP | Gravity.START);
 
-        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH);
+        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH, this);
         editText.setMinWidth(minWidth);
         editText.setMinimumWidth(minWidth);
 

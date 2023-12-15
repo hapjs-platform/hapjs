@@ -10,10 +10,13 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
+import android.util.Log;
+
 import androidx.appcompat.app.AppCompatDelegate;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.hapjs.bridge.ApplicationContext;
+import org.hapjs.system.SysOpProvider;
 
 public class ConfigurationManager {
 
@@ -96,6 +99,12 @@ public class ConfigurationManager {
             return;
         }
         Configuration systemConfig = Resources.getSystem().getConfiguration();
+        SysOpProvider provider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        if (null != provider) {
+            provider.updateConfiguration(context, systemConfig);
+        } else {
+            Log.w(TAG, "reset provider is null.");
+        }
         updateContextConfiguration(context, systemConfig);
         updateLocale(obtainLocale(systemConfig));
         mConfigurationListener.clear();

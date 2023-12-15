@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,4 +17,6 @@ public interface ComponentProvider {
      * @return true: Android O以下版本Bitmap默认RGB565 false:Android O以下版本Bitmap默认ARGB8888
      */
     boolean isDefaultRgb565EnableBelowAndroidO(Context context);
+
+    boolean isSysShowSizeChange();
 }

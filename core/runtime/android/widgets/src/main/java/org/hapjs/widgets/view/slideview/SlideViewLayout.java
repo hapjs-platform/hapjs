@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,6 +14,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -34,11 +35,14 @@ import com.facebook.drawee.generic.RoundingParams;
 import com.facebook.drawee.view.SimpleDraweeView;
 
 import org.hapjs.common.utils.ColorUtil;
+import org.hapjs.common.utils.DisplayUtil;
 import org.hapjs.component.Component;
+import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.YogaLayout;
 import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
+import org.hapjs.render.Page;
 import org.hapjs.widgets.R;
 
 import java.util.List;
@@ -230,7 +234,7 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         return mSecondaryLayout;
     }
 
-    private void fillSecondaryLayout(List<SlideButtonInfo> buttonInfoList) {
+    private void fillSecondaryLayout(List<SlideButtonInfo> buttonInfoList, Component component, Page page) {
         if (buttonInfoList == null || buttonInfoList.isEmpty()) {
             return;
         }
@@ -280,7 +284,17 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
             } else {
                 text.setVisibility(VISIBLE);
                 text.setText(buttonInfo.text);
-                text.setTextSize(buttonInfo.textSize != UNDEFINE ? buttonInfo.textSize : DEFAULT_TEXT_SIZE);
+                if (null != page && page.isTextSizeAdjustAuto()) {
+                    String fontSizeStr = DEFAULT_TEXT_SIZE + Attributes.Unit.DP;
+                    int fontsize = Attributes.getInt(mComponent.getHapEngine(), fontSizeStr, component);
+                    int defaultFontSize = Attributes.getFontSize(mComponent.getHapEngine(), mComponent.getPage(), fontsize, fontsize, component);
+                    text.setTextSize(TypedValue.COMPLEX_UNIT_PX, buttonInfo.textSize != UNDEFINE ? buttonInfo.textSize : defaultFontSize);
+                } else {
+                    String fontSizeStr = DEFAULT_TEXT_SIZE + Attributes.Unit.DP;
+                    int fontsize = Attributes.getInt(mComponent.getHapEngine(), fontSizeStr, component);
+                    int defaultFontSize = Attributes.getFontSize(mComponent.getHapEngine(), mComponent.getPage(), fontsize, fontsize, component);
+                    text.setTextSize(buttonInfo.textSize != UNDEFINE ? buttonInfo.textSize : defaultFontSize);
+                }
                 text.setTextColor(buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor : DEFAULT_TEXT_COLOR);
             }
             buttonLayout.setOnClickListener(v -> {
@@ -305,7 +319,14 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
                 secConfText.setGravity(Gravity.CENTER);
                 secConfText.setVisibility(INVISIBLE);
                 secConfText.setText(secConfHolder.text);
-                secConfText.setTextSize(secConfHolder.textSize != UNDEFINE ? secConfHolder.textSize : DEFAULT_TEXT_SIZE);
+                if (null != page && page.isTextSizeAdjustAuto()) {
+                    int fontsize = DisplayUtil.dp2px(getContext(), DEFAULT_TEXT_SIZE);
+                    int defaultFontSize = Attributes.getFontSize(mComponent.getHapEngine(), mComponent.getPage(), fontsize, fontsize, component);
+                    secConfText.setTextSize(TypedValue.COMPLEX_UNIT_PX, secConfHolder.textSize != UNDEFINE ? secConfHolder.textSize : defaultFontSize);
+                } else {
+                    int defaultFontSize = Attributes.getFontSize(mComponent.getHapEngine(), mComponent.getPage(), DEFAULT_TEXT_SIZE, DEFAULT_TEXT_SIZE, component);
+                    secConfText.setTextSize(secConfHolder.textSize != UNDEFINE ? secConfHolder.textSize : defaultFontSize);
+                }
                 int holderTextColor = buttonInfo.textColor != UNDEFINE ? buttonInfo.textColor : DEFAULT_TEXT_COLOR;
                 secConfText.setTextColor(secConfHolder.textColor != UNDEFINE ? secConfHolder.textColor : holderTextColor);
                 secConfText.setBackgroundColor(buttonInfo.backgroundColor != UNDEFINE ? buttonInfo.backgroundColor : DEFAULT_BACKGROUND_COLOR);
@@ -613,9 +634,10 @@ public class SlideViewLayout extends ViewGroup implements ComponentHost, Gesture
         }
     }
 
-    public void setButtons(List<SlideButtonInfo> buttonInfoList) {
-        fillSecondaryLayout(buttonInfoList);
+    public void setButtons(List<SlideButtonInfo> buttonInfoList, Component component, Page page) {
+        fillSecondaryLayout(buttonInfoList, component, page);
     }
+
 
     public boolean isOpened() {
         return (mState == STATE_OPEN);

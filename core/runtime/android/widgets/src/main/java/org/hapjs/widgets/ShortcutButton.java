@@ -124,7 +124,7 @@ public class ShortcutButton extends Button {
         int minHeight = Attributes.getInt(mHapEngine, DEFAULT_HEIGHT_VALUE * mScaleValue + Attributes.Unit.PX);
         view.setMinHeight(minHeight);
         view.setMinimumHeight(minHeight);
-        mCurFontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX);
+        mCurFontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX, this);
         int maxHeight = Attributes.getInt(mHapEngine, MAX_HEIGHT_VALUE * mScaleValue + Attributes.Unit.PX);
         view.setMaxHeight(maxHeight);
     }
@@ -229,8 +229,8 @@ public class ShortcutButton extends Button {
                 checkValue();
                 return true;
             case Attributes.Style.FONT_SIZE:
-                int defaultFontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX);
-                int fontSize = Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize);
+                int defaultFontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX, this);
+                int fontSize = Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize, this);
                 if (fontSize < defaultFontSize) {
                     fontSize = defaultFontSize;
                 }
@@ -305,7 +305,7 @@ public class ShortcutButton extends Button {
         boolean isWidthValid = (width - textWidth - currentLPadding - currentRPadding - currentLBorder - currentRBorder >= 0);
         boolean isHeightValid = (height - fontSize - currentTPadding - currentBPadding - currentTBorder - currentBBorder >= 0);
         if (!isWidthValid || !isHeightValid && null != mHost) {
-            fontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX);
+            fontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE_VALUE * mScaleValue + Attributes.Unit.PX, this);
             setFontSize(fontSize);
             mCurFontSize = fontSize;
             setBorderWidth(Attributes.Style.BORDER_LEFT_WIDTH, 0);

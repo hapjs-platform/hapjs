@@ -8,6 +8,7 @@ package org.hapjs.system;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.view.View;
@@ -26,6 +27,7 @@ import org.hapjs.model.DisplayInfo;
 import org.hapjs.model.MenubarItemData;
 import org.hapjs.render.Page;
 import org.hapjs.render.RootView;
+import org.hapjs.runtime.HapEngine;
 
 public interface SysOpProvider {
     String NAME = "sysop";
@@ -68,6 +70,8 @@ public interface SysOpProvider {
     boolean isNotificationEnabled(Context context, String pkg);
 
     boolean isTextSizeAdjustAuto();
+
+    boolean isShowSizeAdjustAuto();
 
     void showSystemMenu(Context context, AppInfo appInfo);
 
@@ -174,4 +178,16 @@ public interface SysOpProvider {
     int getFoldDisplayWidth(Context context);
 
     int getSafeAreaWidth(Context context);
+
+    Map<String, Object> getSystemFontLevelData(Context context);
+
+    float getFontLevelAdjustSize(HapEngine hapEngine, Page page, float size, float minFontScale, float maxFontScale);
+
+    boolean isAdjustFontLevel(Context context);
+
+    boolean isSysShowLevelChange(Context context);
+
+    float getScaleShowLevel(Context context);
+
+    void updateConfiguration(Context context, Configuration configuration);
 }

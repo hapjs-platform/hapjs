@@ -163,6 +163,7 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
 
     public FlexImageView(Context context) {
         super(context, buildHierarchy(context));
+        initScaleType();
         mRoundedCornerPostprocessor = new RoundedCornerPostprocessor();
         mDraweeControllerBuilder = Fresco.newDraweeControllerBuilder();
         mViewAttach = new FlexImageViewAttach(this);
@@ -182,6 +183,14 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
                     }
                 });
         initBitmapQuality(context);
+    }
+
+    private void initScaleType() {
+        ComponentProvider componentProvider = ProviderManager.getDefault()
+                .getProvider(ComponentProvider.NAME);
+        if (null != componentProvider) {
+            mScaleType = componentProvider.isSysShowSizeChange() ? ScalingUtils.ScaleType.FIT_CENTER : ScalingUtils.ScaleType.CENTER_CROP;
+        }
     }
 
     private void initBitmapQuality(Context context) {
