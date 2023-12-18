@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.hapjs.common.resident.ResidentManager;
 import org.hapjs.common.utils.ReflectUtils;
+import org.hapjs.component.bridge.ActivityStateListener;
 import org.hapjs.debug.DebugUtils;
 import org.hapjs.model.CardInfo;
 import org.hapjs.render.Page;
@@ -43,7 +44,7 @@ public class HybridManager implements HybridView.OnVisibilityChangedListener {
     private String mPackage;
 
     private Set<LifecycleListener> mListeners = new CopyOnWriteArraySet<>();
-
+    private Set<ActivityStateListener> mForceListeners = new CopyOnWriteArraySet<>();
     private boolean mStarted;
     private boolean mResumed;
     private boolean mIsVisible;
@@ -140,6 +141,15 @@ public class HybridManager implements HybridView.OnVisibilityChangedListener {
         return mNativeInterface;
     }
 
+
+    public void addForceLifecycleListener(ActivityStateListener listener) {
+        mForceListeners.add(listener);
+    }
+
+    public void removeForceLifecycleListener(ActivityStateListener listener) {
+        mForceListeners.remove(listener);
+    }
+
     public void addLifecycleListener(LifecycleListener listener) {
         mListeners.add(listener);
     }
@@ -207,6 +217,9 @@ public class HybridManager implements HybridView.OnVisibilityChangedListener {
     public void onPause() {
         if (!mResumed) {
             Log.d(TAG, "not resumed. skip onPause");
+            for (ActivityStateListener listener : mForceListeners) {
+                listener.onActivityPause();
+            }
             return;
         }
 
