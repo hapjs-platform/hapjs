@@ -7,6 +7,7 @@ package org.hapjs.component.animation;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.hapjs.component.Component;
 
 public class Animation {
@@ -98,6 +99,12 @@ public class Animation {
     public void pause() {
         if (mAnimatorSet != null) {
             mAnimatorSet.pause();
+        }
+    }
+
+    public void resume() {
+        if (mAnimatorSet != null) {
+            mAnimatorSet.resume();
         }
     }
 

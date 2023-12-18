@@ -7,12 +7,17 @@ package org.hapjs.component.feature;
 
 import android.app.Activity;
 import android.util.Log;
+
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.hapjs.bridge.CallbackContext;
 import org.hapjs.bridge.CallbackContextHolder;
 import org.hapjs.bridge.CallbackHybridFeature;
 import org.hapjs.bridge.FeatureExtension;
+import org.hapjs.bridge.HybridManager;
+import org.hapjs.bridge.LifecycleListener;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
@@ -82,7 +87,42 @@ public class AnimationFeature extends CallbackHybridFeature {
     protected static final String EVENT_ON_ANIMATION_FINISH = "onfinish";
     private static final String TAG = "AnimationFeature";
     private static final String CONNECTOR = "-";
-    private Map<String, Animation> mAnimations = new ConcurrentHashMap<>();
+    private final Map<String, Animation> mAnimations = new ConcurrentHashMap<>();
+    private final Map<String, Animation> mPausingAnimations = new ConcurrentHashMap<>();
+    private final Object mLock = new Object();
+    private HybridManager mHybridManager;
+    private final LifecycleListener mLifecycleListener = new LifecycleListener() {
+        @Override
+        public void onResume() {
+            super.onResume();
+            synchronized (mLock) {
+                Set<Map.Entry<String, Animation>> entries = mPausingAnimations.entrySet();
+                for (Map.Entry<String, Animation> entry : entries) {
+                    entry.getValue().resume();
+                }
+                mPausingAnimations.clear();
+            }
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            synchronized (mLock) {
+                Set<Map.Entry<String, Animation>> entries = mAnimations.entrySet();
+                for (Map.Entry<String, Animation> entry : entries) {
+                    Animation animation = entry.getValue();
+                    //页面 onPause 时，要暂停所有 infinity 的动画，否则会在 Android 13 的设备上崩溃
+                    if (animation.getAnimatorSet() != null
+                            && Integer.MAX_VALUE == animation.getAnimatorSet().getRepeatCount()) {
+                        if (animation.getPlayState().equals("running")) {
+                            mPausingAnimations.put(entry.getKey(), entry.getValue());
+                            animation.pause();
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     @Override
     public String getName() {
@@ -98,6 +138,10 @@ public class AnimationFeature extends CallbackHybridFeature {
         Activity activity = request.getNativeInterface().getActivity();
         switch (request.getAction()) {
             case ACTION_ENABLE:
+                if (mHybridManager == null) {
+                    mHybridManager = request.getView().getHybridManager();
+                    setLifecycleListener();
+                }
                 enable(request, compId, animId);
                 break;
             case ACTION_PLAY:
@@ -114,6 +158,9 @@ public class AnimationFeature extends CallbackHybridFeature {
                         new Runnable() {
                             @Override
                             public void run() {
+                                synchronized (mLock) {
+                                    mPausingAnimations.remove(key);
+                                }
                                 pause(key);
                             }
                         });
@@ -175,6 +222,12 @@ public class AnimationFeature extends CallbackHybridFeature {
         }
 
         return Response.SUCCESS;
+    }
+
+    private void setLifecycleListener() {
+        if (mHybridManager != null) {
+            mHybridManager.addLifecycleListener(mLifecycleListener);
+        }
     }
 
     private void enable(Request request, String compId, String animId) {
@@ -403,6 +456,14 @@ public class AnimationFeature extends CallbackHybridFeature {
     @Override
     public boolean isBuiltInExtension() {
         return true;
+    }
+
+    @Override
+    public void dispose(boolean force) {
+        super.dispose(force);
+        if (force && mHybridManager != null) {
+            mHybridManager.removeLifecycleListener(mLifecycleListener);
+        }
     }
 
     private class AnimationCallbackContext extends CallbackContext
