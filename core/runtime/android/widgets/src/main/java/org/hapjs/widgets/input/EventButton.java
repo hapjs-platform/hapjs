@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2022-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets.input;
@@ -30,6 +30,7 @@ import org.hapjs.component.view.gesture.GestureHost;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.logging.Source;
 import org.hapjs.model.AppInfo;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.view.text.FlexButton;
@@ -82,14 +83,15 @@ public class EventButton extends Button {
 
     @Override
     protected void initDefaultView(TextView view) {
-        view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE));
+        Page page = initFontLevel();
+        view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE,this));
         view.setTextColor(ColorUtil.getColor(DEFAULT_COLOR));
 
-        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH);
+        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH, this);
         view.setMinWidth(minWidth);
         view.setMinimumWidth(minWidth);
 
-        int minHeight = Attributes.getInt(mHapEngine, DEFAULT_HEIGHT);
+        int minHeight = Attributes.getInt(mHapEngine, DEFAULT_HEIGHT, this);
         view.setMinHeight(minHeight);
         view.setMinimumHeight(minHeight);
     }

@@ -85,7 +85,7 @@ function bindSubVm(vm, subVm, template, repeatItem) {
     vm._$listeners.forEach(_listener => {
       mergeListeners(_listener, vm, subVm)
     })
-    delete template.attr.$listeners
+    // delete template.attr.$listeners
   }
 
   mergeExternalClasses(options, template, subVm, vm)

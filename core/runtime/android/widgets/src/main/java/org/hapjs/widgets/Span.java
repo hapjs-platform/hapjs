@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -102,8 +102,13 @@ public class Span extends Container<View> implements NestedInnerSpannable {
                 setFontSize(fontSizeStr);
                 return true;
             case Attributes.Style.LINE_HEIGHT:
-                int lineHeight = Attributes.getInt(mHapEngine, attribute, -1);
-                setLineHeight(lineHeight);
+                if (mAutoLineHeight) {
+                    int lineHeight = Attributes.getFontSize(mHapEngine, getPage(), attribute, -1, this);
+                    setLineHeight(lineHeight);
+                } else {
+                    int lineHeight = Attributes.getInt(mHapEngine, attribute, -1, this);
+                    setLineHeight(lineHeight);
+                }
                 return true;
             case Attributes.Style.FONT_STYLE:
                 String fontStyleStr = Attributes.getString(attribute);
@@ -173,7 +178,7 @@ public class Span extends Container<View> implements NestedInnerSpannable {
     }
 
     public void setFontSize(String fontSizeStr) {
-        int fontSize = Attributes.getFontSize(mHapEngine, getPage(), fontSizeStr);
+        int fontSize = Attributes.getFontSize(mHapEngine, getPage(), fontSizeStr, this);
         if (mFontSize == fontSize) {
             return;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -34,6 +34,7 @@ import org.hapjs.component.Component;
 import org.hapjs.component.Container;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.GrayModeManager;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.text.TypefaceBuilder;
@@ -76,6 +77,11 @@ public class Select extends Container<SelectView> {
             Map<String, Object> savedState) {
         super(hapEngine, context, parent, ref, callback, savedState);
         mAdapter = new SelectAdapter();
+    }
+
+    private void initSelect() {
+        Page page = super.initFontLevel();
+        mFontSize = Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE, this);
     }
 
     @Override
@@ -175,10 +181,8 @@ public class Select extends Container<SelectView> {
                 setColor(colorStr);
                 return true;
             case Attributes.Style.FONT_SIZE:
-                int defaultFontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE);
-                int fontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize);
+                int defaultFontSize = Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE, this);
+                int fontSize = Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize, this);
                 setFontSize(fontSize);
                 return true;
             case Attributes.Style.FONT_STYLE:

@@ -38,6 +38,8 @@ import org.hapjs.common.net.DefaultBanNetworkProviderImpl;
 import org.hapjs.common.net.DefaultNetworkReportProviderImpl;
 import org.hapjs.common.net.NetworkReportProvider;
 import org.hapjs.common.utils.ProcessUtils;
+import org.hapjs.component.ComponentProvider;
+import org.hapjs.component.DefaultComponentProviderImpl;
 import org.hapjs.distribution.InstalledSubpackageManager;
 import org.hapjs.launch.DeepLinkClient;
 import org.hapjs.launch.LauncherManager;
@@ -126,6 +128,8 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
                 NetworkReportProvider.NAME, new DefaultNetworkReportProviderImpl(mContext));
         ProviderManager.getDefault().addProvider(
                 CommonMsgProvider.NAME, new DefaultCommonMsgProviderImpl());
+        ProviderManager.getDefault().addProvider(
+                ComponentProvider.NAME, new DefaultComponentProviderImpl());
         Thread.setDefaultUncaughtExceptionHandler(new CrashHandler());
     }
 

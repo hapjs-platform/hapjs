@@ -226,6 +226,10 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
                 boolean autoplay = Attributes.getBoolean(attribute, true);
                 setAutoplay(autoplay);
                 return true;
+            case Attributes.Style.QUALITY:
+                String quality = Attributes.getString(attribute, "");
+                setQuality(quality);
+                return true;
             default:
                 break;
         }
@@ -313,7 +317,7 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
     }
 
     private void setImageSpanWidth(String widthStr) {
-        int width = Attributes.getInt(mHapEngine, widthStr, 0);
+        int width = Attributes.getInt(mHapEngine, widthStr, 0, this);
         if (mImgWidth == width) {
             return;
         }
@@ -324,7 +328,7 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
     }
 
     private void setImageSpanHeight(String heightStr) {
-        int height = Attributes.getInt(mHapEngine, heightStr, 0);
+        int height = Attributes.getInt(mHapEngine, heightStr, 0, this);
         if (mImgHeight == height) {
             return;
         }
@@ -651,6 +655,13 @@ public class Image extends Component<FlexImageView> implements Autoplay, InnerSp
         }
         stopAnimation();
         mHost.setAutoplay(autoplay);
+    }
+
+    public void setQuality(String quality) {
+        if (mHost == null) {
+            return;
+        }
+        mHost.setQuality(quality);
     }
 
     public void startAnimation() {

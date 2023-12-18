@@ -9,6 +9,7 @@ import android.app.UiModeManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.WindowInsets;
 
 import org.hapjs.model.AppInfo;
@@ -155,6 +156,22 @@ public class DisplayUtil {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         float density = displayMetrics.density;
         return (int) (dip * density + 0.5f);
+    }
+
+    public static int dip2PixelFloat(Context context, float dip) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float density = displayMetrics.density;
+        return (int) (dip * density + 0.5f);
+    }
+
+    /**
+     * dp转px
+     *
+     * @param context
+     * @return
+     */
+    public static int dp2px(Context context, float dpVal) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpVal, context.getResources().getDisplayMetrics());
     }
 
     public static int getDestinyDpi() {

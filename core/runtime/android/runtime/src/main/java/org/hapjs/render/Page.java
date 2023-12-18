@@ -125,6 +125,10 @@ public class Page implements IPage {
     private boolean mCleanCache = false;
     private PageAnimationConfig mPageAnimationConfig;
     private boolean mIsTabPage = false;
+    private static float sMinFontLevel = -2;
+    private static float sMaxFontLevel = -2;
+    private static float sMinShowLevel = -2;
+    private static float sMaxShowLevel = -2;
 
     public Page(
             AppInfo appInfo,
@@ -432,6 +436,115 @@ public class Page implements IPage {
         return sysOpProvider.isTextSizeAdjustAuto();
     }
 
+    public float getMinFontLevel() {
+        if (sMinFontLevel != -2) {
+            return sMinFontLevel;
+        }
+        String parseValue = getDefaultStyle(DisplayInfo.Style.KEY_MIN_FONT_LEVEL,
+                null, null);
+        float minTextAdjustSize = -1;
+        if (!TextUtils.isEmpty(parseValue)) {
+            try {
+                minTextAdjustSize = Float.parseFloat(parseValue);
+            } catch (Exception e) {
+                Log.w(TAG, "getMinFontLevel parseValue error : " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "getMinFontLevel parseValue empty use default.");
+        }
+        sMinFontLevel = minTextAdjustSize;
+        return sMinFontLevel;
+    }
+
+    public float getMaxFontLevel() {
+        if (sMaxFontLevel != -2) {
+            return sMaxFontLevel;
+        }
+        String parseValue = getDefaultStyle(DisplayInfo.Style.KEY_MAX_FONT_LEVEL,
+                null, null);
+        float maxTextAdjustSize = -1;
+        if (!TextUtils.isEmpty(parseValue)) {
+            try {
+                maxTextAdjustSize = Float.parseFloat(parseValue);
+            } catch (Exception e) {
+                Log.w(TAG, "getMaxTextAdjustSize parseValue error : " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "getMaxFontLevel parseValue empty use default.");
+        }
+        sMaxFontLevel = maxTextAdjustSize;
+        return sMaxFontLevel;
+    }
+
+    public boolean isShowSizeAdjustAuto() {
+        String parseValue = getStyle(DisplayInfo.Style.KEY_SHOW_SIZE_ADJUST,
+                null, null);
+
+        if (TextUtils.equals("auto", parseValue)) {
+            return true;
+        } else if (TextUtils.equals("none", parseValue)) {
+            return false;
+        }
+
+        // default value
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isShowSizeAdjustAuto();
+    }
+
+    public boolean isDefaultShowSizeAdjustAuto() {
+        String parseValue = getDefaultStyle(DisplayInfo.Style.KEY_SHOW_SIZE_ADJUST,
+                null, null);
+
+        if (TextUtils.equals("auto", parseValue)) {
+            return true;
+        } else if (TextUtils.equals("none", parseValue)) {
+            return false;
+        }
+        // default value
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isShowSizeAdjustAuto();
+    }
+
+    public float getMinShowLevel() {
+        if (sMinShowLevel != -2) {
+            return sMinShowLevel;
+        }
+        String parseValue = getDefaultStyle(DisplayInfo.Style.KEY_MIN_SHOW_LEVEL,
+                null, null);
+        float minShowAdjustSize = -1;
+        if (!TextUtils.isEmpty(parseValue)) {
+            try {
+                minShowAdjustSize = Float.parseFloat(parseValue);
+            } catch (Exception e) {
+                Log.w(TAG, "getMinShowLevel parseValue error : " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "getMinShowLevel parseValue empty use default.");
+        }
+        sMinShowLevel = minShowAdjustSize;
+        return sMinShowLevel;
+    }
+
+    public float getMaxShowLevel() {
+        if (sMaxShowLevel != -2) {
+            return sMaxShowLevel;
+        }
+        String parseValue = getDefaultStyle(DisplayInfo.Style.KEY_MAX_SHOW_LEVEL,
+                null, null);
+        float maxShowAdjustSize = -1;
+        if (!TextUtils.isEmpty(parseValue)) {
+            try {
+                maxShowAdjustSize = Float.parseFloat(parseValue);
+            } catch (Exception e) {
+                Log.w(TAG, "getMaxShowLevel parseValue error : " + e.getMessage());
+            }
+        } else {
+            Log.w(TAG, "getMaxShowLevel parseValue empty use default.");
+        }
+        sMaxShowLevel = maxShowAdjustSize;
+        return sMaxShowLevel;
+    }
+
     public boolean hasTitleBar() {
         String parseValue = getStyle(DisplayInfo.Style.KEY_TITLE_BAR, null, null);
 
@@ -708,6 +821,24 @@ public class Page implements IPage {
         }
 
         return ColorUtil.getColor(parseValue, defaultValue);
+    }
+
+    private String getDefaultStyle(String key, String extraValue, String defaultValue) {
+        DisplayInfo displayInfo = appInfo.getDisplayInfo();
+        if (displayInfo == null) {
+            return defaultValue;
+        }
+        String parseValue = extraValue;
+        if (TextUtils.isEmpty(parseValue)) {
+            DisplayInfo.Style defaultStyle = displayInfo.getDefaultStyle();
+            if (defaultStyle != null) {
+                parseValue = defaultStyle.get(key);
+            }
+        }
+        if (TextUtils.isEmpty(parseValue)) {
+            return defaultValue;
+        }
+        return parseValue;
     }
 
     private String getStyle(String key, String extraValue, String defaultValue) {

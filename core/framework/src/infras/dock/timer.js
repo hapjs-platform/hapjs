@@ -35,11 +35,15 @@ function makeTimer(inst, callback, normalize) {
     },
     clearTimeout: function(n) {
       global.clearTimeoutWrap(n)
-      _timerCallbackMap[n] = undefined
+      const cid = _timerCallbackMap[n]
+      delete _inst._callbacks[cid]
+      delete _timerCallbackMap[n]
     },
     clearInterval: function(n) {
       global.clearIntervalWrap(n)
-      _timerCallbackMap[n] = undefined
+      const cid = _timerCallbackMap[n]
+      delete _inst._callbacks[cid]
+      delete _timerCallbackMap[n]
     },
     requestAnimationFrame: function(cb) {
       const cid = normalize(cb, _inst, {
@@ -55,7 +59,9 @@ function makeTimer(inst, callback, normalize) {
     },
     cancelAnimationFrame: function(n) {
       global.cancelAnimationFrameWrap(n)
-      _timerCallbackMap[n] = undefined
+      const cid = _timerCallbackMap[n]
+      delete _inst._callbacks[cid]
+      delete _timerCallbackMap[n]
     }
   }
 }

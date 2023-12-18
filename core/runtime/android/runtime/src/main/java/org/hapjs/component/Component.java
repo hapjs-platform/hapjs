@@ -196,6 +196,14 @@ public abstract class Component<T extends View>
     protected boolean mIsUseInList = false;
 
     private View mFullScreenView;
+    protected float mMinFontLevel = -1;
+    protected float mMaxFontLevel = -1;
+    protected boolean mAutoLineHeight;
+    protected float mMinShowLevel = -1;
+    protected float mMaxShowLevel = -1;
+    protected boolean mIsAutoShowLevel;
+    protected boolean mIsSysShowLevelChange;
+    protected float mScaleShowLevel = 1.0f;
 
     public Component(HapEngine hapEngine, Context context, Container parent, int ref, RenderEventCallback callback,
                      Map<String, Object> savedState) {
@@ -245,6 +253,7 @@ public abstract class Component<T extends View>
             onRestoreInstanceState(mSavedState);
 
             configBubbleEventAbove1040(false);
+            initShowLevel();
         }
         updateViewId();
 
@@ -859,7 +868,7 @@ public abstract class Component<T extends View>
             case Attributes.Style.PADDING_TOP:
             case Attributes.Style.PADDING_RIGHT:
             case Attributes.Style.PADDING_BOTTOM:
-                float padding = Attributes.getFloat(mHapEngine, attribute, 0);
+                float padding = Attributes.getFloat(mHapEngine, attribute, 0,this);
                 setPadding(key, padding);
                 setPaddingExist(key, true);
                 return true;
@@ -1778,8 +1787,7 @@ public abstract class Component<T extends View>
             }
         } else {
             mPercentWidth = -1;
-            int width =
-                    Attributes.getInt(mHapEngine, widthStr, ViewGroup.LayoutParams.WRAP_CONTENT);
+            int width = Attributes.getInt(mHapEngine, widthStr, ViewGroup.LayoutParams.WRAP_CONTENT, this);
             if (isComponentAdaptiveEnable()) {
                 mAdaptiveBeforeWidth = width;
                 width = getAdapterWidth(width);
@@ -1854,8 +1862,7 @@ public abstract class Component<T extends View>
             }
         } else {
             mPercentHeight = -1;
-            int height =
-                    Attributes.getInt(mHapEngine, heightStr, ViewGroup.LayoutParams.WRAP_CONTENT);
+            int height = Attributes.getInt(mHapEngine, heightStr, ViewGroup.LayoutParams.WRAP_CONTENT, this);
             lp.height = height;
             if (mNode != null) {
                 mNode.setHeight(height);
@@ -1988,7 +1995,7 @@ public abstract class Component<T extends View>
         if (Attributes.Style.MARGIN_AUTO.equals(marginAttr) && isParentYogaLayout) {
             marginAuto = true;
         } else {
-            margin = Attributes.getInt(mHapEngine, marginAttr, 0);
+            margin = Attributes.getInt(mHapEngine, marginAttr, 0, this);
         }
 
         switch (position) {
@@ -2892,7 +2899,7 @@ public abstract class Component<T extends View>
 
         Object attribute = dataMap.get(getState(key));
 
-        return Attributes.getInt(mHapEngine, attribute, defaultValue);
+        return Attributes.getInt(mHapEngine, attribute, defaultValue, this);
     }
 
     @Override
@@ -3865,7 +3872,7 @@ public abstract class Component<T extends View>
             if (Attributes.Style.MARGIN_AUTO.equals(marginAttr)) {
                 margin = 0.0f;
             } else {
-                margin = Attributes.getFloat(mHapEngine, marginAttr, 0.0f);
+                margin = Attributes.getFloat(mHapEngine, marginAttr, 0.0f,Component.this);
             }
             if (FloatUtil.isUndefined(margin)) {
                 margin = 0.0f;
@@ -4249,5 +4256,90 @@ public abstract class Component<T extends View>
 
     public boolean preConsumeEvent(String eventName, Map<String, Object> data, boolean immediately) {
         return false;
+    }
+
+    public float getMinFontLevel() {
+        return mMinFontLevel;
+    }
+
+    public float getMaxFontLevel() {
+        return mMaxFontLevel;
+    }
+
+    protected Page initFontLevel() {
+        Page page = getPage();
+        if (null == page || !page.isTextSizeAdjustAuto()) {
+            return page;
+        }
+        float minFontLevel = -1;
+        float maxFontLevel = -1;
+        if (null != mAttrsDomData &&
+                mAttrsDomData.containsKey(Attributes.Style.KEY_MIN_FONT_LEVEL)) {
+            minFontLevel = Attributes.getFloat(mHapEngine, mAttrsDomData.get(Attributes.Style.KEY_MIN_FONT_LEVEL), -1);
+            mMinFontLevel = minFontLevel;
+        }
+        if (null != mAttrsDomData &&
+                mAttrsDomData.containsKey(Attributes.Style.KEY_MAX_FONT_LEVEL)) {
+            maxFontLevel = Attributes.getFloat(mHapEngine, mAttrsDomData.get(Attributes.Style.KEY_MAX_FONT_LEVEL), -1);
+            mMaxFontLevel = maxFontLevel;
+        }
+        if (null != mAttrsDomData &&
+                mAttrsDomData.containsKey(Attributes.Style.AUTO_LINE_HEIGHT)) {
+            mAutoLineHeight = Attributes.getBoolean(mAttrsDomData.get(Attributes.Style.AUTO_LINE_HEIGHT), false);
+        }
+        return page;
+    }
+
+    protected void initShowLevel() {
+        boolean isDefaultSysShowSize = true;
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        if (null != sysOpProvider) {
+            isDefaultSysShowSize = !sysOpProvider.isSysShowLevelChange(mContext);
+            mIsSysShowLevelChange = !isDefaultSysShowSize;
+        }
+        if (isDefaultSysShowSize) {
+            return;
+        }
+        if (null != sysOpProvider) {
+            mScaleShowLevel = sysOpProvider.getScaleShowLevel(mContext);
+        }
+
+        Page page = getPage();
+        if (null == page || !page.isShowSizeAdjustAuto()) {
+            return;
+        }
+        mIsAutoShowLevel = true;
+        float minShowLevel = -1;
+        float maxShowLevel = -1;
+        if (null != mAttrsDomData &&
+                mAttrsDomData.containsKey(Attributes.Style.KEY_MIN_SHOW_LEVEL)) {
+            minShowLevel = Attributes.getFloat(mHapEngine, mAttrsDomData.get(Attributes.Style.KEY_MIN_SHOW_LEVEL), -1);
+            mMinShowLevel = minShowLevel;
+        }
+        if (null != mAttrsDomData &&
+                mAttrsDomData.containsKey(Attributes.Style.KEY_MAX_SHOW_LEVEL)) {
+            maxShowLevel = Attributes.getFloat(mHapEngine, mAttrsDomData.get(Attributes.Style.KEY_MAX_SHOW_LEVEL), -1);
+            mMaxShowLevel = maxShowLevel;
+        }
+    }
+
+    public boolean isAutoShowLevel() {
+        return mIsAutoShowLevel;
+    }
+
+    public boolean isSysShowLevelChange() {
+        return mIsSysShowLevelChange;
+    }
+
+    public float getScaleShowLevel() {
+        return mScaleShowLevel;
+    }
+
+    public float getMinShowLevel() {
+        return mMinShowLevel;
+    }
+
+    public float getMaxShowLevel() {
+        return mMaxShowLevel;
     }
 }

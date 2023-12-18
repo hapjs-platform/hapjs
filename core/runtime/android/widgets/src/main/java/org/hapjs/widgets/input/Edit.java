@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -57,6 +57,7 @@ import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.utils.YogaUtil;
 import org.hapjs.logging.RuntimeLogManager;
+import org.hapjs.render.Page;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.R;
 import org.hapjs.widgets.input.phone.PhoneManager;
@@ -150,16 +151,15 @@ public class Edit extends Component<TextView> implements SwipeObserver {
     }
 
     protected void initDefaultView(TextView view) {
-        view.setTextSize(
-                TypedValue.COMPLEX_UNIT_PX,
-                Attributes.getFontSize(mHapEngine, getPage(), DEFAULT_FONT_SIZE));
+        Page page = initFontLevel();
+        view.setTextSize(TypedValue.COMPLEX_UNIT_PX, Attributes.getFontSize(mHapEngine, page, DEFAULT_FONT_SIZE, this));
         view.setTextColor(ColorUtil.getColor(DEFAULT_COLOR));
         view.setHintTextColor(ColorUtil.getColor(DEFAULT_PLACEHOLDER_COLOR));
         view.setBackground(null);
         view.setSingleLine();
         view.setGravity(Gravity.CENTER_VERTICAL);
 
-        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH);
+        int minWidth = Attributes.getInt(mHapEngine, DEFAULT_WIDTH, this);
         view.setMinWidth(minWidth);
         view.setMinimumWidth(minWidth);
         setTextWatcher(view);
@@ -206,15 +206,22 @@ public class Edit extends Component<TextView> implements SwipeObserver {
                 setColor(colorStr);
                 return true;
             case Attributes.Style.FONT_SIZE:
-                int defaultFontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), getDefaultFontSize());
-                int fontSize =
-                        Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize);
+                int defaultFontSize = Attributes.getFontSize(mHapEngine, getPage(), getDefaultFontSize(), this);
+                int fontSize = Attributes.getFontSize(mHapEngine, getPage(), attribute, defaultFontSize, this);
                 setFontSize(fontSize);
                 return true;
             case Attributes.Style.LINE_HEIGHT:
-                int lineHeight = Attributes.getInt(mHapEngine, attribute, -1);
-                setLineHeight(lineHeight);
+                if (mAutoLineHeight) {
+                    int lineHeight = Attributes.getFontSize(mHapEngine, getPage(), attribute, -1, this);
+                    setLineHeight(lineHeight);
+                } else {
+                    int lineHeight = Attributes.getInt(mHapEngine, attribute, -1, this);
+                    setLineHeight(lineHeight);
+                }
+                return true;
+            case Attributes.Style.AUTO_LINE_HEIGHT:
+                boolean autoLineHeight = Attributes.getBoolean(attribute, false);
+                mAutoLineHeight = autoLineHeight;
                 return true;
             case Attributes.Style.FONT_STYLE:
                 String fontStyleStr = Attributes.getString(attribute, "normal");
