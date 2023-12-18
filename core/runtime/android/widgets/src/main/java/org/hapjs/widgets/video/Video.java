@@ -62,7 +62,9 @@ import org.hapjs.widgets.view.video.FlexVideoView;
                 Video.METHOD_SNAP_SHOT,
                 Component.METHOD_REQUEST_FULLSCREEN,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Video extends Component<FlexVideoView> implements SwipeObserver {
 

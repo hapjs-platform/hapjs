@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2022-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -44,7 +44,9 @@ import java.util.Map;
                 Component.METHOD_FOCUS,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_TO_TEMP_FILE_PATH
+                Component.METHOD_TO_TEMP_FILE_PATH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 

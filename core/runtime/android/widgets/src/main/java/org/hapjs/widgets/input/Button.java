@@ -29,7 +29,9 @@ import org.hapjs.widgets.view.text.FlexButton;
                 Component.METHOD_FOCUS,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_TO_TEMP_FILE_PATH
+                Component.METHOD_TO_TEMP_FILE_PATH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Button extends Edit {
 

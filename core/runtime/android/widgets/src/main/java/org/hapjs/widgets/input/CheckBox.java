@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,7 +27,9 @@ import org.hapjs.widgets.view.text.FlexCheckBox;
                 Component.METHOD_FOCUS,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_TO_TEMP_FILE_PATH
+                Component.METHOD_TO_TEMP_FILE_PATH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class CheckBox extends Button {
 
@@ -49,7 +51,7 @@ public class CheckBox extends Button {
 
     @Override
     protected TextView createViewImpl() {
-        FlexCheckBox checkBox = new FlexCheckBox(mContext);
+        FlexCheckBox checkBox = new FlexCheckBox(mContext,isEnableTalkBack());
         checkBox.setComponent(this);
         initDefaultView(checkBox);
         initOnCheckedListener(checkBox);
@@ -93,6 +95,9 @@ public class CheckBox extends Button {
                 return true;
             case Attributes.Style.VALUE:
                 mValue = Attributes.getString(attribute, null);
+                if(isEnableTalkBack() && (mHost instanceof  FlexCheckBox)){
+                    ((FlexCheckBox)mHost).setValue(mValue);
+                }
                 return true;
             default:
                 break;

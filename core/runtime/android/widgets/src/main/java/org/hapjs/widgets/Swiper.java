@@ -45,7 +45,9 @@ import org.hapjs.widgets.view.swiper.ViewPager;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Swiper extends AbstractScrollable<SwiperView>
         implements Recycler, HScrollable, ViewTreeObserver.OnGlobalLayoutListener {
@@ -442,7 +444,7 @@ public class Swiper extends AbstractScrollable<SwiperView>
     }
 
     public void setAutoScroll(String autoScrollStr) {
-        if (TextUtils.isEmpty(autoScrollStr) || mViewPager == null) {
+        if (TextUtils.isEmpty(autoScrollStr) || mViewPager == null || isEnableTalkBack()) {
             return;
         }
 

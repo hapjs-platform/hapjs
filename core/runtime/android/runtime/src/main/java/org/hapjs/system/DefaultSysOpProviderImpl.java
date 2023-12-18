@@ -571,4 +571,8 @@ public class DefaultSysOpProviderImpl implements SysOpProvider {
 
     }
 
+    public boolean isEnableTalkBack(Context context) {
+        return false;
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present,  the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,6 +29,7 @@ import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.helper.StateHelper;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.render.vdom.DocComponent;
+import org.hapjs.system.utils.TalkBackUtils;
 
 public class PercentFlexboxLayout extends YogaLayout implements ComponentHost, GestureHost {
 
@@ -38,11 +39,38 @@ public class PercentFlexboxLayout extends YogaLayout implements ComponentHost, G
 
     private List<Integer> mPositionArray;
     private boolean mDisallowIntercept = false;
+    private boolean mIsEnableTalkBack;
+    private MotionEvent mLastMotionEvent = null;
 
     public PercentFlexboxLayout(Context context) {
         super(context);
+        mIsEnableTalkBack = TalkBackUtils.isEnableTalkBack(context, false);
         getYogaNode().setFlexDirection(YogaFlexDirection.ROW);
         getYogaNode().setFlexShrink(1f);
+    }
+
+    @Override
+    public boolean performClick() {
+        boolean isConsume = super.performClick();
+        if (mIsEnableTalkBack) {
+            if (null != mComponent) {
+                mComponent.performComponentClick(mLastMotionEvent);
+            }
+        }
+        return isConsume;
+    }
+
+
+    @Override
+    protected boolean dispatchHoverEvent(MotionEvent event) {
+        mLastMotionEvent = event;
+        return super.dispatchHoverEvent(event);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mLastMotionEvent = null;
     }
 
     @Override

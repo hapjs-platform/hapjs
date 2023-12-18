@@ -55,7 +55,9 @@ import static org.hapjs.widgets.view.readerdiv.ReaderPageView.SHADER_WIDTH;
                 ReaderDiv.METHOD_PRELOAD_CONTENT,
                 ReaderDiv.METHOD_SET_PAGE_LINE_SPACE,
                 ReaderDiv.METHOD_SET_PAGE_COLOR,
-                ReaderDiv.METHOD_GET_PAGE_CONTENT
+                ReaderDiv.METHOD_GET_PAGE_CONTENT,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 public class ReaderDiv extends Container<ReaderLayoutView> {

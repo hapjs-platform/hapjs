@@ -28,10 +28,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.util.UriUtil;
@@ -1359,6 +1361,15 @@ public class FlexImageView extends GenericDraweeView implements ComponentHost, G
 
             canvas.drawPath(pathForBorderRadius, paint);
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
+        super.onInitializeAccessibilityNodeInfo(info);
+        info.setClassName("");
+        info.setClickable(false);
+        info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
     }
 
     private class ImageSizeDetectRequestListener extends BaseRequestListener {

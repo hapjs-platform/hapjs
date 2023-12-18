@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -28,7 +28,9 @@ import org.hapjs.widgets.view.text.FlexRadioButton;
                 Component.METHOD_FOCUS,
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_TO_TEMP_FILE_PATH
+                Component.METHOD_TO_TEMP_FILE_PATH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Radio extends Button implements SingleChoice {
     static final String TYPE_RADIO = "radio";
@@ -49,7 +51,7 @@ public class Radio extends Button implements SingleChoice {
 
     @Override
     protected TextView createViewImpl() {
-        FlexRadioButton radioButton = new FlexRadioButton(mContext);
+        FlexRadioButton radioButton = new FlexRadioButton(mContext,isEnableTalkBack());
         radioButton.setComponent(this);
         initOnCheckedListener(radioButton);
         return radioButton;
@@ -92,6 +94,9 @@ public class Radio extends Button implements SingleChoice {
                 return true;
             case Attributes.Style.VALUE:
                 mValue = Attributes.getString(attribute, null);
+                if(isEnableTalkBack() && (mHost instanceof  FlexRadioButton)){
+                    ((FlexRadioButton)mHost).setValue(mValue);
+                }
                 return true;
             default:
                 break;

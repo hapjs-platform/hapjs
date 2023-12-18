@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets.view.lottie;
@@ -31,7 +31,9 @@ import java.util.Map;
                 Lottie.METHOD_RESUME,
                 Lottie.METHOD_RESET,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 public class Lottie extends Component<FlexLottie> {

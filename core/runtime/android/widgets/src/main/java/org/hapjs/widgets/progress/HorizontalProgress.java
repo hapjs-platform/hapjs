@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,11 +10,17 @@ import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+
+import androidx.annotation.RequiresApi;
+
 import java.util.Map;
 import org.hapjs.bridge.annotation.TypeAnnotation;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
@@ -25,6 +31,7 @@ import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.constants.Attributes;
 import org.hapjs.component.view.GestureFrameLayout;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.widgets.R;
 
 @WidgetAnnotation(
         name = Progress.WIDGET_NAME,
@@ -32,7 +39,9 @@ import org.hapjs.runtime.HapEngine;
                 Component.METHOD_ANIMATE,
                 Component.METHOD_GET_BOUNDING_CLIENT_RECT,
                 Component.METHOD_TO_TEMP_FILE_PATH,
-                Component.METHOD_FOCUS
+                Component.METHOD_FOCUS,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         },
         types = {@TypeAnnotation(name = HorizontalProgress.TYPE_HORIZONTAL, isDefault = true)})
 public class HorizontalProgress extends Progress<FrameLayout> {
@@ -79,6 +88,7 @@ public class HorizontalProgress extends Progress<FrameLayout> {
         layer.setId(1, android.R.id.progress);
 
         mProgressBar = new ProgressBar(mContext, null, android.R.attr.progressBarStyleHorizontal);
+        initTalkBack();
         mProgressBar.setProgressDrawable(layer);
         FrameLayout.LayoutParams lp =
                 new FrameLayout.LayoutParams(
@@ -89,6 +99,40 @@ public class HorizontalProgress extends Progress<FrameLayout> {
         frameLayout.addView(mProgressBar, lp);
         frameLayout.setComponent(this);
         return frameLayout;
+    }
+
+    private void initTalkBack() {
+        if (isEnableTalkBack() && null != mProgressBar) {
+            mProgressBar.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    mProgressBar.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                        @Override
+                        public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                            super.onInitializeAccessibilityNodeInfo(host, info);
+                            info.setClassName("");
+                            info.setClickable(false);
+                            info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                            if (null != mProgressBar && mProgressBar.getProgress() >= 0 && null != mContext) {
+                                info.setText(mContext.getResources().getString(R.string.talkback_progress_percent)
+                                        + mProgressBar.getProgress()
+                                        + " "
+                                        + mContext.getResources().getString(R.string.talkback_progress));
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    if (null != mProgressBar) {
+                        mProgressBar.setAccessibilityDelegate(null);
+                        mProgressBar.removeOnAttachStateChangeListener(this);
+                    }
+                }
+            });
+        }
     }
 
     @Override

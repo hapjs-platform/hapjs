@@ -56,7 +56,9 @@ import org.json.JSONObject;
                 Component.METHOD_TO_TEMP_FILE_PATH,
                 Component.METHOD_FOCUS,
                 Image.METHOD_START_ANIMATION,
-                Image.METHOD_STOP_ANIMAION
+                Image.METHOD_STOP_ANIMAION,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         }
 )
 public class Image extends Component<FlexImageView> implements Autoplay, InnerSpannable {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -47,7 +47,9 @@ import org.hapjs.widgets.view.refresh.RefreshLayout;
                 Refresh2.METHOD_START_PULLDOWN_REFRESH,
                 Refresh2.METHOD_START_PULLUP_REFRESH,
                 Refresh2.METHOD_STOP_PULLDOWN_REFRESH,
-                Refresh2.METHOD_STOP_PULLUP_REFRESH
+                Refresh2.METHOD_STOP_PULLUP_REFRESH,
+                Component.METHOD_TALKBACK_FOCUS,
+                Component.METHOD_TALKBACK_ANNOUNCE
         })
 public class Refresh2 extends Container<HapRefreshLayout> {
 

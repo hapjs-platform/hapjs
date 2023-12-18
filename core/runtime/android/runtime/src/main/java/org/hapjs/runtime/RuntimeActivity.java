@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,6 +32,7 @@ import org.hapjs.logging.Source;
 import org.hapjs.model.videodata.VideoCacheManager;
 import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.JsThread;
+import org.hapjs.system.utils.TalkBackUtils;
 
 public class RuntimeActivity extends AppCompatActivity {
     public static final String PROP_APP = "runtime.app";
@@ -418,6 +419,7 @@ public class RuntimeActivity extends AppCompatActivity {
         if (mHybridView != null) {
             mHybridView.getHybridManager().onResume();
         }
+        TalkBackUtils.isEnableTalkBack(RuntimeActivity.this,true);
     }
 
     @Override

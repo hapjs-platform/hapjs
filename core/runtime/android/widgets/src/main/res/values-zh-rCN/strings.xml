@@ -38,4 +38,29 @@
     <string name="webrtc_warn_reject">拒绝</string>
     <string name="webrtc_warn_allow">允许</string>
     <string name="header_2_space">\u3000\u3000</string>
+
+    <string name="talkback_notitle_defaultstr">未加标签控件</string>
+    <!--edit-->
+    <string name="talkback_edit_input">输入框</string>
+    <string name="talkback_edit">编辑框</string>
+    <string name="talkback_press_active">点按两次即可激活</string>
+    <string name="talkback_press_active_more">点按两次并长按即可弹出更多选项</string>
+    <!--checkbox-->
+    <string name="talkback_selected">已选中</string>
+    <string name="talkback_unselected">未选中</string>
+    <string name="talkback_checkbox">复选框</string>
+    <string name="talkback_no_use">已停用</string>
+    <string name="talkback_press_active_min">点按两次即可</string>
+    <string name="talkback_cancel_select">取消选中</string>
+    <string name="talkback_select">选中</string>
+    <!--radio-->
+    <string name="talkback_radio">单选框</string>
+    <!--progress-->
+    <string name="talkback_progress_percent">百分之</string>
+    <string name="talkback_progress">进度条</string>
+    <!--video 无障碍-->
+    <string name="talkback_video_controller_play">播放</string>
+    <string name="talkback_video_controller_pause">暂停</string>
+    <string name="talkback_video_controller_full_screen">全屏</string>
+    <string name="talkback_video_controller_exit_full_screen">退出全屏</string>
 </resources>

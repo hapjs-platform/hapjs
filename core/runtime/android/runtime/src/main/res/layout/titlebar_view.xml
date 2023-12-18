@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--
-    Copyright (c) 2021-2022, the hapjs-platform Project Contributors
+    Copyright (c) 2021-present, the hapjs-platform Project Contributors
     SPDX-License-Identifier: Apache-2.0
 -->
 
@@ -46,7 +46,8 @@
                         android:layout_width="16dp"
                         android:layout_height="16dp"
                         android:layout_gravity="center"
-                        android:src="@drawable/menu_dot" />
+                        android:src="@drawable/menu_dot"
+                        android:contentDescription="@string/talkback_titlebar_left_menu_iv"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -100,7 +101,8 @@
                     android:layout_width="@dimen/menubar_dialog_menu_close_image_width"
                     android:layout_height="@dimen/menubar_dialog_menu_close_image_height"
                     android:layout_gravity="center"
-                    android:src="@drawable/menu_close" />
+                    android:src="@drawable/menu_close"
+                    android:contentDescription="@string/talkback_close"/>
             </LinearLayout>
         </LinearLayout>
 
