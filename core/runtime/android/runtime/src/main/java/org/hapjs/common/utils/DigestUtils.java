@@ -38,12 +38,12 @@ public class DigestUtils {
         return hashString.toLowerCase();
     }
 
-    public static int crc32(byte[] content) {
+    public static long crc32(byte[] content) {
         try {
             final CRC32 CRC32 = new CRC32();
             CRC32.reset();
             CRC32.update(content);
-            return (int) CRC32.getValue();
+            return CRC32.getValue();
         } catch (Exception e) {
             Log.e(TAG, "crc32 algorithm fail.", e);
         }

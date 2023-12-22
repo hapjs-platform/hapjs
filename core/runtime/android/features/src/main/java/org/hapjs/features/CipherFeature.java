@@ -127,7 +127,7 @@ public class CipherFeature extends FeatureExtension {
             return;
         }
         String content = jsonParams.getString(PARAM_CONTENT);
-        int result = DigestUtils.crc32(content.getBytes(StandardCharsets.UTF_8));
+        long result = DigestUtils.crc32(content.getBytes(StandardCharsets.UTF_8));
         JSONObject data = new JSONObject();
         data.put(PARAM_TEXT, result);
         request.getCallback().callback(new Response(data));
