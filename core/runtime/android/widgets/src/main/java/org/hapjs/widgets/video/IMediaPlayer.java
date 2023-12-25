@@ -10,6 +10,7 @@ import android.view.TextureView;
 import androidx.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.HashMap;
 import java.util.Map;
 
 public interface IMediaPlayer {
@@ -61,6 +62,10 @@ public interface IMediaPlayer {
     void seek(long timeMs);
 
     void setMuted(boolean muted);
+
+    void setMark(String mark);
+
+    String getMark();
 
     long getCurrentPosition();
 
@@ -121,7 +126,7 @@ public interface IMediaPlayer {
     interface EventListener {
         void onLoadingChanged(IMediaPlayer player, boolean isLoading);
 
-        boolean onError(IMediaPlayer player, @MediaErrorType int what, int extra);
+        boolean onError(IMediaPlayer player, @MediaErrorType int what, int extra, HashMap<String, Object> datas);
 
         void onPlayerStateChanged(IMediaPlayer player, @PlayerState int playbackState);
 

@@ -52,6 +52,8 @@ import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.runtime.HapEngine;
 import org.hapjs.widgets.view.video.FlexVideoView;
 
+import static org.hapjs.component.constants.Attributes.Style.MARK;
+
 @WidgetAnnotation(
         name = Video.WIDGET_NAME,
         methods = {
@@ -218,6 +220,10 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
                 String uri = Attributes.getString(attribute);
                 setVideoURI(uri);
                 return true;
+            case MARK:
+                String mark = Attributes.getString(attribute);
+                setVideoMark(mark);
+                return true;
             case Attributes.Style.AUTO_PLAY:
                 boolean autoPlay = Attributes.getBoolean(attribute, false);
                 setAutoPlay(autoPlay);
@@ -301,9 +307,12 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
             mHost.setOnErrorListener(
                     new FlexVideoView.OnErrorListener() {
                         @Override
-                        public boolean onError(int what, int extra) {
+                        public boolean onError(int what, int extra, HashMap<String, Object> datas) {
                             Log.w(TAG, "Error, what:" + what + " extra:" + extra);
                             Map<String, Object> params = new HashMap();
+                            if (null != datas) {
+                                params.putAll(datas);
+                            }
                             params.put("what", what);
                             params.put("extra", extra);
                             mCallback
@@ -476,6 +485,13 @@ public class Video extends Component<FlexVideoView> implements SwipeObserver {
         }
         mHost.setVideoURI(tmpUri);
         NetworkReportManager.getInstance().reportNetwork(NetworkReportManager.KEY_VIDEO, uri.toString());
+    }
+
+    public void setVideoMark(String mark) {
+        if (mHost == null) {
+            return;
+        }
+        mHost.setMark(mark);
     }
 
     public void setAutoPlay(boolean autoPlay) {
