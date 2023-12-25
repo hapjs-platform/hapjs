@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2021, the hapjs-platform Project Contributors
+ * Copyright (c) 2021-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.widgets.video;
 
 import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ public class DefaultPlayerManager implements PlayerManager {
     private Context mContext;
     private int mPlayerCountLimit = DEFAULT_PLAYER_COUNT_LIMIT;
     private List<PlayerHolder> mInstances;
+    private static final String TAG = "DefaultPlayerManager";
 
     private DefaultPlayerManager() {
         mInstances = new ArrayList<>(DEFAULT_PLAYER_COUNT_LIMIT);
@@ -65,7 +69,7 @@ public class DefaultPlayerManager implements PlayerManager {
         }
 
         trimToSize(mPlayerCountLimit);
-        PlayerHolder holder = findAvaiableIdlePlayer();
+        PlayerHolder holder = findAvaiableIdlePlayer(target);
         if (holder != null) {
             // 有可用的空闲player
             holder.mTarget.unbind();
@@ -98,11 +102,19 @@ public class DefaultPlayerManager implements PlayerManager {
         return mPlayerCountLimit != PLAYER_COUNT_UNLIMITED;
     }
 
-    private PlayerHolder findAvaiableIdlePlayer() {
+    private PlayerHolder findAvaiableIdlePlayer(PlayerProxy target) {
         int size = mInstances.size();
         for (int i = 0; i < size; i++) {
             PlayerHolder holder = mInstances.get(i);
             Player player = holder.mPlayer;
+            if (null != player && null != target) {
+                String mark = player.getMark();
+                String targetMark = target.getMark();
+                if (!TextUtils.isEmpty(targetMark) && !targetMark.equals(mark)) {
+                    Log.w(TAG, "findAvaiableIdlePlayer targetMark mark not same.");
+                    continue;
+                }
+            }
             int targetState = player.getTargetState();
             int currentState = player.getCurrentState();
             if (targetState == currentState
@@ -117,7 +129,7 @@ public class DefaultPlayerManager implements PlayerManager {
     }
 
     private PlayerHolder createInternal(PlayerProxy target) {
-        Player player = new ExoPlayer(mContext);
+        Player player = new ExoPlayer(mContext, (null != target ? target.getMark() : null));
         PlayerHolder holder = new PlayerHolder(player, target);
         mInstances.add(holder);
         return holder;

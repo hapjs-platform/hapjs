@@ -15,6 +15,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import org.hapjs.common.executors.Executors;
@@ -46,6 +48,7 @@ public abstract class Player implements IMediaPlayer {
     private boolean mMuted;
     private boolean mAutoPlay;
     private boolean mSuspendBuffer = false;
+    protected String mMark;
 
     protected Player(@NonNull Context context) {
         mApplicationContext = context.getApplicationContext();
@@ -246,6 +249,16 @@ public abstract class Player implements IMediaPlayer {
         return mSuspendBuffer;
     }
 
+    public String getMark() {
+        return mMark;
+    }
+
+    //no use now
+    @Override
+    public void setMark(String mark) {
+        mMark = mark;
+    }
+
     @Override
     public void setSuspendBuffer(boolean suspendBuffer) {
         if (mSuspendBuffer == suspendBuffer) {
@@ -409,9 +422,9 @@ public abstract class Player implements IMediaPlayer {
         }
     }
 
-    protected void notifyError(int what, int extra) {
+    protected void notifyError(int what, int extra, HashMap<String, Object> datas) {
         if (mEventListener != null) {
-            mEventListener.onError(this, what, extra);
+            mEventListener.onError(this, what, extra, datas);
         }
     }
 

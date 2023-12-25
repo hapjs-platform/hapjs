@@ -17,6 +17,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,6 +41,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.facebook.yoga.YogaNode;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -97,6 +99,7 @@ public class FlexVideoView extends FrameLayout
     private Uri mPosterUri;
     private Boolean mMuted;
     private String mPlayCount;
+    private String mMark;
     private float mSpeed = Video.SPEED_DEFAULT;
     private OnErrorListener mOnErrorListener;
     private OnIdleListener mOnIdleListener;
@@ -173,6 +176,20 @@ public class FlexVideoView extends FrameLayout
         }
         if (mRoundRectF == null) {
             mRoundRectF = new RectF();
+        }
+    }
+
+    public String getMark() {
+        return mMark;
+    }
+
+    public void setMark(String mark) {
+        this.mMark = mark;
+        if (null != mPlayer) {
+            String curMark = mPlayer.getMark();
+            if (!TextUtils.isEmpty(mMark) && !mMark.equals(curMark)) {
+                releasePlayer();
+            }
         }
     }
 
@@ -534,13 +551,13 @@ public class FlexVideoView extends FrameLayout
         }
     }
 
-    protected boolean onError(int what, int extra) {
+    protected boolean onError(int what, int extra, HashMap<String, Object> datas) {
         if (mOnTimeUpdateListener != null) {
             mTimeUpdateHandler.removeMessages(MSG_TIME_UPDATE);
         }
 
         if (mOnErrorListener != null) {
-            mOnErrorListener.onError(what, extra);
+            mOnErrorListener.onError(what, extra, datas);
         }
 
         switchKeepScreenOnFlagsByState(Player.STATE_ERROR);
@@ -557,8 +574,8 @@ public class FlexVideoView extends FrameLayout
     }
 
     @Override
-    public boolean onError(IMediaPlayer player, int what, int extra) {
-        return onError(what, extra);
+    public boolean onError(IMediaPlayer player, int what, int extra, HashMap<String, Object> datas) {
+        return onError(what, extra, datas);
     }
 
     @Override
@@ -1317,6 +1334,7 @@ public class FlexVideoView extends FrameLayout
             mPlayer.setEventListener(this);
             mControlsManager.attachPlayer(mPlayer);
         }
+        mPlayer.setMark(mMark);
     }
 
     public void setSpeed(float speed) {
@@ -1327,7 +1345,7 @@ public class FlexVideoView extends FrameLayout
     }
 
     public interface OnErrorListener {
-        boolean onError(int what, int extra);
+        boolean onError(int what, int extra, HashMap<String, Object> datas);
     }
 
     public interface OnIdleListener {

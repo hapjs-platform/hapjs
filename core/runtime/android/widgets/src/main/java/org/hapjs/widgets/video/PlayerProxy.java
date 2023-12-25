@@ -23,6 +23,7 @@ public class PlayerProxy<P extends IMediaPlayer> implements IMediaPlayer {
     private float mSpeed = 1.0f;
     public long mCachedPosition = -1;
     private boolean mSuspendBuffer = false;
+    private String mMark;
 
     @Override
     public void prepare() {
@@ -152,6 +153,14 @@ public class PlayerProxy<P extends IMediaPlayer> implements IMediaPlayer {
         if (mPlayer != null) {
             mPlayer.setMuted(muted);
         }
+    }
+
+    public String getMark() {
+        return mMark;
+    }
+
+    public void setMark(String mark) {
+        this.mMark = mark;
     }
 
     @Override

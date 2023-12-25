@@ -40,6 +40,8 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import org.hapjs.component.constants.Attributes;
 
+import java.util.HashMap;
+
 public class ExoPlayer extends Player
         implements SimpleExoPlayer.VideoListener,
         com.google.android.exoplayer2.Player.EventListener {
@@ -56,14 +58,17 @@ public class ExoPlayer extends Player
     private boolean isBuffering;
     private SuspendLoadControl mSuspendLoadControl;
 
-    public ExoPlayer(@NonNull Context context) {
+    public ExoPlayer(@NonNull Context context, String mark) {
         super(context);
         mManifestDataSourceFactory =
-                new DefaultDataSourceFactory(context, Util.getUserAgent(context, "default"));
+                new DefaultDataSourceFactory(
+                        context, Util.getUserAgent(context, TextUtils.isEmpty(mark) ? "default" : mark));
         mMediaDataSourceFactory =
                 new DefaultDataSourceFactory(
-                        context, Util.getUserAgent(context, "default"),
+                        context,
+                        Util.getUserAgent(context, TextUtils.isEmpty(mark) ? "default" : mark),
                         new DefaultBandwidthMeter());
+        mMark = mark;
     }
 
     @Override
@@ -406,7 +411,9 @@ public class ExoPlayer extends Player
         if (e != null) {
             what = e.type;
         }
-        notifyError(what, -1);
+        HashMap<String, Object> datas = new HashMap<>();
+        datas.put(Attributes.Style.MARK, !TextUtils.isEmpty(mMark) ? mMark : "");
+        notifyError(what, -1, datas);
     }
 
     @Override
