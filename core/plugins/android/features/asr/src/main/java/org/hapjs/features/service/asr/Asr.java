@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.features.service.asr;
@@ -115,7 +115,8 @@ public class Asr extends FeatureExtension {
             nativeInterface.addLifecycleListener(lifecycleListener);
             request.getCallback().callback(Response.SUCCESS);
         } catch (ActivityNotFoundException e) {
-            request.getCallback().callback(new Response(Response.CODE_SERVICE_UNAVAILABLE));
+            Log.w(TAG, "Speed recognizer not found", e);
+            request.getCallback().callback(new Response(Response.CODE_SERVICE_UNAVAILABLE, "Speed recognizer not found"));
         }
     }
 
