@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets.view.readerdiv;
@@ -339,13 +339,13 @@ public class ReaderPageView extends PercentFlexboxLayout {
         }
     }
 
-    public void setReaderPageData(List<String> pageText) {
+    public void setReaderPageData(float lineWidth, List<String> pageText) {
         if (null == pageText) {
             return;
         }
         mPageText = pageText;
         if (null != mPageText) {
-            mReaderText.setReaderPageData(mPageText);
+            mReaderText.setReaderPageData(lineWidth, mPageText);
         }
     }
 

@@ -76,10 +76,14 @@ public class ReaderText extends AppCompatTextView {
         mLastDownMotionEvent = null;
     }
 
-    public void setReaderPageData(List<String> datas) {
+    public void setReaderPageData(float lineWidth, List<String> datas) {
         mPageData.clear();
         mPageData.addAll(datas);
         mText = getDrawPageString(mPageData);
+        float viewWidth = lineWidth;
+        if (viewWidth > 0) {
+            setMinWidth((int) viewWidth);
+        }
     }
 
     @Override
