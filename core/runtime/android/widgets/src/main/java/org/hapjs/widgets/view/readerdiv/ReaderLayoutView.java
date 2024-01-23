@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, the hapjs-platform Project Contributors
+ * Copyright (c) 2023-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 package org.hapjs.widgets.view.readerdiv;
@@ -116,6 +116,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
     private IGesture mGesture;
     private boolean mIsAttachToWindow;
     private String mReaderMoveMode = ReaderDiv.READER_PAGE_MODE_HORIZON;
+    private String mLastReaderMoveMode = null;
     private boolean mNoNeedPreloadPage;
 
     private static final int GO_NEXT_SUCCESS = 1;
@@ -151,6 +152,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
         mPageColor = color;
         mSplitStr = spliteStr;
         mReaderMoveMode = readerMoveMode;
+        mLastReaderMoveMode = mReaderMoveMode;
         initView();
     }
 
@@ -642,7 +644,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
             readerPageView.setBgColor(mPageColor);
             readerPageView.setLineHeight(mLineHeight);
             readerPageView.setMaxPageLineCount(mPageLineCount);
-            readerPageView.setReaderPageData(mCurReaderPageData.pageLineDatas);
+            readerPageView.setReaderPageData(mCurReaderPageData.lineWidth, mCurReaderPageData.pageLineDatas);
         } else {
             readerPageView.setPageIndex(pageIndex);
             readerPageView.setLineHeight(mLineHeight);
@@ -743,7 +745,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
             nextPageView.setBgColor(mPageColor);
             nextPageView.setLineHeight(mLineHeight);
             nextPageView.setMaxPageLineCount(mPageLineCount);
-            nextPageView.setReaderPageData(readerPageData.pageLineDatas);
+            nextPageView.setReaderPageData(readerPageData.lineWidth, readerPageData.pageLineDatas);
         } else {
             Log.w(TAG, READER_LOG_TAG + " prepareNextPage readerPageData is null.");
         }
@@ -1608,7 +1610,21 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
             post(new Runnable() {
                 @Override
                 public void run() {
-                    goNextPage(false);
+                    if (mTotalCurrentIndex == 0 && READER_PAGE_MODE_VERTICAL.equals(mLastReaderMoveMode)) {
+                        mCurReaderPageData = null;
+                        mCurrentIndex = -1;
+                        Log.w(TAG, READER_LOG_TAG + "refreshReaderMoveMode  "
+                                + " mCurrentIndex : " + mCurrentIndex
+                                + " mReaderMoveMode : " + mReaderMoveMode);
+                        mTotalCurrentIndex = -1;
+                        mCurMaxIndex = -1;
+                        mCurMinIndex = -1;
+                        mReaderPageTypes.clear();
+                        goNextPage(true);
+                    } else {
+                        goNextPage(false);
+                    }
+                    mLastReaderMoveMode = mReaderMoveMode;
                 }
             });
         } else {
@@ -1628,6 +1644,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
                     }
                 }
             }
+            mLastReaderMoveMode = mReaderMoveMode;
         }
         return isSuccess;
 
@@ -1774,6 +1791,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
                 }
                 if (beginLine + pageLineCount <= lineSize) {
                     pageData = new ReaderPageData();
+                    pageData.lineWidth =  realWidth;
                     pageData.pageIndex = i;
                     pageData.pageLineDatas.addAll(lines.subList(beginLine, beginLine + pageLineCount));
                     pageData.pageData = getDrawPageString(pageData.pageLineDatas);
@@ -1781,6 +1799,7 @@ public class ReaderLayoutView extends PercentFrameLayout implements ReaderPageVi
                     beginLine = beginLine + pageLineCount;
                 } else {
                     pageData = new ReaderPageData();
+                    pageData.lineWidth =  realWidth;
                     pageData.pageIndex = i;
                     pageData.pageLineDatas.addAll(lines.subList(beginLine, lineSize));
                     pageData.pageData = getDrawPageString(pageData.pageLineDatas);
