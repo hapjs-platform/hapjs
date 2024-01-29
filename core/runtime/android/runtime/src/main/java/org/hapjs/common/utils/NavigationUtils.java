@@ -114,7 +114,14 @@ public class NavigationUtils {
             } else if (TextUtils.equals(PATH_PERMISSIONS, path)) {
                 return checkAndStartActivity(context, getPermissionActivityIntent(pkg));
             } else if (TextUtils.equals(PATH_5G_MANAGER, path)) {
-                return checkAndStartActivity(context, get5gMgrIntent());
+                Intent intent = get5gMgrIntent();
+                boolean result = checkAndStartActivity(context, intent);
+                if (!result) {
+                    intent = new Intent();
+                    intent.setAction(android.provider.Settings.ACTION_DATA_ROAMING_SETTINGS);
+                    result = checkAndStartActivity(context, intent);
+                }
+                return result;
             }
         }
         return false;
