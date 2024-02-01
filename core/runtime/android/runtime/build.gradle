@@ -98,7 +98,7 @@ apply plugin: 'com.moowork.node'
 
 node {
     version = '12.13.0'
-    distBaseUrl = "https://npm.taobao.org/mirrors/node"
+    distBaseUrl = "https://direct.nodejs.org/dist/"
     download = true
     workDir = file("../.gradle/node")
     nodeModulesDir = file("../../../framework")
