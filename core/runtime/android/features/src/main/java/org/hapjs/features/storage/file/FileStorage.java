@@ -6,8 +6,11 @@
 package org.hapjs.features.storage.file;
 
 import android.util.Log;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.UInt8Array;
+
+
+import com.eclipsesource.v8.V8;
+import com.eclipsesource.v8.V8Value;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.List;
+
 import org.hapjs.bridge.Response;
 import org.hapjs.bridge.storage.file.IResourceFactory;
 import org.hapjs.bridge.storage.file.Resource;
@@ -24,6 +28,7 @@ import org.hapjs.bridge.storage.file.ResourceInfo;
 import org.hapjs.common.utils.FileUtils;
 import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -278,10 +283,9 @@ public class FileStorage {
                         "Fail to get resource by " + internalUri);
             }
             InputStream input = resource.openInputStream();
-            ByteBuffer byteBuffer = FileUtils.readStreamAsBuffer(input, position, length, true);
-            UInt8Array array = new UInt8Array(new ArrayBuffer(byteBuffer));
+            byte[] bytes = FileUtils.readStreamAsBytes(input, position, length, true);
             SerializeObject result = new JavaSerializeObject();
-            result.put(FileStorageFeature.RESULT_BUFFER, array);
+            result.put(FileStorageFeature.RESULT_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, bytes));
             return new Response(result);
         } catch (FileNotFoundException e) {
             return new Response(Response.CODE_FILE_NOT_FOUND, e.getMessage());

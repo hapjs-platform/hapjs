@@ -10,10 +10,12 @@ import static org.hapjs.bridge.Response.CODE_SERVICE_UNAVAILABLE;
 
 import android.text.TextUtils;
 import android.util.Log;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.V8ArrayBuffer;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
 import java.nio.ByteBuffer;
 import okio.ByteString;
+
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.Request;
@@ -21,6 +23,7 @@ import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONObject;
 
 @FeatureExtensionAnnotation(
@@ -118,16 +121,19 @@ public class WebSocket extends FeatureExtension {
             String str = ((SerializeObject) dataObj).toJSONObject().toString();
             sendOk = !TextUtils.isEmpty(str) && socketTask.send(str);
 
-        } else if (dataObj instanceof ArrayBuffer) {
-            ByteBuffer buffer = ((ArrayBuffer) dataObj).getByteBuffer();
+        } else if (dataObj instanceof ByteBuffer) {
+            ByteString data = getByteString((ByteBuffer) dataObj);
+            sendOk = null != data && socketTask.send(data);
+        } else if (dataObj instanceof TypedArrayProxy) {
+            ByteBuffer buffer = ((TypedArrayProxy) dataObj).getBuffer();
             ByteString data = getByteString(buffer);
             sendOk = null != data && socketTask.send(data);
-
-        } else if (dataObj instanceof TypedArray) {
-            ByteBuffer buffer = ((TypedArray) dataObj).getByteBuffer();
-            ByteString data = getByteString(buffer);
+        } else if (dataObj instanceof byte[]) {
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(((byte[]) dataObj).length);
+            byteBuffer.put((byte[]) dataObj);
+            byteBuffer.rewind();
+            ByteString data = getByteString(byteBuffer);
             sendOk = null != data && socketTask.send(data);
-
         } else if (null != dataObj) {
             String str = dataObj.toString();
             sendOk = !TextUtils.isEmpty(str) && socketTask.send(str);

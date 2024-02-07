@@ -158,6 +158,11 @@ public class RuntimeLogManager {
     public static final String PARAM_FEATURE_ACTION = "action";
     public static final String PARAM_FEATURE_RESULT = "featureResult";
 
+    private static final String KEY_SANDBOX_MESSAGE_SLOW = "sandboxMessageSlow";
+    private static final String PARAM_METHOD = "method";
+    private static final String PARAM_DATA_SIZE = "dataSize";
+    private static final String PARAM_MILLISECOND = "millisecond";
+
     private Map<Object, Object> mStates;
     private Object mStateLock;
 
@@ -1046,6 +1051,18 @@ public class RuntimeLogManager {
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_FILE_PATH, filePath);
         mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_ILLEGAL_ACCESS_FILE, params);
+    }
+
+    public void recordSandboxMessageSlow(String pkg, String method, int dataSize, long time) {
+        if (mProvider == null) {
+            return;
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_METHOD, method);
+        params.put(PARAM_DATA_SIZE, String.valueOf(dataSize));
+        params.put(PARAM_MILLISECOND, String.valueOf(time));
+        mProvider.logCountEvent(pkg, CATEGORY_APP, KEY_SANDBOX_MESSAGE_SLOW, params);
     }
 
     private static class DiskUsageTask implements Runnable {

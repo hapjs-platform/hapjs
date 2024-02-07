@@ -14,21 +14,21 @@ public interface LogProvider {
 
     void logCountEvent(String appPackage, String category, String key);
 
-    void logCountEvent(String appPackage, String category, String key, Map<String, String> params);
+    void logCountEvent(String appPackage, String category, String key, Map params);
 
     void logCalculateEvent(String appPackage, String category, String key, long value);
 
     void logCalculateEvent(
-            String appPackage, String category, String key, long value, Map<String, String> params);
+            String appPackage, String category, String key, long value, Map params);
 
     void logNumericPropertyEvent(String appPackage, String category, String key, long value);
 
     void logNumericPropertyEvent(
-            String appPackage, String category, String key, long value, Map<String, String> params);
+            String appPackage, String category, String key, long value, Map params);
 
     void logStringPropertyEvent(String appPackage, String category, String key, String value);
 
     void logStringPropertyEvent(
             String appPackage, String category, String key, String value,
-            Map<String, String> params);
+            Map params);
 }

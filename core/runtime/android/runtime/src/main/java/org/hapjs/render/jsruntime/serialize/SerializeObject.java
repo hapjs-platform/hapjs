@@ -5,8 +5,10 @@
 
 package org.hapjs.render.jsruntime.serialize;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Set;
 import org.json.JSONObject;
@@ -53,6 +55,11 @@ public interface SerializeObject extends Serializable {
     TypedArray getTypedArray(String key) throws SerializeException;
 
     TypedArray optTypedArray(String key);
+    ByteBuffer getByteBuffer(String key) throws SerializeException;
+    ByteBuffer optByteBuffer(String key) ;
+
+    TypedArrayProxy getTypedArrayProxy(String key) throws SerializeException;
+    TypedArrayProxy optTypedArrayProxy(String key) ;
 
     SerializeObject getSerializeObject(String key) throws SerializeException;
 
@@ -76,15 +83,17 @@ public interface SerializeObject extends Serializable {
 
     SerializeObject put(String key, String value);
 
-    SerializeObject put(String key, ArrayBuffer value);
+    SerializeObject put(String key, ByteBuffer value);
 
-    SerializeObject put(String key, TypedArray value);
+    SerializeObject put(String key, TypedArrayProxy value);
 
     SerializeObject put(String key, SerializeObject value);
 
     SerializeObject put(String key, SerializeArray value);
 
     SerializeObject put(String key, HandlerObject value);
+
+    SerializeObject put(String key, byte[] value);
 
     Object remove(String key);
 

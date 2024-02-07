@@ -117,12 +117,12 @@ struct JAccessWrapper {
     jlong value_;
 
     JAccessWrapper(T v, bool isStatic) {
-        value_ = reinterpret_cast<jlong>(v) | (isStatic ? 1 : 0);
+        value_ = (reinterpret_cast<jlong>(v) << 2)| (isStatic ? 1 : 0);
     }
 
     JAccessWrapper(jlong v) : value_(v) {}
 
-    T id() const { return reinterpret_cast<T>(value_ & ~1); }
+    T id() const { return reinterpret_cast<T>(value_ >> 2); }
 
     bool isStatic() const { return value_ & 1; }
 

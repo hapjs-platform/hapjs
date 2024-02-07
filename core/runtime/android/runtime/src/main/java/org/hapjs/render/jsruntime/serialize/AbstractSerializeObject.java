@@ -7,12 +7,14 @@ package org.hapjs.render.jsruntime.serialize;
 
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 
 import org.json.JSONObject;
 
-abstract class AbstractSerializeObject implements SerializeObject {
+public abstract class AbstractSerializeObject implements SerializeObject {
     private static final String TAG = "AbstractSerializeObject";
 
     @Override
@@ -86,6 +88,18 @@ abstract class AbstractSerializeObject implements SerializeObject {
     public final TypedArray getTypedArray(String key) throws SerializeException {
         ensureExists(key);
         return optTypedArray(key);
+    }
+
+    @Override
+    public final ByteBuffer getByteBuffer(String key) throws SerializeException {
+        ensureExists(key);
+        return optByteBuffer(key);
+    }
+
+    @Override
+    public final TypedArrayProxy getTypedArrayProxy(String key) throws SerializeException {
+        ensureExists(key);
+        return optTypedArrayProxy(key);
     }
 
     @Override

@@ -123,6 +123,27 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
+
+        <service android:name=".sandbox.SandboxService$Sandbox0"
+            android:isolatedProcess="true"
+            android:process=":Sandbox0"
+            android:exported="false" />
+        <service android:name=".sandbox.SandboxService$Sandbox1"
+            android:isolatedProcess="true"
+            android:process=":Sandbox1"
+            android:exported="false" />
+        <service android:name=".sandbox.SandboxService$Sandbox2"
+            android:isolatedProcess="true"
+            android:process=":Sandbox2"
+            android:exported="false" />
+        <service android:name=".sandbox.SandboxService$Sandbox3"
+            android:isolatedProcess="true"
+            android:process=":Sandbox3"
+            android:exported="false" />
+        <service android:name=".sandbox.SandboxService$Sandbox4"
+            android:isolatedProcess="true"
+            android:process=":Sandbox4"
+            android:exported="false" />
     </application>
 
 </manifest>

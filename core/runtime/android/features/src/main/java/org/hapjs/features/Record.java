@@ -14,13 +14,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.UInt8Array;
+import com.eclipsesource.v8.V8Value;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.nio.ByteBuffer;
 import org.hapjs.bridge.Callback;
 import org.hapjs.bridge.CallbackContext;
 import org.hapjs.bridge.CallbackHybridFeature;
@@ -36,6 +36,7 @@ import org.hapjs.model.AppInfo;
 import org.hapjs.render.Display;
 import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -472,8 +473,7 @@ public class Record extends CallbackHybridFeature {
         private SerializeObject makeResult(boolean isLastFrame, byte[] bytes) {
             SerializeObject result = new JavaSerializeObject();
             result.put(RESULT_IS_LAST_FRAME, isLastFrame);
-            UInt8Array array = new UInt8Array(new ArrayBuffer(bytes));
-            result.put(RESULT_FRAME_BUFFER, array);
+            result.put(RESULT_FRAME_BUFFER, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, bytes));
             return result;
         }
 

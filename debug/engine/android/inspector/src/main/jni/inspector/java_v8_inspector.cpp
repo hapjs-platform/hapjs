@@ -27,7 +27,7 @@ static inline JNIEnv *AttachCurrentThread() {
 namespace inspector {
 
 /////////////////////////////////////////////////////////////
-#define V8InspectorClassName "org/hapjs/inspector/V8Inspector"
+#define V8InspectorClassName "org/hapjs/render/jsruntime/V8InspectorNative"
 
     static jstring toJavaString(JNIEnv *env, const hybrid::jschar_t *str,
                                 size_t size) {
@@ -289,9 +289,6 @@ namespace inspector {
             {"nativeDestroy",          "(J)V",  (void *) HybridInspector::nativeDestroy},
             {"nativeExecuteJsCode",    "(JLjava/lang/String;)Ljava/lang/String;",
                                                 (void *) HybridInspector::nativeExecuteJsCode},
-            {"nativeHandleConsoleMessage",
-                                       "(JLcom/eclipsesource/v8/V8Value;)Ljava/lang/String;",
-                                                (void *) HybridInspector::nativeHandleConsoleMessage},
             {"nativeFrontendReload",   "(J)V",
                                                 (void *) HybridInspector::nativeFrontendReload}};
 

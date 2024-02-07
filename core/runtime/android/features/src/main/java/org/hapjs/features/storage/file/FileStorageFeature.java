@@ -6,7 +6,7 @@
 package org.hapjs.features.storage.file;
 
 import android.text.TextUtils;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.Request;
@@ -14,10 +14,14 @@ import org.hapjs.bridge.Response;
 import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
 import org.hapjs.bridge.storage.file.IResourceFactory;
+import org.hapjs.render.RootView;
 import org.hapjs.render.jsruntime.serialize.SerializeException;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.nio.ByteBuffer;
 
 @FeatureExtensionAnnotation(
         name = FileStorageFeature.FEATURE_NAME,
@@ -276,8 +280,8 @@ public class FileStorageFeature extends FeatureExtension {
             return;
         }
 
-        TypedArray buffer = params.optTypedArray(PARAMS_BUFFER);
-        if (buffer == null) {
+        TypedArrayProxy typedArrayProxy = params.optTypedArrayProxy(PARAMS_BUFFER);
+        if (typedArrayProxy == null) {
             request
                     .getCallback()
                     .callback(new Response(Response.CODE_ILLEGAL_ARGUMENT,
@@ -295,8 +299,9 @@ public class FileStorageFeature extends FeatureExtension {
 
         boolean append = params.optBoolean(PARAMS_APPEND, false);
         IResourceFactory resourceFactory = getResourceFactory(request.getApplicationContext());
+        ByteBuffer byteBuffer = typedArrayProxy.getBuffer();
         Response response =
-                mFileStorage.writeBuffer(resourceFactory, uri, buffer.getByteBuffer(), position,
+                mFileStorage.writeBuffer(resourceFactory, uri, byteBuffer, position,
                         append);
         request.getCallback().callback(response);
     }

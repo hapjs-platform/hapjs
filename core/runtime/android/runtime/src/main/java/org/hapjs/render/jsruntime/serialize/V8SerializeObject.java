@@ -6,8 +6,10 @@
 package org.hapjs.render.jsruntime.serialize;
 
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +17,10 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class V8SerializeObject extends AbstractSerializeObject {
+public class V8SerializeObject extends AbstractSerializeObject {
     private Map<String, Object> mMap;
+
+    private V8SerializeObject() {}
 
     public V8SerializeObject(Map<String, Object> map) {
         mMap = map;
@@ -85,6 +89,26 @@ class V8SerializeObject extends AbstractSerializeObject {
     }
 
     @Override
+    public ByteBuffer optByteBuffer(String key) {
+        Object value = mMap.get(key);
+        if (value instanceof ByteBuffer) {
+            return (ByteBuffer) value;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(String key) {
+        Object value = mMap.get(key);
+        if (value instanceof TypedArrayProxy) {
+            return (TypedArrayProxy) value;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public SerializeObject optSerializeObject(String key) {
         Object value = mMap.get(key);
         if (value instanceof Map) {
@@ -145,13 +169,13 @@ class V8SerializeObject extends AbstractSerializeObject {
     }
 
     @Override
-    public SerializeObject put(String key, ArrayBuffer value) {
+    public SerializeObject put(String key, ByteBuffer value) {
         mMap.put(key, value);
         return this;
     }
 
     @Override
-    public SerializeObject put(String key, TypedArray value) {
+    public SerializeObject put(String key, TypedArrayProxy value) {
         mMap.put(key, value);
         return this;
     }
@@ -170,6 +194,12 @@ class V8SerializeObject extends AbstractSerializeObject {
 
     @Override
     public SerializeObject put(String key, HandlerObject value) {
+        mMap.put(key, value);
+        return this;
+    }
+
+    @Override
+    public SerializeObject put(String key, byte[] value) {
         mMap.put(key, value);
         return this;
     }
@@ -206,6 +236,12 @@ class V8SerializeObject extends AbstractSerializeObject {
                 } else if (value instanceof ArrayBuffer) {
                     // ignore
                 } else if (value instanceof TypedArray) {
+                    // ignore
+                } else if (value instanceof ByteBuffer) {
+                    // ignore
+                } else if (value instanceof TypedArrayProxy) {
+                    // ignore
+                } else if (value instanceof byte[]) {
                     // ignore
                 } else if (value instanceof Map) {
                     result.put(key,

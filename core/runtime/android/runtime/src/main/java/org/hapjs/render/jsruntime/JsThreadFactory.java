@@ -44,9 +44,9 @@ public class JsThreadFactory {
     private JsThread load(Context context) {
         Context applicationContext = context.getApplicationContext();
         if (applicationContext != null) {
-            return new JsThread(applicationContext);
+            return new AppJsThread(applicationContext);
         } else {
-            return new JsThread(context);
+            return new AppJsThread(context);
         }
     }
 

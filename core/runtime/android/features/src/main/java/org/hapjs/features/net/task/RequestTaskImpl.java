@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+import com.eclipsesource.v8.V8Value;
 
 import org.hapjs.bridge.ExtensionManager;
 import org.hapjs.bridge.InstanceManager;
@@ -27,6 +27,7 @@ import org.hapjs.render.jsruntime.serialize.SerializeArray;
 import org.hapjs.render.jsruntime.serialize.SerializeException;
 import org.hapjs.render.jsruntime.serialize.SerializeHelper;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +35,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +101,7 @@ public class RequestTaskImpl implements InstanceManager.IInstance {
             String pkg = mRequest.getApplicationContext().getPackage();
             SerializeObject reader = mRequest.getSerializeParams();
             String url = reader.getString(RequestTask.PARAMS_KEY_URL);
-            String responseType = reader.optString(RequestTask.PARAMS_KEY_RESPOSNE_TYPE, RequestTask.RESPONSE_TYPE_TEXT);
+            String responseType = reader.optString(RequestTask.PARAMS_KEY_RESPOSNE_TYPE, RequestTask.RESPONSE_TYPE_TEXT).toLowerCase();
             String dataType = reader.optString(RequestTask.PARAMS_KEY_DATA_TYPE, RequestTask.DATA_TYPE_JSON);
             Object dataObj = reader.opt(RequestTask.PARAMS_KEY_DATA);
             SerializeObject jsonHeader = reader.optSerializeObject(RequestTask.PARAMS_KEY_HEADER);
@@ -252,16 +252,17 @@ public class RequestTaskImpl implements InstanceManager.IInstance {
             return RequestBody.create(
                     MediaType.parse(CONTENT_TYPE_FORM_URLENCODED),
                     textParams);
-        } else if (objData instanceof ArrayBuffer) {
+        } else if (objData instanceof byte[]) {
             Log.d(TAG, "getSimplePost objData is ArrayBuffer, contentType=" + contentType);
             if (TextUtils.isEmpty(contentType)) {
                 contentType = CONTENT_TYPE_JSON;
             }
-            ByteBuffer b = ((ArrayBuffer) objData).getByteBuffer();
-            //copy memory to heap
-            byte[] buffer = new byte[b.remaining()];
-            b.get(buffer);
-            return RequestBody.create(MediaType.parse(contentType), buffer);
+
+            try {
+                return RequestBody.create(MediaType.parse(contentType), new JSONArray(objData).toString());
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         contentType = TextUtils.isEmpty(contentType) ? CONTENT_TYPE_TEXT_PLAIN : contentType;
@@ -319,7 +320,9 @@ public class RequestTaskImpl implements InstanceManager.IInstance {
                     result.put(RequestTask.RESULT_KEY_STATUS_CODE, response.code());
                     result.put(RequestTask.RESULT_KEY_HEADER, parseHeaders(response));
                     if (response.body() != null) {
-                        result.put(RequestTask.RESULT_KEY_DATA, new ArrayBuffer(response.body().bytes()));
+                        byte[] bytes = response.body().bytes();
+
+                        result.put(RequestTask.RESULT_KEY_DATA, new TypedArrayProxy(V8Value.UNSIGNED_INT_8_ARRAY, bytes));
                     } else {
                         Log.w(TAG, "response body is invalid");
                     }

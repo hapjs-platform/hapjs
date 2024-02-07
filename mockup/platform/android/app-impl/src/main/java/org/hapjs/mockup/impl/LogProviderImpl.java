@@ -19,7 +19,7 @@ public class LogProviderImpl implements LogProvider {
 
     @Override
     public void logCountEvent(
-            String appPackage, String category, String key, Map<String, String> params) {
+            String appPackage, String category, String key, Map params) {
         Log.i(
                 TAG,
                 "recordCountEvent: appPackage="
@@ -40,7 +40,7 @@ public class LogProviderImpl implements LogProvider {
     @Override
     public void logCalculateEvent(
             String appPackage, String category, String key, long value,
-            Map<String, String> params) {
+            Map params) {
         Log.i(
                 TAG,
                 "recordCalculateEvent: appPackage="
@@ -64,7 +64,7 @@ public class LogProviderImpl implements LogProvider {
     @Override
     public void logNumericPropertyEvent(
             String appPackage, String category, String key, long value,
-            Map<String, String> params) {
+            Map params) {
         Log.i(
                 TAG,
                 "recordNumericPropertyEvent: appPackage="
@@ -88,7 +88,7 @@ public class LogProviderImpl implements LogProvider {
     @Override
     public void logStringPropertyEvent(
             String appPackage, String category, String key, String value,
-            Map<String, String> params) {
+            Map params) {
         Log.i(
                 TAG,
                 "recordStringPropertyEvent: appPackage="

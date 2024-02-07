@@ -51,7 +51,7 @@ import org.json.JSONException;
                 @ActionAnnotation(name = NFC.ACTION_SET_TIMEOUT, mode = FeatureExtension.Mode.ASYNC, permissions = {Manifest.permission.NFC}),
                 @ActionAnnotation(name = NFC.ACTION_TRANSCEIVE, mode = FeatureExtension.Mode.ASYNC, normalize = FeatureExtension.Normalize.RAW, permissions = {Manifest.permission.NFC}),
                 // Ndef
-                @ActionAnnotation(name = NFC.ACTION_WRITE_NDEF_MESSAGE, mode = FeatureExtension.Mode.CALLBACK, permissions = {Manifest.permission.NFC}),
+                @ActionAnnotation(name = NFC.ACTION_WRITE_NDEF_MESSAGE, mode = FeatureExtension.Mode.CALLBACK, permissions = {Manifest.permission.NFC}, normalize = FeatureExtension.Normalize.RAW),
                 // IsoDep
                 @ActionAnnotation(name = NFC.ACTION_GET_HISTORICAL_BYTES, mode = FeatureExtension.Mode.ASYNC, normalize = FeatureExtension.Normalize.RAW),
         }

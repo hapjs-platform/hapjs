@@ -80,11 +80,15 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
         super.doCreate(context);
         Log.i(TAG, "Hybrid Application onCreate");
         Cache.setDefaultFileNotFoundHandler(new DefaultFileNotFoundHandler());
-        onAllProcessInit();
+        if (!ProcessUtils.isSandboxProcess(context)) {
+            onAllProcessInitOtherThenSandbox();
+        }
         if (ProcessUtils.isMainProcess(context)) {
             onMainProcessInit();
         } else if (ProcessUtils.isAppProcess(context)) {
             onAppProcessInit();
+        } else if (ProcessUtils.isSandboxProcess(context)) {
+            onSandboxProcessInit();
         } else {
             onOtherProcessInit();
         }
@@ -113,7 +117,7 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
         return databases;
     }
 
-    protected void onAllProcessInit() {
+    protected void onAllProcessInitOtherThenSandbox() {
         Context applicationContext = Runtime.getInstance().getContext().getApplicationContext();
         if (applicationContext instanceof Application) {
             ((Application) applicationContext).registerActivityLifecycleCallbacks(this);
@@ -225,6 +229,10 @@ public class PlatformRuntime extends Runtime implements Application.ActivityLife
     }
 
     protected void onOtherProcessInit() {
+    }
+
+    protected void onSandboxProcessInit() {
+        Thread.setDefaultUncaughtExceptionHandler(new CrashHandler());
     }
 
     @Override

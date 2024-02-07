@@ -7,8 +7,10 @@ package org.hapjs.render.jsruntime.serialize;
 
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -155,6 +157,26 @@ public class JavaSerializeObject implements SerializeObject {
     }
 
     @Override
+    public final ByteBuffer getByteBuffer(String key) throws SerializeException {
+        return mObject.getByteBuffer(key);
+    }
+
+    @Override
+    public ByteBuffer optByteBuffer(String key) {
+        return mObject.optByteBuffer(key);
+    }
+
+    @Override
+    public final TypedArrayProxy getTypedArrayProxy(String key) throws SerializeException {
+        return mObject.getTypedArrayProxy(key);
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(String key) {
+        return mObject.optTypedArrayProxy(key);
+    }
+
+    @Override
     public final SerializeObject getSerializeObject(String key) throws SerializeException {
         Object value = mOverlayMap.get(key);
         if (value instanceof SerializeObject) {
@@ -252,7 +274,7 @@ public class JavaSerializeObject implements SerializeObject {
     }
 
     @Override
-    public final SerializeObject put(String key, ArrayBuffer value) {
+    public final SerializeObject put(String key, ByteBuffer value) {
         mOverlayMap.remove(key);
         if (mObject instanceof JSONSerializeObject) {
             mObject = new V8SerializeObject(mObject.toMap());
@@ -262,7 +284,7 @@ public class JavaSerializeObject implements SerializeObject {
     }
 
     @Override
-    public final SerializeObject put(String key, TypedArray value) {
+    public final SerializeObject put(String key, TypedArrayProxy value) {
         mOverlayMap.remove(key);
         if (mObject instanceof JSONSerializeObject) {
             mObject = new V8SerializeObject(mObject.toMap());
@@ -297,6 +319,16 @@ public class JavaSerializeObject implements SerializeObject {
 
     @Override
     public SerializeObject put(String key, HandlerObject value) {
+        mOverlayMap.remove(key);
+        if (mObject instanceof JSONSerializeObject) {
+            mObject = new V8SerializeObject(mObject.toMap());
+        }
+        mObject.put(key, value);
+        return this;
+    }
+
+    @Override
+    public SerializeObject put(String key, byte[] value) {
         mOverlayMap.remove(key);
         if (mObject instanceof JSONSerializeObject) {
             mObject = new V8SerializeObject(mObject.toMap());

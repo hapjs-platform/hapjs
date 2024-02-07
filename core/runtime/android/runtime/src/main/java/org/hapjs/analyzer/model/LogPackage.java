@@ -28,18 +28,6 @@ public class LogPackage {
         this.datas = datas;
     }
 
-    public static class LogData {
-        public @LogLevel int mLevel;
-        public @LogType int mType;
-        public String mContent;
-
-        public LogData(@LogLevel int level, @LogType int type, String content) {
-            mLevel = level;
-            mType = type;
-            mContent = content;
-        }
-    }
-
     @IntDef({LOG_LEVEL_DEFAULT, Log.VERBOSE, Log.DEBUG, Log.INFO, Log.WARN, Log.ERROR})
     public @interface LogLevel {
     }

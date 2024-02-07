@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.hapjs.analyzer.model.LogData;
 import org.hapjs.analyzer.model.LogPackage;
 import org.hapjs.analyzer.monitors.LogcatMonitor;
 import org.hapjs.analyzer.tools.AnalyzerThreadManager;
@@ -321,7 +322,7 @@ public class ConsolePanel extends CollapsedPanel {
         super.onShowAnimationFinished();
         mVisibleComplete = true;
         if (!mTmpLogCache.isEmpty()) {
-            List<LogPackage.LogData> logDatas = new LinkedList<>();
+            List<LogData> logDatas = new LinkedList<>();
             for (LogPackage p : mTmpLogCache) {
                 logDatas.addAll(p.datas);
             }
@@ -381,7 +382,7 @@ public class ConsolePanel extends CollapsedPanel {
     private static class LogListAdapter extends RecyclerView.Adapter<LogItemHolder> {
 
         private Context mContext;
-        private LinkedList<LogPackage.LogData> mLogDatas;
+        private LinkedList<LogData> mLogDatas;
         private RecyclerView mRecyclerView;
         private boolean mLockLog = false;
 
@@ -400,7 +401,7 @@ public class ConsolePanel extends CollapsedPanel {
 
         @Override
         public void onBindViewHolder(@NonNull LogItemHolder holder, int position) {
-            LogPackage.LogData logData = mLogDatas.get(position);
+            LogData logData = mLogDatas.get(position);
             holder.setLogData(logData);
         }
 
@@ -409,19 +410,19 @@ public class ConsolePanel extends CollapsedPanel {
             return mLogDatas.size();
         }
 
-        void addLogDatas(int position, List<LogPackage.LogData> logDatas) {
+        void addLogDatas(int position, List<LogData> logDatas) {
             if (logDatas == null || logDatas.isEmpty()) {
                 return;
             }
             if (logDatas.size() > MAX_DISPLAY__COUNT) {
-                ListIterator<LogPackage.LogData> iterator = logDatas.listIterator(0);
+                ListIterator<LogData> iterator = logDatas.listIterator(0);
                 for (int i = 0, n = logDatas.size() - MAX_DISPLAY__COUNT; i < n; i++) {
                     iterator.next();
                     iterator.remove();
                 }
             }
             if (mLogDatas.size() >= MAX_DISPLAY__COUNT - logDatas.size()) {
-                ListIterator<LogPackage.LogData> iterator = mLogDatas.listIterator(0);
+                ListIterator<LogData> iterator = mLogDatas.listIterator(0);
                 for (int i = 0, n = MAX_DISPLAY__COUNT - logDatas.size(); i < n; i++) {
                     iterator.next();
                     iterator.remove();
@@ -476,7 +477,7 @@ public class ConsolePanel extends CollapsedPanel {
             mTv.setTextColor(color);
         }
 
-        void setLogData(LogPackage.LogData logData) {
+        void setLogData(LogData logData) {
             setText(logData.mContent);
             itemView.setSelected(logData.mType == LogPackage.LOG_TYPE_JS);
             switch (logData.mLevel) {
