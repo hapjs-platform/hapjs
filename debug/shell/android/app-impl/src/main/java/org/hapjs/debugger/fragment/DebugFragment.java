@@ -81,6 +81,7 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
     private static final String EXTRA_IDE_PATH = "path";
     private static final String EXTRA_IDE_DEBUG = "debug";
     private static final String EXTRA_IDE_IS_ADJUSTED = "isAdjustedIde";
+    private static final String EXTRA_RPK_ADDRESS = "rpk_address";
     private static final String SCAN_PARAMS_TARGET = "target";
     private static final String SCAN_TARGET_VALUE_SKELETON = "skeleton";
     protected boolean mIsIdeDebug;
@@ -208,8 +209,17 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
             String path = intent.getStringExtra(EXTRA_IDE_PATH);
             mIsIdeDebug = intent.getBooleanExtra(EXTRA_IDE_DEBUG, false);
             boolean isAdjustedIde = intent.getBooleanExtra(EXTRA_IDE_IS_ADJUSTED, false);
+            String rpk_address = intent.getStringExtra(EXTRA_RPK_ADDRESS);
 
-            if (!TextUtils.isEmpty(path)) {
+            if (!TextUtils.isEmpty(rpk_address)) {
+                getActivity().setIntent(null);
+                Log.i(TAG, "handleIDERequest() -- rpk_address:" + rpk_address);
+                if (!rpk_address.toLowerCase().startsWith("http")
+                        && !rpk_address.toLowerCase().startsWith("https")) {
+                    Log.e(TAG, "handleIDERequest() -- installLocallyFromAdb");
+                    AppDebugManager.getInstance(getActivity()).installLocallyFromAdb(rpk_address);
+                }
+            } else if (!TextUtils.isEmpty(path)) {
                 getActivity().setIntent(null);
                 PreferenceUtils.setServer(getActivity(), path);
                 PreferenceUtils.setUniversalScan(getActivity(), false);

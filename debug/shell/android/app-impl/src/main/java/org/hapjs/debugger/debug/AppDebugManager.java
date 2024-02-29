@@ -26,6 +26,7 @@ import android.util.Log;
 import android.widget.Toast;
 import androidx.core.content.FileProvider;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -178,7 +179,15 @@ public class AppDebugManager {
     }
 
     public void installLocally(Uri uri) {
-        mHandler.obtainMessage(MSG_INSTALL_LOCALLY, uri).sendToTarget();
+        Message message = mHandler.obtainMessage(MSG_INSTALL_LOCALLY, uri);
+        message.arg1 = 0;
+        mHandler.sendMessage(message);
+    }
+
+    public void installLocallyFromAdb(String rpkPath) {
+        Message message = mHandler.obtainMessage(MSG_INSTALL_LOCALLY, rpkPath);
+        message.arg1 = 1;
+        mHandler.sendMessage(message);
     }
 
     public void startDebugging(String pkg, String server, String target) {
@@ -279,6 +288,35 @@ public class AppDebugManager {
             InputStream in = null;
             try {
                 in = mContext.getContentResolver().openInputStream(uri);
+                boolean success = FileUtils.saveToFile(in, tempFile);
+                if (success) {
+                    mRetryRpkFile = tempFile;
+                    installPackageInPlatform(tempFile);
+                    return;
+                }
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "Fail to save local file", e);
+                onError(ERROR_CODE_FAIL_TO_SAVE_LOCAL_FILE);
+            } finally {
+                FileUtils.closeQuietly(in);
+            }
+            tempFile.delete();
+        } else {
+            onError(ERROR_CODE_FAIL_TO_CREATE_TEMP_FILE);
+        }
+    }
+
+    private void onInstallLocallyFromAdb(String rpkPath) {
+        Log.e(TAG, "rpkPath: " + rpkPath);
+        if (TextUtils.isEmpty(rpkPath)) {
+            return;
+        }
+        File tempFile = createTempFile();
+        if (tempFile != null) {
+            Log.e(TAG, "tempFile: " + tempFile.getAbsolutePath());
+            InputStream in = null;
+            try {
+                in = new FileInputStream(rpkPath);
                 boolean success = FileUtils.saveToFile(in, tempFile);
                 if (success) {
                     mRetryRpkFile = tempFile;
@@ -653,9 +691,14 @@ public class AppDebugManager {
                         getServer();
                         break;
                     }
-
-                    Uri uri = (Uri) msg.obj;
-                    onInstallLocally(uri);
+                    boolean isFromAdb = msg.arg1 == 1;
+                    if (isFromAdb) {
+                        String rpkPath = (String) msg.obj;
+                        onInstallLocallyFromAdb(rpkPath);
+                    } else {
+                        Uri uri = (Uri) msg.obj;
+                        onInstallLocally(uri);
+                    }
                     break;
                 }
                 case MSG_START_DEBUGGING: {
