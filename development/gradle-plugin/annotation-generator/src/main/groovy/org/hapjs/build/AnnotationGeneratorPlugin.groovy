@@ -47,6 +47,12 @@ class AnnotationGeneratorPlugin implements Plugin<Project> {
                 project.android.libraryVariants.all { variant ->
                     def buildType = variant.name
                     def capitalizeBuildType = buildType.capitalize()
+
+                    def packageAssetsTask = project.tasks.getByName("package${capitalizeBuildType}Assets")
+                    if (packageAssetsTask != null) {
+                        def compileJavaTask = project.tasks.getByName("compile${capitalizeBuildType}JavaWithJavac")
+                        packageAssetsTask.dependsOn(compileJavaTask)
+                    }
                     def proguardType = project.properties['android.enableR8'] ==
                             'false' ? 'Proguard' : 'R8'
                     def proguardTask = project.tasks.findByName(
