@@ -153,6 +153,8 @@ public class JsThread extends HandlerThread {
     private boolean mIsTerminateExecution;
     private int mApplicationState = STATE_NONE;
 
+    private ConcurrentLinkedQueue<RootView.ReloadPageConfigurationChangedInfo> mTaskList = new ConcurrentLinkedQueue<>();
+
     protected JsThread(Context context) {
         super("JsThread");
 
@@ -742,6 +744,10 @@ public class JsThread extends HandlerThread {
         }
     }
 
+    public void addConfigurationNotifyInfo(RootView.ReloadPageConfigurationChangedInfo task) {
+        mTaskList.add(task);
+    }
+
     public void loadPage(final Page page) {
         RuntimeLogManager.getDefault().logPageLoadStart(mAppInfo.getPackage(), page.getName());
         mMainHandler.obtainMessage(RootView.MSG_LOAD_PAGE_JS_START, page).sendToTarget();
@@ -774,8 +780,36 @@ public class JsThread extends HandlerThread {
                                 postCreatePage(page, contents[0], jsUri, contents[1]);
                                 Log.d(TAG, "loadPage onPostExecute uri=" + jsUri + " result="
                                         + result);
+                                notifyReloadPageConfigurationChanged(page);
                             }
                         });
+    }
+
+    private void notifyReloadPageConfigurationChanged(Page currentPage) {
+        if (mTaskList != null && !mTaskList.isEmpty()) {
+            Iterator iterator = mTaskList.iterator();
+            while (iterator.hasNext()) {
+                RootView.ReloadPageConfigurationChangedInfo pageConfigurationChangedInfo = (RootView.ReloadPageConfigurationChangedInfo)(iterator.next());
+                if (pageConfigurationChangedInfo != null && !pageConfigurationChangedInfo.isConsumed()) {
+                    if (pageConfigurationChangedInfo.getPage().pageId == currentPage.pageId) {
+                        if (pageConfigurationChangedInfo.isLocaleChanged()) {
+                            postNotifyConfigurationChanged(currentPage, CONFIGURATION_TYPE_LOCALE);
+                        }
+                        if (pageConfigurationChangedInfo.isThemeModeChanged()) {
+                            postNotifyConfigurationChanged(currentPage, CONFIGURATION_TYPE_THEME_MODE);
+                        }
+                        if (pageConfigurationChangedInfo.isOrientationChanged()) {
+                            postNotifyConfigurationChanged(currentPage, CONFIGURATION_TYPE_ORIENTATION);
+                        }
+                        if (pageConfigurationChangedInfo.isScreenSizeChanged()) {
+                            postNotifyConfigurationChanged(currentPage, CONFIGURATION_TYPE_SCREEN_SIZE);
+                        }
+                        pageConfigurationChangedInfo.setConsumed(true);
+                        iterator.remove();
+                    }
+                }
+            }
+        }
     }
 
     private void parseStyleSheets(String css, Page page) {
