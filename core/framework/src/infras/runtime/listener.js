@@ -80,6 +80,14 @@ class Listener {
   }
 
   /**
+   * 发送"destroyBody"信号
+   */
+  destroyBody(...args) {
+    const result = this.streamer.over(this.id, [_createAction('destroyBody', args)])
+    return result
+  }
+
+  /**
    * 发送"addElement"信号
    * @param node  新添加节点 可能是element或者figment
    * @param parent  渲染父节点
