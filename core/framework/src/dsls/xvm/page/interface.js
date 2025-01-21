@@ -61,6 +61,10 @@ function initPage(page, code, query, globals) {
 
   const instEvaluate = context.quickapp.dock.makeEvaluateBuildScript(globals)
 
+  const jsonRequire = (jsonModuleName, options) => {
+    return context.quickapp.platform.requireJson(jsonModuleName, options)
+  }
+
   // 处理代码
   let functionBody
   if (typeof code === 'function') {
@@ -84,7 +88,8 @@ function initPage(page, code, query, globals) {
         $app_bootstrap$: instBootstrap,
         $app_require$: instRequireModule,
         $app_define_wrap$: instDefineWrap,
-        $app_evaluate$: instEvaluate
+        $app_evaluate$: instEvaluate,
+        $json_require$: jsonRequire
       },
       globals
     )
@@ -99,6 +104,7 @@ function initPage(page, code, query, globals) {
     global.$app_require$ = instRequireModule
     global.$app_define_wrap$ = instDefineWrap
     global.$app_evaluate$ = instEvaluate
+    global.$json_require$ = jsonRequire
 
     global.setTimeout = globals.setTimeout
     global.setInterval = globals.setInterval
