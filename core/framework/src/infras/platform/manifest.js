@@ -55,6 +55,14 @@ function isRpkMinPlatformVersionGEQ(val) {
   return manifestJSON.minPlatformVersion >= val
 }
 
+function isRpkCardMinPlatformVersionGEQ(val, vm) {
+  const widgetKey = vm._page.currentPageName
+  const widgetsOption = (manifestJSON.router && manifestJSON.router.widgets) || {}
+  const widgetManiest = widgetsOption[widgetKey] || {}
+
+  return widgetManiest.minCardPlatformVersion >= val
+}
+
 let mode = null
 
 function isRpkDebugMode() {
@@ -66,4 +74,10 @@ function isRpkDebugMode() {
   return mode
 }
 
-export { registerManifest, isRpkMinPlatformVersionGEQ, getManifestField, isRpkDebugMode }
+export {
+  registerManifest,
+  isRpkMinPlatformVersionGEQ,
+  isRpkCardMinPlatformVersionGEQ,
+  getManifestField,
+  isRpkDebugMode
+}

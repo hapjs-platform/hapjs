@@ -20,6 +20,7 @@ import {
 import {
   registerManifest,
   isRpkMinPlatformVersionGEQ,
+  isRpkCardMinPlatformVersionGEQ,
   getManifestField,
   isRpkDebugMode
 } from './manifest'
@@ -155,6 +156,7 @@ export default {
     registerManifest,
     getManifestField,
     isRpkMinPlatformVersionGEQ,
+    isRpkCardMinPlatformVersionGEQ,
     isRpkDebugMode
   }
 }
