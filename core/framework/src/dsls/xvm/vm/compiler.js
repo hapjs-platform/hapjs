@@ -507,6 +507,13 @@ function compileFor(vm, target, dest) {
   const repeat = target.repeat
   // 获取数据源函数
   let getter = repeat.exp || repeat
+  if (typeof getter === 'number') {
+    const num = getter
+    getter = function() {
+      return num
+    }
+  }
+
   // 确保getter是函数，则添加空函数
   if (typeof getter !== 'function') {
     getter = function() {
