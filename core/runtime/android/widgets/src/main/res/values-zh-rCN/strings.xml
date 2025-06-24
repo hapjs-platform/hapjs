@@ -63,4 +63,8 @@
     <string name="talkback_video_controller_pause">暂停</string>
     <string name="talkback_video_controller_full_screen">全屏</string>
     <string name="talkback_video_controller_exit_full_screen">退出全屏</string>
+
+    <string name="webview_save_successfully">保存成功</string>
+    <string name="webview_save_failed">保存失败</string>
+    <string name="webview_save_pictures">保存图片</string>
 </resources>
