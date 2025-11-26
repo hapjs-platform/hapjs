@@ -1,6 +1,6 @@
 {
   "name": "framework",
-  "version": "1.10.0",
+  "version": "1.30.0",
   "description": "",
   "scripts": {
     "format": "prettier \"{src,test,config}/**/*.{md,js,json}\" --write",
