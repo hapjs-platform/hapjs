@@ -37,4 +37,68 @@ function requireBundleChunk(filePath) {
   return cont
 }
 
-export { registerBundleChunks, requireBundleChunk }
+const templateJsonMap = new Map()
+const styleJsonMap = new Map()
+function registerComponentJson(templateJson, cssJson) {
+  if (typeof templateJson === 'string') {
+    templateJson = JSON.parse(templateJson)
+  }
+  for (const compPath in templateJson) {
+    if (templateJson.hasOwnProperty(compPath)) {
+      let pathKey = compPath
+      if (pathKey.startsWith('/')) {
+        pathKey = pathKey.replace(/^\/+/, '')
+      }
+      const templateObj = templateJson[compPath]
+      templateJsonMap.set(pathKey, templateObj)
+    }
+  }
+
+  if (typeof cssJson === 'string') {
+    cssJson = JSON.parse(cssJson)
+  }
+  for (const compPath in cssJson) {
+    if (cssJson.hasOwnProperty(compPath)) {
+      let pathKey = compPath
+      if (pathKey.startsWith('/')) {
+        pathKey = pathKey.replace(/^\/+/, '')
+      }
+      const styleObj = cssJson[compPath]
+      styleJsonMap.set(pathKey, styleObj)
+    }
+  }
+}
+
+function requireJson(compPath, options) {
+  try {
+    if (options && options.styleObjectId) {
+      const styleObj = JSON.parse(styleJsonMap.get(compPath))
+      if (!styleObj) {
+        console.warn(
+          `### App Framework ### requireJson not exist ${compPath} -- options: ${JSON.stringify(
+            options
+          )}`
+        )
+        return {}
+      }
+      const style = styleObj[options.styleObjectId]
+      return style
+    } else if (options && options.componentPath) {
+      const templateObj = JSON.parse(templateJsonMap.get(compPath))
+      if (!templateObj) {
+        console.warn(
+          `### App Framework ### requireJson not exist ${compPath} -- options: ${JSON.stringify(
+            options
+          )}`
+        )
+        return {}
+      }
+      const template = templateObj[options.componentPath].template
+      return template
+    }
+  } catch (e) {
+    console.error(`### App Framework ### requireJson error: ${JSON.stringify(e)}`)
+  }
+}
+
+export { registerBundleChunks, requireBundleChunk, registerComponentJson, requireJson }

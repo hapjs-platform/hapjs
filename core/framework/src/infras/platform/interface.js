@@ -10,11 +10,17 @@ import { invokeScript } from 'src/shared/function'
 import ModuleHost from './module/index'
 import { registerModules, execInvokeCallback, requireModule } from './module/interface'
 import Session from './session'
-import { registerBundleChunks, requireBundleChunk } from './chunk'
+import {
+  registerBundleChunks,
+  requireBundleChunk,
+  registerComponentJson,
+  requireJson
+} from './chunk'
 
 import {
   registerManifest,
   isRpkMinPlatformVersionGEQ,
+  isRpkCardMinPlatformVersionGEQ,
   getManifestField,
   isRpkDebugMode
 } from './manifest'
@@ -140,14 +146,17 @@ export default {
   ModuleHost,
   requireModule,
   requireScriptFile,
+  requireJson,
   initInterface,
   exposure: {
     registerModules,
     registerBundleChunks,
+    registerComponentJson,
     execInvokeCallback,
     registerManifest,
     getManifestField,
     isRpkMinPlatformVersionGEQ,
+    isRpkCardMinPlatformVersionGEQ,
     isRpkDebugMode
   }
 }

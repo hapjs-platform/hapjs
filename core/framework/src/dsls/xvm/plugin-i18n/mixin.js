@@ -38,9 +38,9 @@ export default {
   onConfigurationChanged(evt) {
     // 页面级Vm
     if (evt.type === 'locale') {
-      if (this.$root() === this && this._i18n && this.$app) {
+      if (this.$root() === this && this._i18n && this._page && this._page.app) {
         const i18n = this._i18n
-        const ret = this.$app.getLocaleConfig()
+        const ret = this._page.app.getLocaleConfig()
         const retNew = JSON.parse(JSON.stringify(ret))
         i18n.locale = retNew.locale
         i18n.resources = retNew.resources

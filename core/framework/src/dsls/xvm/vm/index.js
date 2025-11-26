@@ -405,6 +405,13 @@ export default class XVm {
     }
     options = options || {}
 
+    // 打包结果包含extracted字段，说明是新的js卡打包格式
+    // template和style的前处理后，js卡option.template和option.style的格式和之前的快应用就保持一致了
+    if (options.style && options.style.extracted) {
+      preHandleTemplate(options.template)
+      preHandleStyle(options)
+    }
+
     // 页面级Vm：i18n配置合并
     if (this._isPageVm() && this._page.app) {
       const ret = this._page.app.getLocaleConfig()
@@ -1192,4 +1199,65 @@ XVm.mixin = function(options) {
       console.warn(`### App Framework ### 插件定义的函数: ${key}，不属于页面生命周期函数`)
     }
   }
+}
+
+function inReservedKeys(key) {
+  const RESERVED_ATTRS = ['$listeners', '$attrs']
+  return RESERVED_ATTRS.includes(key)
+}
+
+function isFunctionStr(str) {
+  const pattern = /^\s*function\s*\([\w\s,$]*\)\s*\{[\s\S]*\}\s*$/
+  return pattern.test(str.trim())
+}
+
+/**
+ * 如果携带了新打包格式的参数，则先进行template和style的预处理
+ * 主要是将key的$符号去除
+ * 以及将字符串的"function"转成真正的function
+ *  */
+
+function preHandleTemplate(target) {
+  if (!target || Object.prototype.toString.call(target) !== '[object Object]') return
+
+  Object.keys(target).forEach(key => {
+    if (Object.prototype.toString.call(target[key]) === '[object Object]') {
+      preHandleTemplate(target[key])
+    } else if (Object.prototype.toString.call(target[key]) === '[object Array]') {
+      target[key].forEach(item => {
+        preHandleTemplate(item)
+      })
+    } else if (typeof target[key] === 'string') {
+      if (!isFunctionStr(target[key])) {
+        // value非function字符串
+        if (key.startsWith('$') && !inReservedKeys(key)) {
+          // example: "$value": "name"，代表name为变量
+          const trimKey = key.substring(1)
+          const func = `function () { return this.${target[key]} }`
+          target[trimKey] = new Function(`return ${func}`)()
+          delete target[key]
+        }
+      } else {
+        // value为function字符串
+        if (key.startsWith('$')) {
+          // example: "$value": "function() {return this.a + '-' + this.b}"，代表name为变量
+          const trimKey = key.substring(1)
+          target[trimKey] = new Function(`return ${target[key]}`)()
+          delete target[key]
+        } else {
+          // 理论上不存在该情况，防止打包处理遗漏，在这里兜底
+          target[key] = new Function(`return ${target[key]}`)()
+        }
+      }
+    }
+  })
+}
+
+function preHandleStyle(options) {
+  if (!options.style) return
+
+  const styleObjectId = options.style['@info'].styleObjectId
+  const jsonPath = options.style.jsonPath
+
+  options.style = context.quickapp.platform.requireJson(jsonPath, { styleObjectId }) || {}
 }

@@ -106,12 +106,46 @@ class PluginI18n {
       return null
     }
     for (let i = 0, len = resources.length; i < len; i++) {
-      const ret = this._interpolate(locale, resources[i], key, host, interpolateMode, params, [key])
+      let ret
+      if (global.isRpkCardMinPlatformVersionGEQ(2000, host)) {
+        console.log(
+          `### App Framework ### i18n：读取卡片多语言资源，key: ${key}, locale: ${locale}, resources: ${JSON.stringify(
+            resources[i]
+          )}`
+        )
+        ret = this._interpolateFlatten(locale, resources[i], key, host, interpolateMode, params, [
+          key
+        ])
+      } else {
+        console.log(
+          `### App Framework ### i18n：读取多语言资源，key: ${key}, locale: ${locale}, resources: ${JSON.stringify(
+            resources[i]
+          )}`
+        )
+        ret = this._interpolate(locale, resources[i], key, host, interpolateMode, params, [key])
+      }
       if (!isNull(ret)) {
         return ret
       }
     }
     return null
+  }
+
+  _interpolateFlatten(locale, jsonObject, key, host, interpolateMode, params, visitedLinkStack) {
+    if (!jsonObject) {
+      return null
+    }
+
+    const keyRet = jsonObject[key]
+    return this._interpolateCore(
+      locale,
+      key,
+      host,
+      interpolateMode,
+      params,
+      visitedLinkStack,
+      keyRet
+    )
   }
 
   _interpolate(locale, jsonObject, key, host, interpolateMode, params, visitedLinkStack) {
@@ -120,6 +154,18 @@ class PluginI18n {
     }
 
     const keyRet = this._path.getPathValue(jsonObject, key)
+    return this._interpolateCore(
+      locale,
+      key,
+      host,
+      interpolateMode,
+      params,
+      visitedLinkStack,
+      keyRet
+    )
+  }
+
+  _interpolateCore(locale, key, host, interpolateMode, params, visitedLinkStack, keyRet) {
     if (isPlainObject(keyRet) || Array.isArray(keyRet)) {
       return keyRet
     }

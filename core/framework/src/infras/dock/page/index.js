@@ -38,6 +38,7 @@ class XPage extends ModuleHost {
     this._visible = false
     this._meta = Object.assign({ query }, intent, meta)
     this._orientation = intent.orientation
+    this._currentPageName = intent.currentPageName
     this.nextTickCallbacks = [] // nextTick的回调函数数组
   }
 
@@ -51,6 +52,10 @@ class XPage extends ModuleHost {
 
   get orientation() {
     return this._orientation
+  }
+
+  get currentPageName() {
+    return this._currentPageName
   }
 
   get pageName() {
