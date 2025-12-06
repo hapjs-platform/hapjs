@@ -157,6 +157,8 @@ public class CSSAnimatorSet {
         mWrapped = new AnimatorSet();
         mWrapped.setInterpolator(new LinearInterpolator());
         mWrapped.addListener(new CssAnimationListener(this));
+        // 根据activity可见性暂停或重启动画
+        installActivityListener(mComponent);
     }
 
     public static CSSAnimatorSet createNewAnimator(
@@ -254,6 +256,8 @@ public class CSSAnimatorSet {
 
         mDirty = false;
         mWrapped.start();
+        checkCurrentActivityLifecycle(mComponent);
+
         View animatedView = mComponent.getHostView();
         if (animatedView != null) {
             // animated view may changed.
@@ -263,9 +267,25 @@ public class CSSAnimatorSet {
 
         // 百分比参数动画在自身尺寸发生变化时，需要进行自适应
         installLayoutChangeListener(animatedView);
+    }
 
-        // 根据activity可见性暂停或重启动画
-        installActivityListener(mComponent);
+    /**
+     * 在Android 13机型上，如果当前快应用退至后台时创建了CssAnimatorSet并调用了start方法，
+     * 由于当前已经在onPause的生命周期中，不会触发对应的生命周期回调来停止动画，
+     * 会导致当前动画抛出UnsupportedOperationException("Sorting went bad, the start event should always be at index 0")异常。
+     * 需要主动查询一下当前Activity状态
+     *
+     * @param component
+     */
+    private void checkCurrentActivityLifecycle(Component component) {
+        final HybridView hybridView = component != null ? component.getHybridView() : null;
+        if (hybridView == null) {
+            return;
+        }
+        final HybridManager hybridManager = hybridView.getHybridManager();
+        if (!hybridManager.isResumed()) {
+            mActivityStateListener.onActivityPause();
+        }
     }
 
     public void finish() {
