@@ -11,6 +11,8 @@ import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -58,6 +60,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.core.app.ActivityCompat;
@@ -87,11 +90,14 @@ import org.hapjs.common.utils.ThreadUtils;
 import org.hapjs.common.utils.UriUtils;
 import org.hapjs.common.utils.WebViewUtils;
 import org.hapjs.component.Component;
+import org.hapjs.common.executors.Executors;
+import org.hapjs.common.net.HttpConfig;
 import org.hapjs.component.bridge.RenderEventCallback;
 import org.hapjs.component.view.ComponentHost;
 import org.hapjs.component.view.NestedScrollingListener;
 import org.hapjs.component.view.NestedScrollingView;
 import org.hapjs.component.view.gesture.GestureHost;
+import org.hapjs.common.utils.ThemeUtils;
 import org.hapjs.component.view.gesture.IGesture;
 import org.hapjs.component.view.keyevent.KeyEventDelegate;
 import org.hapjs.component.view.webview.BaseWebViewClient;
@@ -110,10 +116,12 @@ import org.hapjs.widgets.animation.WebProgressBar;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.hapjs.runtime.HybridDialog;
+import org.hapjs.runtime.HybridDialogProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -123,6 +131,10 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hapjs.logging.RuntimeLogManager.VALUE_ROUTER_APP_FROM_WEB;
+
+import okhttp3.Call;
+import okhttp3.Request;
+import okhttp3.ResponseBody;
 
 public class NestedWebView extends WebView
         implements ComponentHost, NestedScrollingView, GestureHost {
@@ -195,6 +207,13 @@ public class NestedWebView extends WebView
     private static final String JSSDK_URL = "https://quickapp/js/jssdk.hapwebview.min.js";
     private static final String JSSDK_LOCAL_PATH = "jsscript/hapjssdk.min.js";
     private static final String ERROR_MSG_URL_UNTRUSTED = "url untrusted";
+    private static final String DIVIDER = "/";
+    private static final String IMAGE = "image" + DIVIDER;
+    private static final String DEFAULT_FORMAT = "png";
+    private static final String HYBRID = DIVIDER + "hybrid";
+    private static final String CONTENT_TYPE = "Content-Type";
+    private final String[] SUPPORTED_EXTENSIONS = {"apng", "gif", "jpg", "jpeg", "png", "svg", "webp"};
+
     private WebviewSettingProvider mWebViewSettingProvider;
 
     public NestedWebView(Context context) {
@@ -396,6 +415,26 @@ public class NestedWebView extends WebView
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             mSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
+
+        setOnLongClickListener(v -> {
+            WebView.HitTestResult result = getHitTestResult();
+            if (result.getType() == WebView.HitTestResult.IMAGE_TYPE
+                    || result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+
+                HybridDialogProvider provider = ProviderManager.getDefault().getProvider(HybridDialogProvider.NAME);
+                HybridDialog dialog = provider.createAlertDialog(mContext, ThemeUtils.getAlertDialogTheme());
+                String title = mContext.getString(R.string.webview_save_pictures);
+                dialog.setTitle(title);
+                dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel), (dialogCancelInterface, which) -> dialogCancelInterface.dismiss());
+                dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getString(android.R.string.ok), (dialogOkInterface, which) -> {
+                    downloadImage(result.getExtra());
+                    dialogOkInterface.dismiss();
+                });
+                dialog.show();
+                return true;
+            }
+            return false;
+        });
 
         setWebViewClient(
                 new BaseWebViewClient(BaseWebViewClient.WebSourceType.WEB) {
@@ -876,7 +915,7 @@ public class NestedWebView extends WebView
                             String host = request.getOrigin().getHost();
                             if (webRtcPermissions.contains(Manifest.permission.CAMERA)
                                     && webRtcPermissions.contains(Manifest.permission.RECORD_AUDIO)) {
-                                        warnMessage = getResources().getString(R.string.webrtc_warn_permission_camera_and_microphone,
+                                warnMessage = getResources().getString(R.string.webrtc_warn_permission_camera_and_microphone,
                                         host);
                             } else if (webRtcPermissions.contains(Manifest.permission.CAMERA)) {
                                 warnMessage = getResources().getString(R.string.webrtc_warn_permission_camera,
@@ -989,13 +1028,13 @@ public class NestedWebView extends WebView
                                                 nameET.getText().toString().trim();
                                         if (TextUtils.isEmpty(downloadFileName)) {
                                             Toast.makeText(
-                                                    mContext, R.string.web_download_invalid_url,
-                                                    Toast.LENGTH_SHORT)
+                                                            mContext, R.string.web_download_invalid_url,
+                                                            Toast.LENGTH_SHORT)
                                                     .show();
                                         } else if (!checkUrl(url)) {
                                             Toast.makeText(
-                                                    mContext, R.string.web_download_no_file_name,
-                                                    Toast.LENGTH_SHORT)
+                                                            mContext, R.string.web_download_no_file_name,
+                                                            Toast.LENGTH_SHORT)
                                                     .show();
                                         } else {
                                             download(url, userAgent, contentDisposition, mimetype,
@@ -1577,10 +1616,10 @@ public class NestedWebView extends WebView
                                     downloadManager.enqueue(request);
                                 } else {
                                     Toast.makeText(
-                                            act,
-                                            getResources()
-                                                    .getString(R.string.web_download_no_permission),
-                                            Toast.LENGTH_SHORT)
+                                                    act,
+                                                    getResources()
+                                                            .getString(R.string.web_download_no_permission),
+                                                    Toast.LENGTH_SHORT)
                                             .show();
                                 }
                                 hybridManager.removeLifecycleListener(this);
@@ -2383,5 +2422,83 @@ public class NestedWebView extends WebView
             DarkThemeUtil.disableForceDark(this);
             super.show();
         }
+    }
+
+    private void downloadImage(String imageUrl) {
+        Request request = new Request.Builder().url(imageUrl).build();
+        HttpConfig.get().getOkHttpClient().newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                Log.e(TAG, "Image download failed.", e);
+                Executors.ui().execute(() -> Toast.makeText(mContext, getResources().getString(R.string.webview_save_failed), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull okhttp3.Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    ResponseBody body = response.body();
+                    if (body != null) {
+                        if (saveImageToAlbum(body.bytes(), getExtension(response))) {
+                            Executors.ui().execute(() -> Toast.makeText(mContext, getResources().getString(R.string.webview_save_successfully), Toast.LENGTH_SHORT).show());
+                            return;
+                        }
+                    }
+                }
+                Executors.ui().execute(() -> Toast.makeText(mContext, getResources().getString(R.string.webview_save_failed), Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private String getExtension(okhttp3.Response response) {
+        String contentType = response.header(CONTENT_TYPE);
+        String extension = DEFAULT_FORMAT;
+        if (contentType != null && contentType.startsWith(IMAGE)) {
+            extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(contentType);
+        } else {
+            String imageUrl = response.request().url().url().toString();
+            int lastDotIndex = imageUrl.lastIndexOf(".");
+            if (lastDotIndex != -1 && lastDotIndex < imageUrl.length() - 1) {
+                extension = imageUrl.substring(lastDotIndex + 1);
+            }
+            boolean isSupportExtension = false;
+            for (String type : SUPPORTED_EXTENSIONS) {
+                if (extension.equalsIgnoreCase(type)) {
+                    isSupportExtension = true;
+                    break;
+                }
+            }
+            extension = isSupportExtension ? extension : DEFAULT_FORMAT;
+        }
+        return extension;
+    }
+
+    private boolean saveImageToAlbum(byte[] imageBytes, String extension) {
+        String fileName = System.currentTimeMillis() + "." + extension;
+        boolean isSaveSucceed = false;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, IMAGE + extension);
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + HYBRID);
+            ContentResolver resolver = mContext.getContentResolver();
+            Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri != null) {
+                OutputStream out = null;
+                try {
+                    out = resolver.openOutputStream(uri);
+                    if (out != null) {
+                        out.write(imageBytes);
+                        isSaveSucceed = true;
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "Image Save failed.", e);
+                } finally {
+                    FileUtils.closeQuietly(out);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Image Save failed.", e);
+        }
+        return isSaveSucceed;
     }
 }

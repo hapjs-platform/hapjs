@@ -64,4 +64,8 @@
     <string name="talkback_video_controller_pause">pause</string>
     <string name="talkback_video_controller_full_screen">full screen</string>
     <string name="talkback_video_controller_exit_full_screen">exit full screen</string>
+
+    <string name="webview_save_successfully">Save successfully</string>
+    <string name="webview_save_failed">Save failed</string>
+    <string name="webview_save_pictures">Save Pictures</string>
 </resources>
