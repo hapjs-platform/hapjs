@@ -25,7 +25,7 @@ import java.util.Set;
 @FeatureExtensionAnnotation(
         name = RequestTask.FEATURE_NAME,
         actions = {
-                @ActionAnnotation(name = RequestTask.ACTION_REQUEST, mode = FeatureExtension.Mode.SYNC_CALLBACK),
+                @ActionAnnotation(name = RequestTask.ACTION_REQUEST, mode = FeatureExtension.Mode.SYNC_CALLBACK, normalize = Extension.Normalize.RAW),
                 @ActionAnnotation(name = RequestTask.ACTION_ON_HEADERS_RECEIVED, mode = FeatureExtension.Mode.CALLBACK, multiple = Extension.Multiple.MULTI),
                 @ActionAnnotation(name = RequestTask.ACTION_OFF_HEADERS_RECEIVED, mode = FeatureExtension.Mode.SYNC, multiple = Extension.Multiple.MULTI),
                 @ActionAnnotation(name = RequestTask.ACTION_ABORT, mode = FeatureExtension.Mode.ASYNC)

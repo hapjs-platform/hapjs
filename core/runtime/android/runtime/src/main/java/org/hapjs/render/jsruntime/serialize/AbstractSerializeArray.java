@@ -7,10 +7,12 @@ package org.hapjs.render.jsruntime.serialize;
 
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
 
 import org.json.JSONArray;
+
+import java.nio.ByteBuffer;
 
 abstract class AbstractSerializeArray implements SerializeArray {
     private static final String TAG = "AbstractSerializeArray";
@@ -86,6 +88,18 @@ abstract class AbstractSerializeArray implements SerializeArray {
     public TypedArray getTypedArray(int index) throws SerializeException {
         ensureExists(index);
         return optTypedArray(index);
+    }
+
+    @Override
+    public ByteBuffer getByteBuffer(int index) throws SerializeException {
+        ensureExists(index);
+        return optByteBuffer(index);
+    }
+
+    @Override
+    public TypedArrayProxy getTypedArrayProxy(int index) throws SerializeException {
+        ensureExists(index);
+        return optTypedArrayProxy(index);
     }
 
     @Override

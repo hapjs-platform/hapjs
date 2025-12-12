@@ -12,9 +12,7 @@ import com.eclipsesource.v8.V8;
 import com.eclipsesource.v8.V8Array;
 import com.eclipsesource.v8.V8Object;
 import com.eclipsesource.v8.V8Value;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,20 +29,27 @@ public class Profiler extends V8Object {
 
     private static final String TAG = "Profiler";
 
-    // 基于时间点和事件的 Profiler 文本文件
-    private static final String FILE_NAME_TIMELINE = "profiler_log.txt";
-
-    // 基于火焰图的 Profile 火焰图文件
-    private static final String FILE_NAME_FLAME = "framework.cpuprofile";
-
-    private static final String KEY_APP_START = "app_start";
-
-    private static ScheduledExecutor sExecutor = Executors.createSingleThreadExecutor();
     private static Map<String, Long> mMsgMap = new HashMap<>();
 
     private static boolean sIsAllowProfiler;
     private static boolean sIsCached;
-    public final JavaCallback isEnabled = (v8Object, v8Array) -> sIsAllowProfiler;
+
+    private JsThread mJsThread;
+    private long mThreadId;
+    private IJavaNative mNative;
+
+    public final JavaCallback isEnabled =
+            (v8Object, v8Array) -> {
+                if (!sIsCached) {
+                    try {
+                        sIsAllowProfiler = mJsThread.postAndWait(() -> mNative.profilerIsEnabled());
+                    } catch (Exception e) {
+                        Log.e(TAG, "failed to check profilerIsEnabled");
+                    }
+                    sIsCached = true;
+                }
+                return sIsAllowProfiler;
+            };
     public final JavaVoidCallback saveProfilerData =
             (v8Object, args) -> {
                 if (!sIsAllowProfiler) {
@@ -52,9 +57,8 @@ public class Profiler extends V8Object {
                     return;
                 }
                 String profilerData = toMsg(args);
-                sExecutor.execute(() -> writeFlameDataToFile(profilerData));
+                mJsThread.post(() -> mNative.profilerSaveProfilerData(profilerData));
             };
-    private long mThreadId;
     public final JavaVoidCallback record =
             (v8Object, args) -> {
                 if (!sIsAllowProfiler) {
@@ -62,7 +66,7 @@ public class Profiler extends V8Object {
                     return;
                 }
                 String msg = toMsg(args);
-                sExecutor.execute(() -> writeToFile(getContent("record", msg, mThreadId)));
+                mJsThread.post(() -> mNative.profilerRecord(msg, mThreadId));
             };
     public final JavaVoidCallback time =
             (v8Object, args) -> {
@@ -72,7 +76,7 @@ public class Profiler extends V8Object {
                 }
                 long currentTime = System.nanoTime();
                 String msg = toMsg(args);
-                sExecutor.execute(
+                mJsThread.post(
                         () -> {
                             String key = mThreadId + "_" + msg;
                             mMsgMap.put(key, currentTime);
@@ -87,7 +91,7 @@ public class Profiler extends V8Object {
                 }
                 long currentTime = System.nanoTime();
                 String msg = toMsg(args);
-                sExecutor.execute(
+                mJsThread.post(
                         () -> {
                             String key = mThreadId + "_" + msg;
                             String content;
@@ -98,31 +102,15 @@ public class Profiler extends V8Object {
                                 content = getContent("timeEnd", msg, mThreadId)
                                         + ": don't match the time flag";
                             }
-                            writeToFile(content);
+                            mNative.profilerTimeEnd(content);
                         });
             };
 
-    public Profiler(V8 v8, long threadId) {
+    public Profiler(V8 v8, long threadId, IJavaNative javaNative, JsThread jsThread) {
         super(v8);
         mThreadId = threadId;
-    }
-
-    public static void recordAppStart(long time) {
-        mMsgMap.put(KEY_APP_START, time);
-    }
-
-    public static void recordFirstFrameRendered(long time, long threadId) {
-        if (!sIsAllowProfiler) {
-            Log.d(TAG, "recordFirstFrameRendered: not allow profiler");
-            return;
-        }
-        sExecutor.execute(
-                () -> {
-                    if (mMsgMap.containsKey(KEY_APP_START)) {
-                        writeToFile(getContent("first frame rendered", getCost(time, KEY_APP_START),
-                                threadId));
-                    }
-                });
+        mNative = javaNative;
+        mJsThread = jsThread;
     }
 
     private static String getCost(long time, String key) {
@@ -132,52 +120,6 @@ public class Profiler extends V8Object {
             return String.format(Locale.getDefault(), "%.1f", cost / 1000000f) + "ms";
         }
         return "";
-    }
-
-    private static void writeToFile(String content) {
-        try {
-            File logFile =
-                    new File(
-                            Runtime.getInstance().getContext().getExternalFilesDir(null),
-                            FILE_NAME_TIMELINE);
-            if (!logFile.exists()) {
-                logFile.createNewFile();
-            }
-            String finalContent = content + "\n";
-            FileUtils.saveToFile(finalContent.getBytes(StandardCharsets.UTF_8), logFile, true);
-        } catch (IOException e) {
-            Log.e(TAG, "write to file failed", e);
-        }
-    }
-
-    private static void writeFlameDataToFile(String content) {
-        try {
-            File logFile =
-                    new File(Runtime.getInstance().getContext().getExternalFilesDir(null),
-                            FILE_NAME_FLAME);
-            if (!logFile.exists()) {
-                logFile.createNewFile();
-            }
-            String finalContent = content;
-            FileUtils.saveToFile(finalContent.getBytes(StandardCharsets.UTF_8), logFile, false);
-        } catch (IOException e) {
-            Log.e(TAG, "write to file failed", e);
-        }
-    }
-
-    public static void checkProfilerState() {
-        if (sIsCached) {
-            return;
-        }
-        sExecutor.execute(
-                () -> {
-                    SysOpProvider provider =
-                            ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
-                    if (provider != null) {
-                        sIsAllowProfiler = provider.isAllowProfiler();
-                        sIsCached = true;
-                    }
-                });
     }
 
     private static String getContent(String prefix, String msg, long threadId) {

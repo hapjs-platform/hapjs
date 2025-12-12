@@ -12,6 +12,7 @@ import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.HybridSettings;
 import org.hapjs.bridge.HybridViewClient;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 
 public class HybridViewImpl implements org.hapjs.bridge.HybridView {
@@ -90,7 +91,7 @@ public class HybridViewImpl implements org.hapjs.bridge.HybridView {
     private class InternWebViewClient extends AndroidViewClient {
         @Override
         public void onRuntimeCreate(RootView view) {
-            JsThread jsThread = view.getJsThread();
+            AppJsThread jsThread = view.getJsThread();
             jsThread.getBridgeManager().setHybridManager(mHybridManager);
         }
 

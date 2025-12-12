@@ -24,8 +24,6 @@ import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.HybridManager;
 import org.hapjs.bridge.InstanceManager;
 import org.hapjs.bridge.LifecycleListener;
@@ -37,6 +35,7 @@ import org.hapjs.render.jsruntime.serialize.JavaSerializeObject;
 import org.hapjs.render.jsruntime.serialize.SerializeArray;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class NFCAdapterInstance extends BaseInstance {
@@ -212,7 +211,7 @@ public class NFCAdapterInstance extends BaseInstance {
 
                     byte[] id = mDiscoveredTag.getId();
                     Log.d(TAG, "id: " + Arrays.toString(id));
-                    resultObj.put(RESULT_ID, new ArrayBuffer(id));
+                    resultObj.put(RESULT_ID, id);
                 } else {
                     Log.e(TAG, "null of discovered tag");
                 }
@@ -264,9 +263,9 @@ public class NFCAdapterInstance extends BaseInstance {
                 SerializeArray arrayRecord = new JavaSerializeArray();
                 for (NdefRecord record : ndefRecords) {
                     SerializeObject recordObj = new JavaSerializeObject();
-                    recordObj.put(RESULT_MESSAGES_RECORD_ID, new ArrayBuffer(record.getId()));
-                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, new ArrayBuffer(record.getPayload()));
-                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, new ArrayBuffer(record.getType()));
+                    recordObj.put(RESULT_MESSAGES_RECORD_ID, record.getId());
+                    recordObj.put(RESULT_MESSAGES_RECORD_PAYLOAD, record.getPayload());
+                    recordObj.put(RESULT_MESSAGES_RECORD_TYPE, record.getType());
                     recordObj.put(RESULT_MESSAGES_RECORD_TNF, record.getTnf());
                     arrayRecord.put(recordObj);
                 }

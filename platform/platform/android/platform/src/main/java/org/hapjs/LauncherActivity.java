@@ -10,6 +10,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -78,11 +79,14 @@ import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.PageNotFoundException;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.SandboxProcessLauncher;
+import org.hapjs.render.jsruntime.SandboxProvider;
 import org.hapjs.render.vdom.VDocument;
 import org.hapjs.runtime.Checkable;
 import org.hapjs.runtime.CheckableAlertDialog;
 import org.hapjs.runtime.DarkThemeUtil;
 import org.hapjs.runtime.GrayModeManager;
+import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.Runtime;
 import org.hapjs.runtime.RuntimeActivity;
 import org.hapjs.utils.ActivityUtils;
@@ -1590,6 +1594,15 @@ public class LauncherActivity extends RuntimeActivity {
                     System.currentTimeMillis() + SESSION_EXPIRE_SPAN);
             PlatformLogManager.getDefault().logAppPreLaunch(pkg, path, status, source);
             context.startActivity(intent, options);
+
+            SandboxProvider sandboxProvider = ProviderManager.getDefault().getProvider(SandboxProvider.NAME);
+            if (sandboxProvider.isSandboxEnabled()) {
+                ComponentName componentName = intent.getComponent();
+                if (componentName != null && !TextUtils.isEmpty(componentName.getClassName())) {
+                    String className = componentName.getClassName();
+                    SandboxProcessLauncher.getInstance().preStartSandboxProcess(className.substring(className.length() - 1));
+                }
+            }
         }
     }
 

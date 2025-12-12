@@ -36,6 +36,7 @@ import org.hapjs.render.css.CSSProperty;
 import org.hapjs.render.css.CSSStyleDeclaration;
 import org.hapjs.render.css.CSSStyleRule;
 import org.hapjs.render.css.MatchedCSSRuleList;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -381,7 +382,7 @@ public class VElementDescriptorBase<E extends InspectorVElement> extends Descrip
             Log.w("VDOM setStyle", "rootView is null");
             return;
         }
-        JsThread jsThread = rootView.getJsThread();
+        AppJsThread jsThread = rootView.getJsThread();
         if (jsThread == null) {
             Log.w("VDOM setStyle", "jsThread is null");
             return;

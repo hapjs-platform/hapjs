@@ -10,7 +10,10 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+
+import com.eclipsesource.v8.V8ArrayBuffer;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,6 +35,7 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.internal.http.HttpMethod;
+
 import org.hapjs.bridge.CallbackHybridFeature;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
@@ -251,15 +255,12 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
             String textParams = joinParams((SerializeObject) objData);
             return RequestBody.create(
                     MediaType.parse(RequestHelper.CONTENT_TYPE_FORM_URLENCODED), textParams);
-        } else if (objData instanceof ArrayBuffer) {
+        } else if (objData instanceof byte[]) {
             if (TextUtils.isEmpty(contentType)) {
                 contentType = RequestHelper.CONTENT_TYPE_OCTET_STREAM;
             }
-            ByteBuffer b = ((ArrayBuffer) objData).getByteBuffer();
-            // copy memory to heap
-            byte[] buffer = new byte[b.remaining()];
-            b.get(buffer);
-            return RequestBody.create(MediaType.parse(contentType), buffer);
+
+            return RequestBody.create(MediaType.parse(contentType), (byte[]) objData);
         }
 
         contentType =
@@ -434,7 +435,8 @@ public abstract class AbstractRequest extends CallbackHybridFeature {
                     throw new IOException("Fail to Parsing Data to Json!");
                 }
             } else if (RESPONSE_TYPE_ARRAYBUFFER.equalsIgnoreCase(responseType)) {
-                result.put(RESULT_KEY_DATA, new ArrayBuffer(response.body().bytes()));
+                byte[] bytes = response.body().bytes();
+                result.put(RESULT_KEY_DATA, bytes);
             } else if (RESPONSE_TYPE_FILE.equalsIgnoreCase(responseType)) {
                 result.put(RESULT_KEY_DATA, parseFile(request, response));
             } else {

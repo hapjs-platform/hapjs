@@ -12,8 +12,6 @@ import android.nfc.NfcAdapter;
 import android.nfc.tech.Ndef;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.features.nfc.base.BaseTechInstance;
@@ -135,20 +133,14 @@ public class NdefInstance extends BaseTechInstance {
                     SerializeObject obj = arrayRecords.getSerializeObject(i);
                     short tnf = (short) obj.getInt(NFC.PARAM_RECORDS_TNF);
 
-                    ArrayBuffer typeArrayBuffer = obj.getArrayBuffer(NFC.PARAM_RECORDS_TYPE);
-                    ByteBuffer typeByteBuffer = typeArrayBuffer.getByteBuffer();
-                    byte[] type = new byte[typeByteBuffer.remaining()];
-                    typeByteBuffer.get(type);
+                    ByteBuffer typeByteBuffer = obj.getByteBuffer(NFC.PARAM_RECORDS_TYPE);
+                    byte[] type = typeByteBuffer.array();
 
-                    ArrayBuffer idArrayBuffer = obj.getArrayBuffer(NFC.PARAM_RECORDS_ID);
-                    ByteBuffer idByteBuffer = idArrayBuffer.getByteBuffer();
-                    byte[] id = new byte[idByteBuffer.remaining()];
-                    idByteBuffer.get(id);
+                    ByteBuffer idByteBuffer = obj.getByteBuffer(NFC.PARAM_RECORDS_ID);
+                    byte[] id = idByteBuffer.array();
 
-                    ArrayBuffer payloadArrayBuffer = obj.getArrayBuffer(NFC.PARAM_RECORDS_PAYLOAD);
-                    ByteBuffer payloadByteBuffer = payloadArrayBuffer.getByteBuffer();
-                    byte[] payload = new byte[payloadByteBuffer.remaining()];
-                    payloadByteBuffer.get(payload);
+                    ByteBuffer payloadByteBuffer = obj.getByteBuffer(NFC.PARAM_RECORDS_PAYLOAD);
+                    byte[] payload = payloadByteBuffer.array();
 
                     recordArray[i] = new NdefRecord(tnf, type, id, payload);
                 } catch (IllegalArgumentException | NullPointerException | SerializeException e) {

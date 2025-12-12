@@ -5,6 +5,8 @@
 
 package org.hapjs.render.jsruntime;
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
@@ -19,8 +21,6 @@ import java.io.File;
 import org.hapjs.common.utils.UriUtils;
 import org.hapjs.common.utils.ViewIdUtils;
 import org.hapjs.io.AssetSource;
-import org.hapjs.io.FileSource;
-import org.hapjs.io.JavascriptReader;
 import org.hapjs.io.RpkSource;
 import org.hapjs.io.TextReader;
 import org.hapjs.render.RenderActionPackage;
@@ -31,20 +31,17 @@ public class JsBridge {
 
     private static final String TAG = "JsBridge";
 
-    private JsThread mJsThread;
-    private RenderActionManager mRenderActionManager;
+    private Context mContext;
+    private IJavaNative mNative;
+    private String mPkg;
 
-    public JsBridge(JsThread jsThread, RenderActionManager renderActionManager) {
-        mJsThread = jsThread;
-        mRenderActionManager = renderActionManager;
+    public JsBridge(Context context, IJavaNative javaNative) {
+        mContext = context;
+        mNative = javaNative;
     }
 
-    public void attach(JsBridgeCallback callback) {
-        mRenderActionManager.attach(callback);
-    }
-
-    void sendRenderActions(RenderActionPackage renderActionPackage) {
-        mRenderActionManager.sendRenderActions(renderActionPackage);
+    public void attach(String pkg) {
+        mPkg = pkg;
     }
 
     public void register(final V8 v8) {
@@ -67,7 +64,7 @@ public class JsBridge {
                         final String argsString = v8Array.getString(1);
                         JsUtils.release(v8Array);
 
-                        mRenderActionManager.callNative(pageId, argsString);
+                        mNative.callNative(pageId, argsString);
                     }
                 },
                 "callNative");
@@ -79,7 +76,7 @@ public class JsBridge {
                             return null;
                         }
                         int ref = Integer.parseInt(parameters.get(0).toString());
-                        return ViewIdUtils.getViewId(ref);
+                        return mNative.getViewId(ref);
                     }
                 },
                 "getPageElementViewId");
@@ -96,13 +93,11 @@ public class JsBridge {
     @Nullable
     private Object readResource(String source) {
         Uri uri = UriUtils.computeUri(source);
-        RootView rootView = mJsThread.mRootView;
         if (uri == null) {
             // 访问 rpk 包中的资源
             String resource =
                     TextReader.get()
-                            .read(new RpkSource(rootView.getContext(), rootView.getPackage(),
-                                    source));
+                            .read(new RpkSource(mContext, mPkg, source));
             if (resource == null) {
                 Log.w(TAG, "failed to read resource. source=" + source);
             }
@@ -122,24 +117,13 @@ public class JsBridge {
                     return null;
                 }
                 String script = null;
-                if (mJsThread.isApplicationDebugEnabled()) {
+                if (isApplicationDebugEnabled()) {
                     if (path.startsWith("/js")) {
-                        String newPath = path.replace("/js", "");
-                        File file =
-                                new File(Environment.getExternalStorageDirectory(),
-                                        "quickapp/assets/js" + newPath);
-                        script = JavascriptReader.get().read(new FileSource(file));
-                        if (script != null) {
-                            Log.d(TAG, String.format("load %s from sdcard success",
-                                    file.getAbsolutePath()));
-                        }
+                        mNative.readDebugAsset(path);
                     }
                 }
                 if (script == null) {
-                    script =
-                            TextReader.get()
-                                    .read(new AssetSource(rootView.getContext(),
-                                            path.replaceFirst("/", "")));
+                    script = TextReader.get().read(new AssetSource(mContext/*rootView.getContext()*/, path.replaceFirst("/", "")));
                     if (script == null) {
                         Log.w(TAG, "failed to read script. source=" + source + ", uri=" + uri);
                     }
@@ -150,6 +134,11 @@ public class JsBridge {
                 Log.w(TAG, "unsupported scheme. source=" + source + ", scheme=" + scheme);
                 return null;
         }
+    }
+
+    private boolean isApplicationDebugEnabled() {
+        return (mContext.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE)
+                == ApplicationInfo.FLAG_DEBUGGABLE;
     }
 
     public interface JsBridgeCallback {

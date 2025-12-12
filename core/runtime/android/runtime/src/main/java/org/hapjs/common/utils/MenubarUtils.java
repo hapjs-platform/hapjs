@@ -30,6 +30,7 @@ import org.hapjs.model.MenubarItemData;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.ProviderManager;
 import org.hapjs.system.SysOpProvider;
@@ -367,7 +368,7 @@ public class MenubarUtils {
     private static ExtensionManager getExtensionManager(RootView rootView) {
         ExtensionManager extensionManager = null;
         if (null != rootView) {
-            JsThread jsThread = rootView.getJsThread();
+            AppJsThread jsThread = rootView.getJsThread();
             if (null != jsThread) {
                 extensionManager = jsThread.getBridgeManager();
             } else {

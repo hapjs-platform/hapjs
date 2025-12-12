@@ -10,7 +10,8 @@ import android.nfc.TagLostException;
 import android.nfc.tech.TagTechnology;
 import android.util.Log;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+import com.eclipsesource.v8.V8ArrayBuffer;
+import com.eclipsesource.v8.utils.ArrayBuffer;
 
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
@@ -24,7 +25,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 abstract public class BaseTagTechInstance extends BaseTechInstance {
 
@@ -38,7 +38,7 @@ abstract public class BaseTagTechInstance extends BaseTechInstance {
 
     abstract public int getMaxTransceiveLength();
 
-    public void getMaxTransceiveLength(Request request) throws JSONException{
+    public void getMaxTransceiveLength(Request request) throws JSONException {
         int maxTransceiveLength = getMaxTransceiveLength();
         JSONObject resultObj = new JSONObject();
         resultObj.put(NFC.RESULT_MAX_TRANSCEIVE_LENGTH, maxTransceiveLength);
@@ -81,14 +81,13 @@ abstract public class BaseTagTechInstance extends BaseTechInstance {
             }
             try {
                 if (null != value) {
-                    ByteBuffer byteBuffer = value.getByteBuffer();
-                    byte[] transceiveParams = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(transceiveParams);
+                    V8ArrayBuffer v8ArrayBuffer = value.getV8ArrayBuffer();
+                    byte[] transceiveParams = new byte[v8ArrayBuffer.remaining()];
+                    v8ArrayBuffer.get(transceiveParams);
 
                     byte[] resultBytes = transceive(transceiveParams);
                     SerializeObject resultObj = new JavaSerializeObject();
-                    ArrayBuffer resultBuffer = new ArrayBuffer(resultBytes);
-                    resultObj.put(NFC.RESULT_TRANSCEIVE_DATA, resultBuffer);
+                    resultObj.put(NFC.RESULT_TRANSCEIVE_DATA, resultBytes);
                     request.getCallback().callback(new Response(resultObj));
                 } else {
                     request.getCallback().callback(new Response(NFCConstants.CODE_INVALID_PARAMETER, NFCConstants.DESC_INVALID_PARAMETER));

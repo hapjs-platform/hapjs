@@ -7,12 +7,11 @@ package org.hapjs.runtime.inspect;
 
 import android.content.Context;
 import android.view.View;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Value;
 import okhttp3.Interceptor;
 import okhttp3.WebSocket;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.VDomChangeAction;
+import org.hapjs.render.jsruntime.IJsEngine;
 import org.hapjs.render.jsruntime.JsThread;
 
 public interface InspectorProvider extends PageManager.PageChangedListener {
@@ -27,9 +26,9 @@ public interface InspectorProvider extends PageManager.PageChangedListener {
 
     WebSocket.Factory getWebSocketFactory();
 
-    void onJsContextCreated(V8 v8);
+    void onJsContextCreated(IJsEngine engine);
 
-    void onJsContextDispose(V8 v8);
+    void onJsContextDispose(IJsEngine engine);
 
     void onAppliedChangeAction(Context context, JsThread jsThread, VDomChangeAction action);
 
@@ -41,10 +40,15 @@ public interface InspectorProvider extends PageManager.PageChangedListener {
     void onBeginLoadJsCode(String uri, String content);
 
     void onEndLoadJsCode(String uri);
-
-    String handleConsoleMessage(final V8Value v8Array);
-
     boolean isInspectorReady();
 
     void setRootView(View view);
+
+    void inspectorResponse(int sessionId, int callId, String message);
+
+    void inspectorSendNotification(int sessionId, int callId, String message);
+
+    void inspectorRunMessageLoopOnPause(int contextGroupId);
+
+    void inspectorQuitMessageLoopOnPause();
 }

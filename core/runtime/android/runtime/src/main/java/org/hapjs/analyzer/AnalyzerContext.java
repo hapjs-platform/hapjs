@@ -26,6 +26,7 @@ import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
 import org.hapjs.render.VDomChangeAction;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.render.vdom.VDocument;
@@ -59,7 +60,7 @@ public class AnalyzerContext {
         VDomActionApplier vdomActionApplier = rootView.mVdomActionApplier;
         rootView.mVdomActionApplier = new VDomActionApplier() {
             @Override
-            public void applyChangeAction(HapEngine hapEngine, Context context, JsThread jsThread, VDomChangeAction action, VDocument doc, RenderEventCallback renderEventCallback) {
+            public void applyChangeAction(HapEngine hapEngine, Context context, AppJsThread jsThread, VDomChangeAction action, VDocument doc, RenderEventCallback renderEventCallback) {
                 vdomActionApplier.applyChangeAction(hapEngine, context, jsThread, action, doc, renderEventCallback);
                 if (action.action == VDomChangeAction.ACTION_CREATE_FINISH) {
                     //page create finish

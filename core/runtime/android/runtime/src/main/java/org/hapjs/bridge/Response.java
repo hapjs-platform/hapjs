@@ -133,10 +133,12 @@ public class Response implements java.io.Serializable {
     private static final String CODE = "code";
     private static final String CONTENT = "content";
 
-    private final int mCode;
-    private final Object mContent;
+    private int mCode;
+    private Object mContent;
     private JSONObject mJSONResult;
     private transient SerializeObject mSerializeObjectResult;
+
+    private Response() {}
 
     /**
      * Construct a new instance with code {@link #CODE_SUCCESS} and specified content.

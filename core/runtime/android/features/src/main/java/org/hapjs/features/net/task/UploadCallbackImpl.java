@@ -8,8 +8,6 @@ package org.hapjs.features.net.task;
 import android.util.Log;
 import android.webkit.URLUtil;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.common.utils.FileHelper;
@@ -23,6 +21,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import okhttp3.Call;
@@ -97,7 +96,8 @@ public class UploadCallbackImpl implements Callback {
                 throw new IOException("Fail to Parsing Data to Json!");
             }
         } else if (RESPONSE_TYPE_ARRAYBUFFER.equalsIgnoreCase(responseType)) {
-            result.put(RESULT_KEY_DATA, new ArrayBuffer(response.body().bytes()));
+            byte[] bytes = response.body().bytes();
+            result.put(RESULT_KEY_DATA, bytes);
         } else if (RESPONSE_TYPE_FILE.equalsIgnoreCase(responseType)) {
             result.put(RESULT_KEY_DATA, parseFile(response));
         } else {

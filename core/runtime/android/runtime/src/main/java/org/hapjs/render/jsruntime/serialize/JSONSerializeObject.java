@@ -5,8 +5,10 @@
 
 package org.hapjs.render.jsruntime.serialize;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -66,6 +68,16 @@ class JSONSerializeObject extends AbstractSerializeObject {
 
     @Override
     public TypedArray optTypedArray(String key) {
+        return null;
+    }
+
+    @Override
+    public ByteBuffer optByteBuffer(String key) {
+        return null;
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(String key) {
         return null;
     }
 
@@ -145,13 +157,13 @@ class JSONSerializeObject extends AbstractSerializeObject {
     }
 
     @Override
-    public SerializeObject put(String key, ArrayBuffer value) {
-        throw new UnsupportedOperationException("Can't insert ArrayBuffer");
+    public SerializeObject put(String key, ByteBuffer value) {
+        throw new UnsupportedOperationException("Can't insert ByteBuffer");
     }
 
     @Override
-    public SerializeObject put(String key, TypedArray value) {
-        throw new UnsupportedOperationException("Can't insert TypedArray");
+    public SerializeObject put(String key, TypedArrayProxy value) {
+        throw new UnsupportedOperationException("Can't insert TypedArrayProxy");
     }
 
     @Override
@@ -177,6 +189,11 @@ class JSONSerializeObject extends AbstractSerializeObject {
     @Override
     public SerializeObject put(String key, HandlerObject value) {
         throw new UnsupportedOperationException("Can't insert HandlerObject");
+    }
+
+    @Override
+    public SerializeObject put(String key, byte[] value) {
+        throw new UnsupportedOperationException("Can't insert byte array");
     }
 
     @Override

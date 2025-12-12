@@ -5,10 +5,13 @@
 
 package org.hapjs.render.jsruntime.serialize;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -67,6 +70,16 @@ class JSONSerializeArray extends AbstractSerializeArray {
     }
 
     @Override
+    public ByteBuffer optByteBuffer(int index) {
+        return null;
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(int index) {
+        return null;
+    }
+
+    @Override
     public SerializeObject optSerializeObject(int index) {
         Object value = mJSONArray.opt(index);
         if (value instanceof JSONObject) {
@@ -121,13 +134,13 @@ class JSONSerializeArray extends AbstractSerializeArray {
     }
 
     @Override
-    public SerializeArray put(ArrayBuffer value) {
-        throw new UnsupportedOperationException("Can't insert ArrayBuffer");
+    public SerializeArray put(ByteBuffer value) {
+        throw new UnsupportedOperationException("Can't insert ByteBuffer");
     }
 
     @Override
-    public SerializeArray put(TypedArray value) {
-        throw new UnsupportedOperationException("Can't insert TypedArray");
+    public SerializeArray put(TypedArrayProxy value) {
+        throw new UnsupportedOperationException("Can't insert TypedArrayProxy");
     }
 
     @Override

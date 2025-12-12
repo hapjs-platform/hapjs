@@ -305,12 +305,18 @@ public class HybridViewImpl implements HybridView {
 
         @Override
         public void setAppCacheEnabled(boolean flag) {
-            mWebView.getSettings().setAppCacheEnabled(flag);
+            if (flag){
+                mWebView.getSettings().setCacheMode(WebSettings.LOAD_DEFAULT);
+            }else {
+                mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+            }
         }
 
         @Override
         public void setAppCachePath(String appCachePath) {
-            mWebView.getSettings().setAppCachePath(appCachePath);
+            /* this method is deprecated with setAppCacheEnabled().
+             *  see https://developer.android.com/sdk/api_diff/30-incr/changes/android.webkit.WebSettings .
+            */
         }
 
         @Override

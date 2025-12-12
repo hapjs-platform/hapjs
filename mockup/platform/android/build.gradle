@@ -192,7 +192,7 @@ subprojects {
     apply plugin: "com.github.spotbugs"
 
     android {
-        compileSdkVersion rootProject.compileSdkVersion
+        compileSdkVersion 30
         group "org.hapjs"
         version rootProject.appVersionName
         defaultConfig {

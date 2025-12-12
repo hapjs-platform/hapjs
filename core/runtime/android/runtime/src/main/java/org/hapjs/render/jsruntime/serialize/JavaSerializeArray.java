@@ -7,8 +7,11 @@ package org.hapjs.render.jsruntime.serialize;
 
 import android.util.Log;
 import android.util.SparseArray;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -152,6 +155,26 @@ public class JavaSerializeArray implements SerializeArray {
     }
 
     @Override
+    public ByteBuffer getByteBuffer(int index) throws SerializeException {
+        return mObject.getByteBuffer(index);
+    }
+
+    @Override
+    public ByteBuffer optByteBuffer(int index) {
+        return mObject.optByteBuffer(index);
+    }
+
+    @Override
+    public TypedArrayProxy getTypedArrayProxy(int index) throws SerializeException {
+        return mObject.getTypedArrayProxy(index);
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(int index) {
+        return mObject.optTypedArrayProxy(index);
+    }
+
+    @Override
     public SerializeObject getSerializeObject(int index) throws SerializeException {
         Object value = mOverlayMap.get(index);
         if (value instanceof SerializeObject) {
@@ -234,7 +257,7 @@ public class JavaSerializeArray implements SerializeArray {
     }
 
     @Override
-    public SerializeArray put(ArrayBuffer value) {
+    public SerializeArray put(ByteBuffer value) {
         if (mObject instanceof JSONSerializeArray) {
             mObject = new V8SerializeArray(mObject.toList());
         }
@@ -243,7 +266,7 @@ public class JavaSerializeArray implements SerializeArray {
     }
 
     @Override
-    public SerializeArray put(TypedArray value) {
+    public SerializeArray put(TypedArrayProxy value) {
         if (mObject instanceof JSONSerializeArray) {
             mObject = new V8SerializeArray(mObject.toList());
         }

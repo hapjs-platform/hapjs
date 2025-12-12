@@ -9,9 +9,13 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
+
+import com.eclipsesource.v8.utils.ArrayBuffer;
+
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.hapjs.bridge.ApplicationContext;
 import org.hapjs.bridge.annotation.WidgetAnnotation;
 import org.hapjs.component.Component;
@@ -160,8 +164,7 @@ public class Camera extends Component<CameraView> {
                             params.put("width", width);
                             params.put("height", height);
                             params.put("time", time);
-                            ArrayBuffer frameBuffer = new ArrayBuffer(bytes);
-                            params.put("frame", frameBuffer);
+                            params.put("frame", bytes);
                             mCallback.onJsEventCallback(
                                     getPageId(), mRef, CAMERA_FRAME, Camera.this, params, null);
                         }

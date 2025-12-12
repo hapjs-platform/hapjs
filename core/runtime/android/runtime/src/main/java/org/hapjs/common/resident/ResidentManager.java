@@ -34,6 +34,7 @@ import org.hapjs.bridge.MetaDataSet;
 import org.hapjs.bridge.permission.HapCustomPermissions;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.RootView;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.jsruntime.JsThread;
 import org.hapjs.runtime.HapEngine;
 
@@ -60,7 +61,7 @@ public class ResidentManager {
     private ResidentService.ResidentBinder mResidentBinder;
     private Context mContext;
     private AppInfo mAppInfo;
-    private JsThread mJsThread;
+    private AppJsThread mJsThread;
     private ServiceConnection mServiceConnection;
     private ResidentHandler mResidentHandler;
     private ResidentChangeListener mDbUpdateListener;
@@ -75,7 +76,8 @@ public class ResidentManager {
         mResidentHandler = new ResidentHandler(Looper.getMainLooper());
     }
 
-    public void init(Context context, AppInfo appInfo, JsThread jsThread) {
+
+    public void init(Context context, AppInfo appInfo, AppJsThread jsThread) {
         if (null != context) {
             this.mContext = context.getApplicationContext();
         }

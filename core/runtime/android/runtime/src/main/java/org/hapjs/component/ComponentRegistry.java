@@ -6,23 +6,16 @@
 package org.hapjs.component;
 
 import android.util.Log;
-import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.V8Array;
-import org.hapjs.render.jsruntime.JsUtils;
+
+import org.hapjs.render.jsruntime.IJsEngine;
 
 public class ComponentRegistry {
     private static final String TAG = "ComponentRegistry";
 
-    public static void registerBuiltInComponents(V8 v8) {
+    public static void registerBuiltInComponents(IJsEngine engine) {
         String components = ComponentManager.getWidgetListJSONString();
         if (components != null) {
-            V8Array parameters = new V8Array(v8);
-            try {
-                parameters.push(components);
-                v8.executeVoidFunction("registerComponents", parameters);
-            } finally {
-                JsUtils.release(parameters);
-            }
+            engine.registerComponents(components);
         } else {
             Log.e(TAG, "Fail to registerBuiltInComponents, components=" + components);
         }

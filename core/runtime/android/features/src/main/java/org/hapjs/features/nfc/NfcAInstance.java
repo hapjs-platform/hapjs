@@ -8,8 +8,6 @@ package org.hapjs.features.nfc;
 import android.nfc.NfcAdapter;
 import android.nfc.tech.NfcA;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
 import org.hapjs.features.nfc.base.BaseTagTechInstance;
@@ -19,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class NfcAInstance extends BaseTagTechInstance {
 
@@ -47,7 +46,7 @@ public class NfcAInstance extends BaseTagTechInstance {
     public void getAtqa(Request request) {
         byte[] atqa = mNfcA.getAtqa();
         SerializeObject resultObj = new JavaSerializeObject();
-        resultObj.put(NFC.RESULT_ATQA, new ArrayBuffer(atqa));
+        resultObj.put(NFC.RESULT_ATQA, atqa);
         request.getCallback().callback(new Response(resultObj));
     }
 

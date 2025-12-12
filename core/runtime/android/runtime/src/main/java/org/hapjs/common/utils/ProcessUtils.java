@@ -24,6 +24,7 @@ public class ProcessUtils {
     private static String sCurrentProcessName;
     private static Boolean sIsMainProcess;
     private static Boolean sIsAppProcess;
+    private static Boolean sIsSandboxProcess;
 
     /**
      * Only for extends, please don't instantiate this class.
@@ -61,6 +62,13 @@ public class ProcessUtils {
                     getCurrentProcessName().startsWith(context.getPackageName() + ":Launcher");
         }
         return sIsAppProcess;
+    }
+
+    public static boolean isSandboxProcess(Context context) {
+        if (sIsSandboxProcess == null) {
+            sIsSandboxProcess = getCurrentProcessName().startsWith(context.getPackageName() + ":Sandbox");
+        }
+        return sIsSandboxProcess;
     }
 
     /**

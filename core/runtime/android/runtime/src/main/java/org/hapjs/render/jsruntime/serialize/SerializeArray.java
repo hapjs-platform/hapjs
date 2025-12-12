@@ -5,8 +5,11 @@
 
 package org.hapjs.render.jsruntime.serialize;
 
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+
+import java.nio.ByteBuffer;
 import java.util.List;
 import org.json.JSONArray;
 
@@ -45,13 +48,21 @@ public interface SerializeArray extends Serializable {
 
     String optString(int index, String defaultValue);
 
-    ArrayBuffer getArrayBuffer(int index) throws SerializeException;
+    ArrayBuffer getArrayBuffer(int key) throws SerializeException;
 
-    ArrayBuffer optArrayBuffer(int index);
+    ArrayBuffer optArrayBuffer(int key);
 
-    TypedArray getTypedArray(int index) throws SerializeException;
+    TypedArray getTypedArray(int key) throws SerializeException;
 
-    TypedArray optTypedArray(int index);
+    TypedArray optTypedArray(int key);
+
+    ByteBuffer getByteBuffer(int index) throws SerializeException;
+
+    ByteBuffer optByteBuffer(int index);
+
+    TypedArrayProxy getTypedArrayProxy(int index) throws SerializeException;
+
+    TypedArrayProxy optTypedArrayProxy(int index);
 
     SerializeObject getSerializeObject(int index) throws SerializeException;
 
@@ -71,9 +82,9 @@ public interface SerializeArray extends Serializable {
 
     SerializeArray put(String value);
 
-    SerializeArray put(ArrayBuffer value);
+    SerializeArray put(ByteBuffer value);
 
-    SerializeArray put(TypedArray value);
+    SerializeArray put(TypedArrayProxy value);
 
     SerializeArray put(SerializeObject value);
 

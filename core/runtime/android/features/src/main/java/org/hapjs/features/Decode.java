@@ -6,12 +6,12 @@
 package org.hapjs.features;
 
 import android.util.Log;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+
 import org.hapjs.bridge.FeatureExtension;
 import org.hapjs.bridge.Request;
 import org.hapjs.bridge.Response;
@@ -19,6 +19,7 @@ import org.hapjs.bridge.annotation.ActionAnnotation;
 import org.hapjs.bridge.annotation.FeatureExtensionAnnotation;
 import org.hapjs.common.json.JSONObject;
 import org.hapjs.render.jsruntime.serialize.SerializeObject;
+import org.hapjs.render.jsruntime.serialize.TypedArrayProxy;
 import org.json.JSONException;
 
 @FeatureExtensionAnnotation(
@@ -67,13 +68,14 @@ public class Decode extends FeatureExtension {
             String encoding = params.optString(PARAMS_ENCODING, "UTF-8");
             boolean fatal = params.optBoolean(PARAMS_FATAL, false);
             boolean ignoreBom = params.optBoolean(PARAMS_IGNORE_BOM, false);
-            TypedArray typedArray = params.optTypedArray(PARAMS_ARRAY_BUFFER);
-            if (typedArray == null) {
+            TypedArrayProxy typedArrayProxy = params.optTypedArrayProxy(PARAMS_ARRAY_BUFFER);
+            if (typedArrayProxy == null) {
                 jsonObject.put(KEY_ERROR_CODE, ERROR_CODE_TYPE_ERROR);
                 jsonObject.put(KEY_ERROR_MSG, "The encoded data was not valid.");
                 return new Response(ERROR_CODE_TYPE_ERROR, jsonObject);
             }
-            return decode(encoding, typedArray.getByteBuffer(), ignoreBom, fatal);
+
+            return decode(encoding, typedArrayProxy.getBuffer(), ignoreBom, fatal);
         } catch (Exception e) {
             Log.e(TAG, "params are not valid.", e);
             jsonObject.put(KEY_ERROR_CODE, Response.CODE_ILLEGAL_ARGUMENT);

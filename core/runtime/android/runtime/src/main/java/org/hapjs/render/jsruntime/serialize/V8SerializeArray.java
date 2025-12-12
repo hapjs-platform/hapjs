@@ -6,8 +6,10 @@
 package org.hapjs.render.jsruntime.serialize;
 
 import com.eclipsesource.v8.V8;
-import com.eclipsesource.v8.utils.typedarrays.ArrayBuffer;
-import com.eclipsesource.v8.utils.typedarrays.TypedArray;
+import com.eclipsesource.v8.utils.ArrayBuffer;
+import com.eclipsesource.v8.utils.TypedArray;
+
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
@@ -87,6 +89,26 @@ class V8SerializeArray extends AbstractSerializeArray {
     }
 
     @Override
+    public ByteBuffer optByteBuffer(int index) {
+        Object value = opt(index);
+        if (value instanceof ByteBuffer) {
+            return (ByteBuffer) value;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public TypedArrayProxy optTypedArrayProxy(int index) {
+        Object value = opt(index);
+        if (value instanceof TypedArrayProxy) {
+            return (TypedArrayProxy) value;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public SerializeObject optSerializeObject(int index) {
         Object value = mList.get(index);
         if (value instanceof Map) {
@@ -137,13 +159,13 @@ class V8SerializeArray extends AbstractSerializeArray {
     }
 
     @Override
-    public SerializeArray put(ArrayBuffer value) {
+    public SerializeArray put(ByteBuffer value) {
         mList.add(value);
         return this;
     }
 
     @Override
-    public SerializeArray put(TypedArray value) {
+    public SerializeArray put(TypedArrayProxy value) {
         mList.add(value);
         return this;
     }
@@ -192,6 +214,10 @@ class V8SerializeArray extends AbstractSerializeArray {
                 } else if (value instanceof ArrayBuffer) {
                     // ignore
                 } else if (value instanceof TypedArray) {
+                    // ignore
+                } else if (value instanceof ByteBuffer) {
+                    // ignore
+                } else if (value instanceof TypedArrayProxy) {
                     // ignore
                 } else if (value instanceof Map) {
                     result.put(new V8SerializeObject((Map<String, Object>) value).toJSONObject());

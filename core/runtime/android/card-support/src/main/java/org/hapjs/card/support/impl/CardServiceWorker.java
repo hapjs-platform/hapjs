@@ -41,8 +41,11 @@ import org.hapjs.component.view.ScrollView;
 import org.hapjs.logging.CardLogManager;
 import org.hapjs.model.AppInfo;
 import org.hapjs.render.jsruntime.JsThreadFactory;
+import org.hapjs.render.jsruntime.SandboxProvider;
+import org.hapjs.render.jsruntime.SandboxProviderImpl;
 import org.hapjs.render.jsruntime.module.ModuleBridge;
 import org.hapjs.runtime.HapEngine;
+import org.hapjs.runtime.ProviderManager;
 import org.hapjs.runtime.ResourceConfig;
 import org.hapjs.runtime.Runtime;
 
@@ -54,6 +57,7 @@ public class CardServiceWorker implements CardService {
         Log.i(TAG, "CardServiceWorker init, platform=" + platform);
         ResourceConfig.getInstance().init(context, platform);
         Runtime.setPlatform(platform);
+        ProviderManager.getDefault().addProvider(SandboxProvider.NAME, new SandboxProviderImpl());
         Runtime.getInstance().onCreate(context);
         configBlacklist();
         JsThreadFactory.getInstance().preload(context);

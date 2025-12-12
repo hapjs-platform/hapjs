@@ -28,15 +28,18 @@ import org.hapjs.common.net.UserAgentHelper;
 import org.hapjs.common.utils.DefaultStatusBarSizeProvider;
 import org.hapjs.common.utils.FrescoUtils;
 import org.hapjs.common.utils.ProcessUtils;
-import org.hapjs.common.utils.SoLoaderHelper;
 import org.hapjs.common.utils.StatusBarSizeProvider;
 import org.hapjs.component.constants.DefaultFontSizeProvider;
 import org.hapjs.component.constants.FontSizeProvider;
+import org.hapjs.logging.LogProvider;
 import org.hapjs.pm.DefaultNativePackageProviderImpl;
 import org.hapjs.pm.NativePackageProvider;
 import org.hapjs.render.DefaultFontFamilyProvider;
 import org.hapjs.render.FontFamilyProvider;
-import org.hapjs.render.jsruntime.Profiler;
+import org.hapjs.render.jsruntime.ProfilerHelper;
+import org.hapjs.render.jsruntime.SandboxProvider;
+import org.hapjs.render.jsruntime.SandboxProviderImpl;
+import org.hapjs.runtime.sandbox.SandboxLogProviderImpl;
 import org.hapjs.system.DefaultSysOpProviderImpl;
 import org.hapjs.system.SysOpProvider;
 
@@ -68,7 +71,7 @@ public class Runtime {
 
     public final synchronized void onPreCreate(Context base) {
         if (ProcessUtils.isAppProcess(base)) {
-            Profiler.recordAppStart(System.nanoTime());
+            ProfilerHelper.recordAppStart(System.nanoTime());
         }
         if (mPreCreated) {
             Log.d(TAG, "already pre created! ");
@@ -76,6 +79,7 @@ public class Runtime {
         }
         long preCreateStartTime = System.currentTimeMillis();
         setContext(base);
+        ProviderManager.getDefault().addProvider(SandboxProvider.NAME, new SandboxProviderImpl());
         doPreCreate(mContext);
         mPreCreated = true;
         long preCreateEndTime = System.currentTimeMillis();
@@ -91,7 +95,7 @@ public class Runtime {
         setContext(context);
         doCreate(context);
         if (ProcessUtils.isAppProcess(context)) {
-            Profiler.checkProfilerState();
+            ProfilerHelper.checkProfilerState();
         }
         synchronized (this) {
             mCreated = true;
@@ -152,6 +156,10 @@ public class Runtime {
     }
 
     protected void doPreCreate(Context context) {
+        if (ProcessUtils.isSandboxProcess(context)) {
+            ProviderManager pm = ProviderManager.getDefault();
+            pm.addProvider(LogProvider.NAME, new SandboxLogProviderImpl());
+        }
     }
 
     protected void doCreate(Context context) {

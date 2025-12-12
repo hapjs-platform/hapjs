@@ -38,3 +38,11 @@
 -keep class * extends com.eclipsesource.v8.V8Object {
     public *;
 }
+
+-keep class * extends com.eclipsesource.v8.V8Object$Undefined {
+    *;
+}
+
+-keep class org.hapjs.render.jsruntime.V8InspectorNative {
+    public *;
+}

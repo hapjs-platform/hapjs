@@ -5,13 +5,14 @@
 
 package org.hapjs.render.jsruntime;
 
+import android.util.Pair;
 import com.eclipsesource.v8.V8Object;
 import java.util.Map;
 import org.hapjs.bridge.HybridRequest;
 
 public class V8ObjConverter {
 
-    static HybridRequest objToRequest(V8Object obj, String appId) {
+    static Pair<String, Map<String, String>> parseReqeustParams(V8Object obj) {
         String uri = obj.contains("uri") ? obj.getString("uri") : null;
         if (uri == null || uri.isEmpty()) {
             uri = obj.contains("path") ? obj.getString("path") : null;
@@ -30,7 +31,7 @@ public class V8ObjConverter {
             }
         }
 
-        return new HybridRequest.Builder().pkg(appId).uri(uri).params(params).build();
+        return new Pair<>(uri, params);
     }
 
     static String getPageUri(V8Object obj) {

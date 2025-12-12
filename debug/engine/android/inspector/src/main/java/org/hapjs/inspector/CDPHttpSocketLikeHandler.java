@@ -31,7 +31,7 @@ import org.hapjs.render.DecorLayout;
 import org.hapjs.render.Page;
 import org.hapjs.render.PageManager;
 import org.hapjs.render.RootView;
-import org.hapjs.render.jsruntime.JsThread;
+import org.hapjs.render.jsruntime.AppJsThread;
 import org.hapjs.render.vdom.DocComponent;
 import org.hapjs.render.vdom.VDocument;
 import org.json.JSONArray;
@@ -109,42 +109,23 @@ public class CDPHttpSocketLikeHandler implements SocketLikeHandler {
                 } else if (PATH_RUNTIME.equals(path)) {
                     RootView rootView = V8Inspector.getInstance().getRootView();
                     if (rootView != null) {
-                        final JsThread mJsThread = rootView.getJsThread();
+                        final AppJsThread jsThread = rootView.getJsThread();
                         // Stetho doesn't has request body, so here we are
                         Runnable r =
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        V8 v8 = mJsThread.getJsContext().getV8();
                                         String message = request.getFirstHeaderValue("message");
                                         Log.d(TAG, "message = " + message);
-                                        V8Object object = v8.executeObjectScript("v = " + message);
-                                        if (object == null) {
-                                            throw new IllegalStateException(
-                                                    "related value not exists.");
-                                        }
-
-                                        V8Object json = v8.getObject("JSON");
-                                        // INSPECTOR MOD
-                                        if (json == null) {
-                                            throw new IllegalStateException(
-                                                    "V8Object which key is JSON not exists");
-                                        }
-                                        // END
-                                        V8Array parameters = new V8Array(v8).push(object);
-                                        String result =
-                                                json.executeStringFunction("stringify", parameters);
+                                        String result = jsThread.getEngine().executeObjectScriptAndStringify("v = " + message);
                                         Log.d(TAG, "result = " + result);
 
                                         setSuccessfulResponse(
                                                 response,
                                                 LightHttpBody.create(result, "application/json"));
-                                        parameters.release();
-                                        object.release();
-                                        json.release();
                                     }
                                 };
-                        HandlerUtil.postAndWait(mJsThread.getHandler(), r);
+                        HandlerUtil.postAndWait(jsThread.getHandler(), r);
 
                     } else {
                         Log.e(TAG, "can't get pages.");
