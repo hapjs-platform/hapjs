@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.greenrobot.eventbus.EventBus;
 import org.hapjs.bridge.ApplicationContext;
+import org.hapjs.bridge.FitWidescreenProvider;
 import org.hapjs.bridge.HybridRequest;
 import org.hapjs.bridge.HybridView;
 import org.hapjs.bridge.impl.android.AndroidViewClient;
@@ -874,6 +875,7 @@ public class RootView extends FrameLayout
                                         .getApplicationContext();
                         mAppInfo = appContext.getAppInfo(false);
                         GrayModeManager.getInstance().init(appContext.getContext().getApplicationContext());
+                        setFoldScreenFitMode(mAppInfo);
                         if (mAppInfo == null) {
                             return LoadResult.APP_INFO_NULL;
                         } else if (mAppInfo.getMinPlatformVersion()
@@ -910,10 +912,6 @@ public class RootView extends FrameLayout
                                             }
                                         }
                                     });
-                        }
-                        if (displayInfo != null) {
-                            String fitMode = displayInfo.getFitMode();
-                            FoldingUtils.setRpkWideScreenFitMode(fitMode);
                         }
 
                         EventManager.getInstance()
@@ -1044,6 +1042,37 @@ public class RootView extends FrameLayout
                 });
     }
 
+    private void setFoldScreenFitMode(AppInfo appInfo) {
+        if (appInfo != null) {
+            DisplayInfo displayInfo = appInfo.getDisplayInfo();
+            if (displayInfo != null) {
+                String fitMode = displayInfo.getFitMode();
+                FoldingUtils.setRpkWideScreenFitMode(fitMode);
+                FitWidescreenProvider provider = ProviderManager.getDefault().getProvider(FitWidescreenProvider.NAME);
+                String defaultRpkFitMode = provider.getFitMode(null, null);
+                if (DisplayInfo.MODE_ADAPTIVE_SCREEN.equals(fitMode)) {
+                    FoldingUtils.setRpkWideScreenFitMode(DisplayInfo.MODE_ADAPTIVE_SCREEN);
+                } else if (DisplayInfo.MODE_MULTI_WINDOW.equals(fitMode)) {
+                    FoldingUtils.setRpkWideScreenFitMode(DisplayInfo.MODE_MULTI_WINDOW);
+                    applyMultiWindowFromManifest(displayInfo);
+                } else {
+                    FoldingUtils.setRpkWideScreenFitMode(defaultRpkFitMode);
+                }
+            }
+        }
+    }
+
+    private void applyMultiWindowFromManifest(DisplayInfo displayInfo) {
+        String multiWindowMode = displayInfo.getMultiWindowMode();
+        if (TextUtils.equals(multiWindowMode, DisplayInfo.MODE_SHOPPING)) {
+            MultiWindowManager.setMultiWindowModeType(MultiWindowManager.SHOPPING_MODE);
+        } else if (TextUtils.equals(multiWindowMode, DisplayInfo.MODE_NAVIGATION)) {
+            MultiWindowManager.setMultiWindowModeType(MultiWindowManager.NAVIGATION_MODE);
+        } else {
+            MultiWindowManager.setMultiWindowModeType(MultiWindowManager.SHOPPING_MODE);
+        }
+    }
+
     private void initConfiguration(ApplicationContext appContext, HybridRequest request) {
         ConfigurationManager.getInstance().init(appContext);
         Locale initialLocale = ConfigurationManager.getInstance().getCurrentLocale();
@@ -1124,6 +1153,8 @@ public class RootView extends FrameLayout
             newConfig.setLastScreenSize(newScreenSize);
         }
 
+        mJsThread.addConfigurationNotifyInfo(task);
+
         // update media query when 'theme mode' or 'orientation' has changed.
         if (configurationChanged) {
             mJsThread.getRenderActionManager().updateMediaPropertyInfo(currentPage);
@@ -1185,6 +1216,7 @@ public class RootView extends FrameLayout
             if (isFoldStatus(getContext())) {
                 ReloadPageConfigurationChangedInfo task = new ReloadPageConfigurationChangedInfo(currentPage);
                 task.setOrientationChanged(true);
+                mJsThread.addConfigurationNotifyInfo(task);
             } else {
                 mJsThread.postNotifyConfigurationChanged(currentPage, JsThread.CONFIGURATION_TYPE_ORIENTATION);
             }
@@ -1212,8 +1244,8 @@ public class RootView extends FrameLayout
             Executors.ui()
                     .execute(
                             () -> {
-                                if (mDocument != null) {
-                                    mDocument
+                                if (vdoc != null) {
+                                    vdoc
                                             .getComponent()
                                             .updateTitleBar(Collections.emptyMap(),
                                                     currentPage.pageId);
@@ -1255,6 +1287,66 @@ public class RootView extends FrameLayout
             }
         }
         mIsFoldingStatus = isFold;
+    }
+
+    private Page handleFoldingPagesLoading(HapConfiguration newConfig) {
+        if (newConfig == null) {
+            return null;
+        }
+        Page page = null;
+        if (isFoldableDevice(getContext())) {
+            if (mIsFoldingStatus != isFoldStatus(getContext())) {
+                // 折叠屏折叠展开状态发生变化后Page处理逻辑
+                page = foldDeviceReloadPages();
+            } else if (newConfig.getOrientation() != newConfig.getLastOrientation()) {
+                //adaptiveScreen模式下横竖屏切换时重建Page
+                if (!isFoldStatus(getContext()) && FoldingUtils.isAdaptiveScreenMode()) {
+                    try {
+                        page = mPageManager.reloadOnFoldableDevice();
+                    } catch (PageNotFoundException e) {
+                        Log.e(TAG, "onConfigurationChanged reload error", e);
+                    }
+                }
+            }
+            mIsFoldingStatus = isFoldStatus(getContext());
+        }
+        return page;
+    }
+
+    private Page foldDeviceReloadPages() {
+        String rpkFitMode = FoldingUtils.getRpkWideScreenFitMode();
+        Page newPage = null;
+        // rpk manifest fitWidthScreenFitMode为居中显示时（或者未配置，默认值为fitScreen）
+        // fitScreen模式下可以手动切换当前适配模式
+        if (DisplayInfo.MODE_FIT_SCREEN.equals(rpkFitMode)) {
+            // 屏幕折叠展开状态发生变化后页面重新加载
+            try {
+                newPage = mPageManager.reloadOnFoldableDevice();
+            } catch (PageNotFoundException e) {
+                Log.e(TAG, "onConfigurationChanged reload error", e);
+            }
+        } else {
+            // 非fitScreen下，无法修改当前折叠屏适配模式
+            if (DisplayInfo.MODE_FILL_SCREEN.equals(rpkFitMode) || DisplayInfo.MODE_ADAPTIVE_SCREEN.equals(rpkFitMode)) {
+                try {
+                    newPage = mPageManager.reloadOnFoldableDevice();
+                } catch (PageNotFoundException e) {
+                    Log.e(TAG, "onConfigurationChanged reload error", e);
+                }
+            } else if (DisplayInfo.MODE_ORIGINAL.equals(rpkFitMode)) {
+                // original模式下所有历史页面刷新样式
+                for (Page page : mPageManager.getPageInfos()) {
+                    if (page != getCurrentPage()) {
+                        mJsThread.getRenderActionManager().updateMediaPropertyInfo(page);
+                    }
+                }
+            } else {
+                Log.e(TAG,
+                        "onConfigurationChanged reload error: unknown fold wide screen fit mode status rpkFitMode: "
+                                + rpkFitMode);
+            }
+        }
+        return newPage;
     }
 
     private void ReloadPagesOnFoldDeviceOnMultiWindowMode(boolean isFold, Page leftPage, Page rightPage, HapConfiguration config) {
@@ -2310,6 +2402,13 @@ public class RootView extends FrameLayout
             if (sysOpProvider.isFoldableDevice(rootView.getContext())) {
                 if (FoldingUtils.isMultiWindowMode()) {
                     rootView.handleConfigurationChangeOnMultiWindow(newConfig);
+                } else {
+                    Page reloadPage = rootView.handleFoldingPagesLoading(newConfig);
+                    if (reloadPage != null) {
+                        rootView.handleReloadConfigurationChange(reloadPage, currentPage, rootView.mDocument, newConfig);
+                    } else {
+                        rootView.handleConfigurationChange(currentPage, rootView.mDocument, newConfig);
+                    }
                 }
             } else {
                 rootView.handleConfigurationChange(currentPage, rootView.mDocument, newConfig);

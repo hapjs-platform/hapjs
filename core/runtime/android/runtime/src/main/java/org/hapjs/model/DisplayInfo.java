@@ -48,6 +48,7 @@ public class DisplayInfo {
     private int mThemeMode; // dark-no--0,dark_yes--1,auto-- -1
     private JSONObject mPageAnimation;
     private String mFitMode;
+    private String mMultiWindowMode;
     public static final String KEY_NOT_VALID = "FALSE";
     public static final String KEY_VALID = "TRUE";
 
@@ -68,7 +69,7 @@ public class DisplayInfo {
                         multiWindowMode = multiWindowConfigJsonObject.optString(KEY_MULTI_WINDOW_CONFIG_MODE);
                     }
                 }
-                MultiWindowManager.setMultiWindowModeType(multiWindowMode);
+                displayInfo.setMultiWindowMode(multiWindowMode);
             }
         }
 
@@ -97,6 +98,14 @@ public class DisplayInfo {
 
     public void setFitMode(String fitMode) {
         mFitMode = fitMode;
+    }
+
+    public String getMultiWindowMode() {
+        return mMultiWindowMode;
+    }
+
+    public void setMultiWindowMode(String multiWindowMode) {
+        mMultiWindowMode = multiWindowMode;
     }
 
     public Style getDefaultStyle() {
