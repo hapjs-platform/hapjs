@@ -8,6 +8,7 @@ package org.hapjs.common.utils;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import org.hapjs.render.MultiWindowManager;
 
 public class ViewUtils {
 
@@ -33,7 +34,7 @@ public class ViewUtils {
     }
 
     public static void fitMultiModeLayoutParams(Context context, ViewGroup.LayoutParams lp) {
-        if (FoldingUtils.isMultiWindowMode()) {
+        if (MultiWindowManager.shouldApplyMultiWindowMode(context)) {
             lp.width = DisplayUtil.getScreenWidth(context);
         }
     }
