@@ -38,6 +38,7 @@ function destroyPage(page) {
 
   page.intent = null
   page.name = null
+  page.doc.listener.destroyBody()
   config.runtime.helper.destroyTagNode(page.doc)
   page.doc = null
 

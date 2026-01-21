@@ -10,6 +10,7 @@ import {
   registerFromCssFile,
   getStylingDocumentId,
   setDocument,
+  removeDocument,
   getDocument,
   getDocumentNodeByRef,
   setElementProp,
@@ -59,6 +60,10 @@ function dispatchAction(instId, actionItem) {
         dispatchActionForCreateBody(newInstId, ...actionItem.args)
         newActionList = sliceNewActions()
         cleanNewActions()
+        break
+      case 'destroyBody':
+        dispatchActionForDestroyBody(newInstId, ...actionItem.args)
+        newActionList = [actionItem]
         break
       case 'addElement':
         dispatchActionForAddElement(newInstId, ...actionItem.args)
@@ -132,6 +137,12 @@ function dispatchActionForCreateBody(instId, nodeHash) {
   const document = getDocument(instId)
   const node = parseNodeJSON(document, nodeHash)
   document.documentElement.appendChild(node)
+}
+
+function dispatchActionForDestroyBody(instId) {
+  if (getDocument(instId)) {
+    removeDocument(instId)
+  }
 }
 
 function dispatchActionForAddElement(instId, parentNodeRef, nodeHash) {

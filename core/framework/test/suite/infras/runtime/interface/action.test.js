@@ -62,6 +62,13 @@ describe('action: interface 接口与数据格式', () => {
     expect(callNativeMessageList[0].args[0]).to.include({ type: 'div' })
   })
 
+  it('destroyBody', () => {
+    document.listener.destroyBody()
+    callNativeMessageList[0] = JSON.parse(callNativeMessageList[0])
+
+    expect(callNativeMessageList[0]).to.include({ module: 'dom', method: 'destroyBody' })
+  })
+
   it('addElement', () => {
     const nodeHtml = document.documentElement
     // 创建节点
