@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2022, the hapjs-platform Project Contributors
+ * Copyright (c) 2022-present, the hapjs-platform Project Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.hapjs.analyzer.monitors;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Process;
 import android.text.TextUtils;
@@ -15,6 +13,7 @@ import android.util.Log;
 
 import org.hapjs.analyzer.monitors.abs.AbsTimerMonitor;
 import org.hapjs.common.utils.FileUtils;
+import org.hapjs.common.utils.PackageUtils;
 import org.hapjs.runtime.Runtime;
 
 import java.io.BufferedReader;
@@ -41,18 +40,7 @@ public class CpuMonitor extends AbsTimerMonitor<String> {
 
     private static boolean isSystemApp() {
         Context context = Runtime.getInstance().getContext();
-        if (context == null) {
-            return false;
-        }
-        try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return packageInfo != null &&
-                    packageInfo.applicationInfo != null &&
-                    ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
-        } catch (Exception e) {
-            // ignore
-        }
-        return false;
+        return PackageUtils.isSystemPackage(context, context.getPackageName());
     }
 
     public CpuMonitor() {

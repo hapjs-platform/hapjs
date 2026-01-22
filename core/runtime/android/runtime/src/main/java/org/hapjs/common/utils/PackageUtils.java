@@ -159,7 +159,7 @@ public class PackageUtils {
         }
         try {
             PackageInfo pi = context.getPackageManager().getPackageInfo(packageName, 0);
-            return pi != null && (pi.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+            return pi != null && (pi.applicationInfo.flags & (ApplicationInfo.FLAG_SYSTEM | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0;
         } catch (PackageManager.NameNotFoundException e) {
             // ignored
         }
