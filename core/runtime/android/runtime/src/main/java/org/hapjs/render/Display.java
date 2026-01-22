@@ -144,6 +144,7 @@ public class Display implements ConfigurationManager.ConfigurationListener {
     private MenubarView.MenubarLifeCycleCallback mMenubarLifeCycleCallback = null;
     private String mTipsContent = "";
     private int mTipsShowTime = MenubarView.MENUBAR_TIPS_SHOW_TIME_DURATION;
+    private boolean mIsLastFolding = false;
 
     public Display(DecorLayout decorLayout, Window window, Page page, RootView rootView) {
         mContext = decorLayout.getContext().getApplicationContext();
@@ -448,6 +449,9 @@ public class Display implements ConfigurationManager.ConfigurationListener {
                         ColorUtil.getGrayscaleFromColor(mPage.getStatusBarBackgroundColor())
                                 > BRIGHTNESS_THRESHOLD;
                 break;
+        }
+        if (isFoldableDevice(mContext)) {
+            mIsLastFolding = isFoldStatus(mContext);
         }
         if (DarkThemeUtil.isDarkMode()) {
             lightStatusBar = false;
@@ -2041,9 +2045,42 @@ public class Display implements ConfigurationManager.ConfigurationListener {
 
     @Override
     public void onConfigurationChanged(HapConfiguration newConfig) {
+        refreshOnFoldChange(newConfig);
         if (newConfig.getLastUiMode() != newConfig.getUiMode()) {
             setupStatusBar();
         }
+    }
+
+    private void refreshOnFoldChange(HapConfiguration newConfig) {
+        if (!isFoldableDevice(mContext)) {
+            return;
+        }
+        refreshTabBar(newConfig);
+        if (null != mContext
+                && null != mRootView
+                && mIsLastFolding != isFoldStatus(mContext)) {
+            setupOrientation();
+        }
+    }
+
+    private void refreshTabBar(HapConfiguration newConfig) {
+        if (isFoldableDevice(mContext)
+                && (mIsLastFolding != isFoldStatus(mContext) || (null != newConfig &&
+                !isFoldStatus(mContext) &&
+                newConfig.getLastOrientation() != newConfig.getOrientation()))
+                && null != mRootView) {
+            mRootView.refreshTabBar();
+        }
+    }
+
+    private boolean isFoldableDevice(Context context) {
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isFoldableDevice(context);
+    }
+
+    private boolean isFoldStatus(Context context) {
+        SysOpProvider sysOpProvider = ProviderManager.getDefault().getProvider(SysOpProvider.NAME);
+        return sysOpProvider.isFoldStatusByDisplay(context);
     }
 
     private static class ProgressBarController {

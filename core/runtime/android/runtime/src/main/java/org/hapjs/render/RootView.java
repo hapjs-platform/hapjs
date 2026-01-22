@@ -1505,6 +1505,14 @@ public class RootView extends FrameLayout
         return isValid;
     }
 
+    public void refreshTabBar() {
+        if (null != mTabBar && mTabBar.isTabBarViewValid()) {
+            mTabBar.refreshTabBar(this);
+        } else {
+            Log.w(TAG, "refreshTabBar mTabBar is null.");
+        }
+    }
+
     @Override
     public void addView(View child, int index, ViewGroup.LayoutParams params) {
         super.addView(child, index, params);

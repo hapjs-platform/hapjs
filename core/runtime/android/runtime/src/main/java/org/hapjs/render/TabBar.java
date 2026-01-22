@@ -74,6 +74,19 @@ public class TabBar {
         initTabBarList(context, rootView, mTabBarView, appInfo);
     }
 
+    public void refreshTabBar(RootView rootView) {
+        if (null != rootView && null != mTabBarView && mTabBarView.getVisibility() == View.VISIBLE) {
+            Context context = rootView.getContext();
+            initTabBarList(context, rootView, mTabBarView, rootView.getAppInfo());
+        } else {
+            Log.w(TAG, "refreshTabBar  params is not valid.");
+        }
+    }
+
+    public boolean isTabBarViewValid() {
+        return null != mTabBarView && mTabBarView.getVisibility() == View.VISIBLE;
+    }
+
     public void updateTabBarData(RootView rootView, JSONObject tabbarData) {
         if (null == tabbarData || null == rootView) {
             Log.w(TAG, "updateTabBarData tabbarData or rootView is null.");
