@@ -1028,6 +1028,9 @@ function compileRichText(vm, target, dest) {
  * @returns {*}
  */
 function watchFragment(vm, frag, calc, type, handler) {
+  // 如果 calc 不是函数，则直接返回值。如 shown: true，calc 为 true 而非 function
+  if (typeof calc !== 'function') return calc
+
   const watcher = watch(
     vm,
     calc,

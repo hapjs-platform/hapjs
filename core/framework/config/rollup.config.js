@@ -6,7 +6,7 @@
 
 import fs from 'fs'
 import { getRollConf } from './rollup.base'
-import { buildSysComponent } from './sys-comp'
+// import { buildSysComponent } from './sys-comp'
 
 // 配置环境
 const config = parse()
@@ -39,11 +39,11 @@ function parse(config) {
     // NA环境
     case 'na-dv':
       config.list = collectExportList('debug', './src/dsls', './src/infras/bundles')
-      buildSysComponent()
+      // buildSysComponent()
       break
     case 'na-ol':
       config.list = collectExportList('release', './src/dsls', './src/infras/bundles')
-      buildSysComponent()
+      // buildSysComponent()
       break
     // H5环境 待之后完善
     case 'h5-dv':

@@ -8,13 +8,19 @@ const path = require('path')
 const fs = require('fs')
 
 const webpack = require('webpack')
-const HandlerPlugin = require('@hap-toolkit/packager/lib/plugins/handler-plugin')
-const ExtractCssPlugin = require('@hap-toolkit/dsl-xvm/lib/plugins/extract-css-plugin.js')
+const { HandlerPlugin } = require('@hap-toolkit/packager/lib/plugins/handler-plugin.js')
+const ExtractCssPlugin = require(path.join(
+  __dirname,
+  '../../node_modules/@hap-toolkit/dsl-xvm/lib/plugins/extract-css-plugin.js'
+)).default
 const moduleLoader = require.resolve('@hap-toolkit/packager/lib/loaders/module-loader.js')
 
-const { initCompileOptionsObject } = require('@hap-toolkit/shared-utils/compilation-config')
+const { mergeCompileOptionsObject } = require(path.join(
+  __dirname,
+  '../../node_modules/@hap-toolkit/shared-utils/lib/compilation-config.js'
+))
 
-initCompileOptionsObject({
+mergeCompileOptionsObject({
   enableExtractCss: true,
   removeUxStyle: true
 })
@@ -24,6 +30,10 @@ const FILE_EXT_LIST = ['.ux']
 // 所在目录名
 const pathSource = path.resolve(__dirname, '../suite/dsls')
 const pathBuild = path.resolve(__dirname, '../../')
+
+// ux-loader 依赖 globalConfig.SRC_DIR 计算相对路径，此处显式设置
+const { globalConfig } = require('@hap-toolkit/shared-utils')
+globalConfig.SRC_DIR = pathSource
 // 页面文件
 const zipPages = {}
 
@@ -45,17 +55,23 @@ module.exports = {
         oneOf: [
           {
             resourceQuery: /uxType=app/,
-            use: require.resolve('@hap-toolkit/dsl-xvm/lib/loaders/app-loader.js')
+            use: path.join(
+              __dirname,
+              '../../node_modules/@hap-toolkit/dsl-xvm/lib/loaders/app-loader.js'
+            )
           },
           {
             resourceQuery: /uxType=(page|comp|card)/,
-            use: require.resolve('@hap-toolkit/dsl-xvm/lib/loaders/ux-loader.js')
+            use: path.join(
+              __dirname,
+              '../../node_modules/@hap-toolkit/dsl-xvm/lib/loaders/ux-loader.js'
+            )
           }
         ]
       },
       {
         test: /\.js/,
-        loaders: [moduleLoader, 'babel-loader']
+        use: [moduleLoader, 'babel-loader']
       },
       {
         test: /\.json/,
@@ -66,7 +82,9 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      QUICKAPP_TOOLKIT_VERSION: JSON.stringify(require('hap-toolkit/package.json').version)
+      QUICKAPP_TOOLKIT_VERSION: JSON.stringify(
+        require(path.join(__dirname, '../../node_modules/hap-toolkit/package.json')).version
+      )
     }),
     new HandlerPlugin({
       pathSrc: pathSource
@@ -89,9 +107,7 @@ module.exports = {
     assets: false
   },
   node: {
-    global: false,
-    console: false,
-    process: false
+    global: false
   }
 }
 

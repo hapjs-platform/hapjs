@@ -7,14 +7,22 @@
 const path = require('path')
 const fs = require('fs')
 
-const uxLoader = require.resolve('@hap-toolkit/dsl-xvm/lib/loaders/ux-loader.js')
+const uxLoader = path.join(
+  __dirname,
+  '../../node_modules/@hap-toolkit/dsl-xvm/lib/loaders/ux-loader.js'
+)
 const moduleLoader = require.resolve('@hap-toolkit/packager/lib/loaders/module-loader.js')
+
+// ux-loader 依赖 globalConfig.SRC_DIR 计算相对路径，此处显式设置
+const { globalConfig } = require('@hap-toolkit/shared-utils')
 
 // 支持文件扩展名
 const FILE_EXT_LIST = ['.ux']
 // 所在目录名
 const pathSource = path.resolve(__dirname, '../suite/infras')
 const pathBuild = path.resolve(__dirname, '../../')
+
+globalConfig.SRC_DIR = pathSource
 // 页面文件
 const zipPages = {}
 
@@ -33,11 +41,11 @@ module.exports = {
     rules: [
       {
         test: new RegExp(`(${FILE_EXT_LIST.map(k => '\\' + k).join('|')})(\\?[^?]+)?$`),
-        loaders: uxLoader
+        use: uxLoader
       },
       {
         test: /\.js/,
-        loaders: [moduleLoader, 'babel-loader']
+        use: [moduleLoader, 'babel-loader']
       }
     ]
   },
@@ -55,9 +63,7 @@ module.exports = {
     assets: false
   },
   node: {
-    global: false,
-    console: false,
-    process: false
+    global: false
   }
 }
 
