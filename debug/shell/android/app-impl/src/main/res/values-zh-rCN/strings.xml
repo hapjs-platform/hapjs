@@ -68,6 +68,9 @@
         \n\n2. 是否已经执行\"npm run server\"命令
         \n\n3. hap-toolkit版本是否支持USB调试
         \n\n4. 开发者选项中的USB调试是否打开</string>
+    <string name="dlg_env_not_ready_title">快应用调试环境未就绪</string>
+    <string name="dlg_env_not_ready_desc">快应用调试需开启USB调试。请按以下步骤操作：\n\n第一步：进入\"设置\"＞\"关于手机\"；\n\n第二步：连续点击\"软件版本号\"7次；\n\n第三步：看到提示\"已显示开发者选项入口\"后，返回\"设置\"；\n\n第四步：在\"设置\"中搜索\"开发者选项\"；\n\n第五步：开启\"开发者选项\"总开关，并开启\"USB调试\"。</string>
+    <string name="dlg_env_not_ready_positive">去设置</string>
     <string name="dlg_hint_downloading">正在下载...</string>
     <string name="dlg_universal_scan_confirm_title">是否启动快应用？</string>
 

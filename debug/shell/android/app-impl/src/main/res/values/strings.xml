@@ -69,6 +69,9 @@
         \n\n2. whether \"npm run server\" command has been executed
         \n\n3. whether the hap-toolkit supports USB debugging
         \n\n4. whether the USB debugging in developer options is checked</string>
+    <string name="dlg_env_not_ready_title">Quick app debug environment not ready</string>
+    <string name="dlg_env_not_ready_desc">Quick app debugging requires USB debugging. Please follow these steps:\n\nStep 1: Open \"Settings\" ＞ \"About phone\";\n\nStep 2: Tap \"Software version\" 7 times continuously;\n\nStep 3: After seeing \"Developer options entry shown\", return to \"Settings\";\n\nStep 4: Search \"Developer options\" in \"Settings\";\n\nStep 5: Enable the \"Developer options\" master switch, then enable \"USB debugging\".</string>
+    <string name="dlg_env_not_ready_positive">Go to Settings</string>
     <string name="dlg_hint_downloading">Downloading...</string>
     <string name="dlg_universal_scan_confirm_title">Do you want to enable Instant Apps?</string>
 

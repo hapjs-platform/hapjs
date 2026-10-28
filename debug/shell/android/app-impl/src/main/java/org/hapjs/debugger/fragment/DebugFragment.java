@@ -8,6 +8,7 @@ package org.hapjs.debugger.fragment;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -87,6 +89,8 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
     protected boolean mIsToolkitDebug;
     String mScanTarget;
     private AlertDialog mGetRpkErrorDialog;
+    private AlertDialog mAdbDisabledDialog;
+    private boolean mDevOptionsEnabled;
     private Uri mPendingPackageUri;
     private Server mServer;
 
@@ -228,6 +232,9 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         if (mGetRpkErrorDialog != null) {
             mGetRpkErrorDialog.dismiss();
         }
+        if (mAdbDisabledDialog != null) {
+            mAdbDisabledDialog.dismiss();
+        }
         mServer.stop();
     }
 
@@ -357,6 +364,48 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         }
         mGetRpkErrorDialog.setMessage(message);
         mGetRpkErrorDialog.show();
+    }
+
+    protected void showAdbDisabledDialog(boolean devOptionsEnabled) {
+        Activity activity = getActivity();
+        if (activity == null || activity.isDestroyed()
+                || activity.isFinishing()
+                || (mAdbDisabledDialog != null && mAdbDisabledDialog.isShowing())) {
+            Log.w(TAG, "showAdbDisabledDialog skipped: devOptionsEnabled=" + devOptionsEnabled
+                    + ", activityNull=" + (activity == null)
+                    + ", dialogShowing="
+                    + (mAdbDisabledDialog != null && mAdbDisabledDialog.isShowing()));
+            return;
+        }
+        Log.i(TAG, "showAdbDisabledDialog: devOptionsEnabled=" + devOptionsEnabled
+                + ", mDevOptionsEnabled(prev)=" + mDevOptionsEnabled);
+        mDevOptionsEnabled = devOptionsEnabled;
+        if (mAdbDisabledDialog == null) {
+            mAdbDisabledDialog = new AlertDialog.Builder(activity)
+                    .setPositiveButton(R.string.dlg_env_not_ready_positive,
+                            (d, w) -> {
+                                try {
+                                    Log.i(TAG, "AdbDisabledDialog positive clicked:"
+                                            + " mDevOptionsEnabled=" + mDevOptionsEnabled);
+                                    Intent intent;
+                                    if (mDevOptionsEnabled) {
+                                        intent = new Intent(
+                                                Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                                    } else {
+                                        intent = new Intent(
+                                                android.provider.Settings.ACTION_DEVICE_INFO_SETTINGS);
+                                    }
+                                    startActivity(intent);
+                                } catch (ActivityNotFoundException e) {
+                                    Log.w(TAG, "No settings activity", e);
+                                }
+                            })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create();
+        }
+        mAdbDisabledDialog.setTitle(R.string.dlg_env_not_ready_title);
+        mAdbDisabledDialog.setMessage(getActivity().getString(R.string.dlg_env_not_ready_desc));
+        mAdbDisabledDialog.show();
     }
 
     protected void setupServer() {
@@ -654,7 +703,7 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
         }
 
         @Override
-        public void onError(final int code) {
+        public void onError(final int code, final Bundle extras) {
             final Activity activity = getActivity();
             if (activity == null) {
                 return;
@@ -669,6 +718,13 @@ public abstract class DebugFragment extends Fragment implements AdapterView.OnIt
                             break;
                         case AppDebugManager.ERROR_CODE_GET_RPK_FILE_FAILED:
                             showGetRpkErrorDialog();
+                            break;
+                        case AppDebugManager.SERVICE_CODE_ADB_NOT_ENABLED:
+                        case AppDebugManager.SERVICE_CODE_DEV_OPTIONS_DISABLED:
+                            boolean devOptionsEnabled = extras != null
+                                    && extras.getBoolean(
+                                            AppDebugManager.EXTRA_DEV_OPTIONS_ENABLED, false);
+                            showAdbDisabledDialog(devOptionsEnabled);
                             break;
                         case AppDebugManager.ERROR_CODE_FAIL_TO_SAVE_LOCAL_FILE:  // fallthrough
                         case AppDebugManager.ERROR_CODE_FAIL_TO_CREATE_TEMP_FILE: // fallthrough

@@ -10,6 +10,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
@@ -179,9 +180,9 @@ public class CardFragment extends DebugFragment implements AdapterView.OnItemCli
             }
 
             @Override
-            public void onError(int code) {
+            public void onError(int code, Bundle extras) {
                 resetButtonTextView();
-                super.onError(code);
+                super.onError(code, extras);
             }
         });
         CardDebugManager.getInstance(getContext()).setDebugListener(new CardDebugManager.CardDebugListener() {

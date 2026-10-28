@@ -165,9 +165,9 @@ public class AppFragment extends DebugFragment implements AdapterView.OnItemClic
 
 
             @Override
-            public void onError(int code) {
+            public void onError(int code, Bundle extras) {
                 resetButtonTextView();
-                super.onError(code);
+                super.onError(code, extras);
             }
 
             @Override
