@@ -79,7 +79,11 @@ public class AppDebugManager {
     public static final int SERVICE_CODE_OK = 0;
     public static final int SERVICE_CODE_GENERIC_ERROR = 1;
     public static final int SERVICE_CODE_UNKNOWN_MESSAGE = 2;
+    public static final int SERVICE_CODE_ADB_NOT_ENABLED = 3;
+    public static final int SERVICE_CODE_DEV_OPTIONS_DISABLED = 4;
+    public static final int SERVICE_CODE_DEBUG_SERVICE_DISABLED = 5;
     public static final int SERVICE_CODE_CERTIFICATION_MISMATCH = 100;
+    public static final String EXTRA_DEV_OPTIONS_ENABLED = "devOptionsEnabled";
     private static final String TAG = "AppDebugManager";
     private static final String ACTION_BIND_DEBUG_SERVICE = "org.hapjs.intent.action.BIND_DEBUG_SERVICE";
     private static final String FILE_PROVIDER_AUTHORITY = "org.hapjs.debugger.file";
@@ -242,7 +246,7 @@ public class AppDebugManager {
                     }
                 });
                 if (rpkFile == null) {
-                    onError(ERROR_CODE_GET_RPK_FILE_FAILED);
+                    onError(ERROR_CODE_GET_RPK_FILE_FAILED, null);
                     return;
                 }
                 mRetryRpkFile = rpkFile;
@@ -271,7 +275,7 @@ public class AppDebugManager {
 
     private void onInstallLocally(Uri uri) {
         if (isOtherFileExceptRpk(uri)) {
-            onError(ERROR_CODE_PICK_OTHER_FILE_EXCEPT_RPK);
+            onError(ERROR_CODE_PICK_OTHER_FILE_EXCEPT_RPK, null);
             return;
         }
         File tempFile = createTempFile();
@@ -287,13 +291,13 @@ public class AppDebugManager {
                 }
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "Fail to save local file", e);
-                onError(ERROR_CODE_FAIL_TO_SAVE_LOCAL_FILE);
+                onError(ERROR_CODE_FAIL_TO_SAVE_LOCAL_FILE, null);
             } finally {
                 FileUtils.closeQuietly(in);
             }
             tempFile.delete();
         } else {
-            onError(ERROR_CODE_FAIL_TO_CREATE_TEMP_FILE);
+            onError(ERROR_CODE_FAIL_TO_CREATE_TEMP_FILE, null);
         }
     }
 
@@ -323,9 +327,13 @@ public class AppDebugManager {
         sendUninstallPackageMessage(pkg);
     }
 
-    private void onError(int code) {
+    private void onError(int code, Bundle params) {
+        boolean devOptionsEnabled = params != null
+                && params.getBoolean(EXTRA_DEV_OPTIONS_ENABLED, false);
+        Log.i(TAG, "onError: code=" + code + ", devOptionsEnabled=" + devOptionsEnabled
+                + ", params=" + params);
         if (mListener != null) {
-            mListener.onError(code);
+            mListener.onError(code, params);
         }
     }
 
@@ -362,7 +370,7 @@ public class AppDebugManager {
     private void installPackageInPlatform(File rpkFile) {
         PackageInfo pi = PackageManager.getPackageInfo(rpkFile.getPath());
         if (pi == null) {
-            onError(ERROR_CODE_GET_PACKAGE_INFO_FAIL);
+            onError(ERROR_CODE_GET_PACKAGE_INFO_FAIL, null);
             return;
         }
         mAppCache.put(pi.getPackage(), rpkFile);
@@ -379,7 +387,7 @@ public class AppDebugManager {
     private void sendInstallPackageMessage(String pkg, Uri file) {
         String platformPackage = PreferenceUtils.getPlatformPackage(mContext);
         if (TextUtils.isEmpty(platformPackage)) {
-            onError(ERROR_CODE_PLATFORM_NOT_CHOOSE);
+            onError(ERROR_CODE_PLATFORM_NOT_CHOOSE, null);
             return;
         }
 
@@ -403,7 +411,7 @@ public class AppDebugManager {
                 Log.e(TAG, "Fail to update online", e);
             }
         }
-        onError(ERROR_CODE_GET_DEBUG_SERVICE_FAIL);
+        onError(ERROR_CODE_GET_DEBUG_SERVICE_FAIL, null);
     }
 
     private boolean sendLaunchPackageMessage(String pkg, boolean shouldReload) {
@@ -502,7 +510,7 @@ public class AppDebugManager {
     private void bindService(List<Message> pendingMessages) {
         String platformPackage = PreferenceUtils.getPlatformPackage(mContext);
         if (TextUtils.isEmpty(platformPackage) && mListener != null) {
-            mListener.onError(ERROR_CODE_PLATFORM_NOT_CHOOSE);
+            mListener.onError(ERROR_CODE_PLATFORM_NOT_CHOOSE, null);
             return;
         }
 
@@ -599,7 +607,7 @@ public class AppDebugManager {
 
         void onUninstallResult(boolean result);
 
-        void onError(int code);
+        void onError(int code, Bundle extras);
     }
 
     private class HandlerImpl extends Handler {
@@ -705,28 +713,55 @@ public class AppDebugManager {
                     String pkg = params.getString(EXTRA_PACKAGE);
                     boolean result = params.getBoolean(EXTRA_RESULT);
                     int code = params.getInt(EXTRA_ERROR_CODE);
-                    onInstallResult(pkg, result, code);
+                    if (code == SERVICE_CODE_ADB_NOT_ENABLED
+                            || code == SERVICE_CODE_DEV_OPTIONS_DISABLED
+                            || code == SERVICE_CODE_DEBUG_SERVICE_DISABLED) {
+                        onError(code, params);
+                    } else {
+                        onInstallResult(pkg, result, code);
+                    }
                     break;
                 }
                 case MSG_SERVICE_LAUNCH_PACKAGE: {
                     Bundle params = msg.getData();
                     String pkg = params.getString(EXTRA_PACKAGE);
                     boolean result = params.getBoolean(EXTRA_RESULT);
-                    onLaunchResult(pkg, result);
+                    int code = params.getInt(EXTRA_ERROR_CODE);
+                    if (code == SERVICE_CODE_ADB_NOT_ENABLED
+                            || code == SERVICE_CODE_DEV_OPTIONS_DISABLED
+                            || code == SERVICE_CODE_DEBUG_SERVICE_DISABLED) {
+                        onError(code, params);
+                    } else {
+                        onLaunchResult(pkg, result);
+                    }
                     break;
                 }
                 case MSG_SERVICE_DEBUG_PACKAGE: {
                     Bundle params = msg.getData();
                     String pkg = params.getString(EXTRA_PACKAGE);
                     boolean result = params.getBoolean(EXTRA_RESULT);
-                    onDebugResult(pkg, result);
+                    int code = params.getInt(EXTRA_ERROR_CODE);
+                    if (code == SERVICE_CODE_ADB_NOT_ENABLED
+                            || code == SERVICE_CODE_DEV_OPTIONS_DISABLED
+                            || code == SERVICE_CODE_DEBUG_SERVICE_DISABLED) {
+                        onError(code, params);
+                    } else {
+                        onDebugResult(pkg, result);
+                    }
                     break;
                 }
                 case MSG_SERVICE_UNINSTALL_PACKAGE: {
                     Bundle params = msg.getData();
                     String pkg = params.getString(EXTRA_PACKAGE);
                     boolean result = params.getBoolean(EXTRA_RESULT);
-                    onUninstallResult(pkg, result);
+                    int code = params.getInt(EXTRA_ERROR_CODE);
+                    if (code == SERVICE_CODE_ADB_NOT_ENABLED
+                            || code == SERVICE_CODE_DEV_OPTIONS_DISABLED
+                            || code == SERVICE_CODE_DEBUG_SERVICE_DISABLED) {
+                        onError(code, params);
+                    } else {
+                        onUninstallResult(pkg, result);
+                    }
                     break;
                 }
                 default:
